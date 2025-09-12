@@ -1,0 +1,42 @@
+name: Build & Push Image (Simple)
+on:
+  workflow_call:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: manageros-lambda-api
+
+jobs:
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        run: |
+          # Get ECR URL
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ECR_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}"
+
+          # Build for AMD64 (simple docker build)
+          docker build --platform linux/amd64 -t ${ECR_URL}:latest ./backend
+
+          # Push
+          docker push ${ECR_URL}:latest
+
+          echo "✅ Built and pushed: ${ECR_URL}:latest"
+

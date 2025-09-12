@@ -1,0 +1,95 @@
+name: Build, Test & Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_infrastructure:
+        description: "Deploy infrastructure"
+        type: boolean
+        default: true
+      deploy_application:
+        description: "Deploy application"
+        type: boolean
+        default: true
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      infrastructure_changed: ${{ steps.changes.outputs.infrastructure }}
+      backend_changed: ${{ steps.changes.outputs.backend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "infrastructure=${{ github.event.inputs.deploy_infrastructure }}" >> $GITHUB_OUTPUT
+            echo "backend=${{ github.event.inputs.deploy_application }}" >> $GITHUB_OUTPUT
+          else
+            # Check for workflow changes - if any workflow files changed, deploy everything
+            if git diff --name-only HEAD^ HEAD | grep -E '^\.github/workflows/'; then
+              echo "🔄 Workflow changes detected - deploying everything"
+              echo "infrastructure=true" >> $GITHUB_OUTPUT
+              echo "backend=true" >> $GITHUB_OUTPUT
+            else
+              # Check for infrastructure changes
+              if git diff --name-only HEAD^ HEAD | grep -E '^infra/'; then
+                echo "infrastructure=true" >> $GITHUB_OUTPUT
+              else
+                echo "infrastructure=false" >> $GITHUB_OUTPUT
+              fi
+
+              # Check for backend changes
+              if git diff --name-only HEAD^ HEAD | grep -E '^backend/'; then
+                echo "backend=true" >> $GITHUB_OUTPUT
+              else
+                echo "backend=false" >> $GITHUB_OUTPUT
+              fi
+            fi
+          fi
+
+  test:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.backend_changed == 'true'
+    uses: ./.github/workflows/_test.yml
+    secrets: inherit
+
+  build-image:
+    needs: [detect-changes, test]
+    if: always() && needs.detect-changes.outputs.backend_changed == 'true' && (needs.test.result == 'success' || needs.test.result == 'skipped')
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/_build.yml
+    secrets: inherit
+
+  infrastructure:
+    needs: [detect-changes, test, build-image]
+    if: always() && (needs.detect-changes.outputs.infrastructure_changed == 'true' || needs.build-image.result == 'success') && (needs.test.result == 'success' || needs.test.result == 'skipped')
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/_infrastructure.yml
+    with:
+      terraform_action: "apply"
+    secrets: inherit
+
+  deploy:
+    needs: [detect-changes, test, build-image, infrastructure]
+    if: always() && needs.build-image.result == 'success' && needs.infrastructure.result == 'success'
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      ecr_repository_url: ${{ needs.infrastructure.outputs.ecr_repository_url }}
+      lambda_function_name: ${{ needs.infrastructure.outputs.lambda_function_name }}
+    secrets: inherit

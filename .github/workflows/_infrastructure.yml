@@ -1,0 +1,176 @@
+name: Infrastructure (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      terraform_action:
+        description: "Terraform action: plan or apply"
+        required: false
+        default: "apply"
+        type: string
+    outputs:
+      lambda_function_arn:
+        description: "Lambda function ARN"
+        value: ${{ jobs.terraform.outputs.lambda_function_arn }}
+      lambda_function_name:
+        description: "Lambda function name"
+        value: ${{ jobs.terraform.outputs.lambda_function_name }}
+      api_gateway_url:
+        description: "API Gateway URL"
+        value: ${{ jobs.terraform.outputs.api_gateway_url }}
+      ecr_repository_url:
+        description: "ECR repository URL"
+        value: ${{ jobs.terraform.outputs.ecr_repository_url }}
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  terraform:
+    name: Terraform ${{ inputs.terraform_action }}
+    runs-on: ubuntu-latest
+
+    # OIDC needs this
+    permissions:
+      id-token: write
+      contents: read
+
+    outputs:
+      lambda_function_arn: ${{ steps.outputs.outputs.lambda_function_arn }}
+      lambda_function_name: ${{ steps.outputs.outputs.lambda_function_name }}
+      api_gateway_url: ${{ steps.outputs.outputs.api_gateway_url }}
+      ecr_repository_url: ${{ steps.outputs.outputs.ecr_repository_url }}
+
+    defaults:
+      run:
+        working-directory: ./infra
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # OIDC (assume role via GitHub OIDC; no access keys needed)
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Create/choose a workspace name (env-aware on main, sanitized for branches)
+      - name: Compute workspace
+        id: ws
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            WS="production"
+          else
+            WS="$(echo "${GITHUB_REF_NAME}" | tr '/.' '-' | tr -cd '[:alnum:]-' | cut -c1-40)"
+          fi
+          echo "ws=${WS}" >> "$GITHUB_OUTPUT"
+
+      # Discover account and build backend config (bucket + key)
+      - name: Discover backend config
+        id: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          BUCKET="tf-state-${ACCOUNT_ID}"
+          KEY="${{ github.repository }}/${{ steps.ws.outputs.ws }}/terraform.tfstate"
+          echo "account_id=${ACCOUNT_ID}" >> "$GITHUB_OUTPUT"
+          echo "bucket=${BUCKET}" >> "$GITHUB_OUTPUT"
+          echo "key=${KEY}" >> "$GITHUB_OUTPUT"
+          echo "🪣 Using bucket: ${BUCKET}"
+          echo "🔑 Using key: ${KEY}"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+          terraform_wrapper: false
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init (S3 backend)
+        run: |
+          echo "🚀 Initializing Terraform with S3 backend..."
+          terraform init -reconfigure \
+            -backend-config="bucket=${{ steps.backend.outputs.bucket }}" \
+            -backend-config="key=${{ steps.backend.outputs.key }}" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="encrypt=true"
+
+      - name: Select/Create Workspace
+        run: |
+          terraform workspace new "${{ steps.ws.outputs.ws }}" || true
+          terraform workspace select "${{ steps.ws.outputs.ws }}"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_project_name: manageros
+          TF_VAR_environment: ${{ steps.ws.outputs.ws }}
+        run: |
+          echo "📋 Planning Terraform changes..."
+          terraform plan -no-color -out=tfplan
+          terraform show -no-color tfplan > plan_output.txt
+          echo "✅ Plan completed successfully"
+
+      - name: Comment PR with Plan
+        if: github.event_name == 'pull_request' && inputs.terraform_action == 'plan'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('./infra/plan_output.txt', 'utf8');
+            const maxLength = 60000;
+            const trimmed = plan.length > maxLength ? plan.substring(0, maxLength) + '\n\n... (truncated)' : plan;
+            const output = `## Terraform Plan
+            <details>
+            <summary>Show Plan</summary>
+            \`\`\`terraform
+            ${trimmed}
+            \`\`\`
+            </details>`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Terraform Apply
+        if: inputs.terraform_action == 'apply'
+        env:
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_project_name: manageros
+          TF_VAR_environment: ${{ steps.ws.outputs.ws }}
+        run: |
+          echo "🚀 Applying Terraform changes..."
+          terraform apply -auto-approve tfplan
+          echo "✅ Apply completed successfully"
+
+      - name: Get Terraform Outputs
+        if: inputs.terraform_action == 'apply'
+        id: outputs
+        run: |
+          echo "📊 Getting Terraform outputs..."
+          echo "ecr_repository_url=$(terraform output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
+          echo "lambda_function_arn=$(terraform output -raw lambda_function_arn)" >> $GITHUB_OUTPUT
+          echo "lambda_function_name=$(terraform output -raw lambda_function_name)" >> $GITHUB_OUTPUT
+          echo "api_gateway_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        run: |
+          echo "🎉 Infrastructure workflow completed successfully!"
+          echo "✅ Terraform initialized with S3 backend"
+          echo "✅ Configuration validated"
+          echo "✅ Plan generated successfully"
+          if [ "${{ inputs.terraform_action }}" == "apply" ]; then
+            echo "✅ Infrastructure deployed to ${{ steps.ws.outputs.ws }} workspace"
+          fi

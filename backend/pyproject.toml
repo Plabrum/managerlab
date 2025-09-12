@@ -1,0 +1,25 @@
+[project]
+name = "manageros"
+version = "0.1.0"
+description = "Backend for manageros"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "litestar[standard,sqlalchemy,opentelemetry]",
+  "sqlalchemy",
+  "psycopg[binary]",                             # psycopg3 for async operations
+  "psycopg2-binary",                             # psycopg2 for sync operations (alembic)
+  "pydantic",
+  "requests",
+  "python-dotenv",
+  "boto3",
+  "uvicorn",
+  "aiohttp",
+  "advanced-alchemy",
+  "pytest-asyncio",
+  "pytest",
+  "ipdb",
+  "ipython>=9.5.0",
+  "ruff",
+  "mangum",                                      # ASGI adapter for AWS Lambda
+]

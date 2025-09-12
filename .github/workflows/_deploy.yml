@@ -1,0 +1,59 @@
+name: Deploy Application (Simple)
+
+on:
+  workflow_call:
+    inputs:
+      ecr_repository_url:
+        description: "ECR repository URL"
+        required: false
+        type: string
+      lambda_function_name:
+        description: "Lambda function name"
+        required: false
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: manageros-lambda-api
+
+jobs:
+  deploy:
+    name: Deploy to Lambda
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get ECR image URI
+        id: ecr
+        run: |
+          if [ -n "${{ inputs.ecr_repository_url }}" ]; then
+            IMAGE_URI="${{ inputs.ecr_repository_url }}:latest"
+          else
+            AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest"
+          fi
+          echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Lambda
+        run: |
+          echo "Deploying ${{ steps.ecr.outputs.image_uri }} to ${{ inputs.lambda_function_name }}"
+
+          aws lambda update-function-code \
+            --function-name ${{ inputs.lambda_function_name }} \
+            --image-uri ${{ steps.ecr.outputs.image_uri }}
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for deployment to complete..."
+          aws lambda wait function-updated \
+            --function-name ${{ inputs.lambda_function_name }}
+          echo "Deployment complete!"
