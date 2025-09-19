@@ -43,7 +43,7 @@ function FieldError({ name }: { name: string }) {
   const {
     formState: { errors },
   } = useFormContext();
-  const err = (errors as any)?.[name];
+  const err = errors?.[name] as { message?: string } | undefined;
   if (!err) return null;
   return (
     <p className="mt-1 text-sm text-red-400">
@@ -76,7 +76,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     } = props;
     console.log('Rendering Form', defaultValues);
     const methods = useForm<TFieldValues>({
-      defaultValues: defaultValues as any,
+      defaultValues: defaultValues as TFieldValues | undefined,
       mode,
       reValidateMode,
       resolver,
@@ -178,7 +178,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
           {...register(name, {
             required: RequiredMessage(required),
             pattern: defaultEmailPattern,
-            ...(rules as any),
+            ...rules,
           })}
           className="mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
           placeholder={placeholder}
@@ -221,7 +221,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
           id={htmlId}
           {...register(name, {
             required: RequiredMessage(required),
-            ...(rules as any),
+            ...rules,
           })}
           className={cn(
             'mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500',
