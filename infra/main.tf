@@ -984,18 +984,6 @@ resource "aws_cloudwatch_log_group" "lambda" {
   tags = local.common_tags
 }
 
-# SSL Certificate for API domain
-resource "aws_acm_certificate" "api" {
-  domain_name       = "manageros-api.plabrum.com"
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = local.common_tags
-}
-
 resource "aws_acm_certificate" "managerlab_api" {
   domain_name       = "api.managerlab.app"
   validation_method = "DNS"
@@ -1012,7 +1000,7 @@ resource "aws_apigatewayv2_domain_name" "main" {
   domain_name = "manageros-api.plabrum.com"
 
   domain_name_configuration {
-    certificate_arn = aws_acm_certificate.api.arn
+    certificate_arn = aws_acm_certificate.managerlab_api.arn
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
