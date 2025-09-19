@@ -7,6 +7,8 @@ import {
   type Path,
   type RegisterOptions,
   type SubmitHandler,
+  type UseFormProps,
+  type DefaultValues,
 } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,10 +16,6 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils'; // optional: your className helper
 import { Modal } from '../modal';
 import { Button } from '../ui/button';
-
-type DeepPartial<T> = {
-  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
-};
 
 type BaseFieldProps<
   TFieldValues extends FieldValues,
@@ -57,13 +55,13 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
 
   // ---------- Form wrapper ----------
   function Form(props: {
-    defaultValues?: DeepPartial<TFieldValues>;
+    defaultValues?: DefaultValues<TFieldValues>;
     onSubmit: SubmitHandler<TFieldValues>;
     className?: string;
     children: React.ReactNode;
-    mode?: Parameters<typeof useForm>[0]['mode'];
-    reValidateMode?: Parameters<typeof useForm>[0]['reValidateMode'];
-    resolver?: Parameters<typeof useForm<TFieldValues>>[0]['resolver'];
+    mode?: UseFormProps<TFieldValues>['mode'];
+    reValidateMode?: UseFormProps<TFieldValues>['reValidateMode'];
+    resolver?: UseFormProps<TFieldValues>['resolver'];
   }) {
     const {
       defaultValues,
@@ -76,7 +74,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     } = props;
     console.log('Rendering Form', defaultValues);
     const methods = useForm<TFieldValues>({
-      defaultValues: defaultValues as TFieldValues | undefined,
+      defaultValues,
       mode,
       reValidateMode,
       resolver,
@@ -177,9 +175,9 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
           type="email"
           {...register(name, {
             required: RequiredMessage(required),
-            pattern: defaultEmailPattern,
+            pattern: rules?.pattern || defaultEmailPattern,
             ...rules,
-          })}
+          } as RegisterOptions<TFieldValues, N>)}
           className="mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
           placeholder={placeholder}
         />

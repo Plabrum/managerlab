@@ -2,7 +2,7 @@ repos:
   - repo: local
     hooks:
       - id: linting
-        name: prettier (local)
+        name: Eslint (local)
         language: system
         # run from frontend so plugins resolve from frontend/node_modules
         entry: bash -lc 'cd frontend && pnpm run -s lint --'
