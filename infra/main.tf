@@ -509,8 +509,6 @@ resource "aws_ecr_lifecycle_policy" "app" {
   })
 }
 
-# Note: ECR image data source removed to avoid chicken-and-egg problem
-# App Runner will pull the image specified by tag when it's available
 # ================================
 # S3 Storage
 # ================================
