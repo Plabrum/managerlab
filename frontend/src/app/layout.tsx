@@ -1,22 +1,15 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { TanstackQueryProvider } from "@/utils/tanstack-query-provider";
-import { ThemeProvider } from "@/components/theme-provider";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import type React from 'react';
+import type { Metadata } from 'next';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import { TanstackQueryProvider } from '@/lib/tanstack-query-provider';
+import { Toaster } from '@/components/ui/sonner';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "Manager OS",
-  description: "Manage content creators",
+  title: 'Arive - Next Generation Talent Management',
+  description: 'Streamline your talent management operations with Arive',
+  generator: 'v0.app',
 };
 
 export default function RootLayout({
@@ -25,15 +18,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TanstackQueryProvider>
-            {children}
-          </TanstackQueryProvider>
-        </ThemeProvider>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className="font-sans antialiased">
+        <TanstackQueryProvider>{children}</TanstackQueryProvider>
+        <Toaster />
       </body>
     </html>
   );

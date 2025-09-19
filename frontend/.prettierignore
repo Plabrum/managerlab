@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Cache directories
+.cache/
+.turbo/
+
+# Generated files
+src/openapi/
+*.d.ts
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Config files that shouldn't be reformatted
+.prettierrc*
+.eslintrc*

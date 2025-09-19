@@ -4,5 +4,87 @@
  * Litestar API
  * OpenAPI spec version: 1.0.0
  */
-export type ApiHealthCheck200 = { [key: string]: unknown };
+export interface CreateUserSchema {
+  name: string;
+  email: string;
+}
+
+export interface CreateUserUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GetUserUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ListUsersUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type UserWaitlistFormSchemaCompany = string | null;
+
+export type UserWaitlistFormSchemaMessage = string | null;
+
+export interface UserWaitlistFormSchema {
+  name: string;
+  email: string;
+  company?: UserWaitlistFormSchemaCompany;
+  message?: UserWaitlistFormSchemaMessage;
+}
+
+export type HealthHealthCheck200 = { [key: string]: unknown };
+
+export type UsersCreateUser400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersCreateUser400Extra = null | UsersCreateUser400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersCreateUser400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersCreateUser400Extra;
+};
+
+export type UsersUserIdGetUser400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersUserIdGetUser400Extra = null | UsersUserIdGetUser400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersUserIdGetUser400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersUserIdGetUser400Extra;
+};
+
+export type UsersSignupAddUserToWaitlist400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersSignupAddUserToWaitlist400Extra = null | UsersSignupAddUserToWaitlist400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersSignupAddUserToWaitlist400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersSignupAddUserToWaitlist400Extra;
+};
 

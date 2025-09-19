@@ -10,6 +10,7 @@ help:
 	@echo "  dev-backend      - Start backend development server"
 	@echo "  db-start         - Start development database"
 	@echo "  db-stop          - Stop development database"
+	@echo "  db-migrate-generate - Generate new migration from model changes"
 	@echo "  db-migrate-up    - Run database migrations (upgrade)"
 	@echo "  db-migrate-down  - Rollback database migrations"
 	@echo "  db-migrate-prod  - Run production database migrations"
@@ -57,6 +58,10 @@ db-start:
 .PHONY: db-stop
 db-stop:
 	docker stop manageros-dev-db || true
+
+.PHONY: db-migrate-generate
+db-migrate-generate:
+	cd backend && uv run alembic revision --autogenerate -m "$(if $(m),$(m),Auto-generated migration)"
 
 .PHONY: db-migrate-up
 db-migrate-up:

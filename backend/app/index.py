@@ -17,8 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.pool import NullPool
 
 from app.config import config
-from app.models.base import Base
-from app.routes.users import user_router
+from app.base.models import Base
+from app.users.routes import user_router
 
 logging.basicConfig(
     level=logging.INFO,

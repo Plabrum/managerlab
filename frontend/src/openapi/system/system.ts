@@ -8,23 +8,22 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
 import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
-import type {
-  ApiHealthCheck200
+  HealthHealthCheck200
 } from '../litestarAPI.schemas';
 
+import { customInstance } from '.././custom-instance';
 
 
 
@@ -32,58 +31,84 @@ import type {
 /**
  * @summary HealthCheck
  */
-export const apiHealthCheck = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<ApiHealthCheck200>> => {
+export const healthHealthCheck = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<HealthHealthCheck200>(
+      {url: `/health`, method: 'GET', signal
+    },
+      );
+    }
+  
 
+export const getHealthHealthCheckQueryKey = () => {
+    return [`/health`] as const;
+    }
 
-  return axios.get(
-    `/api`, options
-  );
-}
-
-
-export const getApiHealthCheckQueryKey = () => {
-  return [`/api`] as const;
-}
-
-
-export const getApiHealthCheckQueryOptions = <TData = Awaited<ReturnType<typeof apiHealthCheck>>, TError = AxiosError<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof apiHealthCheck>>, TError, TData>, axios?: AxiosRequestConfig }
+    
+export const getHealthHealthCheckQueryOptions = <TData = Awaited<ReturnType<typeof healthHealthCheck>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof healthHealthCheck>>, TError, TData>>, }
 ) => {
 
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+const {query: queryOptions} = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getApiHealthCheckQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getHealthHealthCheckQueryKey();
 
+  
 
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof healthHealthCheck>>> = ({ signal }) => healthHealthCheck(signal);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof apiHealthCheck>>> = ({ signal }) => apiHealthCheck({ signal, ...axiosOptions });
+      
 
+      
 
-
-
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof apiHealthCheck>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof healthHealthCheck>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type ApiHealthCheckQueryResult = NonNullable<Awaited<ReturnType<typeof apiHealthCheck>>>
-export type ApiHealthCheckQueryError = AxiosError<unknown>
+export type HealthHealthCheckQueryResult = NonNullable<Awaited<ReturnType<typeof healthHealthCheck>>>
+export type HealthHealthCheckQueryError = unknown
 
 
+export function useHealthHealthCheck<TData = Awaited<ReturnType<typeof healthHealthCheck>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof healthHealthCheck>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof healthHealthCheck>>,
+          TError,
+          Awaited<ReturnType<typeof healthHealthCheck>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useHealthHealthCheck<TData = Awaited<ReturnType<typeof healthHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof healthHealthCheck>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof healthHealthCheck>>,
+          TError,
+          Awaited<ReturnType<typeof healthHealthCheck>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useHealthHealthCheck<TData = Awaited<ReturnType<typeof healthHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof healthHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary HealthCheck
  */
 
-export function useApiHealthCheck<TData = Awaited<ReturnType<typeof apiHealthCheck>>, TError = AxiosError<unknown>>(
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof apiHealthCheck>>, TError, TData>, axios?: AxiosRequestConfig }
+export function useHealthHealthCheck<TData = Awaited<ReturnType<typeof healthHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof healthHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getHealthHealthCheckQueryOptions(options)
 
-  const queryOptions = getApiHealthCheckQueryOptions(options)
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey;
+  query.queryKey = queryOptions.queryKey ;
 
   return query;
 }
