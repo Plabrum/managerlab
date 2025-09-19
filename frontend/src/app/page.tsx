@@ -197,9 +197,14 @@ export default function LandingPage() {
         title="Join the Waitlist"
         subTitle="Be among the first to experience Arive."
         onSubmit={async (values) => {
-          await waitlist.mutateAsync({ data: values });
-          setIsWaitlistModalOpen(false);
-          toast("You're on the waitlist! We will be in touch soon.");
+          try {
+            await waitlist.mutateAsync({ data: values });
+            setIsWaitlistModalOpen(false);
+            toast.success("You're on the waitlist! We will be in touch soon.");
+          } catch (error) {
+            toast.error('Something went wrong. Please try again.');
+            console.error(error);
+          }
         }}
         isSubmitting={waitlist.isPending}
         submitText="Join Waitlist"
