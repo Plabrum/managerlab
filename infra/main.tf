@@ -996,6 +996,17 @@ resource "aws_acm_certificate" "api" {
   tags = local.common_tags
 }
 
+resource "aws_acm_certificate" "managerlab_api" {
+  domain_name       = "api.managerlab.app"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = local.common_tags
+}
+
 # Custom domain for API Gateway
 resource "aws_apigatewayv2_domain_name" "main" {
   domain_name = "manageros-api.plabrum.com"
