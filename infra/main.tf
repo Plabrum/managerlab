@@ -997,7 +997,7 @@ resource "aws_acm_certificate" "managerlab_api" {
 
 # Custom domain for API Gateway
 resource "aws_apigatewayv2_domain_name" "main" {
-  domain_name = "manageros-api.plabrum.com"
+  domain_name = "api.managerlab.app"
 
   domain_name_configuration {
     certificate_arn = aws_acm_certificate.managerlab_api.arn
