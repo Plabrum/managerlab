@@ -1013,12 +1013,4 @@ resource "aws_apigatewayv2_api_mapping" "main" {
   stage       = aws_apigatewayv2_stage.default.id
 }
 
-# Certificate validation (you'll need to add DNS records manually)
-# Commented out until DNS propagation is complete
-# resource "aws_acm_certificate_validation" "api" {
-#   certificate_arn = aws_acm_certificate.api.arn
-#   timeouts {
-#     create = "10m"
-#   }
-# }
 

@@ -14,6 +14,14 @@ class Config:
     ENV: str = os.getenv("ENV", "development")
     IS_DEV: bool = ENV == "development"
 
+    # Google OAuth Configuration
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    GOOGLE_REDIRECT_URI: str = os.getenv(
+        "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback"
+    )
+    S3_BUCKET: str = os.getenv("S3_BUCKET", "")
+
     @property
     def DATABASE_URL(self) -> str:
         """Sync database URL for migrations and sync operations."""

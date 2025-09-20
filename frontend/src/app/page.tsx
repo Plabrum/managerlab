@@ -45,13 +45,15 @@ export default function LandingPage() {
         }
         actions={
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-300 hover:bg-gray-800 hover:text-white"
-            >
-              Sign In
-            </Button>
+            <Link href="/auth">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-300 hover:bg-gray-800 hover:text-white"
+              >
+                Sign In
+              </Button>
+            </Link>
             <Button
               onClick={() => setIsWaitlistModalOpen(true)}
               size="sm"

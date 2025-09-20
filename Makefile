@@ -59,16 +59,16 @@ db-start:
 db-stop:
 	docker stop manageros-dev-db || true
 
-.PHONY: db-migrate-generate
-db-migrate-generate:
+.PHONY: db-migrate
+db-migrate:
 	cd backend && uv run alembic revision --autogenerate -m "$(if $(m),$(m),Auto-generated migration)"
 
-.PHONY: db-migrate-up
-db-migrate-up:
+.PHONY: db-upgrade
+db-upgrade:
 	cd backend && uv run alembic upgrade head
 
-.PHONY: db-migrate-down
-db-migrate-down:
+.PHONY: db-downgrade
+db-downgrade:
 	cd backend && uv run alembic downgrade -1
 
 # Frontend specific targets

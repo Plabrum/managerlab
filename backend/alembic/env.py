@@ -6,11 +6,11 @@ from sqlalchemy.engine import Connection
 from alembic import context
 
 # Import your models and config
+from app.base.models import BaseDBModel
 from app.config import config as app_config
-from app.models.base import BaseDBModel
 
-# Import all models so they are registered with Base.metadata
-from app.users.models import User, WaitlistEntry  # noqa: F401
+# Import the main app to trigger all model imports via routes/dependencies
+import app.index  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
