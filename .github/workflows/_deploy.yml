@@ -11,6 +11,10 @@ on:
         description: "Lambda function name"
         required: false
         type: string
+      secret_env:
+        description: "Application secrets from AWS Secrets Manager"
+        required: false
+        type: string
 
 env:
   AWS_REGION: us-east-1
@@ -43,13 +47,65 @@ jobs:
           fi
           echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
 
+      - name: Get Application Secrets
+        id: secrets
+        run: |
+          echo "🔐 Retrieving application secrets from AWS Secrets Manager..."
+
+          # Try to get secrets from input first, otherwise fetch from AWS
+          if [ -n "${{ inputs.secret_env }}" ]; then
+            echo "Using secrets from infrastructure output"
+            SECRET_JSON='${{ inputs.secret_env }}'
+          else
+            echo "Fetching secrets directly from AWS Secrets Manager"
+            # Get the secret name from Lambda environment (fallback approach)
+            SECRET_ARN=$(aws lambda get-function-configuration \
+              --function-name ${{ inputs.lambda_function_name }} \
+              --query 'Environment.Variables.SECRETS_MANAGER_ARN' \
+              --output text)
+
+            if [ "$SECRET_ARN" != "None" ] && [ -n "$SECRET_ARN" ]; then
+              SECRET_JSON=$(aws secretsmanager get-secret-value \
+                --secret-id "$SECRET_ARN" \
+                --query 'SecretString' \
+                --output text)
+            else
+              echo "No secrets found, skipping secret injection"
+              SECRET_JSON=""
+            fi
+          fi
+
+          echo "secret_json=$SECRET_JSON" >> $GITHUB_OUTPUT
+
       - name: Deploy to Lambda
         run: |
           echo "Deploying ${{ steps.ecr.outputs.image_uri }} to ${{ inputs.lambda_function_name }}"
 
+          # Update function code
           aws lambda update-function-code \
             --function-name ${{ inputs.lambda_function_name }} \
             --image-uri ${{ steps.ecr.outputs.image_uri }}
+
+          # Update environment variables with secrets if available
+          if [ -n "${{ steps.secrets.outputs.secret_json }}" ]; then
+            echo "Updating Lambda environment variables with secrets"
+            SECRET_JSON='${{ steps.secrets.outputs.secret_json }}'
+
+            # Get current environment variables and merge with secrets
+            CURRENT_ENV=$(aws lambda get-function-configuration \
+              --function-name ${{ inputs.lambda_function_name }} \
+              --query 'Environment.Variables' \
+              --output json)
+
+            # Merge current env with secrets
+            MERGED_ENV=$(echo "$CURRENT_ENV $SECRET_JSON" | jq -s 'add')
+
+            aws lambda update-function-configuration \
+              --function-name ${{ inputs.lambda_function_name }} \
+              --environment "Variables=$MERGED_ENV"
+          else
+            echo "No secrets to inject, skipping environment update"
+          fi
 
       - name: Wait for deployment
         run: |

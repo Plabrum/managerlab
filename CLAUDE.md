@@ -122,3 +122,8 @@ Follow modular organization with clear separation:
 - Structure tests to mirror application structure
 - Use fixtures for common test data and dependencies
 - Test both unit and integration levels
+
+
+# Code Preferences:
+- Use <object> | None over Optional[<objec>]
+- datetime.utcnow() is deprecated please use datetime.now(tz=timezone.utc)

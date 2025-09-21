@@ -256,6 +256,11 @@ output "bastion_private_key_secret" {
   value       = aws_secretsmanager_secret.bastion_private_key.name
 }
 
+output "app_secrets_arn" {
+  description = "ARN of the application secrets in Secrets Manager"
+  value       = aws_secretsmanager_secret.app_secrets.arn
+}
+
 # ================================
 # VPC and Networking
 # ================================
@@ -748,6 +753,33 @@ resource "aws_secretsmanager_secret_version" "bastion_private_key" {
   secret_string = tls_private_key.bastion.private_key_pem
 }
 
+# ================================
+# Application Secrets
+# ================================
+
+# Application secrets in AWS Secrets Manager
+resource "aws_secretsmanager_secret" "app_secrets" {
+  name        = "${local.name}-app-secrets"
+  description = "Application secrets for Lambda function"
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "app_secrets" {
+  secret_id = aws_secretsmanager_secret.app_secrets.id
+  secret_string = jsonencode({
+    GOOGLE_CLIENT_ID      = ""
+    GOOGLE_CLIENT_SECRET  = ""
+    GOOGLE_REDIRECT_URI   = ""
+    SUCCESS_REDIRECT_URL  = ""
+    SESSION_COOKIE_DOMAIN = ""
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 
 # Bastion EC2 instance
 resource "aws_instance" "bastion" {
@@ -837,6 +869,27 @@ resource "aws_iam_role_policy" "lambda_s3" {
   })
 }
 
+# Policy for Secrets Manager access
+resource "aws_iam_role_policy" "lambda_secrets" {
+  name = "${local.name}-lambda-secrets-policy"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.app_secrets.arn
+        ]
+      }
+    ]
+  })
+}
+
 
 # ================================
 # Lambda Function
@@ -867,9 +920,10 @@ resource "aws_lambda_function" "main" {
   environment {
     variables = merge(
       {
-        ENV         = var.environment
-        S3_BUCKET   = aws_s3_bucket.app.bucket
-        DB_ENDPOINT = aws_rds_cluster.main.endpoint
+        ENV                 = var.environment
+        S3_BUCKET           = aws_s3_bucket.app.bucket
+        DB_ENDPOINT         = aws_rds_cluster.main.endpoint
+        SECRETS_MANAGER_ARN = aws_secretsmanager_secret.app_secrets.arn
         # AWS_REGION is automatically available in Lambda, don't set it manually
       },
       var.extra_env
@@ -882,6 +936,7 @@ resource "aws_lambda_function" "main" {
 
   depends_on = [
     aws_iam_role_policy.lambda_s3,
+    aws_iam_role_policy.lambda_secrets,
     aws_iam_role_policy_attachment.lambda_vpc
   ]
 }
@@ -1013,12 +1068,4 @@ resource "aws_apigatewayv2_api_mapping" "main" {
   stage       = aws_apigatewayv2_stage.default.id
 }
 
-# Certificate validation (you'll need to add DNS records manually)
-# Commented out until DNS propagation is complete
-# resource "aws_acm_certificate_validation" "api" {
-#   certificate_arn = aws_acm_certificate.api.arn
-#   timeouts {
-#     create = "10m"
-#   }
-# }
 

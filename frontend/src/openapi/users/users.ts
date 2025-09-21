@@ -24,8 +24,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddUserToWaitlistWaitlistEntryResponseBody,
   CreateUserSchema,
   CreateUserUserResponseBody,
+  GetCurrentUserUserResponseBody,
   GetUserUserResponseBody,
   ListUsersUserResponseBody,
   UserWaitlistFormSchema,
@@ -286,7 +288,7 @@ export const usersSignupAddUserToWaitlist = (
 ) => {
       
       
-      return customInstance<unknown>(
+      return customInstance<AddUserToWaitlistWaitlistEntryResponseBody>(
       {url: `/users/signup`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: userWaitlistFormSchema, signal
@@ -341,4 +343,90 @@ export const useUsersSignupAddUserToWaitlist = <TError = UsersSignupAddUserToWai
 
       return useMutation(mutationOptions , queryClient);
     }
+    /**
+ * @summary GetCurrentUser
+ */
+export const usersCurrentUserGetCurrentUser = (
     
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<GetCurrentUserUserResponseBody>(
+      {url: `/users/current_user`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getUsersCurrentUserGetCurrentUserQueryKey = () => {
+    return [`/users/current_user`] as const;
+    }
+
+    
+export const getUsersCurrentUserGetCurrentUserQueryOptions = <TData = Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUsersCurrentUserGetCurrentUserQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>> = ({ signal }) => usersCurrentUserGetCurrentUser(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type UsersCurrentUserGetCurrentUserQueryResult = NonNullable<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>>
+export type UsersCurrentUserGetCurrentUserQueryError = unknown
+
+
+export function useUsersCurrentUserGetCurrentUser<TData = Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>,
+          TError,
+          Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersCurrentUserGetCurrentUser<TData = Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>,
+          TError,
+          Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersCurrentUserGetCurrentUser<TData = Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GetCurrentUser
+ */
+
+export function useUsersCurrentUserGetCurrentUser<TData = Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersCurrentUserGetCurrentUser>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getUsersCurrentUserGetCurrentUserQueryOptions(options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
