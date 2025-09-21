@@ -18,20 +18,20 @@ from litestar.middleware.session.server_side import (
     ServerSideSessionConfig,
     ServerSideSessionBackend,
 )
-from litestar.stores.memory import MemoryStore
+from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
 from app.base.models import BaseDBModel
 from app.sessions.store import PostgreSQLSessionStore
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.pool import NullPool
-from sqlalchemy import select
 
 import aiohttp
 from app.config import Config, config
 from app.users.routes import user_router
 from app.auth.routes import auth_router
-from app.users.models import User
 from litestar.datastructures import State
+from sqlalchemy import event
+from sqlalchemy.orm import raiseload
 
 logging.basicConfig(
     level=logging.INFO,
@@ -56,14 +56,25 @@ async def health_check() -> dict:
     }
 
 
+# Async dependency that forbids lazy loads during the transaction
 async def provide_transaction(
     db_session: AsyncSession,
 ) -> AsyncGenerator[AsyncSession, None]:
+    # Listener that injects `raiseload("*")` into every ORM SELECT
+    def _enforce_raiseload(execute_state):
+        if execute_state.is_select:
+            execute_state.statement = execute_state.statement.options(raiseload("*"))
+
+    # Attach the listener to THIS session only
+    event.listen(db_session.sync_session, "do_orm_execute", _enforce_raiseload)
     try:
         async with db_session.begin():
             yield db_session
     except IntegrityError as exc:
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
+    finally:
+        # Always remove the listener so it doesn't leak to other sessions
+        event.remove(db_session.sync_session, "do_orm_execute", _enforce_raiseload)
 
 
 def provide_config() -> Config:
@@ -71,19 +82,12 @@ def provide_config() -> Config:
     return config
 
 
-async def current_user_from_session(
+async def current_user_id_from_session(
     session: dict, connection: ASGIConnection
-) -> User | None:
-    """Retrieve user from session."""
+) -> int | None:
+    """Retrieve user_id from session."""
     user_id = session.get("user_id")
-    if not user_id:
-        return None
-
-    # Get async session from connection dependencies
-    async with connection.app.state.sqlalchemy_plugin.get_session() as db_session:
-        stmt = select(User).where(User.id == user_id)
-        result = await db_session.execute(stmt)
-        return result.scalar_one_or_none()
+    return user_id if user_id else None
 
 
 async def on_startup(app: Litestar) -> None:
@@ -122,16 +126,23 @@ def provide_postgres_session_store() -> PostgreSQLSessionStore:
 
 
 # Session authentication configuration
-# session_store = provide_postgres_session_store()
-session_store = MemoryStore()
-session_config = ServerSideSessionConfig()
-session_auth = SessionAuth[User, ServerSideSessionBackend](
+session_store = provide_postgres_session_store()
+# session_store = MemoryStore()
+session_config = ServerSideSessionConfig(
+    samesite="none",  # Required for cross-origin requests
+    secure=config.ENV != "development",  # False for localhost, True for production
+    httponly=True,  # Security: prevent XSS access to cookies
+    max_age=ONE_DAY_IN_SECONDS * 14,  # 14 days
+    domain=config.SESSION_COOKIE_DOMAIN,  # Configurable via SESSION_COOKIE_DOMAIN env var
+)
+session_auth = SessionAuth[int, ServerSideSessionBackend](
     session_backend_config=session_config,
-    retrieve_user_handler=current_user_from_session,
+    retrieve_user_handler=current_user_id_from_session,
     exclude=[
         "^/health",
         "^/auth/google/",
         "^/users/signup",  # Exclude user signup endpoint
+        "^/schema",
     ],
 )
 
@@ -144,7 +155,12 @@ app = Litestar(
     ],
     on_startup=[on_startup],
     on_app_init=[session_auth.on_app_init],
-    cors_config=CORSConfig(allow_origins=["*"]),
+    cors_config=CORSConfig(
+        allow_origins=["http://localhost:3000"],  # Frontend URL
+        allow_credentials=True,  # Required for session cookies
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"],
+    ),
     exception_handlers={Exception: log_any_exception},
     stores={"sessions": session_store},  # PostgreSQL session store
     dependencies={

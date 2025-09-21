@@ -4,6 +4,20 @@
  * Litestar API
  * OpenAPI spec version: 1.0.0
  */
+export type AddUserToWaitlistWaitlistEntryResponseBodyCompany = string | null;
+
+export type AddUserToWaitlistWaitlistEntryResponseBodyMessage = string | null;
+
+export interface AddUserToWaitlistWaitlistEntryResponseBody {
+  name: string;
+  email: string;
+  company?: AddUserToWaitlistWaitlistEntryResponseBodyCompany;
+  message?: AddUserToWaitlistWaitlistEntryResponseBodyMessage;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CreateUserSchema {
   name: string;
   email: string;
@@ -13,6 +27,64 @@ export interface CreateUserUserResponseBody {
   name: string;
   email: string;
   email_verified?: boolean;
+  google_accounts: CreateUserUser0GoogleOAuthAccountResponseBody[];
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreateUserUser0GoogleOAuthAccountResponseBodyPicture = string | null;
+
+export type CreateUserUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
+
+export type CreateUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
+
+export interface CreateUserUser0GoogleOAuthAccountResponseBody {
+  user_id: number;
+  google_id: string;
+  email: string;
+  name: string;
+  picture?: CreateUserUser0GoogleOAuthAccountResponseBodyPicture;
+  access_token: string;
+  refresh_token?: CreateUserUser0GoogleOAuthAccountResponseBodyRefreshToken;
+  token_expires_at?: CreateUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CurrentUserResponse {
+  id: number;
+  name: string;
+  email: string;
+  email_verified: boolean;
+}
+
+export interface GetCurrentUserUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  google_accounts: GetCurrentUserUser0GoogleOAuthAccountResponseBody[];
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type GetCurrentUserUser0GoogleOAuthAccountResponseBodyPicture = string | null;
+
+export type GetCurrentUserUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
+
+export type GetCurrentUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
+
+export interface GetCurrentUserUser0GoogleOAuthAccountResponseBody {
+  user_id: number;
+  google_id: string;
+  email: string;
+  name: string;
+  picture?: GetCurrentUserUser0GoogleOAuthAccountResponseBodyPicture;
+  access_token: string;
+  refresh_token?: GetCurrentUserUser0GoogleOAuthAccountResponseBodyRefreshToken;
+  token_expires_at?: GetCurrentUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
   id: number;
   created_at: string;
   updated_at: string;
@@ -22,15 +94,67 @@ export interface GetUserUserResponseBody {
   name: string;
   email: string;
   email_verified?: boolean;
+  google_accounts: GetUserUser0GoogleOAuthAccountResponseBody[];
   id: number;
   created_at: string;
   updated_at: string;
+}
+
+export type GetUserUser0GoogleOAuthAccountResponseBodyPicture = string | null;
+
+export type GetUserUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
+
+export type GetUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
+
+export interface GetUserUser0GoogleOAuthAccountResponseBody {
+  user_id: number;
+  google_id: string;
+  email: string;
+  name: string;
+  picture?: GetUserUser0GoogleOAuthAccountResponseBodyPicture;
+  access_token: string;
+  refresh_token?: GetUserUser0GoogleOAuthAccountResponseBodyRefreshToken;
+  token_expires_at?: GetUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type GoogleUserInfoResponseSchemaPicture = string | null;
+
+export interface GoogleUserInfoResponseSchema {
+  google_id: string;
+  email: string;
+  name: string;
+  picture?: GoogleUserInfoResponseSchemaPicture;
+  user_id: number;
 }
 
 export interface ListUsersUserResponseBody {
   name: string;
   email: string;
   email_verified?: boolean;
+  google_accounts: ListUsersUser0GoogleOAuthAccountResponseBody[];
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ListUsersUser0GoogleOAuthAccountResponseBodyPicture = string | null;
+
+export type ListUsersUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
+
+export type ListUsersUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
+
+export interface ListUsersUser0GoogleOAuthAccountResponseBody {
+  user_id: number;
+  google_id: string;
+  email: string;
+  name: string;
+  picture?: ListUsersUser0GoogleOAuthAccountResponseBodyPicture;
+  access_token: string;
+  refresh_token?: ListUsersUser0GoogleOAuthAccountResponseBodyRefreshToken;
+  token_expires_at?: ListUsersUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
   id: number;
   created_at: string;
   updated_at: string;
@@ -86,5 +210,79 @@ export type UsersSignupAddUserToWaitlist400 = {
   status_code: number;
   detail: string;
   extra?: UsersSignupAddUserToWaitlist400Extra;
+};
+
+export type AuthLogoutLogoutUserParams = {
+connection: unknown;
+};
+
+export type AuthLogoutLogoutUser201 = {[key: string]: string};
+
+export type AuthLogoutLogoutUser400ExtraAnyOf = {[key: string]: unknown};
+
+export type AuthLogoutLogoutUser400Extra = null | AuthLogoutLogoutUser400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type AuthLogoutLogoutUser400 = {
+  status_code: number;
+  detail: string;
+  extra?: AuthLogoutLogoutUser400Extra;
+};
+
+export type AuthProfileGetUserProfileParams = {
+connection: unknown;
+};
+
+export type AuthProfileGetUserProfile400ExtraAnyOf = {[key: string]: unknown};
+
+export type AuthProfileGetUserProfile400Extra = null | AuthProfileGetUserProfile400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type AuthProfileGetUserProfile400 = {
+  status_code: number;
+  detail: string;
+  extra?: AuthProfileGetUserProfile400Extra;
+};
+
+export type AuthAdminUsersUserIdDeleteUser200 = {[key: string]: string};
+
+export type AuthAdminUsersUserIdDeleteUser400ExtraAnyOf = {[key: string]: unknown};
+
+export type AuthAdminUsersUserIdDeleteUser400Extra = null | AuthAdminUsersUserIdDeleteUser400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type AuthAdminUsersUserIdDeleteUser400 = {
+  status_code: number;
+  detail: string;
+  extra?: AuthAdminUsersUserIdDeleteUser400Extra;
+};
+
+export type AuthGoogleLoginGoogleLogin200 = { [key: string]: unknown };
+
+export type AuthGoogleCallbackGoogleCallbackParams = {
+code?: string | null;
+state?: string | null;
+error?: string | null;
+};
+
+export type AuthGoogleCallbackGoogleCallback200 = { [key: string]: unknown };
+
+export type AuthGoogleCallbackGoogleCallback400ExtraAnyOf = {[key: string]: unknown};
+
+export type AuthGoogleCallbackGoogleCallback400Extra = null | AuthGoogleCallbackGoogleCallback400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type AuthGoogleCallbackGoogleCallback400 = {
+  status_code: number;
+  detail: string;
+  extra?: AuthGoogleCallbackGoogleCallback400Extra;
 };
 

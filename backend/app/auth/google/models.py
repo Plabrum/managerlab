@@ -28,7 +28,11 @@ class GoogleOAuthAccount(BaseDBModel):
     )
 
     # Relationship back to User
-    user: Mapped["User"] = relationship("User", back_populates="google_accounts")
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="google_accounts",
+        innerjoin=True,
+    )
 
 
 class GoogleOAuthState(BaseDBModel):

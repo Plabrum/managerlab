@@ -1,6 +1,6 @@
 from typing import List
 
-from litestar import Router, get, post
+from litestar import Request, Router, get, post
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +16,19 @@ async def list_users(transaction: AsyncSession) -> List[User]:
     result = await transaction.execute(select(User))
     users = result.scalars().all()
     return list(users)
+
+
+@get("/current_user", dto=UserDTO, return_dto=UserDTO)
+async def get_current_user(request: Request, transaction: AsyncSession) -> User:
+    """Get current authenticated user information."""
+    user_id: int = request.user
+
+    # Load the user from database
+    stmt = select(User).where(User.id == user_id)
+    result = await transaction.execute(stmt)
+    user = result.scalar_one()
+
+    return user
 
 
 @get("/{user_id:int}", dto=UserDTO, return_dto=UserDTO)
@@ -52,6 +65,12 @@ async def add_user_to_waitlist(
 user_router = Router(
     path="/users",
     guards=[requires_authenticated_user],
-    route_handlers=[list_users, get_user, create_user, add_user_to_waitlist],
+    route_handlers=[
+        list_users,
+        get_user,
+        create_user,
+        add_user_to_waitlist,
+        get_current_user,
+    ],
     tags=["users"],
 )

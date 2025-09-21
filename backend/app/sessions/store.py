@@ -1,5 +1,6 @@
 """PostgreSQL-backed session store implementation."""
 
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional, Union
 
@@ -51,33 +52,40 @@ class PostgreSQLSessionStore(Store):
                     )
                 await db_session.commit()
 
-            return session.data
+            # Convert dict back to bytes for Litestar
+            return json.dumps(session.data).encode("utf-8")
 
     async def set(
-        self, key: str, value: Any, expiry: Optional[Union[int, timedelta]] = None
+        self, session_id: str, data: bytes, expires_in: int | None = None
     ) -> None:
-        """Set session data by key."""
-        if expiry is None:
-            expiry = self.default_expiry
+        """Set session data by session_id."""
+        if expires_in is None:
+            expires_in = self.default_expiry
 
-        if isinstance(expiry, timedelta):
-            expires_at = datetime.now(tz=timezone.utc) + expiry
-        else:
-            expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expiry)
+        expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in)
+
+        # Convert bytes to dict for storage in JSONB
+        try:
+            session_data = json.loads(data.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            # If data can't be decoded as JSON, store it as a string value
+            session_data = {"raw_data": data.decode("utf-8", errors="replace")}
 
         async with self.db_session_factory() as db_session:
             # Try to get existing session
-            stmt = select(Session).where(Session.session_id == key)
+            stmt = select(Session).where(Session.session_id == session_id)
             result = await db_session.execute(stmt)
             session = result.scalar_one_or_none()
 
             if session:
                 # Update existing session
-                session.data = value
+                session.data = session_data
                 session.expires_at = expires_at
             else:
                 # Create new session
-                session = Session(session_id=key, data=value, expires_at=expires_at)
+                session = Session(
+                    session_id=session_id, data=session_data, expires_at=expires_at
+                )
                 db_session.add(session)
 
             await db_session.commit()

@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 import aiohttp
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from app.config import Config
 from app.users.models import User
@@ -15,9 +16,15 @@ from app.auth.google.models import GoogleOAuthAccount, GoogleOAuthState
 class GoogleOAuthService:
     """Service for handling Google OAuth authentication."""
 
-    def __init__(self, config: Config, http_client: aiohttp.ClientSession):
+    def __init__(
+        self,
+        config: Config,
+        transaction: AsyncSession,
+        http_client: aiohttp.ClientSession,
+    ):
         self.config = config
         self.http_client = http_client
+        self.transaction = transaction
         self.client_id = config.GOOGLE_CLIENT_ID
         self.client_secret = config.GOOGLE_CLIENT_SECRET
         self.redirect_uri = config.GOOGLE_REDIRECT_URI
@@ -43,7 +50,7 @@ class GoogleOAuthService:
         return auth_url, state
 
     async def store_oauth_state(
-        self, session: AsyncSession, state: str, redirect_uri: Optional[str] = None
+        self, transaction: AsyncSession, state: str, redirect_uri: Optional[str] = None
     ) -> GoogleOAuthState:
         """Store OAuth state in database for CSRF protection."""
         oauth_state = GoogleOAuthState(
@@ -51,22 +58,22 @@ class GoogleOAuthService:
             redirect_uri=redirect_uri,
             expires_at=datetime.now(tz=timezone.utc) + timedelta(minutes=10),
         )
-        session.add(oauth_state)
+        transaction.add(oauth_state)
         return oauth_state
 
     async def verify_oauth_state(
-        self, session: AsyncSession, state: str
+        self, transaction: AsyncSession, state: str
     ) -> Optional[GoogleOAuthState]:
         """Verify OAuth state token and return stored state if valid."""
         stmt = select(GoogleOAuthState).where(
             GoogleOAuthState.state == state,
             GoogleOAuthState.expires_at > datetime.now(tz=timezone.utc),
         )
-        result = await session.execute(stmt)
+        result = await transaction.execute(stmt)
         oauth_state = result.scalar_one_or_none()
 
         if oauth_state:
-            await session.delete(oauth_state)
+            await transaction.delete(oauth_state)
 
         return oauth_state
 
@@ -94,7 +101,7 @@ class GoogleOAuthService:
 
     async def create_or_update_user(
         self,
-        session: AsyncSession,
+        transaction: AsyncSession,
         google_user_info: Dict[str, Any],
         tokens: Dict[str, Any],
     ) -> User:
@@ -105,10 +112,12 @@ class GoogleOAuthService:
         picture = google_user_info.get("picture")
 
         # Check if Google account already exists
-        stmt = select(GoogleOAuthAccount).where(
-            GoogleOAuthAccount.google_id == google_id
+        stmt = (
+            select(GoogleOAuthAccount)
+            .where(GoogleOAuthAccount.google_id == google_id)
+            .options(joinedload(GoogleOAuthAccount.user))
         )
-        result = await session.execute(stmt)
+        result = await transaction.execute(stmt)
         google_account = result.scalar_one_or_none()
 
         if google_account:
@@ -128,7 +137,7 @@ class GoogleOAuthService:
         else:
             # Check if user exists by email
             user_stmt = select(User).where(User.email == email)
-            user_result = await session.execute(user_stmt)
+            user_result = await transaction.execute(user_stmt)
             existing_user = user_result.scalar_one_or_none()
 
             if not existing_user:
@@ -138,8 +147,8 @@ class GoogleOAuthService:
                     email=email,
                     email_verified=True,  # Google emails are verified
                 )
-                session.add(user)
-                await session.flush()  # To get user.id
+                transaction.add(user)
+                await transaction.flush()  # To get user.id
             else:
                 user = existing_user
 
@@ -159,12 +168,12 @@ class GoogleOAuthService:
                     else None
                 ),
             )
-            session.add(google_account)
+            transaction.add(google_account)
 
         return user
 
     async def refresh_access_token(
-        self, session: AsyncSession, google_account: GoogleOAuthAccount
+        self, google_account: GoogleOAuthAccount
     ) -> Optional[str]:
         """Refresh access token using refresh token."""
         if not google_account.refresh_token:

@@ -21,18 +21,6 @@ class CurrentUserResponse(Struct):
     email_verified: bool
 
 
-@get("/me")
-async def get_current_user(connection: ASGIConnection) -> CurrentUserResponse:
-    """Get current authenticated user information."""
-    user: User = connection.user
-    return CurrentUserResponse(
-        id=user.id,
-        name=user.name,
-        email=user.email,
-        email_verified=user.email_verified,
-    )
-
-
 @post("/logout")
 async def logout_user(connection: ASGIConnection) -> Dict[str, str]:
     """Logout the current user by clearing the session."""
@@ -85,8 +73,6 @@ async def delete_user(user_id: int, transaction: AsyncSession) -> Dict[str, str]
         raise HTTPException(status_code=404, detail="User not found")
 
     await transaction.delete(user)
-    await transaction.commit()
-
     return {"message": f"User {user.email} deleted successfully"}
 
 
@@ -94,7 +80,6 @@ async def delete_user(user_id: int, transaction: AsyncSession) -> Dict[str, str]
 auth_router = Router(
     path="/auth",
     route_handlers=[
-        get_current_user,
         logout_user,
         get_user_profile,
         list_all_users,

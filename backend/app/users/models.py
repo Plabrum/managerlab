@@ -1,6 +1,6 @@
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 import sqlalchemy as sa
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from app.base.models import BaseDBModel
 
@@ -16,8 +16,9 @@ class User(BaseDBModel):
     email_verified = mapped_column(sa.Boolean, default=False, nullable=False)
 
     # Relationship to Google OAuth accounts
-    google_accounts: Mapped[List["GoogleOAuthAccount"]] = relationship(
-        "GoogleOAuthAccount", back_populates="user", cascade="all, delete-orphan"
+    google_accounts: Mapped[list["GoogleOAuthAccount"]] = relationship(
+        back_populates="user",
+        innerjoin=True,
     )
 
 

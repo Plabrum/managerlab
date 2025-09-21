@@ -33,10 +33,12 @@ class GoogleUserInfoResponseSchema(Struct):
 
 
 def provide_google_oauth_service(
-    app_config: Config, http_client: aiohttp.ClientSession
+    app_config: Config,
+    transaction: AsyncSession,
+    http_client: aiohttp.ClientSession,
 ) -> GoogleOAuthService:
     """Provide the Google OAuth service."""
-    return GoogleOAuthService(app_config, http_client)
+    return GoogleOAuthService(app_config, transaction, http_client)
 
 
 @get("/login", guards=[])
@@ -102,7 +104,7 @@ async def google_callback(
     request.session["authenticated"] = True
 
     # Redirect to frontend success page
-    frontend_url = "http://localhost:3000/auth/success"
+    frontend_url = oauth_service.config.SUCCESS_REDIRECT_URL
 
     return Response(
         content="",
