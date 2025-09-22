@@ -80,7 +80,7 @@ jobs:
           set -euo pipefail
           ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
           BUCKET="tf-state-${ACCOUNT_ID}"
-          KEY="${{ github.repository }}/${{ steps.ws.outputs.ws }}/terraform.tfstate"
+          KEY="${{ github.event.repository.name }}/${{ steps.ws.outputs.ws }}/terraform.tfstate"
           echo "account_id=${ACCOUNT_ID}" >> "$GITHUB_OUTPUT"
           echo "bucket=${BUCKET}" >> "$GITHUB_OUTPUT"
           echo "key=${KEY}" >> "$GITHUB_OUTPUT"

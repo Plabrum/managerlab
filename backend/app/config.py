@@ -26,7 +26,7 @@ class Config:
     S3_BUCKET: str = os.getenv("S3_BUCKET", "")
 
     # Session Configuration
-    SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", None)
+    SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
 
     @property
     def DATABASE_URL(self) -> str:
