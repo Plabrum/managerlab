@@ -92,6 +92,7 @@ class GoogleOAuthService:
         }
 
         async with self.http_client.post(self.token_url, data=data) as response:
+            logger.info("Token exchange response status", response)
             response.raise_for_status()
             return await response.json()
 
