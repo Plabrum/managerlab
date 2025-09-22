@@ -258,7 +258,7 @@ output "bastion_private_key_secret" {
 
 output "app_secrets_arn" {
   description = "ARN of the application secrets in Secrets Manager"
-  value       = aws_secretsmanager_secret.app_secrets.arn
+  value       = aws_secretsmanager_secret.app_secrets_v2.arn
 }
 
 # ================================
@@ -758,15 +758,15 @@ resource "aws_secretsmanager_secret_version" "bastion_private_key" {
 # ================================
 
 # Application secrets in AWS Secrets Manager
-resource "aws_secretsmanager_secret" "app_secrets" {
-  name        = "${local.name}-app-secrets"
+resource "aws_secretsmanager_secret" "app_secrets_v2" {
+  name        = "${local.name}-app-secrets-v2"
   description = "Application secrets for Lambda function"
 
   tags = local.common_tags
 }
 
-resource "aws_secretsmanager_secret_version" "app_secrets" {
-  secret_id = aws_secretsmanager_secret.app_secrets.id
+resource "aws_secretsmanager_secret_version" "app_secrets_v2" {
+  secret_id = aws_secretsmanager_secret.app_secrets_v2.id
   secret_string = jsonencode({
     GOOGLE_CLIENT_ID      = ""
     GOOGLE_CLIENT_SECRET  = ""
@@ -883,7 +883,7 @@ resource "aws_iam_role_policy" "lambda_secrets" {
           "secretsmanager:GetSecretValue"
         ]
         Resource = [
-          aws_secretsmanager_secret.app_secrets.arn
+          aws_secretsmanager_secret.app_secrets_v2.arn
         ]
       }
     ]
@@ -923,7 +923,7 @@ resource "aws_lambda_function" "main" {
         ENV                 = var.environment
         S3_BUCKET           = aws_s3_bucket.app.bucket
         DB_ENDPOINT         = aws_rds_cluster.main.endpoint
-        SECRETS_MANAGER_ARN = aws_secretsmanager_secret.app_secrets.arn
+        SECRETS_MANAGER_ARN = aws_secretsmanager_secret.app_secrets_v2.arn
         # AWS_REGION is automatically available in Lambda, don't set it manually
       },
       var.extra_env
@@ -1067,5 +1067,3 @@ resource "aws_apigatewayv2_api_mapping" "main" {
   domain_name = aws_apigatewayv2_domain_name.main.id
   stage       = aws_apigatewayv2_stage.default.id
 }
-
-
