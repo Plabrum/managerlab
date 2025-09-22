@@ -759,16 +759,10 @@ resource "aws_secretsmanager_secret_version" "bastion_private_key" {
 
 # Application secrets in AWS Secrets Manager
 resource "aws_secretsmanager_secret" "app_secrets" {
-  name                           = "${local.name}-app-secrets"
-  description                    = "Application secrets for Lambda function"
-  recovery_window_in_days        = 30
-  force_overwrite_replica_secret = false
+  name        = "${local.name}-app-secrets"
+  description = "Application secrets for Lambda function"
 
   tags = local.common_tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_secretsmanager_secret_version" "app_secrets" {
@@ -1073,4 +1067,5 @@ resource "aws_apigatewayv2_api_mapping" "main" {
   domain_name = aws_apigatewayv2_domain_name.main.id
   stage       = aws_apigatewayv2_stage.default.id
 }
+
 
