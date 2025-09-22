@@ -48,9 +48,10 @@ async def create_user(data: CreateUserSchema, transaction: AsyncSession) -> User
     return user
 
 
-@post("/signup", return_dto=WaitlistEntryDTO)
+@post("/signup", return_dto=WaitlistEntryDTO, guards=[])
 async def add_user_to_waitlist(
-    data: UserWaitlistFormSchema, transaction: AsyncSession
+    data: UserWaitlistFormSchema,
+    transaction: AsyncSession,
 ) -> WaitlistEntry:
     user = WaitlistEntry(
         email=data.email,
