@@ -30,7 +30,7 @@ export default function SettingsPage() {
 
   const handleSignOut = () => {
     setIsSigningOut(true);
-    logout({ params: { connection: null } });
+    logout();
   };
 
   return (

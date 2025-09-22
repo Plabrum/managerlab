@@ -285,6 +285,27 @@ resource "aws_internet_gateway" "main" {
   })
 }
 
+# Elastic IP for NAT Gateway
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-nat-eip"
+  })
+}
+
+# NAT Gateway to provide outbound internet for private subnets
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public.id
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-nat"
+  })
+
+  depends_on = [aws_internet_gateway.main]
+}
+
 # Public subnet for bastion host
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
@@ -338,6 +359,13 @@ resource "aws_route_table" "private" {
   tags = merge(local.common_tags, {
     Name = "${local.name}-private-rt"
   })
+}
+
+# Default route from private subnets through NAT Gateway
+resource "aws_route" "private_nat_gateway" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.main.id
 }
 
 # Route table associations
