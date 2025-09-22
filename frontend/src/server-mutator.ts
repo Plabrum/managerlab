@@ -2,7 +2,7 @@ export const serverMutator = async <T>(
   url: string,
   options?: RequestInit
 ): Promise<T> => {
-  const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const res = await fetch(fullUrl, options);
