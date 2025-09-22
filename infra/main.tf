@@ -920,10 +920,11 @@ resource "aws_lambda_function" "main" {
   environment {
     variables = merge(
       {
-        ENV                 = var.environment
-        S3_BUCKET           = aws_s3_bucket.app.bucket
-        DB_ENDPOINT         = aws_rds_cluster.main.endpoint
-        SECRETS_MANAGER_ARN = aws_secretsmanager_secret.app_secrets_v2.arn
+        ENV         = var.environment
+        DEBUG       = "false"
+        S3_BUCKET   = aws_s3_bucket.app.bucket
+        DB_ENDPOINT = aws_rds_cluster.main.endpoint
+        # Secrets will be injected at deployment time via GitHub Actions
         # AWS_REGION is automatically available in Lambda, don't set it manually
       },
       var.extra_env

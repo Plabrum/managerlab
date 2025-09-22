@@ -47,14 +47,35 @@ jobs:
           fi
           echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
 
-      - name: Deploy to Lambda
+      - name: Fetch secrets and deploy to Lambda
         run: |
           echo "Deploying ${{ steps.ecr.outputs.image_uri }} to ${{ inputs.lambda_function_name }}"
+
+          # Get secrets from Secrets Manager
+          SECRETS_ARN="arn:aws:secretsmanager:us-east-1:476114141928:secret:manageros-production-app-secrets-v2-upy1xR"
+          SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id "$SECRETS_ARN" --query 'SecretString' --output text)
+
+          # Parse secrets and build environment variables
+          GOOGLE_CLIENT_ID=$(echo "$SECRETS_JSON" | jq -r '.GOOGLE_CLIENT_ID')
+          GOOGLE_CLIENT_SECRET=$(echo "$SECRETS_JSON" | jq -r '.GOOGLE_CLIENT_SECRET')
+          GOOGLE_REDIRECT_URI=$(echo "$SECRETS_JSON" | jq -r '.GOOGLE_REDIRECT_URI')
+          SESSION_COOKIE_DOMAIN=$(echo "$SECRETS_JSON" | jq -r '.SESSION_COOKIE_DOMAIN')
+          SUCCESS_REDIRECT_URL=$(echo "$SECRETS_JSON" | jq -r '.SUCCESS_REDIRECT_URL')
+          FRONTEND_ORIGIN=$(echo "$SECRETS_JSON" | jq -r '.FRONTEND_ORIGIN')
 
           # Update function code
           aws lambda update-function-code \
             --function-name ${{ inputs.lambda_function_name }} \
             --image-uri ${{ steps.ecr.outputs.image_uri }}
+
+          # Wait for code update to complete
+          aws lambda wait function-updated \
+            --function-name ${{ inputs.lambda_function_name }}
+
+          # Update environment variables with secrets (using shorthand syntax)
+          aws lambda update-function-configuration \
+            --function-name ${{ inputs.lambda_function_name }} \
+            --environment Variables="{ENV=production,DEBUG=false,S3_BUCKET=manageros-storage-production-d46877ed,DB_ENDPOINT=manageros-production-aurora.cluster-c3ggq820u15n.us-east-1.rds.amazonaws.com,GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET,GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI,SESSION_COOKIE_DOMAIN=$SESSION_COOKIE_DOMAIN,SUCCESS_REDIRECT_URL=$SUCCESS_REDIRECT_URL,FRONTEND_ORIGIN=$FRONTEND_ORIGIN}"
 
       - name: Wait for deployment
         run: |
