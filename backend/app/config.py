@@ -28,6 +28,8 @@ class Config:
     # Session Configuration
     SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
 
+    FRONTEND_ORIGIN: str = "http://localhost:3000" if IS_DEV else SESSION_COOKIE_DOMAIN
+
     @property
     def DATABASE_URL(self) -> str:
         """Sync database URL for migrations and sync operations."""

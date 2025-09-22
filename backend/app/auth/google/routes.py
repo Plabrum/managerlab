@@ -12,6 +12,9 @@ from msgspec import Struct
 from app.config import Config
 from app.auth.google.services import GoogleOAuthService
 from app.auth.google.models import GoogleOAuthAccount
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GoogleOAuthCallbackSchema(Struct):
@@ -106,6 +109,7 @@ async def google_callback(
     # Redirect to frontend success page
     frontend_url = oauth_service.config.SUCCESS_REDIRECT_URL
 
+    logger.info(f"User {user.id} logged in via Google OAuth, going to {frontend_url}")
     return Response(
         content="",
         status_code=HTTP_302_FOUND,
