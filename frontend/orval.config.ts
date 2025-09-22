@@ -29,8 +29,12 @@ const config = {
       target: 'src/server-sdk.ts', // import from '@/server-sdk'
       client: 'fetch', // Edge/runtime friendly
       mock: false,
-      // no react-query, no hooks here
-      // If you want a custom fetch (e.g., add base URL), you can add a mutator later.
+      override: {
+        mutator: {
+          path: 'src/server-mutator.ts',
+          name: 'serverMutator',
+        },
+      },
     },
     input: { target: OPENAPI_URL },
   },

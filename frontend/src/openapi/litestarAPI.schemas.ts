@@ -89,6 +89,19 @@ export interface UserWaitlistFormSchema {
 
 export type HealthHealthCheck200 = { [key: string]: unknown };
 
+export type UsersSignupAddUserToWaitlist400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersSignupAddUserToWaitlist400Extra = null | UsersSignupAddUserToWaitlist400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersSignupAddUserToWaitlist400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersSignupAddUserToWaitlist400Extra;
+};
+
 export type UsersCreateUser400ExtraAnyOf = {[key: string]: unknown};
 
 export type UsersCreateUser400Extra = null | UsersCreateUser400ExtraAnyOf | unknown[];
@@ -113,19 +126,6 @@ export type UsersUserIdGetUser400 = {
   status_code: number;
   detail: string;
   extra?: UsersUserIdGetUser400Extra;
-};
-
-export type UsersSignupAddUserToWaitlist400ExtraAnyOf = {[key: string]: unknown};
-
-export type UsersSignupAddUserToWaitlist400Extra = null | UsersSignupAddUserToWaitlist400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersSignupAddUserToWaitlist400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersSignupAddUserToWaitlist400Extra;
 };
 
 export type AuthLogoutLogoutUserParams = {

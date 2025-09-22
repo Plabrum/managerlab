@@ -4,6 +4,7 @@
  * Litestar API
  * OpenAPI spec version: 1.0.0
  */
+import { serverMutator } from './server-mutator';
 export type AddUserToWaitlistWaitlistEntryResponseBodyCompany = string | null;
 
 export type AddUserToWaitlistWaitlistEntryResponseBodyMessage = string | null;
@@ -89,6 +90,24 @@ export interface UserWaitlistFormSchema {
 
 export type HealthHealthCheck200 = { [key: string]: unknown };
 
+export type UsersSignupAddUserToWaitlist400ExtraAnyOf = {
+  [key: string]: unknown;
+};
+
+export type UsersSignupAddUserToWaitlist400Extra =
+  | null
+  | UsersSignupAddUserToWaitlist400ExtraAnyOf
+  | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersSignupAddUserToWaitlist400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersSignupAddUserToWaitlist400Extra;
+};
+
 export type UsersCreateUser400ExtraAnyOf = { [key: string]: unknown };
 
 export type UsersCreateUser400Extra =
@@ -119,24 +138,6 @@ export type UsersUserIdGetUser400 = {
   status_code: number;
   detail: string;
   extra?: UsersUserIdGetUser400Extra;
-};
-
-export type UsersSignupAddUserToWaitlist400ExtraAnyOf = {
-  [key: string]: unknown;
-};
-
-export type UsersSignupAddUserToWaitlist400Extra =
-  | null
-  | UsersSignupAddUserToWaitlist400ExtraAnyOf
-  | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersSignupAddUserToWaitlist400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersSignupAddUserToWaitlist400Extra;
 };
 
 export type AuthLogoutLogoutUserParams = {
@@ -250,145 +251,10 @@ export const getHealthHealthCheckUrl = () => {
 export const healthHealthCheck = async (
   options?: RequestInit
 ): Promise<healthHealthCheckResponse> => {
-  const res = await fetch(getHealthHealthCheckUrl(), {
+  return serverMutator<healthHealthCheckResponse>(getHealthHealthCheckUrl(), {
     ...options,
     method: 'GET',
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: healthHealthCheckResponse['data'] = body ? JSON.parse(body) : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as healthHealthCheckResponse;
-};
-
-/**
- * @summary ListUsers
- */
-export type usersListUsersResponse200 = {
-  data: ListUsersUserResponseBody[];
-  status: 200;
-};
-
-export type usersListUsersResponseComposite = usersListUsersResponse200;
-
-export type usersListUsersResponse = usersListUsersResponseComposite & {
-  headers: Headers;
-};
-
-export const getUsersListUsersUrl = () => {
-  return `/users`;
-};
-
-export const usersListUsers = async (
-  options?: RequestInit
-): Promise<usersListUsersResponse> => {
-  const res = await fetch(getUsersListUsersUrl(), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: usersListUsersResponse['data'] = body ? JSON.parse(body) : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as usersListUsersResponse;
-};
-
-/**
- * @summary CreateUser
- */
-export type usersCreateUserResponse201 = {
-  data: CreateUserUserResponseBody;
-  status: 201;
-};
-
-export type usersCreateUserResponse400 = {
-  data: UsersCreateUser400;
-  status: 400;
-};
-
-export type usersCreateUserResponseComposite =
-  | usersCreateUserResponse201
-  | usersCreateUserResponse400;
-
-export type usersCreateUserResponse = usersCreateUserResponseComposite & {
-  headers: Headers;
-};
-
-export const getUsersCreateUserUrl = () => {
-  return `/users`;
-};
-
-export const usersCreateUser = async (
-  createUserSchema: CreateUserSchema,
-  options?: RequestInit
-): Promise<usersCreateUserResponse> => {
-  const res = await fetch(getUsersCreateUserUrl(), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createUserSchema),
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: usersCreateUserResponse['data'] = body ? JSON.parse(body) : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as usersCreateUserResponse;
-};
-
-/**
- * @summary GetUser
- */
-export type usersUserIdGetUserResponse200 = {
-  data: GetUserUserResponseBody;
-  status: 200;
-};
-
-export type usersUserIdGetUserResponse400 = {
-  data: UsersUserIdGetUser400;
-  status: 400;
-};
-
-export type usersUserIdGetUserResponseComposite =
-  | usersUserIdGetUserResponse200
-  | usersUserIdGetUserResponse400;
-
-export type usersUserIdGetUserResponse = usersUserIdGetUserResponseComposite & {
-  headers: Headers;
-};
-
-export const getUsersUserIdGetUserUrl = (userId: number) => {
-  return `/users/${userId}`;
-};
-
-export const usersUserIdGetUser = async (
-  userId: number,
-  options?: RequestInit
-): Promise<usersUserIdGetUserResponse> => {
-  const res = await fetch(getUsersUserIdGetUserUrl(userId), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: usersUserIdGetUserResponse['data'] = body ? JSON.parse(body) : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as usersUserIdGetUserResponse;
 };
 
 /**
@@ -421,23 +287,117 @@ export const usersSignupAddUserToWaitlist = async (
   userWaitlistFormSchema: UserWaitlistFormSchema,
   options?: RequestInit
 ): Promise<usersSignupAddUserToWaitlistResponse> => {
-  const res = await fetch(getUsersSignupAddUserToWaitlistUrl(), {
+  return serverMutator<usersSignupAddUserToWaitlistResponse>(
+    getUsersSignupAddUserToWaitlistUrl(),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(userWaitlistFormSchema),
+    }
+  );
+};
+
+/**
+ * @summary ListUsers
+ */
+export type usersListUsersResponse200 = {
+  data: ListUsersUserResponseBody[];
+  status: 200;
+};
+
+export type usersListUsersResponseComposite = usersListUsersResponse200;
+
+export type usersListUsersResponse = usersListUsersResponseComposite & {
+  headers: Headers;
+};
+
+export const getUsersListUsersUrl = () => {
+  return `/users`;
+};
+
+export const usersListUsers = async (
+  options?: RequestInit
+): Promise<usersListUsersResponse> => {
+  return serverMutator<usersListUsersResponse>(getUsersListUsersUrl(), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+/**
+ * @summary CreateUser
+ */
+export type usersCreateUserResponse201 = {
+  data: CreateUserUserResponseBody;
+  status: 201;
+};
+
+export type usersCreateUserResponse400 = {
+  data: UsersCreateUser400;
+  status: 400;
+};
+
+export type usersCreateUserResponseComposite =
+  | usersCreateUserResponse201
+  | usersCreateUserResponse400;
+
+export type usersCreateUserResponse = usersCreateUserResponseComposite & {
+  headers: Headers;
+};
+
+export const getUsersCreateUserUrl = () => {
+  return `/users`;
+};
+
+export const usersCreateUser = async (
+  createUserSchema: CreateUserSchema,
+  options?: RequestInit
+): Promise<usersCreateUserResponse> => {
+  return serverMutator<usersCreateUserResponse>(getUsersCreateUserUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(userWaitlistFormSchema),
+    body: JSON.stringify(createUserSchema),
   });
+};
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: usersSignupAddUserToWaitlistResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
+/**
+ * @summary GetUser
+ */
+export type usersUserIdGetUserResponse200 = {
+  data: GetUserUserResponseBody;
+  status: 200;
+};
 
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as usersSignupAddUserToWaitlistResponse;
+export type usersUserIdGetUserResponse400 = {
+  data: UsersUserIdGetUser400;
+  status: 400;
+};
+
+export type usersUserIdGetUserResponseComposite =
+  | usersUserIdGetUserResponse200
+  | usersUserIdGetUserResponse400;
+
+export type usersUserIdGetUserResponse = usersUserIdGetUserResponseComposite & {
+  headers: Headers;
+};
+
+export const getUsersUserIdGetUserUrl = (userId: number) => {
+  return `/users/${userId}`;
+};
+
+export const usersUserIdGetUser = async (
+  userId: number,
+  options?: RequestInit
+): Promise<usersUserIdGetUserResponse> => {
+  return serverMutator<usersUserIdGetUserResponse>(
+    getUsersUserIdGetUserUrl(userId),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
 };
 
 /**
@@ -463,21 +423,13 @@ export const getUsersCurrentUserGetCurrentUserUrl = () => {
 export const usersCurrentUserGetCurrentUser = async (
   options?: RequestInit
 ): Promise<usersCurrentUserGetCurrentUserResponse> => {
-  const res = await fetch(getUsersCurrentUserGetCurrentUserUrl(), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: usersCurrentUserGetCurrentUserResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as usersCurrentUserGetCurrentUserResponse;
+  return serverMutator<usersCurrentUserGetCurrentUserResponse>(
+    getUsersCurrentUserGetCurrentUserUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
 };
 
 /**
@@ -524,21 +476,13 @@ export const authLogoutLogoutUser = async (
   params: AuthLogoutLogoutUserParams,
   options?: RequestInit
 ): Promise<authLogoutLogoutUserResponse> => {
-  const res = await fetch(getAuthLogoutLogoutUserUrl(params), {
-    ...options,
-    method: 'POST',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: authLogoutLogoutUserResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as authLogoutLogoutUserResponse;
+  return serverMutator<authLogoutLogoutUserResponse>(
+    getAuthLogoutLogoutUserUrl(params),
+    {
+      ...options,
+      method: 'POST',
+    }
+  );
 };
 
 /**
@@ -585,21 +529,13 @@ export const authProfileGetUserProfile = async (
   params: AuthProfileGetUserProfileParams,
   options?: RequestInit
 ): Promise<authProfileGetUserProfileResponse> => {
-  const res = await fetch(getAuthProfileGetUserProfileUrl(params), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: authProfileGetUserProfileResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as authProfileGetUserProfileResponse;
+  return serverMutator<authProfileGetUserProfileResponse>(
+    getAuthProfileGetUserProfileUrl(params),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
 };
 
 /**
@@ -625,21 +561,13 @@ export const getAuthAdminUsersListAllUsersUrl = () => {
 export const authAdminUsersListAllUsers = async (
   options?: RequestInit
 ): Promise<authAdminUsersListAllUsersResponse> => {
-  const res = await fetch(getAuthAdminUsersListAllUsersUrl(), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: authAdminUsersListAllUsersResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as authAdminUsersListAllUsersResponse;
+  return serverMutator<authAdminUsersListAllUsersResponse>(
+    getAuthAdminUsersListAllUsersUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
 };
 
 /**
@@ -672,21 +600,13 @@ export const authAdminUsersUserIdDeleteUser = async (
   userId: number,
   options?: RequestInit
 ): Promise<authAdminUsersUserIdDeleteUserResponse> => {
-  const res = await fetch(getAuthAdminUsersUserIdDeleteUserUrl(userId), {
-    ...options,
-    method: 'DELETE',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: authAdminUsersUserIdDeleteUserResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as authAdminUsersUserIdDeleteUserResponse;
+  return serverMutator<authAdminUsersUserIdDeleteUserResponse>(
+    getAuthAdminUsersUserIdDeleteUserUrl(userId),
+    {
+      ...options,
+      method: 'DELETE',
+    }
+  );
 };
 
 /**
@@ -712,21 +632,13 @@ export const getAuthGoogleLoginGoogleLoginUrl = () => {
 export const authGoogleLoginGoogleLogin = async (
   options?: RequestInit
 ): Promise<authGoogleLoginGoogleLoginResponse> => {
-  const res = await fetch(getAuthGoogleLoginGoogleLoginUrl(), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: authGoogleLoginGoogleLoginResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as authGoogleLoginGoogleLoginResponse;
+  return serverMutator<authGoogleLoginGoogleLoginResponse>(
+    getAuthGoogleLoginGoogleLoginUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
 };
 
 /**
@@ -773,21 +685,13 @@ export const authGoogleCallbackGoogleCallback = async (
   params?: AuthGoogleCallbackGoogleCallbackParams,
   options?: RequestInit
 ): Promise<authGoogleCallbackGoogleCallbackResponse> => {
-  const res = await fetch(getAuthGoogleCallbackGoogleCallbackUrl(params), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: authGoogleCallbackGoogleCallbackResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as authGoogleCallbackGoogleCallbackResponse;
+  return serverMutator<authGoogleCallbackGoogleCallbackResponse>(
+    getAuthGoogleCallbackGoogleCallbackUrl(params),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
 };
 
 /**
@@ -813,19 +717,11 @@ export const getAuthGoogleMeGetCurrentUserGoogleInfoUrl = () => {
 export const authGoogleMeGetCurrentUserGoogleInfo = async (
   options?: RequestInit
 ): Promise<authGoogleMeGetCurrentUserGoogleInfoResponse> => {
-  const res = await fetch(getAuthGoogleMeGetCurrentUserGoogleInfoUrl(), {
-    ...options,
-    method: 'GET',
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: authGoogleMeGetCurrentUserGoogleInfoResponse['data'] = body
-    ? JSON.parse(body)
-    : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as authGoogleMeGetCurrentUserGoogleInfoResponse;
+  return serverMutator<authGoogleMeGetCurrentUserGoogleInfoResponse>(
+    getAuthGoogleMeGetCurrentUserGoogleInfoUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
 };

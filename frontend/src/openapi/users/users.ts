@@ -45,6 +45,70 @@ import { customInstance } from '.././custom-instance';
 
 
 /**
+ * @summary AddUserToWaitlist
+ */
+export const usersSignupAddUserToWaitlist = (
+    userWaitlistFormSchema: UserWaitlistFormSchema,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AddUserToWaitlistWaitlistEntryResponseBody>(
+      {url: `/users/signup`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: userWaitlistFormSchema, signal
+    },
+      );
+    }
+  
+
+
+export const getUsersSignupAddUserToWaitlistMutationOptions = <TError = UsersSignupAddUserToWaitlist400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, TError,{data: UserWaitlistFormSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, TError,{data: UserWaitlistFormSchema}, TContext> => {
+
+const mutationKey = ['usersSignupAddUserToWaitlist'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, {data: UserWaitlistFormSchema}> = (props) => {
+          const {data} = props ?? {};
+
+          return  usersSignupAddUserToWaitlist(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersSignupAddUserToWaitlistMutationResult = NonNullable<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>>
+    export type UsersSignupAddUserToWaitlistMutationBody = UserWaitlistFormSchema
+    export type UsersSignupAddUserToWaitlistMutationError = UsersSignupAddUserToWaitlist400
+
+    /**
+ * @summary AddUserToWaitlist
+ */
+export const useUsersSignupAddUserToWaitlist = <TError = UsersSignupAddUserToWaitlist400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, TError,{data: UserWaitlistFormSchema}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>,
+        TError,
+        {data: UserWaitlistFormSchema},
+        TContext
+      > => {
+
+      const mutationOptions = getUsersSignupAddUserToWaitlistMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
  * @summary ListUsers
  */
 export const usersListUsers = (
@@ -391,70 +455,6 @@ export function useUsersUserIdGetUserSuspense<TData = Awaited<ReturnType<typeof 
 
 
 /**
- * @summary AddUserToWaitlist
- */
-export const usersSignupAddUserToWaitlist = (
-    userWaitlistFormSchema: UserWaitlistFormSchema,
- signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<AddUserToWaitlistWaitlistEntryResponseBody>(
-      {url: `/users/signup`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: userWaitlistFormSchema, signal
-    },
-      );
-    }
-  
-
-
-export const getUsersSignupAddUserToWaitlistMutationOptions = <TError = UsersSignupAddUserToWaitlist400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, TError,{data: UserWaitlistFormSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, TError,{data: UserWaitlistFormSchema}, TContext> => {
-
-const mutationKey = ['usersSignupAddUserToWaitlist'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, {data: UserWaitlistFormSchema}> = (props) => {
-          const {data} = props ?? {};
-
-          return  usersSignupAddUserToWaitlist(data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UsersSignupAddUserToWaitlistMutationResult = NonNullable<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>>
-    export type UsersSignupAddUserToWaitlistMutationBody = UserWaitlistFormSchema
-    export type UsersSignupAddUserToWaitlistMutationError = UsersSignupAddUserToWaitlist400
-
-    /**
- * @summary AddUserToWaitlist
- */
-export const useUsersSignupAddUserToWaitlist = <TError = UsersSignupAddUserToWaitlist400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>, TError,{data: UserWaitlistFormSchema}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof usersSignupAddUserToWaitlist>>,
-        TError,
-        {data: UserWaitlistFormSchema},
-        TContext
-      > => {
-
-      const mutationOptions = getUsersSignupAddUserToWaitlistMutationOptions(options);
-
-      return useMutation(mutationOptions , queryClient);
-    }
-    /**
  * @summary GetCurrentUser
  */
 export const usersCurrentUserGetCurrentUser = (
