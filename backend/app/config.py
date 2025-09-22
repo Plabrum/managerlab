@@ -22,7 +22,7 @@ class Config:
         "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback"
     )
     SUCCESS_REDIRECT_URL: str = os.getenv(
-        "SUCCESS_REDIRECT_URL", "http://localhost:3000/home"
+        "SUCCESS_REDIRECT_URL", "http://localhost:3000/"
     )
     S3_BUCKET: str = os.getenv("S3_BUCKET", "")
 

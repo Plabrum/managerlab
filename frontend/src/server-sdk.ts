@@ -33,13 +33,6 @@ export interface CreateUserUserResponseBody {
   updated_at: string;
 }
 
-export interface CurrentUserResponse {
-  id: number;
-  name: string;
-  email: string;
-  email_verified: boolean;
-}
-
 export interface GetCurrentUserUserResponseBody {
   name: string;
   email: string;
@@ -138,68 +131,6 @@ export type UsersUserIdGetUser400 = {
   status_code: number;
   detail: string;
   extra?: UsersUserIdGetUser400Extra;
-};
-
-export type AuthLogoutLogoutUserParams = {
-  connection: unknown;
-};
-
-export type AuthLogoutLogoutUser201 = { [key: string]: string };
-
-export type AuthLogoutLogoutUser400ExtraAnyOf = { [key: string]: unknown };
-
-export type AuthLogoutLogoutUser400Extra =
-  | null
-  | AuthLogoutLogoutUser400ExtraAnyOf
-  | unknown[];
-
-/**
- * Validation Exception
- */
-export type AuthLogoutLogoutUser400 = {
-  status_code: number;
-  detail: string;
-  extra?: AuthLogoutLogoutUser400Extra;
-};
-
-export type AuthProfileGetUserProfileParams = {
-  connection: unknown;
-};
-
-export type AuthProfileGetUserProfile400ExtraAnyOf = { [key: string]: unknown };
-
-export type AuthProfileGetUserProfile400Extra =
-  | null
-  | AuthProfileGetUserProfile400ExtraAnyOf
-  | unknown[];
-
-/**
- * Validation Exception
- */
-export type AuthProfileGetUserProfile400 = {
-  status_code: number;
-  detail: string;
-  extra?: AuthProfileGetUserProfile400Extra;
-};
-
-export type AuthAdminUsersUserIdDeleteUser200 = { [key: string]: string };
-
-export type AuthAdminUsersUserIdDeleteUser400ExtraAnyOf = {
-  [key: string]: unknown;
-};
-
-export type AuthAdminUsersUserIdDeleteUser400Extra =
-  | null
-  | AuthAdminUsersUserIdDeleteUser400ExtraAnyOf
-  | unknown[];
-
-/**
- * Validation Exception
- */
-export type AuthAdminUsersUserIdDeleteUser400 = {
-  status_code: number;
-  detail: string;
-  extra?: AuthAdminUsersUserIdDeleteUser400Extra;
 };
 
 export type AuthGoogleLoginGoogleLogin200 = { [key: string]: unknown };
@@ -436,175 +367,30 @@ export const usersCurrentUserGetCurrentUser = async (
  * @summary LogoutUser
  */
 export type authLogoutLogoutUserResponse201 = {
-  data: AuthLogoutLogoutUser201;
+  data: null;
   status: 201;
 };
 
-export type authLogoutLogoutUserResponse400 = {
-  data: AuthLogoutLogoutUser400;
-  status: 400;
-};
-
 export type authLogoutLogoutUserResponseComposite =
-  | authLogoutLogoutUserResponse201
-  | authLogoutLogoutUserResponse400;
+  authLogoutLogoutUserResponse201;
 
 export type authLogoutLogoutUserResponse =
   authLogoutLogoutUserResponseComposite & {
     headers: Headers;
   };
 
-export const getAuthLogoutLogoutUserUrl = (
-  params: AuthLogoutLogoutUserParams
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/auth/logout?${stringifiedParams}`
-    : `/auth/logout`;
+export const getAuthLogoutLogoutUserUrl = () => {
+  return `/auth/logout`;
 };
 
 export const authLogoutLogoutUser = async (
-  params: AuthLogoutLogoutUserParams,
   options?: RequestInit
 ): Promise<authLogoutLogoutUserResponse> => {
   return serverMutator<authLogoutLogoutUserResponse>(
-    getAuthLogoutLogoutUserUrl(params),
+    getAuthLogoutLogoutUserUrl(),
     {
       ...options,
       method: 'POST',
-    }
-  );
-};
-
-/**
- * @summary GetUserProfile
- */
-export type authProfileGetUserProfileResponse200 = {
-  data: CurrentUserResponse;
-  status: 200;
-};
-
-export type authProfileGetUserProfileResponse400 = {
-  data: AuthProfileGetUserProfile400;
-  status: 400;
-};
-
-export type authProfileGetUserProfileResponseComposite =
-  | authProfileGetUserProfileResponse200
-  | authProfileGetUserProfileResponse400;
-
-export type authProfileGetUserProfileResponse =
-  authProfileGetUserProfileResponseComposite & {
-    headers: Headers;
-  };
-
-export const getAuthProfileGetUserProfileUrl = (
-  params: AuthProfileGetUserProfileParams
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/auth/profile?${stringifiedParams}`
-    : `/auth/profile`;
-};
-
-export const authProfileGetUserProfile = async (
-  params: AuthProfileGetUserProfileParams,
-  options?: RequestInit
-): Promise<authProfileGetUserProfileResponse> => {
-  return serverMutator<authProfileGetUserProfileResponse>(
-    getAuthProfileGetUserProfileUrl(params),
-    {
-      ...options,
-      method: 'GET',
-    }
-  );
-};
-
-/**
- * @summary ListAllUsers
- */
-export type authAdminUsersListAllUsersResponse200 = {
-  data: CurrentUserResponse[];
-  status: 200;
-};
-
-export type authAdminUsersListAllUsersResponseComposite =
-  authAdminUsersListAllUsersResponse200;
-
-export type authAdminUsersListAllUsersResponse =
-  authAdminUsersListAllUsersResponseComposite & {
-    headers: Headers;
-  };
-
-export const getAuthAdminUsersListAllUsersUrl = () => {
-  return `/auth/admin/users`;
-};
-
-export const authAdminUsersListAllUsers = async (
-  options?: RequestInit
-): Promise<authAdminUsersListAllUsersResponse> => {
-  return serverMutator<authAdminUsersListAllUsersResponse>(
-    getAuthAdminUsersListAllUsersUrl(),
-    {
-      ...options,
-      method: 'GET',
-    }
-  );
-};
-
-/**
- * @summary DeleteUser
- */
-export type authAdminUsersUserIdDeleteUserResponse200 = {
-  data: AuthAdminUsersUserIdDeleteUser200;
-  status: 200;
-};
-
-export type authAdminUsersUserIdDeleteUserResponse400 = {
-  data: AuthAdminUsersUserIdDeleteUser400;
-  status: 400;
-};
-
-export type authAdminUsersUserIdDeleteUserResponseComposite =
-  | authAdminUsersUserIdDeleteUserResponse200
-  | authAdminUsersUserIdDeleteUserResponse400;
-
-export type authAdminUsersUserIdDeleteUserResponse =
-  authAdminUsersUserIdDeleteUserResponseComposite & {
-    headers: Headers;
-  };
-
-export const getAuthAdminUsersUserIdDeleteUserUrl = (userId: number) => {
-  return `/auth/admin/users/${userId}`;
-};
-
-export const authAdminUsersUserIdDeleteUser = async (
-  userId: number,
-  options?: RequestInit
-): Promise<authAdminUsersUserIdDeleteUserResponse> => {
-  return serverMutator<authAdminUsersUserIdDeleteUserResponse>(
-    getAuthAdminUsersUserIdDeleteUserUrl(userId),
-    {
-      ...options,
-      method: 'DELETE',
     }
   );
 };

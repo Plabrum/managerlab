@@ -32,13 +32,6 @@ export interface CreateUserUserResponseBody {
   updated_at: string;
 }
 
-export interface CurrentUserResponse {
-  id: number;
-  name: string;
-  email: string;
-  email_verified: boolean;
-}
-
 export interface GetCurrentUserUserResponseBody {
   name: string;
   email: string;
@@ -126,57 +119,6 @@ export type UsersUserIdGetUser400 = {
   status_code: number;
   detail: string;
   extra?: UsersUserIdGetUser400Extra;
-};
-
-export type AuthLogoutLogoutUserParams = {
-connection: unknown;
-};
-
-export type AuthLogoutLogoutUser201 = {[key: string]: string};
-
-export type AuthLogoutLogoutUser400ExtraAnyOf = {[key: string]: unknown};
-
-export type AuthLogoutLogoutUser400Extra = null | AuthLogoutLogoutUser400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type AuthLogoutLogoutUser400 = {
-  status_code: number;
-  detail: string;
-  extra?: AuthLogoutLogoutUser400Extra;
-};
-
-export type AuthProfileGetUserProfileParams = {
-connection: unknown;
-};
-
-export type AuthProfileGetUserProfile400ExtraAnyOf = {[key: string]: unknown};
-
-export type AuthProfileGetUserProfile400Extra = null | AuthProfileGetUserProfile400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type AuthProfileGetUserProfile400 = {
-  status_code: number;
-  detail: string;
-  extra?: AuthProfileGetUserProfile400Extra;
-};
-
-export type AuthAdminUsersUserIdDeleteUser200 = {[key: string]: string};
-
-export type AuthAdminUsersUserIdDeleteUser400ExtraAnyOf = {[key: string]: unknown};
-
-export type AuthAdminUsersUserIdDeleteUser400Extra = null | AuthAdminUsersUserIdDeleteUser400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type AuthAdminUsersUserIdDeleteUser400 = {
-  status_code: number;
-  detail: string;
-  extra?: AuthAdminUsersUserIdDeleteUser400Extra;
 };
 
 export type AuthGoogleLoginGoogleLogin200 = { [key: string]: unknown };

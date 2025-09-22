@@ -8,6 +8,11 @@ const instance = axios.create({
 export const customInstance = async <T>(
   config: AxiosRequestConfig
 ): Promise<T> => {
-  const { data } = await instance(config);
-  return data;
+  try {
+    const { data } = await instance(config);
+    return data;
+  } catch (error) {
+    // Re-throw the error so it can be caught by React error boundaries
+    throw error;
+  }
 };

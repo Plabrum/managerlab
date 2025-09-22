@@ -10,8 +10,8 @@ from litestar.contrib.sqlalchemy.plugins import (
     EngineConfig,
 )
 from litestar.di import Provide
-from litestar.exceptions import ClientException
-from litestar.status_codes import HTTP_409_CONFLICT
+from litestar.exceptions import ClientException, NotAuthorizedException
+from litestar.status_codes import HTTP_409_CONFLICT, HTTP_401_UNAUTHORIZED
 from litestar.security.session_auth import SessionAuth
 from litestar.connection import ASGIConnection
 from litestar.middleware.session.server_side import (
@@ -39,6 +39,15 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 logger = logging.getLogger(__name__)
+
+
+def handle_not_authorized(request: Request, exc: NotAuthorizedException) -> Response:
+    """Handle authentication errors properly."""
+    logger.info("Authentication required for %s: %s", request.url.path, exc.detail)
+    return Response(
+        content={"detail": exc.detail or "Authentication required"},
+        status_code=HTTP_401_UNAUTHORIZED,
+    )
 
 
 def log_any_exception(request: Request, exc: Exception) -> Response:
@@ -161,13 +170,17 @@ app = Litestar(
     on_startup=[on_startup],
     on_shutdown=[on_shutdown],
     on_app_init=[session_auth.on_app_init],
+    middleware=[session_auth.middleware],  # Add this line
     cors_config=CORSConfig(
         allow_origins=[config.FRONTEND_ORIGIN],
         allow_credentials=True,  # Required for session cookies
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
     ),
-    exception_handlers={Exception: log_any_exception},
+    exception_handlers={
+        NotAuthorizedException: handle_not_authorized,
+        Exception: log_any_exception,
+    },
     stores={"sessions": session_store},  # PostgreSQL session store
     dependencies={
         "transaction": Provide(provide_transaction),

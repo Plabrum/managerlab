@@ -14,6 +14,14 @@ export function TanstackQueryProvider({
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000, // 1 minute
+            throwOnError: (error) => {
+              // Throw 401 errors for error boundaries to catch
+              if (error && typeof error === 'object' && 'response' in error) {
+                const response = error.response;
+                return response?.status === 401;
+              }
+              return false;
+            },
             retry: (failureCount, error) => {
               // Don't retry on 4xx errors
               if (error && typeof error === 'object' && 'status' in error) {
