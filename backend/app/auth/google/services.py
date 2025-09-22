@@ -1,3 +1,4 @@
+import logging
 import secrets
 import urllib.parse
 from datetime import datetime, timedelta, timezone
@@ -11,6 +12,8 @@ from sqlalchemy.orm import joinedload
 from app.config import Config
 from app.users.models import User
 from app.auth.google.models import GoogleOAuthAccount, GoogleOAuthState
+
+logger = logging.getLogger(__name__)
 
 
 class GoogleOAuthService:
@@ -47,6 +50,7 @@ class GoogleOAuthService:
         }
 
         auth_url = f"{self.auth_url}?{urllib.parse.urlencode(params)}"
+        logger.info("auth_url: %s", auth_url)
         return auth_url, state
 
     async def store_oauth_state(

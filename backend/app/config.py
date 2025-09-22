@@ -17,10 +17,7 @@ class Config:
     # Google OAuth Configuration
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
-    if GOOGLE_CLIENT_ID == "" or GOOGLE_CLIENT_SECRET == "":
-        raise ValueError(
-            "Google OAuth credentials are not set in environment variables."
-        )
+
     GOOGLE_REDIRECT_URI: str = os.getenv(
         "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback"
     )
