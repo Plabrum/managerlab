@@ -141,7 +141,7 @@ session_auth = SessionAuth[int, ServerSideSessionBackend](
     exclude=[
         "^/health",
         "^/auth/google/",
-        "^/users/signup",  # Exclude user signup endpoint
+        "^/users/signup",
         "^/schema",
     ],
 )
