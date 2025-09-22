@@ -94,6 +94,10 @@ async def on_startup(app: Litestar) -> None:
     app.state.http = aiohttp.ClientSession()
 
 
+async def on_shutdown(app: Litestar) -> None:
+    await app.state.http.close()
+
+
 def provide_http(state: State) -> aiohttp.ClientSession:
     return state.http
 
@@ -155,6 +159,7 @@ app = Litestar(
         auth_router,
     ],
     on_startup=[on_startup],
+    on_shutdown=[on_shutdown],
     on_app_init=[session_auth.on_app_init],
     cors_config=CORSConfig(
         allow_origins=[config.FRONTEND_ORIGIN],

@@ -17,6 +17,10 @@ class Config:
     # Google OAuth Configuration
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    if GOOGLE_CLIENT_ID == "" or GOOGLE_CLIENT_SECRET == "":
+        raise ValueError(
+            "Google OAuth credentials are not set in environment variables."
+        )
     GOOGLE_REDIRECT_URI: str = os.getenv(
         "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback"
     )
@@ -28,7 +32,7 @@ class Config:
     # Session Configuration
     SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
 
-    FRONTEND_ORIGIN: str = "http://localhost:3000" if IS_DEV else SESSION_COOKIE_DOMAIN
+    FRONTEND_ORIGIN: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 
     @property
     def DATABASE_URL(self) -> str:
