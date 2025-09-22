@@ -48,7 +48,7 @@ async def create_user(data: CreateUserSchema, transaction: AsyncSession) -> User
     return user
 
 
-@post("/signup", return_dto=WaitlistEntryDTO, guards=[])
+@post("/signup", return_dto=WaitlistEntryDTO)
 async def add_user_to_waitlist(
     data: UserWaitlistFormSchema, transaction: AsyncSession
 ) -> WaitlistEntry:
@@ -62,6 +62,14 @@ async def add_user_to_waitlist(
     return user
 
 
+# Public router for waitlist signup (no authentication required)
+public_user_router = Router(
+    path="/users",
+    route_handlers=[add_user_to_waitlist],
+    tags=["users"],
+)
+
+# Authenticated router for user management
 user_router = Router(
     path="/users",
     guards=[requires_authenticated_user],
@@ -69,7 +77,6 @@ user_router = Router(
         list_users,
         get_user,
         create_user,
-        add_user_to_waitlist,
         get_current_user,
     ],
     tags=["users"],

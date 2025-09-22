@@ -27,27 +27,6 @@ export interface CreateUserUserResponseBody {
   name: string;
   email: string;
   email_verified?: boolean;
-  google_accounts: CreateUserUser0GoogleOAuthAccountResponseBody[];
-  id: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export type CreateUserUser0GoogleOAuthAccountResponseBodyPicture = string | null;
-
-export type CreateUserUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
-
-export type CreateUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
-
-export interface CreateUserUser0GoogleOAuthAccountResponseBody {
-  user_id: number;
-  google_id: string;
-  email: string;
-  name: string;
-  picture?: CreateUserUser0GoogleOAuthAccountResponseBodyPicture;
-  access_token: string;
-  refresh_token?: CreateUserUser0GoogleOAuthAccountResponseBodyRefreshToken;
-  token_expires_at?: CreateUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
   id: number;
   created_at: string;
   updated_at: string;
@@ -64,27 +43,6 @@ export interface GetCurrentUserUserResponseBody {
   name: string;
   email: string;
   email_verified?: boolean;
-  google_accounts: GetCurrentUserUser0GoogleOAuthAccountResponseBody[];
-  id: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export type GetCurrentUserUser0GoogleOAuthAccountResponseBodyPicture = string | null;
-
-export type GetCurrentUserUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
-
-export type GetCurrentUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
-
-export interface GetCurrentUserUser0GoogleOAuthAccountResponseBody {
-  user_id: number;
-  google_id: string;
-  email: string;
-  name: string;
-  picture?: GetCurrentUserUser0GoogleOAuthAccountResponseBodyPicture;
-  access_token: string;
-  refresh_token?: GetCurrentUserUser0GoogleOAuthAccountResponseBodyRefreshToken;
-  token_expires_at?: GetCurrentUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
   id: number;
   created_at: string;
   updated_at: string;
@@ -94,27 +52,6 @@ export interface GetUserUserResponseBody {
   name: string;
   email: string;
   email_verified?: boolean;
-  google_accounts: GetUserUser0GoogleOAuthAccountResponseBody[];
-  id: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export type GetUserUser0GoogleOAuthAccountResponseBodyPicture = string | null;
-
-export type GetUserUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
-
-export type GetUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
-
-export interface GetUserUser0GoogleOAuthAccountResponseBody {
-  user_id: number;
-  google_id: string;
-  email: string;
-  name: string;
-  picture?: GetUserUser0GoogleOAuthAccountResponseBodyPicture;
-  access_token: string;
-  refresh_token?: GetUserUser0GoogleOAuthAccountResponseBodyRefreshToken;
-  token_expires_at?: GetUserUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
   id: number;
   created_at: string;
   updated_at: string;
@@ -134,27 +71,6 @@ export interface ListUsersUserResponseBody {
   name: string;
   email: string;
   email_verified?: boolean;
-  google_accounts: ListUsersUser0GoogleOAuthAccountResponseBody[];
-  id: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export type ListUsersUser0GoogleOAuthAccountResponseBodyPicture = string | null;
-
-export type ListUsersUser0GoogleOAuthAccountResponseBodyRefreshToken = string | null;
-
-export type ListUsersUser0GoogleOAuthAccountResponseBodyTokenExpiresAt = string | null;
-
-export interface ListUsersUser0GoogleOAuthAccountResponseBody {
-  user_id: number;
-  google_id: string;
-  email: string;
-  name: string;
-  picture?: ListUsersUser0GoogleOAuthAccountResponseBodyPicture;
-  access_token: string;
-  refresh_token?: ListUsersUser0GoogleOAuthAccountResponseBodyRefreshToken;
-  token_expires_at?: ListUsersUser0GoogleOAuthAccountResponseBodyTokenExpiresAt;
   id: number;
   created_at: string;
   updated_at: string;

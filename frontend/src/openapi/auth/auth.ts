@@ -6,7 +6,8 @@
  */
 import {
   useMutation,
-  useQuery
+  useQuery,
+  useSuspenseQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
@@ -20,7 +21,9 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult
 } from '@tanstack/react-query';
 
 import type {
@@ -195,6 +198,60 @@ export function useAuthProfileGetUserProfile<TData = Awaited<ReturnType<typeof a
 
 
 
+export const getAuthProfileGetUserProfileSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError = AuthProfileGetUserProfile400>(params: AuthProfileGetUserProfileParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthProfileGetUserProfileQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authProfileGetUserProfile>>> = ({ signal }) => authProfileGetUserProfile(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthProfileGetUserProfileSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof authProfileGetUserProfile>>>
+export type AuthProfileGetUserProfileSuspenseQueryError = AuthProfileGetUserProfile400
+
+
+export function useAuthProfileGetUserProfileSuspense<TData = Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError = AuthProfileGetUserProfile400>(
+ params: AuthProfileGetUserProfileParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthProfileGetUserProfileSuspense<TData = Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError = AuthProfileGetUserProfile400>(
+ params: AuthProfileGetUserProfileParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthProfileGetUserProfileSuspense<TData = Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError = AuthProfileGetUserProfile400>(
+ params: AuthProfileGetUserProfileParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GetUserProfile
+ */
+
+export function useAuthProfileGetUserProfileSuspense<TData = Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError = AuthProfileGetUserProfile400>(
+ params: AuthProfileGetUserProfileParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authProfileGetUserProfile>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthProfileGetUserProfileSuspenseQueryOptions(params,options)
+
+  const query = useSuspenseQuery(queryOptions , queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
 /**
  * @summary ListAllUsers
  */
@@ -274,6 +331,60 @@ export function useAuthAdminUsersListAllUsers<TData = Awaited<ReturnType<typeof 
   const queryOptions = getAuthAdminUsersListAllUsersQueryOptions(options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getAuthAdminUsersListAllUsersSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError = unknown>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthAdminUsersListAllUsersQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>> = ({ signal }) => authAdminUsersListAllUsers(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthAdminUsersListAllUsersSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>>
+export type AuthAdminUsersListAllUsersSuspenseQueryError = unknown
+
+
+export function useAuthAdminUsersListAllUsersSuspense<TData = Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError = unknown>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthAdminUsersListAllUsersSuspense<TData = Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthAdminUsersListAllUsersSuspense<TData = Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary ListAllUsers
+ */
+
+export function useAuthAdminUsersListAllUsersSuspense<TData = Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authAdminUsersListAllUsers>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthAdminUsersListAllUsersSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions , queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -430,6 +541,60 @@ export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof 
 
 
 
+export const getAuthGoogleLoginGoogleLoginSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthGoogleLoginGoogleLoginQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>> = ({ signal }) => authGoogleLoginGoogleLogin(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthGoogleLoginGoogleLoginSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>>
+export type AuthGoogleLoginGoogleLoginSuspenseQueryError = unknown
+
+
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GoogleLogin
+ */
+
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthGoogleLoginGoogleLoginSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions , queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
 /**
  * @summary GoogleCallback
  */
@@ -518,6 +683,60 @@ export function useAuthGoogleCallbackGoogleCallback<TData = Awaited<ReturnType<t
 
 
 
+export const getAuthGoogleCallbackGoogleCallbackSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError = AuthGoogleCallbackGoogleCallback400>(params?: AuthGoogleCallbackGoogleCallbackParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthGoogleCallbackGoogleCallbackQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>> = ({ signal }) => authGoogleCallbackGoogleCallback(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthGoogleCallbackGoogleCallbackSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>>
+export type AuthGoogleCallbackGoogleCallbackSuspenseQueryError = AuthGoogleCallbackGoogleCallback400
+
+
+export function useAuthGoogleCallbackGoogleCallbackSuspense<TData = Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError = AuthGoogleCallbackGoogleCallback400>(
+ params: undefined |  AuthGoogleCallbackGoogleCallbackParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthGoogleCallbackGoogleCallbackSuspense<TData = Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError = AuthGoogleCallbackGoogleCallback400>(
+ params?: AuthGoogleCallbackGoogleCallbackParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthGoogleCallbackGoogleCallbackSuspense<TData = Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError = AuthGoogleCallbackGoogleCallback400>(
+ params?: AuthGoogleCallbackGoogleCallbackParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GoogleCallback
+ */
+
+export function useAuthGoogleCallbackGoogleCallbackSuspense<TData = Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError = AuthGoogleCallbackGoogleCallback400>(
+ params?: AuthGoogleCallbackGoogleCallbackParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleCallbackGoogleCallback>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthGoogleCallbackGoogleCallbackSuspenseQueryOptions(params,options)
+
+  const query = useSuspenseQuery(queryOptions , queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
 /**
  * @summary GetCurrentUserGoogleInfo
  */
@@ -597,6 +816,60 @@ export function useAuthGoogleMeGetCurrentUserGoogleInfo<TData = Awaited<ReturnTy
   const queryOptions = getAuthGoogleMeGetCurrentUserGoogleInfoQueryOptions(options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getAuthGoogleMeGetCurrentUserGoogleInfoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError = unknown>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthGoogleMeGetCurrentUserGoogleInfoQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>> = ({ signal }) => authGoogleMeGetCurrentUserGoogleInfo(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthGoogleMeGetCurrentUserGoogleInfoSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>>
+export type AuthGoogleMeGetCurrentUserGoogleInfoSuspenseQueryError = unknown
+
+
+export function useAuthGoogleMeGetCurrentUserGoogleInfoSuspense<TData = Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError = unknown>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthGoogleMeGetCurrentUserGoogleInfoSuspense<TData = Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthGoogleMeGetCurrentUserGoogleInfoSuspense<TData = Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GetCurrentUserGoogleInfo
+ */
+
+export function useAuthGoogleMeGetCurrentUserGoogleInfoSuspense<TData = Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleMeGetCurrentUserGoogleInfo>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthGoogleMeGetCurrentUserGoogleInfoSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions , queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

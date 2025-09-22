@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { FeatureSection } from '@/components/feature-section';
 import { FeatureCard } from '@/components/feature-card';
@@ -8,7 +6,6 @@ import { Footer } from '@/components/footer';
 import { FooterSection } from '@/components/footer-section';
 import { FooterLink } from '@/components/footer-link';
 import { NavigationItem } from '@/components/navigation-item';
-import { useState } from 'react';
 import {
   Users,
   Zap,
@@ -21,20 +18,9 @@ import {
   DollarSign,
   CheckCircle,
 } from 'lucide-react';
-import { UserWaitlistFormSchema } from '@/openapi/litestarAPI.schemas';
-import { useUsersSignupAddUserToWaitlist } from '@/openapi/users/users';
-import { createTypedForm } from '@/components/forms/base';
-import { toast } from 'sonner';
 import Link from 'next/link';
 
 export default function LandingPage() {
-  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
-
-  const waitlist = useUsersSignupAddUserToWaitlist();
-
-  const { FormModal, FormString, FormEmail, FormText } =
-    createTypedForm<UserWaitlistFormSchema>();
-
   return (
     <>
       <Navbar
@@ -54,13 +40,14 @@ export default function LandingPage() {
                 Sign In
               </Button>
             </Link>
-            <Button
-              onClick={() => setIsWaitlistModalOpen(true)}
-              size="sm"
-              className="bg-white text-black hover:bg-gray-200"
-            >
-              Get Started
-            </Button>
+            <Link href="/signup">
+              <Button
+                size="sm"
+                className="bg-white text-black hover:bg-gray-200"
+              >
+                Get Started
+              </Button>
+            </Link>
           </div>
         }
       >
@@ -79,21 +66,23 @@ export default function LandingPage() {
                 <span className="block">Organized.</span>
               </h1>
               <div className="flex flex-col items-center justify-center gap-4 pt-8 sm:flex-row">
-                <Button
-                  size="lg"
-                  className="bg-white px-8 py-6 text-lg text-black hover:bg-gray-200"
-                  onClick={() => setIsWaitlistModalOpen(true)}
-                >
-                  Get Started
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-gray-600 bg-transparent px-8 py-6 text-lg text-white hover:bg-gray-800"
-                  onClick={() => setIsWaitlistModalOpen(true)}
-                >
-                  Get Started
-                </Button>
+                <Link href="/auth">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-gray-600 bg-transparent px-8 py-6 text-lg text-white hover:bg-gray-800"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button
+                    size="lg"
+                    className="bg-white px-8 py-6 text-lg text-black hover:bg-gray-200"
+                  >
+                    Get Started
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -170,12 +159,7 @@ export default function LandingPage() {
           <FooterLink href="#managers">For Managers</FooterLink>
           <FooterLink href="#creators">For Creators</FooterLink>
           <FooterLink href="#brands">For Brands</FooterLink>
-          <button
-            onClick={() => setIsWaitlistModalOpen(true)}
-            className="text-left text-gray-400 transition-colors hover:text-white"
-          >
-            Get Started
-          </button>
+          <FooterLink href="/signup">Get Started</FooterLink>
         </FooterSection>
         {/* <FooterSection title="Company"> */}
         {/*   <FooterLink href="/about">About</FooterLink> */}
@@ -192,30 +176,6 @@ export default function LandingPage() {
         {/*   <FooterLink href="/terms">Terms of Service</FooterLink> */}
         {/* </FooterSection> */}
       </Footer>
-
-      <FormModal
-        isOpen={isWaitlistModalOpen}
-        onClose={() => setIsWaitlistModalOpen(false)}
-        title="Join the Waitlist"
-        subTitle="Be among the first to experience Arive."
-        onSubmit={async (values) => {
-          try {
-            await waitlist.mutateAsync({ data: values });
-            setIsWaitlistModalOpen(false);
-            toast.success("You're on the waitlist! We will be in touch soon.");
-          } catch (error) {
-            toast.error('Something went wrong. Please try again.');
-            console.error(error);
-          }
-        }}
-        isSubmitting={waitlist.isPending}
-        submitText="Join Waitlist"
-      >
-        <FormString name="name" label="Full Name" required autoFocus />
-        <FormEmail name="email" label="Email Address" required />
-        <FormString name="company" label="Company (Optional)" />
-        <FormText name="message" label="Tell us more (Optional)" rows={3} />
-      </FormModal>
     </>
   );
 }

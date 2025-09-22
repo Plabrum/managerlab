@@ -27,7 +27,7 @@ from sqlalchemy.pool import NullPool
 
 import aiohttp
 from app.config import Config, config
-from app.users.routes import user_router
+from app.users.routes import user_router, public_user_router
 from app.auth.routes import auth_router
 from litestar.datastructures import State
 from sqlalchemy import event
@@ -150,6 +150,7 @@ session_auth = SessionAuth[int, ServerSideSessionBackend](
 app = Litestar(
     route_handlers=[
         health_check,
+        public_user_router,
         user_router,
         auth_router,
     ],
