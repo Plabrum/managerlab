@@ -108,8 +108,8 @@ variable "db_password" {
 
 variable "db_min_acu" {
   type        = number
-  default     = 0.0
-  description = "Minimum Aurora Capacity Units (0.0 allows auto-pause)"
+  default     = 0.5
+  description = "Minimum Aurora Capacity Units (0.5 prevents auto-pause)"
 }
 
 variable "db_max_acu" {
