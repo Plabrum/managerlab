@@ -56,9 +56,14 @@ def log_any_exception(request: Request, exc: Exception) -> Response:
 
 
 @get("/health", tags=["system"], guards=[])
-async def health_check() -> dict:
-    """Simple health check for App Runner - just returns 200 OK."""
+async def health_check(transaction: AsyncSession) -> dict:
+    """Health check with database connectivity test to warm up RDS."""
     logger.info("Health check endpoint called")
+
+    # Execute a simple query to ensure database connection and warm up RDS
+    await transaction.execute("SELECT 1")
+    logger.info("Database connectivity verified")
+
     return {
         "status": "ok",
         "message": "Service is running",

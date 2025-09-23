@@ -53,11 +53,11 @@ dev-backend:
 # Database targets
 .PHONY: db-start
 db-start:
-	cd backend && docker run --name manageros-dev-db -d -p 5432:5432 --rm $$(docker build -q -f Dockerfile.dev-db .)
+	cd backend && docker compose -f docker-compose.dev.yml up -d db
 
 .PHONY: db-stop
 db-stop:
-	docker stop manageros-dev-db || true
+	cd backend && docker compose -f docker-compose.dev.yml down
 
 .PHONY: db-migrate
 db-migrate:
