@@ -4,7 +4,7 @@ import {
   usersCurrentUserGetCurrentUser,
   type GetUserUserResponseBody,
 } from '@/server-sdk';
-import { AuthProvider } from '@/components/provers/auth-provider';
+import { AuthProvider } from '@/components/providers/auth-provider';
 import { Nav } from '@/components/nav';
 
 export async function getCurrentUser(): Promise<GetUserUserResponseBody> {
@@ -23,11 +23,11 @@ export async function getCurrentUser(): Promise<GetUserUserResponseBody> {
 
   console.log('Fetched current user:', user, status);
 
-  if (Number(status) === 401) {
+  if (user && Number(status) === 200) {
+    return user;
+  } else if (Number(status) === 401) {
     redirect('/auth/expire');
-  } else if (!user) {
-    return redirect('/auth');
-  } else return user;
+  } else redirect('/auth');
 }
 
 export default async function AuthenticatedLayout({

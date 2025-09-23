@@ -12,7 +12,7 @@ import {
   Settings,
 } from 'lucide-react';
 
-import { useAuth } from '@/components/provers/auth-provider';
+import { useAuth } from '@/components/providers/auth-provider';
 const availablePages = {
   dashboard: {
     label: 'Dashboard',
