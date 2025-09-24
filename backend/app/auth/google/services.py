@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from app.config import Config
 from app.users.models import User
 from app.auth.google.models import GoogleOAuthAccount, GoogleOAuthState
+from app.utils.configure import config
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,6 @@ class GoogleOAuthService:
 
     def __init__(
         self,
-        config: Config,
         transaction: AsyncSession,
         http_client: aiohttp.ClientSession,
     ):
