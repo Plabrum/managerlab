@@ -25,6 +25,7 @@ from sqlalchemy.pool import NullPool
 from app.utils.configure import config
 from app.users.routes import user_router, public_user_router
 from app.auth.routes import auth_router
+from app.objects.routes import object_router
 
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
@@ -66,6 +67,7 @@ app = Litestar(
         public_user_router,
         user_router,
         auth_router,
+        object_router,
     ],
     on_startup=[providers.on_startup],
     on_shutdown=[providers.on_shutdown],
