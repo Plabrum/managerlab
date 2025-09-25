@@ -1,9 +1,10 @@
 """Base objects framework with auto-registration."""
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, Type, ClassVar
+from typing import TYPE_CHECKING, Dict, Sequence, Type, ClassVar
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.base.models import BaseDBModel
 from app.objects.types import ObjectTypes
 from app.objects.schemas import ObjectDetailDTO, ObjectListDTO, ObjectListRequest
 
@@ -43,7 +44,7 @@ class BaseObject(ABC):
     """Base class for all objects that participate in the objects framework."""
 
     # Subclasses must set this to register with the framework
-    object_type: ClassVar[ObjectTypes] = None
+    object_type: ClassVar[ObjectTypes]
 
     def __init_subclass__(cls, **kwargs):
         """Auto-register subclasses in the registry."""
@@ -51,19 +52,17 @@ class BaseObject(ABC):
         if cls.object_type is not None:
             ObjectRegistry.register(cls.object_type, cls)
 
+    @classmethod
     @abstractmethod
-    async def to_detail_dto(
-        self, session: AsyncSession, user_id: int | None = None
-    ) -> ObjectDetailDTO:
+    def to_detail_dto(cls, object: BaseDBModel) -> ObjectDetailDTO:
         """Convert to detailed DTO representation."""
-        pass
+        ...
 
+    @classmethod
     @abstractmethod
-    async def to_list_dto(
-        self, session: AsyncSession, user_id: int | None = None
-    ) -> ObjectListDTO:
+    def to_list_dto(cls, object: BaseDBModel) -> ObjectListDTO:
         """Convert to list DTO representation."""
-        pass
+        ...
 
     @classmethod
     @abstractmethod
@@ -71,10 +70,16 @@ class BaseObject(ABC):
         cls, session: AsyncSession, request: ObjectListRequest
     ):
         """Apply list request filters/sorting to create database query."""
-        pass
+        ...
 
     @classmethod
     @abstractmethod
-    async def get_by_id(cls, session: AsyncSession, object_id: int):
+    async def get_by_id(cls, session: AsyncSession, object_id: int) -> BaseDBModel:
         """Get object by ID."""
-        pass
+        ...
+
+    @classmethod
+    @abstractmethod
+    async def get_list(
+        cls, session: AsyncSession, param: ObjectListRequest
+    ) -> tuple[Sequence[BaseDBModel], int]: ...

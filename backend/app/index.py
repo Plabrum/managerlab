@@ -9,10 +9,8 @@ from litestar.contrib.sqlalchemy.plugins import (
     EngineConfig,
 )
 from litestar.di import Provide
-from litestar.exceptions import ClientException, NotAuthorizedException
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.plugins import ScalarRenderPlugin
-from litestar.status_codes import HTTP_409_CONFLICT, HTTP_401_UNAUTHORIZED
 from litestar.security.session_auth import SessionAuth
 from litestar.middleware.session.server_side import (
     ServerSideSessionConfig,

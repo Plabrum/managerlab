@@ -1,25 +1,24 @@
 """Object schemas and DTOs."""
 
+from enum import StrEnum, auto
 from typing import Any, Dict, List, Optional
-from enum import Enum
 
 from app.base.schemas import BaseSchema
-from app.utils.sqids import SqidDTO
 
 
-class FieldType(str, Enum):
+class FieldType(StrEnum):
     """Field types for object fields."""
 
-    STRING = "string"
-    INT = "int"
-    FLOAT = "float"
-    BOOL = "bool"
-    DATE = "date"
-    DATETIME = "datetime"
-    USD = "usd"  # Currency field
-    EMAIL = "email"
-    URL = "url"
-    TEXT = "text"  # Long text field
+    String = auto()
+    Int = auto()
+    Float = auto()
+    Bool = auto()
+    Date = auto()
+    Datetime = auto()
+    USD = auto()
+    Email = auto()
+    URL = auto()
+    Text = auto()
 
 
 class ObjectFieldDTO(BaseSchema):
@@ -33,12 +32,8 @@ class ObjectFieldDTO(BaseSchema):
 
 
 class StateDTO(BaseSchema):
-    value: Enum
-
-    class Config:
-        json_encoders = {
-            Enum: lambda value: str(value.value).replace("_", " ").lower().capitalize()
-        }
+    key: str
+    label: str
 
 
 class ActionDTO(BaseSchema):
@@ -61,10 +56,9 @@ class ObjectRelationDTO(BaseSchema):
 class ObjectDetailDTO(BaseSchema):
     """Detailed object representation."""
 
-    id: SqidDTO
+    id: str
     object_type: str
     state: StateDTO
-    object_version: int
     fields: List[ObjectFieldDTO]
     actions: List[ActionDTO]
     created_at: str
@@ -76,7 +70,7 @@ class ObjectDetailDTO(BaseSchema):
 class ObjectListDTO(BaseSchema):
     """Lightweight object representation for lists/tables."""
 
-    id: SqidDTO
+    id: str
     object_type: str
     title: str
     state: StateDTO
@@ -84,15 +78,6 @@ class ObjectListDTO(BaseSchema):
     updated_at: str
     subtitle: Optional[str] = None
     actions: List[ActionDTO] = []
-
-
-class PerformActionRequest(BaseSchema):
-    """Request schema for performing actions."""
-
-    action: str
-    object_version: Optional[int] = None
-    idempotency_key: Optional[str] = None
-    context: Optional[Dict[str, Any]] = None
 
 
 class ObjectListRequest(BaseSchema):

@@ -1,9 +1,7 @@
 from typing import Annotated
 import sqids
 
-from app.base.schemas import BaseSchema
-
-sqid_encoder = sqids.Sqids(min_length=8)
+sqid_encoder = sqids.Sqids(alphabet="abcdefghijklmnopqrstuvwxyz", min_length=8)
 
 
 def sqid_decode(value: str) -> int:
@@ -14,13 +12,8 @@ def sqid_decode(value: str) -> int:
     return decoded[0]
 
 
-# Route parameter type: SQID string → int
+def sqid_encode(value: int) -> str:
+    return sqid_encoder.encode([value])
+
+
 Sqid = Annotated[int, sqid_decode]
-
-
-# Response DTO type: int → SQID string in JSON
-class SqidDTO(BaseSchema):
-    value: int
-
-    class Config:
-        json_encoders = {int: lambda value: sqid_encoder.encode([value])}
