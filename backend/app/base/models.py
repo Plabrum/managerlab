@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any, Dict, Set, Type
 
 from sqlalchemy import DateTime, Integer
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import func
 
@@ -42,3 +43,7 @@ class BaseDBModel(DeclarativeBase):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
+
+    @hybrid_property
+    def public_id(self) -> str:
+        return f"secret-{str(self.id)}"

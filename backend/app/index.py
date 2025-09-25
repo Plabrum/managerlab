@@ -11,6 +11,8 @@ from litestar.contrib.sqlalchemy.plugins import (
 )
 from litestar.di import Provide
 from litestar.exceptions import ClientException, NotAuthorizedException
+from litestar.openapi.config import OpenAPIConfig
+from litestar.openapi.plugins import ScalarRenderPlugin
 from litestar.status_codes import HTTP_409_CONFLICT, HTTP_401_UNAUTHORIZED
 from litestar.security.session_auth import SessionAuth
 from litestar.connection import ASGIConnection
@@ -214,6 +216,12 @@ app = Litestar(
             )
         )
     ],
+    openapi_config=OpenAPIConfig(
+        title="ManagerLab",
+        description="Private schema of ManagerLab with Scalar OpenAPI docs",
+        version="0.0.1",
+        render_plugins=[ScalarRenderPlugin()],
+    ),
 )
 
 logger.info("\n✅ ManageLab API initialized successfully \nEnvironment: {config.ENV}")

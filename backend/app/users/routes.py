@@ -4,9 +4,13 @@ from litestar import Request, Router, get, post
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.users.dto import UserDTO, WaitlistEntryDTO
 from app.users.models import User, WaitlistEntry
-from app.users.schemas import CreateUserSchema, UserWaitlistFormSchema
+from app.users.schemas import (
+    CreateUserSchema,
+    UserDTO,
+    UserWaitlistFormSchema,
+    WaitlistEntryDTO,
+)
 from app.auth.guards import requires_authenticated_user, requires_superuser
 
 
