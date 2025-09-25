@@ -3,11 +3,11 @@
 from typing import TYPE_CHECKING, Dict, Any
 from decimal import Decimal
 
-from app.objects.models.actions import BaseAction
+from app.actions.models import BaseAction
 from app.objects.models.invoices import Invoice
-from app.objects.enums import InvoiceState
-from app.objects.services.sm import StateMachineService
+from app.objects.enums import InvoiceStates
 from app.objects.states.invoices import invoice_state_machine
+from app.sm.services import StateMachineService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,7 @@ class MakeReadyAction(BaseAction):
     ) -> bool:
         """Available when invoice is in draft state and has required fields."""
         return (
-            obj.state == InvoiceState.DRAFT.value
+            obj.state == InvoiceStates.DRAFT.value
             and obj.invoice_number is not None
             and obj.customer_name
             and obj.customer_email
@@ -48,13 +48,13 @@ class MakeReadyAction(BaseAction):
         success = await machine_service.transition_to(
             session=session,
             obj=obj,
-            target_state=InvoiceState.READY,
+            target_state=InvoiceStates.READY,
             user_id=user_id,
             context=context,
         )
 
         return {
-            "new_state": InvoiceState.READY.value if success else None,
+            "new_state": InvoiceStates.READY.value if success else None,
             "result": {"transitioned": success},
         }
 
@@ -74,7 +74,7 @@ class SendInvoiceAction(BaseAction):
         context: Dict[str, Any] | None = None,
     ) -> bool:
         """Available when invoice is ready."""
-        return obj.state == InvoiceState.READY.value
+        return obj.state == InvoiceStates.READY.value
 
     async def perform(
         self,
@@ -91,13 +91,13 @@ class SendInvoiceAction(BaseAction):
         success = await machine_service.transition_to(
             session=session,
             obj=obj,
-            target_state=InvoiceState.SENT,
+            target_state=InvoiceStates.SENT,
             user_id=user_id,
             context=context,
         )
 
         return {
-            "new_state": InvoiceState.SENT.value if success else None,
+            "new_state": InvoiceStates.SENT.value if success else None,
             "result": {
                 "sent": success,
                 "sent_to": obj.customer_email if success else None,
@@ -121,7 +121,7 @@ class RecordPaymentAction(BaseAction):
     ) -> bool:
         """Available when invoice is sent or overdue and not fully paid."""
         return (
-            obj.state in [InvoiceState.SENT.value, InvoiceState.OVERDUE.value]
+            obj.state in [InvoiceStates.SENT.value, InvoiceStates.OVERDUE.value]
             and not obj.is_paid
         )
 
@@ -161,11 +161,11 @@ class RecordPaymentAction(BaseAction):
             success = await machine_service.transition_to(
                 session=session,
                 obj=obj,
-                target_state=InvoiceState.PAID,
+                target_state=InvoiceStates.PAID,
                 user_id=user_id,
                 context=context,
             )
-            new_state = InvoiceState.PAID.value if success else None
+            new_state = InvoiceStates.PAID.value if success else None
 
         return {
             "new_state": new_state,
@@ -194,8 +194,8 @@ class SendReminderAction(BaseAction):
     ) -> bool:
         """Available when invoice is sent or overdue."""
         return obj.state in [
-            InvoiceState.SENT.value,
-            InvoiceState.OVERDUE.value,
+            InvoiceStates.SENT.value,
+            InvoiceStates.OVERDUE.value,
         ]
 
     async def perform(
@@ -238,8 +238,8 @@ class GenerateBillLinkAction(BaseAction):
         is_manager = user_id == 1  # Placeholder logic
 
         return is_manager and obj.state in [
-            InvoiceState.SENT.value,
-            InvoiceState.OVERDUE.value,
+            InvoiceStates.SENT.value,
+            InvoiceStates.OVERDUE.value,
         ]
 
     async def perform(
@@ -275,7 +275,7 @@ class CancelInvoiceAction(BaseAction):
         context: Dict[str, Any] | None = None,
     ) -> bool:
         """Available when invoice is not paid or cancelled."""
-        return obj.state != InvoiceState.PAID.value
+        return obj.state != InvoiceStates.PAID.value
 
     async def perform(
         self,
@@ -289,12 +289,12 @@ class CancelInvoiceAction(BaseAction):
         success = await machine_service.transition_to(
             session=session,
             obj=obj,
-            target_state=InvoiceState.CANCELLED,
+            target_state=InvoiceStates.CANCELLED,
             user_id=user_id,
             context=context,
         )
 
         return {
-            "new_state": InvoiceState.CANCELLED.value if success else None,
+            "new_state": InvoiceStates.CANCELLED.value if success else None,
             "result": {"cancelled": success},
         }

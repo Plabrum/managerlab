@@ -2,32 +2,26 @@
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from litestar.exceptions import NotFoundException, ClientException
 
-from app.objects.models.base import BaseObject
 from app.objects.schemas import ObjectListRequest
-from app.objects.services.base import get_object_model_class
+from app.objects.services import get_object_model_class
+from app.objects.types import BaseObject
 
-
-async def get_object_by_sqid(
-    session: AsyncSession, object_type: str, sqid: str
-) -> BaseObject:
-    """Get an object by its SQID."""
-    model_class = get_object_model_class(object_type)
-
-    try:
-        object_id = BaseObject.decode_sqid(sqid)
-    except ValueError:
-        raise ClientException(f"Invalid SQID: {sqid}")
-
-    stmt = select(model_class).where(model_class.id == object_id)
-    result = await session.execute(stmt)
-    obj = result.scalar_one_or_none()
-
-    if not obj:
-        raise NotFoundException(f"{object_type.title()} with SQID {sqid} not found")
-
-    return obj
+#
+# async def get_object_by_id(
+#     session: AsyncSession, object_type: str, object_id: int
+# ) -> BaseObject:
+#     """Get an object by its internal ID."""
+#     model_class = get_object_model_class(object_type)
+#
+#     stmt = select(model_class).where(model_class.id == object_id)
+#     result = await session.execute(stmt)
+#     obj = result.scalar_one_or_none()
+#
+#     if not obj:
+#         raise NotFoundException(f"{object_type.title()} with ID {object_id} not found")
+#
+#     return obj
 
 
 async def query_objects(

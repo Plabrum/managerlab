@@ -38,11 +38,6 @@ async def provide_transaction(
 async def on_startup(app: Litestar) -> None:
     app.state.http = aiohttp.ClientSession()
 
-    # Initialize objects platform
-    from app.objects.init import initialize_objects_platform
-
-    initialize_objects_platform()
-
 
 async def on_shutdown(app: Litestar) -> None:
     await app.state.http.close()

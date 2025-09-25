@@ -52,7 +52,10 @@ class StateMachineService:
                 user_id=user_id,
                 context=context,
                 success=False,
-                error_message=f"Transition not allowed: {current_state_enum.value} -> {target_state.value}",
+                error_message=(
+                    f"Transition not allowed: {current_state_enum.value} -> "
+                    f"{target_state.value}"
+                ),
             )
             return False
 
@@ -69,7 +72,9 @@ class StateMachineService:
                 user_id=user_id,
                 context=context,
                 success=False,
-                error_message=f"Current state {current_state_enum.value} does not allow leaving",
+                error_message=(
+                    f"Current state {current_state_enum.value} does not allow leaving"
+                ),
             )
             return False
 

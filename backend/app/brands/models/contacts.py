@@ -7,7 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.objects.models.base import BaseObject
-from app.objects.enums import ContactState
+from app.objects.enums import ContactStates
 
 if TYPE_CHECKING:
     pass
@@ -17,6 +17,7 @@ class Contact(BaseObject):
     """Contact object model."""
 
     __tablename__ = "contacts"
+    _states_enum = ContactStates
 
     # Contact-specific fields
     first_name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
@@ -54,7 +55,7 @@ class Contact(BaseObject):
         if "object_type" not in kwargs:
             kwargs["object_type"] = "contact"
         if "state" not in kwargs:
-            kwargs["state"] = ContactState.ACTIVE.value
+            kwargs["state"] = ContactStates.ACTIVE
         super().__init__(**kwargs)
 
     @property

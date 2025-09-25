@@ -35,7 +35,7 @@ async def requires_active_user(connection: ASGIConnection, _: BaseRouteHandler) 
     # For now, all users are considered active since we don't have an active field
     # This can be extended when we add user account status fields
     # To check user properties, we would need to load from database:
-    # async with connection.app.plugins.get(SQLAlchemyPlugin).get_session() as db_session:
+    # async with connection.app.plugins.get(SQLAlchemyPlugin).get_session() as session:
     #     stmt = select(User).where(User.id == user_id)
     #     result = await db_session.execute(stmt)
     #     user = result.scalar_one_or_none()

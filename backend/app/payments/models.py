@@ -8,7 +8,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.objects.models.base import BaseObject
-from app.objects.enums import InvoiceState
+from app.objects.enums import InvoiceStates
 
 if TYPE_CHECKING:
     pass
@@ -18,6 +18,7 @@ class Invoice(BaseObject):
     """Invoice object model."""
 
     __tablename__ = "invoices"
+    _states_enum = InvoiceStates
 
     # Invoice-specific fields
     invoice_number: Mapped[int] = mapped_column(sa.Integer, nullable=False, unique=True)
@@ -42,7 +43,7 @@ class Invoice(BaseObject):
         if "object_type" not in kwargs:
             kwargs["object_type"] = "invoice"
         if "state" not in kwargs:
-            kwargs["state"] = InvoiceState.DRAFT.value
+            kwargs["state"] = InvoiceStates.DRAFT
         super().__init__(**kwargs)
 
     @property
@@ -58,8 +59,7 @@ class Invoice(BaseObject):
         return (
             self.due_date < date_module.today()
             and not self.is_paid
-            and self.state
-            not in [InvoiceState.CANCELLED.value, InvoiceState.PAID.value]
+            and self.state not in [InvoiceStates.CANCELLED, InvoiceStates.PAID]
         )
 
     @property

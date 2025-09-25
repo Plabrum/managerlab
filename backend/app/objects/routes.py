@@ -1,11 +1,10 @@
 """Generic object routes and endpoints."""
 
-from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from litestar import Router, get, post, Request
+from litestar import Response, Router, get, post, Request
 from litestar.di import Provide
 
-from app.objects.query import get_object_by_sqid, query_objects
+from app.objects.query import get_object_by_id, query_objects
 from app.objects.services.base import ObjectService
 from app.actions.services import ActionService
 from app.objects.schemas import (
@@ -13,21 +12,20 @@ from app.objects.schemas import (
     ObjectListRequest,
     ObjectListResponse,
     PerformActionRequest,
-    PerformActionResult,
-    StateDTO,
 )
+from app.utils.sqids import Sqid
 
 
-@get("/{object_type:str}/{sqid:str}")
+@get("/{object_type:str}/{id:str}")
 async def get_object_detail(
     object_type: str,
-    sqid: str,
+    id: Sqid,
     request: Request,
     session: AsyncSession,
     object_service: ObjectService,
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
-    obj = await get_object_by_sqid(session, object_type, sqid)
+    obj = await get_object_by_id(session, object_type, id)
     user_id = request.session.get("user_id")
 
     return await object_service.get_object_detail(
@@ -62,37 +60,20 @@ async def list_objects(
     )
 
 
-@get("/{object_type:str}/{sqid:str}/actions")
-async def get_object_actions(
-    object_type: str,
-    sqid: str,
-    request: Request,
-    session: AsyncSession,
-    action_service: ActionService,
-) -> list[Dict[str, Any]]:
-    """Get available actions for an object."""
-    obj = await get_object_by_sqid(session, object_type, sqid)
-    user_id = request.session.get("user_id")
-
-    return await action_service.get_available_actions(
-        session=session, obj=obj, user_id=user_id
-    )
-
-
-@post("/{object_type:str}/{sqid:str}/actions")
+@post("/{object_type:str}/{id:str}/actions")
 async def perform_object_action(
     object_type: str,
-    sqid: str,
+    id: Sqid,
     request: Request,
     data: PerformActionRequest,
     session: AsyncSession,
     action_service: ActionService,
-) -> PerformActionResult:
+) -> Response:
     """Perform an action on an object."""
-    obj = await get_object_by_sqid(session, object_type, sqid)
+    obj = await get_object_by_id(session, object_type, id)
     user_id = request.session.get("user_id")
 
-    result = await action_service.perform_action(
+    await action_service.perform_action(
         session=session,
         obj=obj,
         action_name=data.action,
@@ -101,21 +82,15 @@ async def perform_object_action(
         idempotency_key=data.idempotency_key,
         context=data.context,
     )
+    return Response(content="Action completed", status_code=200)
 
-    # Convert result to DTO
-    new_state_dto = None
-    if result["new_state"]:
-        new_state_dto = StateDTO(
-            key=result["new_state"], label=result["new_state"].replace("_", " ").title()
-        )
 
-    return PerformActionResult(
-        success=result["success"],
-        result=result["result"],
-        new_state=new_state_dto,
-        updated_fields=result["updated_fields"],
-        object_version=obj.object_version if result["success"] else None,
-    )
+def provide_object_service(action_service: ActionService) -> ObjectService:
+    return ObjectService(action_service)
+
+
+def provide_action_service() -> ActionService:
+    return ActionService()
 
 
 # Object router
@@ -124,12 +99,11 @@ object_router = Router(
     route_handlers=[
         get_object_detail,
         list_objects,
-        get_object_actions,
         perform_object_action,
     ],
     dependencies={
-        "object_service": Provide(lambda: ObjectService(), sync_to_thread=False),
-        "action_service": Provide(lambda: ActionService(), sync_to_thread=False),
+        "object_service": Provide(provide_object_service, sync_to_thread=False),
+        "action_service": Provide(provide_action_service, sync_to_thread=False),
     },
     tags=["objects"],
 )

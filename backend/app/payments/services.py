@@ -3,29 +3,14 @@
 from typing import List
 
 
-from app.objects.models.invoices import Invoice, InvoiceState
-from app.objects.schemas import ObjectFieldDTO, StateDTO, FieldType
-from app.objects.services import ObjectService
+from app.objects.models.invoices import Invoice
+from app.objects.enums import InvoiceStates
+from app.objects.schemas import ObjectFieldDTO, FieldType
+from app.objects.services.base import ObjectService
 
 
 class InvoiceService(ObjectService):
     """Specialized service for invoice objects."""
-
-    async def _get_state_dto(self, obj: Invoice) -> StateDTO:
-        """Get state DTO with proper labels for invoice states."""
-        state_labels = {
-            InvoiceState.DRAFT.value: "Draft",
-            InvoiceState.READY.value: "Ready",
-            InvoiceState.SENT.value: "Sent",
-            InvoiceState.PAID.value: "Paid",
-            InvoiceState.OVERDUE.value: "Overdue",
-            InvoiceState.CANCELLED.value: "Cancelled",
-        }
-
-        return StateDTO(
-            key=obj.state,
-            label=state_labels.get(obj.state, obj.state.replace("_", " ").title()),
-        )
 
     async def _get_object_fields(self, obj: Invoice) -> List[ObjectFieldDTO]:
         """Get invoice-specific fields."""
@@ -87,7 +72,7 @@ class InvoiceService(ObjectService):
                 value=float(obj.amount_due),
                 type=FieldType.USD,
                 label="Amount Due",
-                editable=obj.state == InvoiceState.DRAFT.value,
+                editable=obj.state == InvoiceStates.DRAFT,
             )
         )
 

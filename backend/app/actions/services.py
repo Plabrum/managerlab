@@ -6,7 +6,7 @@ import time
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.objects.models.actions import ActionLog, BaseAction
+from app.actions.models import ActionLog, BaseAction
 from app.objects.models.base import BaseObject
 
 if TYPE_CHECKING:
@@ -133,7 +133,8 @@ class ActionService:
             # Verify object version for optimistic locking
             if object_version is not None and obj.object_version != object_version:
                 raise ValueError(
-                    f"Object version mismatch. Expected {object_version}, got {obj.object_version}"
+                    f"Object version mismatch. Expected {object_version}, "
+                    f"got {obj.object_version}"
                 )
 
             # Find the action

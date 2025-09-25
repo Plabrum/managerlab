@@ -7,7 +7,7 @@ from decimal import Decimal
 from litestar.exceptions import ClientException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.objects.models.base import BaseObject
+from app.objects.types import BaseObject
 from app.objects.schemas import (
     ObjectDetailDTO,
     ObjectListDTO,
@@ -17,6 +17,7 @@ from app.objects.schemas import (
     ObjectRelationDTO,
     FieldType,
 )
+from app.utils.sqids import SqidDTO
 
 if TYPE_CHECKING:
     from app.actions.services import ActionService
@@ -70,7 +71,7 @@ class ObjectService:
         children, parents = await self._get_object_relationships(session, obj)
 
         return ObjectDetailDTO(
-            sqid=obj.sqid,
+            id=SqidDTO(obj.id),
             object_type=obj.object_type,
             state=state,
             object_version=obj.object_version,

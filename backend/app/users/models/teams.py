@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.objects.models.base import BaseObject
-from app.objects.enums import TeamState
+from app.objects.enums import TeamStates
 
 if TYPE_CHECKING:
     pass
@@ -16,6 +16,7 @@ class Team(BaseObject):
     """Team object model."""
 
     __tablename__ = "teams"
+    _states_enum = TeamStates
 
     # Team-specific fields
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
@@ -52,5 +53,5 @@ class Team(BaseObject):
         if "object_type" not in kwargs:
             kwargs["object_type"] = "team"
         if "state" not in kwargs:
-            kwargs["state"] = TeamState.ACTIVE.value
+            kwargs["state"] = TeamStates.ACTIVE
         super().__init__(**kwargs)

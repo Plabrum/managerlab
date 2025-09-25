@@ -7,7 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.objects.models.base import BaseObject
-from app.objects.enums import PostState
+from app.objects.enums import PostStates
 
 if TYPE_CHECKING:
     pass
@@ -17,6 +17,7 @@ class Post(BaseObject):
     """Post object model."""
 
     __tablename__ = "posts"
+    _states_enum = PostStates
 
     # Post-specific fields
     title: Mapped[str] = mapped_column(sa.String(500), nullable=False)
@@ -106,20 +107,18 @@ class Post(BaseObject):
         if "object_type" not in kwargs:
             kwargs["object_type"] = "post"
         if "state" not in kwargs:
-            kwargs["state"] = PostState.DRAFT.value
+            kwargs["state"] = PostStates.DRAFT
         super().__init__(**kwargs)
 
     @property
     def is_published(self) -> bool:
         """Check if post is published."""
-        return self.state == PostState.PUBLISHED.value
+        return self.state == PostStates.PUBLISHED
 
     @property
     def is_scheduled(self) -> bool:
         """Check if post is scheduled."""
-        return (
-            self.state == PostState.SCHEDULED.value and self.scheduled_date is not None
-        )
+        return self.state == PostStates.SCHEDULED and self.scheduled_date is not None
 
     @property
     def total_engagement(self) -> int:

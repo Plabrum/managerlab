@@ -39,7 +39,8 @@ class ApplicationError(Exception):
         """Initialize ``AdvancedAlchemyException``.
 
         Args:
-            *args: args are converted to :class:`str` before passing to :class:`Exception`
+            *args: args are converted to :class:`str` before passing to
+                :class:`Exception`
             detail: detail of the exception.
         """
         str_args = [str(arg) for arg in args if arg]
@@ -63,7 +64,8 @@ class ApplicationError(Exception):
 class MissingDependencyError(ApplicationError, ImportError):
     """Missing optional dependency.
 
-    This exception is raised only when a module depends on a dependency that has not been installed.
+    This exception is raised only when a module depends on a dependency that has
+    not been installed.
     """
 
 

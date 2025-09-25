@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 from enum import Enum
 
 from app.base.schemas import BaseSchema
+from app.utils.sqids import SqidDTO
 
 
 class FieldType(str, Enum):
@@ -32,10 +33,12 @@ class ObjectFieldDTO(BaseSchema):
 
 
 class StateDTO(BaseSchema):
-    """DTO for object state representation."""
+    value: Enum
 
-    key: str
-    label: str
+    class Config:
+        json_encoders = {
+            Enum: lambda value: str(value.value).replace("_", " ").lower().capitalize()
+        }
 
 
 class ActionDTO(BaseSchema):
@@ -58,7 +61,7 @@ class ObjectRelationDTO(BaseSchema):
 class ObjectDetailDTO(BaseSchema):
     """Detailed object representation."""
 
-    sqid: str
+    id: SqidDTO
     object_type: str
     state: StateDTO
     object_version: int
@@ -73,7 +76,7 @@ class ObjectDetailDTO(BaseSchema):
 class ObjectListDTO(BaseSchema):
     """Lightweight object representation for lists/tables."""
 
-    sqid: str
+    id: SqidDTO
     object_type: str
     title: str
     state: StateDTO
@@ -90,16 +93,6 @@ class PerformActionRequest(BaseSchema):
     object_version: Optional[int] = None
     idempotency_key: Optional[str] = None
     context: Optional[Dict[str, Any]] = None
-
-
-class PerformActionResult(BaseSchema):
-    """Result schema for action execution."""
-
-    success: bool
-    result: Dict[str, Any]
-    new_state: Optional[StateDTO] = None
-    updated_fields: Optional[Dict[str, Any]] = None
-    object_version: Optional[int] = None
 
 
 class ObjectListRequest(BaseSchema):

@@ -1,17 +1,26 @@
-from sqids import Sqids
+from typing import Annotated
+import sqids
 
-_sqids = Sqids(min_length=8)
+from app.base.schemas import BaseSchema
 
-
-class Sqid(str):
-    """A public ID string encoded via Sqids."""
-
-    pass
+sqid_encoder = sqids.Sqids(min_length=8)
 
 
-def encode_sqid(value: int) -> Sqid:
-    return Sqid(_sqids.encode([value]))
+def sqid_decode(value: str) -> int:
+    """Decode SQID string to integer ID."""
+    decoded = sqid_encoder.decode(value)
+    if not decoded:
+        raise ValueError(f"Invalid SQID: {value}")
+    return decoded[0]
 
 
-def decode_sqid(value: Sqid) -> int:
-    return _sqids.decode(value)[0]
+# Route parameter type: SQID string → int
+Sqid = Annotated[int, sqid_decode]
+
+
+# Response DTO type: int → SQID string in JSON
+class SqidDTO(BaseSchema):
+    value: int
+
+    class Config:
+        json_encoders = {int: lambda value: sqid_encoder.encode([value])}
