@@ -11,8 +11,6 @@ from app.objects.schemas import (
     ObjectListRequest,
     ObjectFieldDTO,
     FieldType,
-    StateDTO,
-    ActionDTO,
 )
 from app.users.models.users import User
 from app.utils.sqids import sqid_encode
@@ -47,28 +45,12 @@ class UserObject(BaseObject):
             ),
         ]
 
-        state = StateDTO(
-            key="active" if user.email_verified else "unverified",
-            label="Active" if user.email_verified else "Unverified",
-        )
-
-        actions = [
-            ActionDTO(action="edit", label="Edit User", priority=10),
-            ActionDTO(
-                action="verify_email",
-                label="Verify Email",
-                available=not user.email_verified,
-                priority=20,
-            ),
-            ActionDTO(action="deactivate", label="Deactivate", priority=90),
-        ]
-
         return ObjectDetailDTO(
             id=sqid_encode(user.id),
             object_type=ObjectTypes.User,
-            state=state,
+            state=user.state.name,
             fields=fields,
-            actions=actions,
+            actions=[],
             created_at=user.created_at.isoformat(),
             updated_at=user.updated_at.isoformat(),
             children=[],
@@ -77,23 +59,13 @@ class UserObject(BaseObject):
 
     @classmethod
     def to_list_dto(cls, user: User) -> ObjectListDTO:
-        state = StateDTO(
-            key="active" if user.email_verified else "unverified",
-            label="Active" if user.email_verified else "Unverified",
-        )
-
-        actions = [
-            ActionDTO(action="edit", label="Edit", priority=10),
-            ActionDTO(action="view", label="View", priority=1),
-        ]
-
         return ObjectListDTO(
             id=sqid_encode(user.id),
             object_type=ObjectTypes.User,
             title=user.name,
             subtitle=user.email,
-            state=state,
-            actions=actions,
+            state=user.state.name,
+            actions=[],
             created_at=user.created_at.isoformat(),
             updated_at=user.updated_at.isoformat(),
         )
@@ -146,33 +118,10 @@ class UserObject(BaseObject):
         cls, session: AsyncSession, request: ObjectListRequest
     ) -> tuple[Sequence[User], int]:
         query = await cls.query_from_request(session, request)
-
-        # Get total count
-        count_query = select(User)
-        if request.filters:
-            # Apply same filters for count
-            if "name" in request.filters:
-                count_query = count_query.where(
-                    User.name.ilike(f"%{request.filters['name']}%")
-                )
-            if "email" in request.filters:
-                count_query = count_query.where(
-                    User.email.ilike(f"%{request.filters['email']}%")
-                )
-            if "email_verified" in request.filters:
-                count_query = count_query.where(
-                    User.email_verified == request.filters["email_verified"]
-                )
-            if "search" in request.filters:
-                search_term = f"%{request.filters['search']}%"
-                count_query = count_query.where(
-                    (User.name.ilike(search_term)) | (User.email.ilike(search_term))
-                )
-
-        total_result = await session.execute(
-            select(func.count()).select_from(count_query.subquery())
+        total_rows = await session.execute(
+            select(func.count()).select_from(query.subquery())
         )
-        total = total_result.scalar_one()
+        total = total_rows.scalar_one()
 
         # Apply pagination
         query = query.offset(request.offset).limit(request.limit)

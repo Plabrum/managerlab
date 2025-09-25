@@ -3,13 +3,18 @@ import sqlalchemy as sa
 from typing import TYPE_CHECKING
 
 from app.base.models import BaseDBModel
+from app.state_machine.models import StateMachineMixin
+from app.users.types import UserStates
 
 
 if TYPE_CHECKING:
     from auth.google.models import GoogleOAuthAccount
 
 
-class User(BaseDBModel):
+class User(
+    StateMachineMixin(states=UserStates, initial_state=UserStates.NEEDS_TEAM),
+    BaseDBModel,
+):
     __tablename__ = "users"
     name = mapped_column(sa.Text, index=True, nullable=False)
     email = mapped_column(sa.Text, unique=True, index=True, nullable=False)

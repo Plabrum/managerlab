@@ -31,11 +31,6 @@ class ObjectFieldDTO(BaseSchema):
     editable: bool = True
 
 
-class StateDTO(BaseSchema):
-    key: str
-    label: str
-
-
 class ActionDTO(BaseSchema):
     """DTO for action representation."""
 
@@ -58,7 +53,7 @@ class ObjectDetailDTO(BaseSchema):
 
     id: str
     object_type: str
-    state: StateDTO
+    state: str
     fields: List[ObjectFieldDTO]
     actions: List[ActionDTO]
     created_at: str
@@ -73,7 +68,7 @@ class ObjectListDTO(BaseSchema):
     id: str
     object_type: str
     title: str
-    state: StateDTO
+    state: str
     created_at: str
     updated_at: str
     subtitle: Optional[str] = None
