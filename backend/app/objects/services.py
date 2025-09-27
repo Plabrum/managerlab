@@ -148,31 +148,31 @@ from app.objects.schemas import FieldType
 def convert_value_to_field_type(value: Any) -> tuple[Any, FieldType]:
     """Convert a value to appropriate field type."""
     if value is None:
-        return value, FieldType.STRING
+        return value, FieldType.String
 
     if isinstance(value, bool):
-        return value, FieldType.BOOL
+        return value, FieldType.Bool
     elif isinstance(value, int):
-        return value, FieldType.INT
+        return value, FieldType.Int
     elif isinstance(value, float):
-        return value, FieldType.FLOAT
+        return value, FieldType.Float
     elif isinstance(value, Decimal):
         return float(value), FieldType.USD  # Assume decimals are currency
     elif isinstance(value, date):
-        return value.isoformat(), FieldType.DATE
+        return value.isoformat(), FieldType.Date
     elif isinstance(value, datetime):
-        return value.isoformat(), FieldType.DATETIME
+        return value.isoformat(), FieldType.Datetime
     elif isinstance(value, str):
         # Check for email pattern
         if "@" in value and "." in value.split("@")[-1]:
-            return value, FieldType.EMAIL
+            return value, FieldType.Email
         # Check for URL pattern
         elif value.startswith(("http://", "https://")):
             return value, FieldType.URL
         # Check if it's long text
         elif len(value) > 100:
-            return value, FieldType.TEXT
+            return value, FieldType.Text
         else:
-            return value, FieldType.STRING
+            return value, FieldType.String
     else:
-        return str(value), FieldType.STRING
+        return str(value), FieldType.String

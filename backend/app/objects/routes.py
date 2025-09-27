@@ -9,8 +9,8 @@ from app.objects.schemas import (
     ObjectListRequest,
     ObjectListResponse,
 )
-from app.objects.types import ObjectTypes
-from app.utils.sqids import Sqid
+from app.objects.enums import ObjectTypes
+from app.utils.sqids import Sqid, sqid_decode
 
 
 @get("/{object_type:str}/{id:str}")
@@ -22,7 +22,7 @@ async def get_object_detail(
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
     object_service = ObjectRegistry.get_class(object_type)
-    obj = await object_service.get_by_id(transaction, id)
+    obj = await object_service.get_by_id(transaction, sqid_decode(id))
     return object_service.to_detail_dto(obj)
 
 

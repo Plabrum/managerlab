@@ -14,6 +14,7 @@ help:
 	@echo "  db-migrate-up    - Run database migrations (upgrade)"
 	@echo "  db-migrate-down  - Rollback database migrations"
 	@echo "  db-migrate-prod  - Run production database migrations"
+	@echo "  db-fixtures      - Populate database with fake data for development"
 	@echo "  build-frontend   - Build frontend for production"
 	@echo "  start-frontend   - Start frontend production server"
 	@echo "  lint-frontend    - Run frontend linting"
@@ -61,8 +62,10 @@ db-stop:
 
 .PHONY: db-migrate
 db-migrate:
-	cd backend && uv run alembic revision --autogenerate -m "$(if $(m),$(m),Auto-generated migration)"
-
+	cd backend && \
+	read -p "Migration name: " msg; \
+	uv run alembic revision --autogenerate -m "$$msg"
+	
 .PHONY: db-upgrade
 db-upgrade:
 	cd backend && uv run alembic upgrade head
@@ -70,6 +73,11 @@ db-upgrade:
 .PHONY: db-downgrade
 db-downgrade:
 	cd backend && uv run alembic downgrade -1
+
+.PHONY: db-fixtures
+db-fixtures:
+	@echo "🎭 Creating database fixtures..."
+	cd backend/scripts && uv run python create_fixtures.py
 
 # Frontend specific targets
 .PHONY: build-frontend

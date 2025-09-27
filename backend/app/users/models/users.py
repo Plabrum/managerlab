@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from app.base.models import BaseDBModel
 from app.state_machine.models import StateMachineMixin
-from app.users.types import UserStates
+from app.users.enums import UserStates
 
 
 if TYPE_CHECKING:

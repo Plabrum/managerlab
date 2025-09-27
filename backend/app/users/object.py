@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func
 
 from app.objects.base import BaseObject
-from app.objects.types import ObjectTypes
+from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     ObjectDetailDTO,
     ObjectListDTO,
@@ -36,13 +36,6 @@ class UserObject(BaseObject):
                 label="Email",
                 editable=True,
             ),
-            ObjectFieldDTO(
-                key="email_verified",
-                value=user.email_verified,
-                type=FieldType.Bool,
-                label="Email Verified",
-                editable=False,
-            ),
         ]
 
         return ObjectDetailDTO(
@@ -59,6 +52,30 @@ class UserObject(BaseObject):
 
     @classmethod
     def to_list_dto(cls, user: User) -> ObjectListDTO:
+        fields = [
+            ObjectFieldDTO(
+                key="name",
+                value=user.name,
+                type=FieldType.String,
+                label="Name",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="email",
+                value=user.email,
+                type=FieldType.Email,
+                label="Email",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="email_verified",
+                value=user.email_verified,
+                type=FieldType.Bool,
+                label="Email Verified",
+                editable=False,
+            ),
+        ]
+
         return ObjectListDTO(
             id=sqid_encode(user.id),
             object_type=ObjectTypes.User,
@@ -68,6 +85,7 @@ class UserObject(BaseObject):
             actions=[],
             created_at=user.created_at.isoformat(),
             updated_at=user.updated_at.isoformat(),
+            fields=fields,
         )
 
     @classmethod

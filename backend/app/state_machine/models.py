@@ -25,7 +25,7 @@ from app.base.models import BaseDBModel
 def StateMachineMixin[E: Enum](
     *,
     states: type[E],
-    initial_state: E | None = None,
+    initial_state: E,
 ):
     class _StateMachineMixin(BaseDBModel):
         __abstract__ = True
@@ -33,9 +33,13 @@ def StateMachineMixin[E: Enum](
 
         @declared_attr
         def _state_raw(cls) -> Mapped[str]:
-            default_name = initial_state.name if initial_state is not None else None
             return mapped_column(
-                "state", sa.Text, index=True, nullable=False, default=default_name
+                "state",
+                sa.Text,
+                index=True,
+                nullable=False,
+                default=initial_state.name,
+                server_default=initial_state.name,
             )
 
         @property

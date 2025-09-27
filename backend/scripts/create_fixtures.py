@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""Script to populate the database with fake data for development."""
+
+import asyncio
+import sys
+import random
+from pathlib import Path
+
+# Add the parent directory to sys.path to import app modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
+from app.utils.configure import config
+
+# Import all models to ensure SQLAlchemy relationships are registered
+
+from tests.factories import (
+    UserFactory,
+    TeamFactory,
+    WaitlistEntryFactory,
+    BrandFactory,
+    BrandContactFactory,
+    CampaignFactory,
+    PostFactory,
+    MediaFactory,
+    InvoiceFactory,
+    GoogleOAuthAccountFactory,
+)
+
+
+async def create_fixtures():
+    """Create fake data for development."""
+    print("🚀 Creating database fixtures...")
+
+    # Create async engine and session
+    engine = create_async_engine(config.ASYNC_DATABASE_URL, echo=False)
+    async_session_factory = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+
+    async with async_session_factory() as session:
+        try:
+            # Create teams first
+            print("📝 Creating teams...")
+            teams = []
+            for i in range(3):
+                team = TeamFactory.build()
+                session.add(team)
+                teams.append(team)
+            await session.flush()
+
+            # Create users with Google OAuth accounts
+            print("👥 Creating users with Google OAuth accounts...")
+            users = []
+            for i in range(10):
+                user = UserFactory.build()
+                session.add(user)
+                await session.flush()
+
+                # Create Google OAuth account for each user
+                oauth_account = GoogleOAuthAccountFactory.build(user_id=user.id)
+                session.add(oauth_account)
+                users.append(user)
+
+            await session.flush()
+
+            # Create waitlist entries
+            print("📋 Creating waitlist entries...")
+            for i in range(15):
+                waitlist_entry = WaitlistEntryFactory.build()
+                session.add(waitlist_entry)
+            await session.flush()
+
+            # Create brands
+            print("🏢 Creating brands...")
+            brands = []
+            for i in range(8):
+                brand = BrandFactory.build()
+                session.add(brand)
+                brands.append(brand)
+            await session.flush()
+
+            # Create brand contacts (multiple per brand)
+            print("📞 Creating brand contacts...")
+            brand_contacts = []
+            for brand in brands:
+                for j in range(3):
+                    contact = BrandContactFactory.build(brand_id=brand.id)
+                    session.add(contact)
+                    brand_contacts.append(contact)
+
+            await session.flush()
+
+            # Create campaigns
+            print("🎯 Creating campaigns...")
+            campaigns = []
+            for brand in brands:
+                # Each brand gets 2-4 campaigns
+                for j in range(3):
+                    campaign = CampaignFactory.build(brand_id=brand.id)
+                    session.add(campaign)
+                    campaigns.append(campaign)
+
+            await session.flush()
+
+            # Create media assets
+            print("🖼️ Creating media assets...")
+            media_assets = []
+            for i in range(20):
+                media = MediaFactory.build()
+                session.add(media)
+                media_assets.append(media)
+            await session.flush()
+
+            # Create posts for campaigns
+            print("📱 Creating posts...")
+            posts = []
+            for campaign in campaigns:
+                # Each campaign gets 2-5 posts
+                for j in range(4):
+                    post = PostFactory.build(campaign_id=campaign.id)
+                    session.add(post)
+                    posts.append(post)
+
+            await session.flush()
+
+            # Associate posts with media (many-to-many relationship) using direct SQL
+            print("🔗 Associating posts with media...")
+            from app.posts.models import post_media
+
+            for post in posts:
+                # Each post gets 1-3 media assets
+                selected_media = random.sample(media_assets, min(3, len(media_assets)))
+                for media in selected_media:
+                    insert_stmt = post_media.insert().values(
+                        post_id=post.id, media_id=media.id
+                    )
+                    await session.execute(insert_stmt)
+
+            await session.flush()
+
+            # Associate campaigns with lead contacts (many-to-many relationship) using direct SQL
+            print("🤝 Associating campaigns with lead contacts...")
+            from app.campaigns.models import campaign_lead_contacts
+
+            for campaign in campaigns:
+                # Get contacts from the same brand
+                brand_contacts_for_campaign = [
+                    contact
+                    for contact in brand_contacts
+                    if contact.brand_id == campaign.brand_id
+                ]
+                if brand_contacts_for_campaign:
+                    # Each campaign gets 1-2 lead contacts
+                    selected_contacts = random.sample(
+                        brand_contacts_for_campaign,
+                        min(2, len(brand_contacts_for_campaign)),
+                    )
+                    for contact in selected_contacts:
+                        insert_stmt = campaign_lead_contacts.insert().values(
+                            campaign_id=campaign.id, brand_contact_id=contact.id
+                        )
+                        await session.execute(insert_stmt)
+
+            await session.flush()
+
+            # Create invoices for campaigns
+            print("💰 Creating invoices...")
+            for campaign in campaigns:
+                # Each campaign gets 1-2 invoices
+                for k in range(2):
+                    invoice = InvoiceFactory.build(campaign_id=campaign.id)
+                    session.add(invoice)
+
+            await session.flush()
+
+            # Commit all changes
+            await session.commit()
+
+            print("✅ Fixtures created successfully!")
+            print("   📊 Summary:")
+            print(f"   - {len(teams)} teams")
+            print(f"   - {len(users)} users with OAuth accounts")
+            print("   - 15 waitlist entries")
+            print(f"   - {len(brands)} brands")
+            print(f"   - {len(brand_contacts)} brand contacts")
+            print(f"   - {len(campaigns)} campaigns")
+            print(f"   - {len(posts)} posts")
+            print(f"   - {len(media_assets)} media assets")
+            print(f"   - {len(campaigns) * 2} invoices")
+
+        except Exception as e:
+            print(f"❌ Error creating fixtures: {e}")
+            await session.rollback()
+            raise
+        finally:
+            await engine.dispose()
+
+
+if __name__ == "__main__":
+    asyncio.run(create_fixtures())

@@ -21,23 +21,6 @@ const config = {
     },
     input: { target: OPENAPI_URL },
   },
-
-  // SERVER: fetch client (no hooks)
-  litestarServer: {
-    output: {
-      mode: 'single', // single file is handy server-side
-      target: 'src/server-sdk.ts', // import from '@/server-sdk'
-      client: 'fetch', // Edge/runtime friendly
-      mock: false,
-      override: {
-        mutator: {
-          path: 'src/server-mutator.ts',
-          name: 'serverMutator',
-        },
-      },
-    },
-    input: { target: OPENAPI_URL },
-  },
 };
 
 export default config;

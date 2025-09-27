@@ -24,6 +24,11 @@ from app.utils.configure import config
 from app.users.routes import user_router, public_user_router
 from app.auth.routes import auth_router
 from app.objects.routes import object_router
+from app.brands.routes import brand_router
+from app.campaigns.routes import campaign_router
+from app.posts.routes import post_router
+from app.media.routes import media_router
+from app.payments.routes import invoice_router
 
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
@@ -64,6 +69,11 @@ app = Litestar(
         user_router,
         auth_router,
         object_router,
+        brand_router,
+        campaign_router,
+        post_router,
+        media_router,
+        invoice_router,
     ],
     on_startup=[providers.on_startup],
     on_shutdown=[providers.on_shutdown],

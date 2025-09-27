@@ -23,6 +23,9 @@ dependencies = [
   "ruff",
   "mangum", # ASGI adapter for AWS Lambda
   "sqids>=0.5.2",
+  "polyfactory>=2.22.2",
+  "faker>=37.6.0",
+  "greenlet>=3.2.4",
 ]
 
 [dependency-groups]

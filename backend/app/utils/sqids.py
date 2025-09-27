@@ -16,4 +16,4 @@ def sqid_encode(value: int) -> str:
     return sqid_encoder.encode([value])
 
 
-Sqid = Annotated[int, sqid_decode]
+Sqid = Annotated[str, sqid_decode]

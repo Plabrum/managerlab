@@ -73,6 +73,7 @@ class ObjectListDTO(BaseSchema):
     updated_at: str
     subtitle: Optional[str] = None
     actions: List[ActionDTO] = []
+    fields: List[ObjectFieldDTO] = []
 
 
 class ObjectListRequest(BaseSchema):

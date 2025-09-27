@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, Sequence, Type, ClassVar
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.base.models import BaseDBModel
-from app.objects.types import ObjectTypes
+from app.objects.enums import ObjectTypes
 from app.objects.schemas import ObjectDetailDTO, ObjectListDTO, ObjectListRequest
 
 if TYPE_CHECKING:
