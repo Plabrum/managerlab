@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make install` - Install all dependencies (frontend + backend)
 - `make dev` - Start both frontend (port 3000) and backend (port 8000) in development mode
 - `make test` - Run backend pytest suite
+- `make backend-check` - Run backend type checking with mypy
 - `make codegen` - Generate TypeScript API client from backend OpenAPI schema
 
 ### Backend Development
@@ -16,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make db-migrate-generate` - Auto-generate Alembic migration from model changes
 - `make db-migrate` - Apply database migrations
 - `cd backend && uv run pytest` - Run backend tests
+- `cd backend && uv run mypy .` - Run type checking with mypy
 - `cd backend && uv run ruff check && uv run ruff format` - Lint and format Python code
 
 ### Frontend Development

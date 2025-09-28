@@ -19,6 +19,7 @@ help:
 	@echo "  start-frontend   - Start frontend production server"
 	@echo "  lint-frontend    - Run frontend linting"
 	@echo "  test             - Run backend tests"
+	@echo "  backend-check    - Run backend type checking with mypy"
 	@echo "  docker-build     - Build backend Docker image locally"
 	@echo "  docker-test      - Test backend Docker image locally"
 	@echo "  docker-push      - Build and push backend Docker image to ECR"
@@ -100,6 +101,10 @@ codegen:
 .PHONY: test
 test:
 	cd backend && uv run pytest -v
+
+.PHONY: backend-check
+backend-check:
+	cd backend && uv run mypy .
 
 # Docker targets
 .PHONY: docker-build

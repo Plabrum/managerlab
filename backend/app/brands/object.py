@@ -1,5 +1,4 @@
-from typing import Sequence
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.objects.base import BaseObject
@@ -10,7 +9,9 @@ from app.objects.schemas import (
     ObjectListRequest,
     ObjectFieldDTO,
     FieldType,
+    ColumnDefinitionDTO,
 )
+from app.objects.services import get_default_filters_for_field_type
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
 from app.utils.sqids import sqid_encode
@@ -18,6 +19,49 @@ from app.utils.sqids import sqid_encode
 
 class BrandObject(BaseObject):
     object_type = ObjectTypes.Brand
+    model = Brand
+    column_definitions = [
+        ColumnDefinitionDTO(
+            key="name",
+            label="Name",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="description",
+            label="Description",
+            type=FieldType.Text,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Text),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="website",
+            label="Website",
+            type=FieldType.URL,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.URL),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="email",
+            label="Email",
+            type=FieldType.Email,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Email),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="created_at",
+            label="Created",
+            type=FieldType.Datetime,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Datetime),
+            default_visible=False,
+        ),
+    ]
 
     @classmethod
     def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
@@ -101,6 +145,37 @@ class BrandObject(BaseObject):
 
     @classmethod
     def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
+        fields = [
+            ObjectFieldDTO(
+                key="name",
+                value=brand.name,
+                type=FieldType.String,
+                label="Name",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="description",
+                value=brand.description,
+                type=FieldType.Text,
+                label="Description",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="website",
+                value=brand.website,
+                type=FieldType.URL,
+                label="Website",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="email",
+                value=brand.email,
+                type=FieldType.Email,
+                label="Email",
+                editable=False,
+            ),
+        ]
+
         return ObjectListDTO(
             id=sqid_encode(brand.id),
             object_type=ObjectTypes.Brand,
@@ -110,72 +185,55 @@ class BrandObject(BaseObject):
             actions=[],
             created_at=brand.created_at.isoformat(),
             updated_at=brand.updated_at.isoformat(),
+            fields=fields,
         )
-
-    @classmethod
-    async def query_from_request(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ):
-        query = select(Brand)
-
-        # Apply filters if provided
-        if request.filters:
-            if "name" in request.filters:
-                query = query.where(Brand.name.ilike(f"%{request.filters['name']}%"))
-            if "description" in request.filters:
-                query = query.where(
-                    Brand.description.ilike(f"%{request.filters['description']}%")
-                )
-            if "search" in request.filters:
-                search_term = f"%{request.filters['search']}%"
-                query = query.where(
-                    (Brand.name.ilike(search_term))
-                    | (Brand.description.ilike(search_term))
-                )
-
-        # Apply sorting
-        if request.sort_by:
-            sort_column = getattr(Brand, request.sort_by, None)
-            if sort_column:
-                if request.sort_order == "asc":
-                    query = query.order_by(sort_column.asc())
-                else:
-                    query = query.order_by(sort_column.desc())
-        else:
-            # Default sort by created_at desc
-            query = query.order_by(Brand.created_at.desc())
-
-        return query
-
-    @classmethod
-    async def get_by_id(cls, session: AsyncSession, object_id: int) -> Brand:
-        result = await session.get(Brand, object_id)
-        if not result:
-            raise ValueError(f"Brand with id {object_id} not found")
-        return result
-
-    @classmethod
-    async def get_list(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ) -> tuple[Sequence[Brand], int]:
-        query = await cls.query_from_request(session, request)
-        total_rows = await session.execute(
-            select(func.count()).select_from(query.subquery())
-        )
-        total = total_rows.scalar_one()
-
-        # Apply pagination
-        query = query.offset(request.offset).limit(request.limit)
-
-        # Execute query
-        result = await session.execute(query)
-        brands = result.scalars().all()
-
-        return brands, total
 
 
 class BrandContactObject(BaseObject):
     object_type = ObjectTypes.BrandContact
+    model = BrandContact
+    column_definitions = [
+        ColumnDefinitionDTO(
+            key="first_name",
+            label="First Name",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="last_name",
+            label="Last Name",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="email",
+            label="Email",
+            type=FieldType.Email,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Email),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="phone",
+            label="Phone",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="brand_id",
+            label="Brand ID",
+            type=FieldType.Int,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Int),
+            default_visible=False,
+        ),
+    ]
 
     @classmethod
     def to_detail_dto(cls, contact: BrandContact) -> ObjectDetailDTO:
@@ -232,6 +290,37 @@ class BrandContactObject(BaseObject):
     @classmethod
     def to_list_dto(cls, contact: BrandContact) -> ObjectListDTO:
         full_name = f"{contact.first_name} {contact.last_name}"
+        fields = [
+            ObjectFieldDTO(
+                key="first_name",
+                value=contact.first_name,
+                type=FieldType.String,
+                label="First Name",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="last_name",
+                value=contact.last_name,
+                type=FieldType.String,
+                label="Last Name",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="email",
+                value=contact.email,
+                type=FieldType.Email,
+                label="Email",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="phone",
+                value=contact.phone,
+                type=FieldType.String,
+                label="Phone",
+                editable=False,
+            ),
+        ]
+
         return ObjectListDTO(
             id=sqid_encode(contact.id),
             object_type=ObjectTypes.BrandContact,
@@ -241,78 +330,24 @@ class BrandContactObject(BaseObject):
             actions=[],
             created_at=contact.created_at.isoformat(),
             updated_at=contact.updated_at.isoformat(),
+            fields=fields,
         )
 
     @classmethod
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
-        query = select(BrandContact)
+        """Override default sorting for BrandContact."""
 
-        # Apply filters if provided
-        if request.filters:
-            if "first_name" in request.filters:
-                query = query.where(
-                    BrandContact.first_name.ilike(f"%{request.filters['first_name']}%")
-                )
-            if "last_name" in request.filters:
-                query = query.where(
-                    BrandContact.last_name.ilike(f"%{request.filters['last_name']}%")
-                )
-            if "email" in request.filters:
-                query = query.where(
-                    BrandContact.email.ilike(f"%{request.filters['email']}%")
-                )
-            if "brand_id" in request.filters:
-                query = query.where(
-                    BrandContact.brand_id == request.filters["brand_id"]
-                )
-            if "search" in request.filters:
-                search_term = f"%{request.filters['search']}%"
-                query = query.where(
-                    (BrandContact.first_name.ilike(search_term))
-                    | (BrandContact.last_name.ilike(search_term))
-                    | (BrandContact.email.ilike(search_term))
-                )
+        query = select(cls.model)
 
-        # Apply sorting
-        if request.sort_by:
-            sort_column = getattr(BrandContact, request.sort_by, None)
-            if sort_column:
-                if request.sort_order == "asc":
-                    query = query.order_by(sort_column.asc())
-                else:
-                    query = query.order_by(sort_column.desc())
-        else:
-            # Default sort by last_name, then first_name
+        # Apply structured filters and sorts using helper method
+        query = cls.apply_request_to_query(query, cls.model, request)
+
+        # Custom default sort for contacts
+        if not request.sorts:
             query = query.order_by(
                 BrandContact.last_name.asc(), BrandContact.first_name.asc()
             )
 
         return query
-
-    @classmethod
-    async def get_by_id(cls, session: AsyncSession, object_id: int) -> BrandContact:
-        result = await session.get(BrandContact, object_id)
-        if not result:
-            raise ValueError(f"BrandContact with id {object_id} not found")
-        return result
-
-    @classmethod
-    async def get_list(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ) -> tuple[Sequence[BrandContact], int]:
-        query = await cls.query_from_request(session, request)
-        total_rows = await session.execute(
-            select(func.count()).select_from(query.subquery())
-        )
-        total = total_rows.scalar_one()
-
-        # Apply pagination
-        query = query.offset(request.offset).limit(request.limit)
-
-        # Execute query
-        result = await session.execute(query)
-        contacts = result.scalars().all()
-
-        return contacts, total

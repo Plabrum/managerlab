@@ -40,11 +40,11 @@ class SanitizedSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
                 "." in f for f in include if isinstance(f, str)
             ):
                 max_depth = 1
-            exclude = frozenset()  # empty AbstractSet
+            exclude: frozenset[str] = frozenset()  # empty AbstractSet
         else:
             # Blacklist mode: don't set include; add raw id to exclude
             include = frozenset()  # empty AbstractSet
-            exclude = base_cfg.exclude | cls._BASE_EXCLUDE
+            exclude = frozenset(base_cfg.exclude) | cls._BASE_EXCLUDE
 
         cls.config = SQLAlchemyDTOConfig(
             include=include,

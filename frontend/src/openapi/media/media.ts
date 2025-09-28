@@ -31,7 +31,8 @@ import type {
   GetMediaMediaResponseBody,
   MediaIdGetMedia400,
   MediaIdUpdateMedia400,
-  UpdateMediaMediaResponseBody
+  UpdateMediaMediaResponseBody,
+  UpdateMediaSchema
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -185,7 +186,7 @@ export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof med
  */
 export const mediaIdUpdateMedia = (
     id: string,
-    mediaIdUpdateMediaBody: unknown,
+    updateMediaSchema: UpdateMediaSchema,
  signal?: AbortSignal
 ) => {
       
@@ -193,7 +194,7 @@ export const mediaIdUpdateMedia = (
       return customInstance<UpdateMediaMediaResponseBody>(
       {url: `/media/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: mediaIdUpdateMediaBody, signal
+      data: updateMediaSchema, signal
     },
       );
     }
@@ -201,8 +202,8 @@ export const mediaIdUpdateMedia = (
 
 
 export const getMediaIdUpdateMediaMutationOptions = <TError = MediaIdUpdateMedia400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, TError,{id: string;data: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, TError,{id: string;data: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, TError,{id: string;data: UpdateMediaSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, TError,{id: string;data: UpdateMediaSchema}, TContext> => {
 
 const mutationKey = ['mediaIdUpdateMedia'];
 const {mutation: mutationOptions} = options ?
@@ -214,7 +215,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, {id: string;data: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, {id: string;data: UpdateMediaSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  mediaIdUpdateMedia(id,data,)
@@ -226,18 +227,18 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type MediaIdUpdateMediaMutationResult = NonNullable<Awaited<ReturnType<typeof mediaIdUpdateMedia>>>
-    export type MediaIdUpdateMediaMutationBody = unknown
+    export type MediaIdUpdateMediaMutationBody = UpdateMediaSchema
     export type MediaIdUpdateMediaMutationError = MediaIdUpdateMedia400
 
     /**
  * @summary UpdateMedia
  */
 export const useMediaIdUpdateMedia = <TError = MediaIdUpdateMedia400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, TError,{id: string;data: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdUpdateMedia>>, TError,{id: string;data: UpdateMediaSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof mediaIdUpdateMedia>>,
         TError,
-        {id: string;data: unknown},
+        {id: string;data: UpdateMediaSchema},
         TContext
       > => {
 

@@ -1,12 +1,17 @@
-"""Base objects framework with auto-registration."""
-
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, Sequence, Type, ClassVar
+from typing import TYPE_CHECKING, Dict, Sequence, Type, ClassVar, List
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy import Select
 from app.base.models import BaseDBModel
 from app.objects.enums import ObjectTypes
-from app.objects.schemas import ObjectDetailDTO, ObjectListDTO, ObjectListRequest
+from app.objects.schemas import (
+    ObjectDetailDTO,
+    ObjectListDTO,
+    ObjectListRequest,
+    ColumnDefinitionDTO,
+    SortDirection,
+)
+from app.objects.services import apply_filter
 
 if TYPE_CHECKING:
     pass
@@ -43,8 +48,10 @@ class ObjectRegistry:
 class BaseObject(ABC):
     """Base class for all objects that participate in the objects framework."""
 
-    # Subclasses must set this to register with the framework
+    # Subclasses must set these to register with the framework
     object_type: ClassVar[ObjectTypes]
+    model: ClassVar[Type[BaseDBModel]]
+    column_definitions: ClassVar[List[ColumnDefinitionDTO]]
 
     def __init_subclass__(cls, **kwargs):
         """Auto-register subclasses in the registry."""
@@ -65,21 +72,71 @@ class BaseObject(ABC):
         ...
 
     @classmethod
-    @abstractmethod
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
         """Apply list request filters/sorting to create database query."""
-        ...
+        from sqlalchemy import select
+
+        query = select(cls.model)
+
+        # Apply structured filters and sorts using helper method
+        query = cls.apply_request_to_query(query, cls.model, request)
+
+        # Default sort if no sorts applied
+        if not request.sorts:
+            query = query.order_by(cls.model.created_at.desc())
+
+        return query
 
     @classmethod
-    @abstractmethod
     async def get_by_id(cls, session: AsyncSession, object_id: int) -> BaseDBModel:
         """Get object by ID."""
-        ...
+        result = await session.get(cls.model, object_id)
+        if not result:
+            raise ValueError(f"{cls.model.__name__} with id {object_id} not found")
+        return result
 
     @classmethod
-    @abstractmethod
     async def get_list(
-        cls, session: AsyncSession, param: ObjectListRequest
-    ) -> tuple[Sequence[BaseDBModel], int]: ...
+        cls, session: AsyncSession, request: ObjectListRequest
+    ) -> tuple[Sequence[BaseDBModel], int]:
+        """Get list of objects based on request parameters."""
+        from sqlalchemy import select, func
+
+        query = await cls.query_from_request(session, request)
+        total_rows = await session.execute(
+            select(func.count()).select_from(query.subquery())
+        )
+        total = total_rows.scalar_one()
+
+        # Apply pagination
+        query = query.offset(request.offset).limit(request.limit)
+
+        # Execute query
+        result = await session.execute(query)
+        objects = result.scalars().all()
+
+        return objects, total
+
+    @classmethod
+    def apply_request_to_query(
+        cls, query: Select, model_class: Type[BaseDBModel], request: ObjectListRequest
+    ) -> Select:
+        """Helper method to apply filters and sorts from request to query."""
+        # Apply structured filters
+        if request.filters:
+            for filter_def in request.filters:
+                query = apply_filter(query, model_class, filter_def)
+
+        # Apply structured sorts
+        if request.sorts:
+            for sort_def in request.sorts:
+                column = getattr(model_class, sort_def.column, None)
+                if column:
+                    if sort_def.direction == SortDirection.asc:
+                        query = query.order_by(column.asc())
+                    else:
+                        query = query.order_by(column.desc())
+
+        return query

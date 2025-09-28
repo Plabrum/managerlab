@@ -1,24 +1,56 @@
 """Object schemas and DTOs."""
 
-from enum import StrEnum, auto
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from app.base.schemas import BaseSchema
+from app.objects.enums import FieldType, FilterType, SortDirection
 
 
-class FieldType(StrEnum):
-    """Field types for object fields."""
+class TextFilterDefinition(BaseSchema, tag=FilterType.text.value):
+    """Text-based filter definition."""
 
-    String = auto()
-    Int = auto()
-    Float = auto()
-    Bool = auto()
-    Date = auto()
-    Datetime = auto()
-    USD = auto()
-    Email = auto()
-    URL = auto()
-    Text = auto()
+    column: str
+    operation: Literal["contains", "starts_with", "ends_with", "equals"]
+    value: str
+
+
+class RangeFilterDefinition(BaseSchema, tag=FilterType.range.value):
+    """Range-based filter definition for numbers."""
+
+    column: str
+    start: Union[int, float, None] = None  # nullable start value
+    finish: Union[int, float, None] = None  # nullable finish value
+
+
+class DateFilterDefinition(BaseSchema, tag=FilterType.date.value):
+    """Date-based filter definition."""
+
+    column: str
+    start: datetime | None = None
+    finish: datetime | None = None
+
+
+class BooleanFilterDefinition(BaseSchema, tag=FilterType.boolean.value):
+    """Boolean-based filter definition."""
+
+    column: str
+    value: bool  # true or false
+
+
+FilterDefinition = Union[
+    TextFilterDefinition,
+    RangeFilterDefinition,
+    DateFilterDefinition,
+    BooleanFilterDefinition,
+]
+
+
+class SortDefinition(BaseSchema):
+    """Definition of a sort to apply."""
+
+    column: str
+    direction: SortDirection
 
 
 class ObjectFieldDTO(BaseSchema):
@@ -29,6 +61,17 @@ class ObjectFieldDTO(BaseSchema):
     type: FieldType
     label: Optional[str] = None
     editable: bool = True
+
+
+class ColumnDefinitionDTO(BaseSchema):
+    """Definition of a column for list views."""
+
+    key: str
+    label: str
+    type: FieldType
+    sortable: bool = True
+    available_filters: List[FilterType] = []
+    default_visible: bool = True
 
 
 class ActionDTO(BaseSchema):
@@ -81,9 +124,8 @@ class ObjectListRequest(BaseSchema):
 
     limit: int = 50
     offset: int = 0
-    filters: Optional[Dict[str, Any]] = None
-    sort_by: Optional[str] = None
-    sort_order: Optional[str] = "desc"  # asc or desc
+    filters: List[FilterDefinition] = []
+    sorts: List[SortDefinition] = []
 
 
 class ObjectListResponse(BaseSchema):
@@ -93,3 +135,4 @@ class ObjectListResponse(BaseSchema):
     total: int
     limit: int
     offset: int
+    columns: List[ColumnDefinitionDTO]

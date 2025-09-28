@@ -27,6 +27,21 @@ export interface AddUserToWaitlistWaitlistEntryResponseBody {
   public_id: string;
 }
 
+export interface BooleanFilterDefinition {
+  column: string;
+  value: boolean;
+  type: 'boolean';
+}
+
+export interface ColumnDefinitionDTO {
+  key: string;
+  label: string;
+  type: FieldType;
+  sortable?: boolean;
+  available_filters?: FilterType[];
+  default_visible?: boolean;
+}
+
 export type CompensationStructure = typeof CompensationStructure[keyof typeof CompensationStructure];
 
 
@@ -51,6 +66,17 @@ export interface CreateUserUserResponseBody {
   id: string;
 }
 
+export type DateFilterDefinitionStart = string | null;
+
+export type DateFilterDefinitionFinish = string | null;
+
+export interface DateFilterDefinition {
+  column: string;
+  start?: DateFilterDefinitionStart;
+  finish?: DateFilterDefinitionFinish;
+  type: 'date';
+}
+
 /**
  * Field types for object fields.
  */
@@ -69,6 +95,20 @@ export const FieldType = {
   email: 'email',
   url: 'url',
   text: 'text',
+} as const;
+
+/**
+ * Available filter types for different field types.
+ */
+export type FilterType = typeof FilterType[keyof typeof FilterType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const FilterType = {
+  text: 'text',
+  range: 'range',
+  date: 'date',
+  boolean: 'boolean',
 } as const;
 
 export type GetBrandBrandResponseBodyDescription = string | null;
@@ -255,22 +295,16 @@ export interface ObjectListDTO {
   updated_at: string;
   subtitle?: ObjectListDTOSubtitle;
   actions?: ActionDTO[];
+  fields?: ObjectFieldDTO[];
 }
 
-export type ObjectListRequestFiltersOneOf = {[key: string]: unknown};
-
-export type ObjectListRequestFilters = ObjectListRequestFiltersOneOf | null;
-
-export type ObjectListRequestSortBy = string | null;
-
-export type ObjectListRequestSortOrder = string | null;
+export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition;
 
 export interface ObjectListRequest {
   limit?: number;
   offset?: number;
-  filters?: ObjectListRequestFilters;
-  sort_by?: ObjectListRequestSortBy;
-  sort_order?: ObjectListRequestSortOrder;
+  filters?: ObjectListRequestFiltersItem[];
+  sorts?: SortDefinition[];
 }
 
 export interface ObjectListResponse {
@@ -278,6 +312,7 @@ export interface ObjectListResponse {
   total: number;
   limit: number;
   offset: number;
+  columns: ColumnDefinitionDTO[];
 }
 
 export interface ObjectRelationDTO {
@@ -300,6 +335,17 @@ export const ObjectTypes = {
   invoice: 'invoice',
 } as const;
 
+export type RangeFilterDefinitionStart = number | number | null;
+
+export type RangeFilterDefinitionFinish = number | number | null;
+
+export interface RangeFilterDefinition {
+  column: string;
+  start?: RangeFilterDefinitionStart;
+  finish?: RangeFilterDefinitionFinish;
+  type: 'range';
+}
+
 export type SocialMediaPlatforms = typeof SocialMediaPlatforms[keyof typeof SocialMediaPlatforms];
 
 
@@ -310,6 +356,41 @@ export const SocialMediaPlatforms = {
   tiktok: 'tiktok',
   youtube: 'youtube',
 } as const;
+
+export interface SortDefinition {
+  column: string;
+  direction: SortDirection;
+}
+
+/**
+ * Sort direction options.
+ */
+export type SortDirection = typeof SortDirection[keyof typeof SortDirection];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SortDirection = {
+  asc: 'asc',
+  desc: 'desc',
+} as const;
+
+export type TextFilterDefinitionOperation = typeof TextFilterDefinitionOperation[keyof typeof TextFilterDefinitionOperation];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TextFilterDefinitionOperation = {
+  contains: 'contains',
+  starts_with: 'starts_with',
+  ends_with: 'ends_with',
+  equals: 'equals',
+} as const;
+
+export interface TextFilterDefinition {
+  column: string;
+  operation: TextFilterDefinitionOperation;
+  value: string;
+  type: 'text';
+}
 
 export type UpdateBrandBrandResponseBodyDescription = string | null;
 
@@ -400,6 +481,18 @@ export interface UpdateMediaMediaResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
+}
+
+export type UpdateMediaSchemaFilename = string | null;
+
+export type UpdateMediaSchemaImageLink = string | null;
+
+export type UpdateMediaSchemaThumnbnailLink = string | null;
+
+export interface UpdateMediaSchema {
+  filename?: UpdateMediaSchemaFilename;
+  image_link?: UpdateMediaSchemaImageLink;
+  thumnbnail_link?: UpdateMediaSchemaThumnbnailLink;
 }
 
 export type UpdatePostPostResponseBodyContent = string | null;

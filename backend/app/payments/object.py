@@ -1,5 +1,4 @@
-from typing import Sequence
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.objects.base import BaseObject
@@ -10,13 +9,74 @@ from app.objects.schemas import (
     ObjectListRequest,
     ObjectFieldDTO,
     FieldType,
+    ColumnDefinitionDTO,
 )
+from app.objects.services import get_default_filters_for_field_type
 from app.payments.models import Invoice
 from app.utils.sqids import sqid_encode
 
 
 class InvoiceObject(BaseObject):
     object_type = ObjectTypes.Invoice
+    model = Invoice
+    column_definitions = [
+        ColumnDefinitionDTO(
+            key="invoice_number",
+            label="Invoice #",
+            type=FieldType.Int,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Int),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="customer_name",
+            label="Customer",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="customer_email",
+            label="Email",
+            type=FieldType.Email,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Email),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="amount_due",
+            label="Amount Due",
+            type=FieldType.USD,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.USD),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="amount_paid",
+            label="Amount Paid",
+            type=FieldType.USD,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.USD),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="due_date",
+            label="Due Date",
+            type=FieldType.Date,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Date),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="posting_date",
+            label="Posting Date",
+            type=FieldType.Date,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Date),
+            default_visible=False,
+        ),
+    ]
 
     @classmethod
     def to_detail_dto(cls, invoice: Invoice) -> ObjectDetailDTO:
@@ -102,6 +162,51 @@ class InvoiceObject(BaseObject):
 
     @classmethod
     def to_list_dto(cls, invoice: Invoice) -> ObjectListDTO:
+        fields = [
+            ObjectFieldDTO(
+                key="invoice_number",
+                value=invoice.invoice_number,
+                type=FieldType.Int,
+                label="Invoice #",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="customer_name",
+                value=invoice.customer_name,
+                type=FieldType.String,
+                label="Customer",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="customer_email",
+                value=invoice.customer_email,
+                type=FieldType.Email,
+                label="Email",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="amount_due",
+                value=float(invoice.amount_due),
+                type=FieldType.USD,
+                label="Amount Due",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="amount_paid",
+                value=float(invoice.amount_paid),
+                type=FieldType.USD,
+                label="Amount Paid",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="due_date",
+                value=invoice.due_date.isoformat() if invoice.due_date else None,
+                type=FieldType.Date,
+                label="Due Date",
+                editable=False,
+            ),
+        ]
+
         return ObjectListDTO(
             id=sqid_encode(invoice.id),
             object_type=ObjectTypes.Invoice,
@@ -111,74 +216,22 @@ class InvoiceObject(BaseObject):
             actions=[],
             created_at=invoice.created_at.isoformat(),
             updated_at=invoice.updated_at.isoformat(),
+            fields=fields,
         )
 
     @classmethod
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
-        query = select(Invoice)
+        """Override default sorting for Invoice."""
 
-        # Apply filters if provided
-        if request.filters:
-            if "customer_name" in request.filters:
-                query = query.where(
-                    Invoice.customer_name.ilike(f"%{request.filters['customer_name']}%")
-                )
-            if "customer_email" in request.filters:
-                query = query.where(
-                    Invoice.customer_email.ilike(
-                        f"%{request.filters['customer_email']}%"
-                    )
-                )
-            if "invoice_number" in request.filters:
-                query = query.where(
-                    Invoice.invoice_number == request.filters["invoice_number"]
-                )
-            if "search" in request.filters:
-                search_term = f"%{request.filters['search']}%"
-                query = query.where(
-                    (Invoice.customer_name.ilike(search_term))
-                    | (Invoice.customer_email.ilike(search_term))
-                    | (Invoice.description.ilike(search_term))
-                )
+        query = select(cls.model)
 
-        # Apply sorting
-        if request.sort_by:
-            sort_column = getattr(Invoice, request.sort_by, None)
-            if sort_column:
-                if request.sort_order == "asc":
-                    query = query.order_by(sort_column.asc())
-                else:
-                    query = query.order_by(sort_column.desc())
-        else:
-            # Default sort by due_date desc
+        # Apply structured filters and sorts using helper method
+        query = cls.apply_request_to_query(query, cls.model, request)
+
+        # Custom default sort for invoices
+        if not request.sorts:
             query = query.order_by(Invoice.due_date.desc())
 
         return query
-
-    @classmethod
-    async def get_by_id(cls, session: AsyncSession, object_id: int) -> Invoice:
-        result = await session.get(Invoice, object_id)
-        if not result:
-            raise ValueError(f"Invoice with id {object_id} not found")
-        return result
-
-    @classmethod
-    async def get_list(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ) -> tuple[Sequence[Invoice], int]:
-        query = await cls.query_from_request(session, request)
-        total_rows = await session.execute(
-            select(func.count()).select_from(query.subquery())
-        )
-        total = total_rows.scalar_one()
-
-        # Apply pagination
-        query = query.offset(request.offset).limit(request.limit)
-
-        # Execute query
-        result = await session.execute(query)
-        invoices = result.scalars().all()
-
-        return invoices, total

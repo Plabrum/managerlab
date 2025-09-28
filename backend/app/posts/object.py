@@ -1,5 +1,4 @@
-from typing import Sequence
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.objects.base import BaseObject
@@ -10,13 +9,58 @@ from app.objects.schemas import (
     ObjectListRequest,
     ObjectFieldDTO,
     FieldType,
+    ColumnDefinitionDTO,
 )
+from app.objects.services import get_default_filters_for_field_type
 from app.posts.models import Post
 from app.utils.sqids import sqid_encode
 
 
 class PostObject(BaseObject):
     object_type = ObjectTypes.Post
+    model = Post
+    column_definitions = [
+        ColumnDefinitionDTO(
+            key="title",
+            label="Title",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="content",
+            label="Content",
+            type=FieldType.Text,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Text),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="platforms",
+            label="Platform",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="posting_date",
+            label="Posting Date",
+            type=FieldType.Datetime,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Datetime),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="compensation_structure",
+            label="Compensation",
+            type=FieldType.String,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.String),
+            default_visible=False,
+        ),
+    ]
 
     @classmethod
     def to_detail_dto(cls, post: Post) -> ObjectDetailDTO:
@@ -81,6 +125,39 @@ class PostObject(BaseObject):
 
     @classmethod
     def to_list_dto(cls, post: Post) -> ObjectListDTO:
+        fields = [
+            ObjectFieldDTO(
+                key="title",
+                value=post.title,
+                type=FieldType.String,
+                label="Title",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="content",
+                value=post.content[:100] + "..."
+                if post.content and len(post.content) > 100
+                else post.content,
+                type=FieldType.Text,
+                label="Content",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="platforms",
+                value=post.platforms.value if post.platforms else None,
+                type=FieldType.String,
+                label="Platform",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="posting_date",
+                value=post.posting_date.isoformat() if post.posting_date else None,
+                type=FieldType.Datetime,
+                label="Posting Date",
+                editable=False,
+            ),
+        ]
+
         return ObjectListDTO(
             id=sqid_encode(post.id),
             object_type=ObjectTypes.Post,
@@ -92,66 +169,22 @@ class PostObject(BaseObject):
             actions=[],
             created_at=post.created_at.isoformat(),
             updated_at=post.updated_at.isoformat(),
+            fields=fields,
         )
 
     @classmethod
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
-        query = select(Post)
+        """Override default sorting for Post."""
 
-        # Apply filters if provided
-        if request.filters:
-            if "title" in request.filters:
-                query = query.where(Post.title.ilike(f"%{request.filters['title']}%"))
-            if "content" in request.filters:
-                query = query.where(
-                    Post.content.ilike(f"%{request.filters['content']}%")
-                )
-            if "platforms" in request.filters:
-                query = query.where(Post.platforms == request.filters["platforms"])
-            if "search" in request.filters:
-                search_term = f"%{request.filters['search']}%"
-                query = query.where(
-                    (Post.title.ilike(search_term)) | (Post.content.ilike(search_term))
-                )
+        query = select(cls.model)
 
-        # Apply sorting
-        if request.sort_by:
-            sort_column = getattr(Post, request.sort_by, None)
-            if sort_column:
-                if request.sort_order == "asc":
-                    query = query.order_by(sort_column.asc())
-                else:
-                    query = query.order_by(sort_column.desc())
-        else:
-            # Default sort by posting_date desc
+        # Apply structured filters and sorts using helper method
+        query = cls.apply_request_to_query(query, cls.model, request)
+
+        # Custom default sort for posts
+        if not request.sorts:
             query = query.order_by(Post.posting_date.desc())
 
         return query
-
-    @classmethod
-    async def get_by_id(cls, session: AsyncSession, object_id: int) -> Post:
-        result = await session.get(Post, object_id)
-        if not result:
-            raise ValueError(f"Post with id {object_id} not found")
-        return result
-
-    @classmethod
-    async def get_list(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ) -> tuple[Sequence[Post], int]:
-        query = await cls.query_from_request(session, request)
-        total_rows = await session.execute(
-            select(func.count()).select_from(query.subquery())
-        )
-        total = total_rows.scalar_one()
-
-        # Apply pagination
-        query = query.offset(request.offset).limit(request.limit)
-
-        # Execute query
-        result = await session.execute(query)
-        posts = result.scalars().all()
-
-        return posts, total

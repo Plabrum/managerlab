@@ -13,13 +13,6 @@ from app.users.schemas import (
 )
 from app.auth.guards import requires_authenticated_user, requires_superuser
 
-# Register UserObject with the objects framework
-from app.objects.base import ObjectRegistry
-from app.objects.enums import ObjectTypes
-from app.users.object import UserObject
-
-ObjectRegistry.register(ObjectTypes.User, UserObject)
-
 
 @get("/", dto=UserDTO, return_dto=UserDTO, guards=[requires_superuser])
 async def list_users(transaction: AsyncSession) -> List[User]:

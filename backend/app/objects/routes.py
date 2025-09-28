@@ -1,8 +1,10 @@
 """Generic object routes and endpoints."""
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Sequence
 from litestar import Router, get, post, Request
 
+from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
 from app.objects.schemas import (
     ObjectDetailDTO,
@@ -22,7 +24,7 @@ async def get_object_detail(
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
     object_service = ObjectRegistry.get_class(object_type)
-    obj = await object_service.get_by_id(transaction, sqid_decode(id))
+    obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
     return object_service.to_detail_dto(obj)
 
 
@@ -35,13 +37,16 @@ async def list_objects(
 ) -> ObjectListResponse:
     """List objects with filtering and pagination."""
     object_service = ObjectRegistry.get_class(object_type)
+    objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)
+    columns = object_service.column_definitions
 
     return ObjectListResponse(
         objects=[object_service.to_list_dto(obj) for obj in objects],
         total=total,
         limit=data.limit,
         offset=data.offset,
+        columns=columns,
     )
 
 
