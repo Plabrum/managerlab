@@ -3,28 +3,27 @@ import { redirect } from 'next/navigation';
 import { config } from '@/lib/config';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { Nav } from '@/components/nav';
+import { ErrorBoundary } from '@/components/error-boundary';
+import { SuspenseWrapper } from '@/components/suspense-wrapper';
+import { GetCurrentUserUserResponseBody } from '@/openapi/managerLab.schemas';
+import { toast } from 'sonner';
 
-interface User {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  created_at: string;
-  updated_at: string;
-  id: string;
-}
-
-export async function getCurrentUser(): Promise<User> {
+export async function getCurrentUser(): Promise<GetCurrentUserUserResponseBody> {
   const cooks = await cookies();
-  const session = cooks.get('session')?.value;
 
-  // No cookie at all → nothing to expire; just go to login
-  if (!session || session === 'null') {
+  // Build cookie string from all cookies
+  const cookieString = cooks
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ');
+
+  if (!cookieString) {
     redirect('/auth');
   }
 
   const response = await fetch(`${config.api.baseUrl}/users/current-user`, {
     headers: {
-      cookie: `session=${session}`,
+      Cookie: cookieString,
       'Content-Type': 'application/json',
     },
     cache: 'no-store',
@@ -35,6 +34,7 @@ export async function getCurrentUser(): Promise<User> {
   }
 
   if (!response.ok) {
+    toast.error('Failed to fetch user data. Please log in again.');
     redirect('/auth');
   }
 
