@@ -17,7 +17,7 @@ from app.utils.sqids import sqid_encode
 
 
 class InvoiceObject(BaseObject):
-    object_type = ObjectTypes.Invoice
+    object_type = ObjectTypes.Invoices
     model = Invoice
     column_definitions = [
         ColumnDefinitionDTO(
@@ -104,9 +104,9 @@ class InvoiceObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="posting_date",
-                value=invoice.posting_date.isoformat()
-                if invoice.posting_date
-                else None,
+                value=(
+                    invoice.posting_date.isoformat() if invoice.posting_date else None
+                ),
                 type=FieldType.Date,
                 label="Posting Date",
                 editable=True,
@@ -150,12 +150,12 @@ class InvoiceObject(BaseObject):
 
         return ObjectDetailDTO(
             id=sqid_encode(invoice.id),
-            object_type=ObjectTypes.Invoice,
+            object_type=ObjectTypes.Invoices,
             state=invoice.state.name,
             fields=fields,
             actions=[],
-            created_at=invoice.created_at.isoformat(),
-            updated_at=invoice.updated_at.isoformat(),
+            created_at=invoice.created_at,
+            updated_at=invoice.updated_at,
             children=[],
             parents=[],
         )
@@ -209,13 +209,13 @@ class InvoiceObject(BaseObject):
 
         return ObjectListDTO(
             id=sqid_encode(invoice.id),
-            object_type=ObjectTypes.Invoice,
+            object_type=ObjectTypes.Invoices,
             title=f"Invoice #{invoice.invoice_number}",
             subtitle=f"{invoice.customer_name} - ${invoice.amount_due}",
             state=invoice.state.name,
             actions=[],
-            created_at=invoice.created_at.isoformat(),
-            updated_at=invoice.updated_at.isoformat(),
+            created_at=invoice.created_at,
+            updated_at=invoice.updated_at,
             fields=fields,
         )
 

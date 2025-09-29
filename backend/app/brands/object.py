@@ -18,7 +18,7 @@ from app.utils.sqids import sqid_encode
 
 
 class BrandObject(BaseObject):
-    object_type = ObjectTypes.Brand
+    object_type = ObjectTypes.Brands
     model = Brand
     column_definitions = [
         ColumnDefinitionDTO(
@@ -133,12 +133,12 @@ class BrandObject(BaseObject):
 
         return ObjectDetailDTO(
             id=sqid_encode(brand.id),
-            object_type=ObjectTypes.Brand,
+            object_type=ObjectTypes.Brands,
             state="active",
             fields=fields,
             actions=[],
-            created_at=brand.created_at.isoformat(),
-            updated_at=brand.updated_at.isoformat(),
+            created_at=brand.created_at,
+            updated_at=brand.updated_at,
             children=[],
             parents=[],
         )
@@ -168,6 +168,13 @@ class BrandObject(BaseObject):
                 editable=False,
             ),
             ObjectFieldDTO(
+                key="phone",
+                value=brand.phone,
+                type=FieldType.String,
+                label="Phone",
+                editable=True,
+            ),
+            ObjectFieldDTO(
                 key="email",
                 value=brand.email,
                 type=FieldType.Email,
@@ -178,19 +185,19 @@ class BrandObject(BaseObject):
 
         return ObjectListDTO(
             id=sqid_encode(brand.id),
-            object_type=ObjectTypes.Brand,
+            object_type=ObjectTypes.Brands,
             title=brand.name,
             subtitle=brand.description,
             state="active",
             actions=[],
-            created_at=brand.created_at.isoformat(),
-            updated_at=brand.updated_at.isoformat(),
+            created_at=brand.created_at,
+            updated_at=brand.updated_at,
             fields=fields,
         )
 
 
 class BrandContactObject(BaseObject):
-    object_type = ObjectTypes.BrandContact
+    object_type = ObjectTypes.BrandContacts
     model = BrandContact
     column_definitions = [
         ColumnDefinitionDTO(
@@ -277,12 +284,12 @@ class BrandContactObject(BaseObject):
 
         return ObjectDetailDTO(
             id=sqid_encode(contact.id),
-            object_type=ObjectTypes.BrandContact,
+            object_type=ObjectTypes.BrandContacts,
             state="active",
             fields=fields,
             actions=[],
-            created_at=contact.created_at.isoformat(),
-            updated_at=contact.updated_at.isoformat(),
+            created_at=contact.created_at,
+            updated_at=contact.updated_at,
             children=[],
             parents=[],
         )
@@ -323,13 +330,13 @@ class BrandContactObject(BaseObject):
 
         return ObjectListDTO(
             id=sqid_encode(contact.id),
-            object_type=ObjectTypes.BrandContact,
+            object_type=ObjectTypes.BrandContacts,
             title=full_name,
             subtitle=contact.email,
             state="active",
             actions=[],
-            created_at=contact.created_at.isoformat(),
-            updated_at=contact.updated_at.isoformat(),
+            created_at=contact.created_at,
+            updated_at=contact.updated_at,
             fields=fields,
         )
 

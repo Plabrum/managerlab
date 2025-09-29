@@ -3,6 +3,8 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
+from app.campaigns.enums import CampaignStates
+from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
     from app.posts.models import Post
@@ -11,7 +13,13 @@ if TYPE_CHECKING:
     from app.payments.models import Invoice
 
 
-class Campaign(BaseDBModel):
+class Campaign(
+    StateMachineMixin(
+        states=CampaignStates,
+        initial_state=CampaignStates.DRAFT,
+    ),
+    BaseDBModel,
+):
     __tablename__ = "campaigns"
 
     name: Mapped[str] = mapped_column(sa.Text, nullable=False)

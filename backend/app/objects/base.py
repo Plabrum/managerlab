@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Dict, Sequence, Type, ClassVar, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import Select
+from sqlalchemy.sql.base import ExecutableOption
 from app.base.models import BaseDBModel
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -72,6 +73,11 @@ class BaseObject(ABC):
         ...
 
     @classmethod
+    def get_load_options(cls) -> List[ExecutableOption]:
+        """Return load options for eager loading. Override in subclasses."""
+        return []
+
+    @classmethod
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
@@ -79,6 +85,9 @@ class BaseObject(ABC):
         from sqlalchemy import select
 
         query = select(cls.model)
+
+        # Apply load options (eager loading, etc.)
+        query = query.options(*cls.get_load_options())
 
         # Apply structured filters and sorts using helper method
         query = cls.apply_request_to_query(query, cls.model, request)
@@ -92,10 +101,19 @@ class BaseObject(ABC):
     @classmethod
     async def get_by_id(cls, session: AsyncSession, object_id: int) -> BaseDBModel:
         """Get object by ID."""
-        result = await session.get(cls.model, object_id)
-        if not result:
+        from sqlalchemy import select
+
+        query = (
+            select(cls.model)
+            .where(cls.model.id == object_id)
+            .options(*cls.get_load_options())
+        )
+
+        result = await session.execute(query)
+        obj = result.scalar_one_or_none()
+        if not obj:
             raise ValueError(f"{cls.model.__name__} with id {object_id} not found")
-        return result
+        return obj
 
     @classmethod
     async def get_list(
@@ -134,7 +152,7 @@ class BaseObject(ABC):
             for sort_def in request.sorts:
                 column = getattr(model_class, sort_def.column, None)
                 if column:
-                    if sort_def.direction == SortDirection.asc:
+                    if sort_def.direction == SortDirection.sort_asc:
                         query = query.order_by(column.asc())
                     else:
                         query = query.order_by(column.desc())

@@ -1,3 +1,4 @@
+from sqlalchemy.orm import selectinload
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -13,7 +14,7 @@ from app.utils.sqids import sqid_encode
 
 
 class CampaignObject(BaseObject):
-    object_type = ObjectTypes.Campaign
+    object_type = ObjectTypes.Campaigns
     model = Campaign
     column_definitions = [
         ColumnDefinitionDTO(
@@ -33,9 +34,9 @@ class CampaignObject(BaseObject):
             default_visible=True,
         ),
         ColumnDefinitionDTO(
-            key="brand_id",
-            label="Brand ID",
-            type=FieldType.Int,
+            key="brand",
+            label="Brand",
+            type=FieldType.URL,
             sortable=True,
             available_filters=get_default_filters_for_field_type(FieldType.Int),
             default_visible=True,
@@ -48,7 +49,20 @@ class CampaignObject(BaseObject):
             available_filters=get_default_filters_for_field_type(FieldType.Datetime),
             default_visible=False,
         ),
+        ColumnDefinitionDTO(
+            key="state",
+            label="Status",
+            type=FieldType.Enum,
+            sortable=True,
+            available_filters=get_default_filters_for_field_type(FieldType.Enum),
+            default_visible=False,
+        ),
     ]
+
+    @classmethod
+    def get_load_options(cls):
+        """Return load options for eager loading relationships."""
+        return [selectinload(Campaign.brand)]
 
     @classmethod
     def to_detail_dto(cls, campaign: Campaign) -> ObjectDetailDTO:
@@ -71,12 +85,12 @@ class CampaignObject(BaseObject):
 
         return ObjectDetailDTO(
             id=sqid_encode(campaign.id),
-            object_type=ObjectTypes.Campaign,
+            object_type=ObjectTypes.Campaigns,
             state="active",
             fields=fields,
             actions=[],
-            created_at=campaign.created_at.isoformat(),
-            updated_at=campaign.updated_at.isoformat(),
+            created_at=campaign.created_at,
+            updated_at=campaign.updated_at,
             children=[],
             parents=[],
         )
@@ -99,22 +113,29 @@ class CampaignObject(BaseObject):
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="brand_id",
-                value=campaign.brand_id,
-                type=FieldType.Int,
-                label="Brand ID",
+                key="brand",
+                value=campaign.brand.id,
+                type=FieldType.URL,
+                label=campaign.brand.name,
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="state",
+                value=campaign.state.value,
+                type=FieldType.Enum,
+                label="Status",
                 editable=False,
             ),
         ]
 
         return ObjectListDTO(
             id=sqid_encode(campaign.id),
-            object_type=ObjectTypes.Campaign,
+            object_type=ObjectTypes.Campaigns,
             title=campaign.name,
             subtitle=campaign.description,
             state="active",
             actions=[],
-            created_at=campaign.created_at.isoformat(),
-            updated_at=campaign.updated_at.isoformat(),
+            created_at=campaign.created_at,
+            updated_at=campaign.updated_at,
             fields=fields,
         )

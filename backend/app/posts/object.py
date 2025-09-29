@@ -17,7 +17,7 @@ from app.utils.sqids import sqid_encode
 
 
 class PostObject(BaseObject):
-    object_type = ObjectTypes.Post
+    object_type = ObjectTypes.Posts
     model = Post
     column_definitions = [
         ColumnDefinitionDTO(
@@ -95,9 +95,11 @@ class PostObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="compensation_structure",
-                value=post.compensation_structure.value
-                if post.compensation_structure
-                else None,
+                value=(
+                    post.compensation_structure.value
+                    if post.compensation_structure
+                    else None
+                ),
                 type=FieldType.String,
                 label="Compensation Structure",
                 editable=True,
@@ -113,12 +115,12 @@ class PostObject(BaseObject):
 
         return ObjectDetailDTO(
             id=sqid_encode(post.id),
-            object_type=ObjectTypes.Post,
+            object_type=ObjectTypes.Posts,
             state=post.state.name,
             fields=fields,
             actions=[],
-            created_at=post.created_at.isoformat(),
-            updated_at=post.updated_at.isoformat(),
+            created_at=post.created_at,
+            updated_at=post.updated_at,
             children=[],
             parents=[],
         )
@@ -135,9 +137,11 @@ class PostObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="content",
-                value=post.content[:100] + "..."
-                if post.content and len(post.content) > 100
-                else post.content,
+                value=(
+                    post.content[:100] + "..."
+                    if post.content and len(post.content) > 100
+                    else post.content
+                ),
                 type=FieldType.Text,
                 label="Content",
                 editable=False,
@@ -160,15 +164,17 @@ class PostObject(BaseObject):
 
         return ObjectListDTO(
             id=sqid_encode(post.id),
-            object_type=ObjectTypes.Post,
+            object_type=ObjectTypes.Posts,
             title=post.title,
-            subtitle=post.content[:100] + "..."
-            if post.content and len(post.content) > 100
-            else post.content,
+            subtitle=(
+                post.content[:100] + "..."
+                if post.content and len(post.content) > 100
+                else post.content
+            ),
             state=post.state.name,
             actions=[],
-            created_at=post.created_at.isoformat(),
-            updated_at=post.updated_at.isoformat(),
+            created_at=post.created_at,
+            updated_at=post.updated_at,
             fields=fields,
         )
 

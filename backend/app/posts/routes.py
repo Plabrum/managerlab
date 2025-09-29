@@ -11,7 +11,7 @@ from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.posts.object import PostObject
 
-ObjectRegistry.register(ObjectTypes.Post, PostObject)
+ObjectRegistry.register(ObjectTypes.Posts, PostObject)
 
 
 class PostDTO(SanitizedSQLAlchemyDTO[Post]):

@@ -82,8 +82,8 @@ class MediaObject(BaseObject):
             state="active",
             fields=fields,
             actions=[],
-            created_at=media.created_at.isoformat(),
-            updated_at=media.updated_at.isoformat(),
+            created_at=media.created_at,
+            updated_at=media.updated_at,
             children=[],
             parents=[],
         )
@@ -121,7 +121,7 @@ class MediaObject(BaseObject):
             subtitle=media.image_link,
             state="active",
             actions=[],
-            created_at=media.created_at.isoformat(),
-            updated_at=media.updated_at.isoformat(),
+            created_at=media.created_at,
+            updated_at=media.updated_at,
             fields=fields,
         )

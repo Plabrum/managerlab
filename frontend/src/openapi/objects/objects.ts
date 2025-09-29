@@ -6,7 +6,6 @@
  * OpenAPI spec version: 0.0.1
  */
 import {
-  useMutation,
   useQuery,
   useSuspenseQuery
 } from '@tanstack/react-query';
@@ -14,13 +13,10 @@ import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
-  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
-  UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
   UseSuspenseQueryOptions,
@@ -28,8 +24,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ListObjects400,
   OObjectTypeIdGetObjectDetail400,
-  OObjectTypeListObjects400,
   ObjectDetailDTO,
   ObjectListRequest,
   ObjectListResponse,
@@ -197,7 +193,7 @@ export function useOObjectTypeIdGetObjectDetailSuspense<TData = Awaited<ReturnTy
 /**
  * @summary ListObjects
  */
-export const oObjectTypeListObjects = (
+export const listObjects = (
     objectType: ObjectTypes,
     objectListRequest: ObjectListRequest,
  signal?: AbortSignal
@@ -213,50 +209,139 @@ export const oObjectTypeListObjects = (
     }
   
 
+export const getListObjectsQueryKey = (objectType?: ObjectTypes,
+    objectListRequest?: ObjectListRequest,) => {
+    return [`/o/${objectType}`, objectListRequest] as const;
+    }
 
-export const getOObjectTypeListObjectsMutationOptions = <TError = OObjectTypeListObjects400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oObjectTypeListObjects>>, TError,{objectType: ObjectTypes;data: ObjectListRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof oObjectTypeListObjects>>, TError,{objectType: ObjectTypes;data: ObjectListRequest}, TContext> => {
+    
+export const getListObjectsQueryOptions = <TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+) => {
 
-const mutationKey = ['oObjectTypeListObjects'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListObjectsQueryKey(objectType,objectListRequest);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listObjects>>> = ({ signal }) => listObjects(objectType,objectListRequest, signal);
 
       
 
+      
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof oObjectTypeListObjects>>, {objectType: ObjectTypes;data: ObjectListRequest}> = (props) => {
-          const {objectType,data} = props ?? {};
+   return  { queryKey, queryFn, enabled: !!(objectType), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
 
-          return  oObjectTypeListObjects(objectType,data,)
-        }
-
-        
+export type ListObjectsQueryResult = NonNullable<Awaited<ReturnType<typeof listObjects>>>
+export type ListObjectsQueryError = ListObjects400
 
 
-  return  { mutationFn, ...mutationOptions }}
-
-    export type OObjectTypeListObjectsMutationResult = NonNullable<Awaited<ReturnType<typeof oObjectTypeListObjects>>>
-    export type OObjectTypeListObjectsMutationBody = ObjectListRequest
-    export type OObjectTypeListObjectsMutationError = OObjectTypeListObjects400
-
-    /**
+export function useListObjects<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listObjects>>,
+          TError,
+          Awaited<ReturnType<typeof listObjects>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListObjects<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listObjects>>,
+          TError,
+          Awaited<ReturnType<typeof listObjects>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListObjects<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
  * @summary ListObjects
  */
-export const useOObjectTypeListObjects = <TError = OObjectTypeListObjects400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oObjectTypeListObjects>>, TError,{objectType: ObjectTypes;data: ObjectListRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof oObjectTypeListObjects>>,
-        TError,
-        {objectType: ObjectTypes;data: ObjectListRequest},
-        TContext
-      > => {
 
-      const mutationOptions = getOObjectTypeListObjectsMutationOptions(options);
+export function useListObjects<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-      return useMutation(mutationOptions , queryClient);
-    }
-    
+  const queryOptions = getListObjectsQueryOptions(objectType,objectListRequest,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getListObjectsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListObjectsQueryKey(objectType,objectListRequest);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listObjects>>> = ({ signal }) => listObjects(objectType,objectListRequest, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListObjectsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listObjects>>>
+export type ListObjectsSuspenseQueryError = ListObjects400
+
+
+export function useListObjectsSuspense<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListObjectsSuspense<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListObjectsSuspense<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary ListObjects
+ */
+
+export function useListObjectsSuspense<TData = Awaited<ReturnType<typeof listObjects>>, TError = ListObjects400>(
+ objectType: ObjectTypes,
+    objectListRequest: ObjectListRequest, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof listObjects>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListObjectsSuspenseQueryOptions(objectType,objectListRequest,options)
+
+  const query = useSuspenseQuery(queryOptions , queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+

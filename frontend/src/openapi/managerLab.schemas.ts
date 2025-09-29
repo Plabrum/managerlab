@@ -30,7 +30,7 @@ export interface AddUserToWaitlistWaitlistEntryResponseBody {
 export interface BooleanFilterDefinition {
   column: string;
   value: boolean;
-  type: 'boolean';
+  type: 'boolean_filter';
 }
 
 export interface ColumnDefinitionDTO {
@@ -74,7 +74,7 @@ export interface DateFilterDefinition {
   column: string;
   start?: DateFilterDefinitionStart;
   finish?: DateFilterDefinitionFinish;
-  type: 'date';
+  type: 'date_filter';
 }
 
 /**
@@ -88,6 +88,7 @@ export const FieldType = {
   string: 'string',
   int: 'int',
   float: 'float',
+  enum: 'enum',
   bool: 'bool',
   date: 'date',
   datetime: 'datetime',
@@ -105,10 +106,11 @@ export type FilterType = typeof FilterType[keyof typeof FilterType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const FilterType = {
-  text: 'text',
-  range: 'range',
-  date: 'date',
-  boolean: 'boolean',
+  text_filter: 'text_filter',
+  range_filter: 'range_filter',
+  date_filter: 'date_filter',
+  boolean_filter: 'boolean_filter',
+  enum_filter: 'enum_filter',
 } as const;
 
 export type GetBrandBrandResponseBodyDescription = string | null;
@@ -286,6 +288,8 @@ export interface ObjectFieldDTO {
 
 export type ObjectListDTOSubtitle = string | null;
 
+export type ObjectListDTOLink = string | null;
+
 export interface ObjectListDTO {
   id: string;
   object_type: string;
@@ -296,6 +300,7 @@ export interface ObjectListDTO {
   subtitle?: ObjectListDTOSubtitle;
   actions?: ActionDTO[];
   fields?: ObjectFieldDTO[];
+  link?: ObjectListDTOLink;
 }
 
 export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition;
@@ -313,6 +318,7 @@ export interface ObjectListResponse {
   limit: number;
   offset: number;
   columns: ColumnDefinitionDTO[];
+  actions?: ActionDTO[];
 }
 
 export interface ObjectRelationDTO {
@@ -343,7 +349,7 @@ export interface RangeFilterDefinition {
   column: string;
   start?: RangeFilterDefinitionStart;
   finish?: RangeFilterDefinitionFinish;
-  type: 'range';
+  type: 'range_filter';
 }
 
 export type SocialMediaPlatforms = typeof SocialMediaPlatforms[keyof typeof SocialMediaPlatforms];
@@ -370,8 +376,8 @@ export type SortDirection = typeof SortDirection[keyof typeof SortDirection];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SortDirection = {
-  asc: 'asc',
-  desc: 'desc',
+  sort_asc: 'sort_asc',
+  sort_desc: 'sort_desc',
 } as const;
 
 export type TextFilterDefinitionOperation = typeof TextFilterDefinitionOperation[keyof typeof TextFilterDefinitionOperation];
@@ -389,7 +395,7 @@ export interface TextFilterDefinition {
   column: string;
   operation: TextFilterDefinitionOperation;
   value: string;
-  type: 'text';
+  type: 'text_filter';
 }
 
 export type UpdateBrandBrandResponseBodyDescription = string | null;
@@ -602,17 +608,17 @@ export type OObjectTypeIdGetObjectDetail400 = {
   extra?: OObjectTypeIdGetObjectDetail400Extra;
 };
 
-export type OObjectTypeListObjects400ExtraAnyOf = {[key: string]: unknown};
+export type ListObjects400ExtraAnyOf = {[key: string]: unknown};
 
-export type OObjectTypeListObjects400Extra = null | OObjectTypeListObjects400ExtraAnyOf | unknown[];
+export type ListObjects400Extra = null | ListObjects400ExtraAnyOf | unknown[];
 
 /**
  * Validation Exception
  */
-export type OObjectTypeListObjects400 = {
+export type ListObjects400 = {
   status_code: number;
   detail: string;
-  extra?: OObjectTypeListObjects400Extra;
+  extra?: ListObjects400Extra;
 };
 
 export type BrandsIdGetBrand400ExtraAnyOf = {[key: string]: unknown};

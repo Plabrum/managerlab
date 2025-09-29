@@ -2,13 +2,13 @@ from enum import StrEnum, auto
 
 
 class ObjectTypes(StrEnum):
-    User = auto()
-    Brand = auto()
-    BrandContact = auto()
-    Campaign = auto()
-    Post = auto()
+    Users = auto()
+    Brands = auto()
+    BrandContacts = auto()
+    Campaigns = auto()
+    Posts = auto()
     Media = auto()
-    Invoice = auto()
+    Invoices = auto()
 
 
 class FieldType(StrEnum):
@@ -17,6 +17,7 @@ class FieldType(StrEnum):
     String = auto()
     Int = auto()
     Float = auto()
+    Enum = auto()
     Bool = auto()
     Date = auto()
     Datetime = auto()
@@ -29,14 +30,15 @@ class FieldType(StrEnum):
 class FilterType(StrEnum):
     """Available filter types for different field types."""
 
-    text = auto()
-    range = auto()
-    date = auto()
-    boolean = auto()
+    text_filter = auto()
+    range_filter = auto()
+    date_filter = auto()
+    boolean_filter = auto()
+    enum_filter = auto()
 
 
 class SortDirection(StrEnum):
     """Sort direction options."""
 
-    asc = auto()
-    desc = auto()
+    sort_asc = auto()
+    sort_desc = auto()

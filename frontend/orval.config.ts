@@ -17,6 +17,11 @@ const config = {
           path: 'src/openapi/custom-instance.ts',
           name: 'customInstance',
         },
+        operations: {
+          list_objects: {
+            query: { useQuery: true },
+          },
+        },
       },
     },
     input: { target: OPENAPI_URL },

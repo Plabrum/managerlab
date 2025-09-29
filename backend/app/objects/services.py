@@ -60,12 +60,14 @@ def get_default_filters_for_field_type(field_type: FieldType) -> list[FilterType
     """Get default available filters for a field type."""
     match field_type:
         case FieldType.String | FieldType.Email | FieldType.URL | FieldType.Text:
-            return [FilterType.text]
+            return [FilterType.text_filter]
         case FieldType.Int | FieldType.Float | FieldType.USD:
-            return [FilterType.range]
+            return [FilterType.range_filter]
         case FieldType.Date | FieldType.Datetime:
-            return [FilterType.date]
+            return [FilterType.date_filter]
         case FieldType.Bool:
-            return [FilterType.boolean]
+            return [FilterType.boolean_filter]
+        case FieldType.Enum:
+            return [FilterType.enum_filter]
         case _:
             assert_never(field_type)

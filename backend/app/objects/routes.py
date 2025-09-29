@@ -28,7 +28,7 @@ async def get_object_detail(
     return object_service.to_detail_dto(obj)
 
 
-@post("/{object_type:str}")
+@post("/{object_type:str}", operation_id="list_objects")
 async def list_objects(
     request: Request,
     object_type: ObjectTypes,

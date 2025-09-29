@@ -7,7 +7,7 @@ from app.base.schemas import BaseSchema
 from app.objects.enums import FieldType, FilterType, SortDirection
 
 
-class TextFilterDefinition(BaseSchema, tag=FilterType.text.value):
+class TextFilterDefinition(BaseSchema, tag=FilterType.text_filter.value):
     """Text-based filter definition."""
 
     column: str
@@ -15,7 +15,7 @@ class TextFilterDefinition(BaseSchema, tag=FilterType.text.value):
     value: str
 
 
-class RangeFilterDefinition(BaseSchema, tag=FilterType.range.value):
+class RangeFilterDefinition(BaseSchema, tag=FilterType.range_filter.value):
     """Range-based filter definition for numbers."""
 
     column: str
@@ -23,7 +23,7 @@ class RangeFilterDefinition(BaseSchema, tag=FilterType.range.value):
     finish: Union[int, float, None] = None  # nullable finish value
 
 
-class DateFilterDefinition(BaseSchema, tag=FilterType.date.value):
+class DateFilterDefinition(BaseSchema, tag=FilterType.date_filter.value):
     """Date-based filter definition."""
 
     column: str
@@ -31,11 +31,17 @@ class DateFilterDefinition(BaseSchema, tag=FilterType.date.value):
     finish: datetime | None = None
 
 
-class BooleanFilterDefinition(BaseSchema, tag=FilterType.boolean.value):
+class BooleanFilterDefinition(BaseSchema, tag=FilterType.boolean_filter.value):
     """Boolean-based filter definition."""
 
     column: str
     value: bool  # true or false
+
+
+class EnumFilterDefinition(BaseSchema, tag=FilterType.enum_filter.value):
+    column: str
+    values: List[str]  # list of selected enum values
+    available_values: List[str]  # list of all possible enum values
 
 
 FilterDefinition = Union[
@@ -99,8 +105,8 @@ class ObjectDetailDTO(BaseSchema):
     state: str
     fields: List[ObjectFieldDTO]
     actions: List[ActionDTO]
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
     children: List[Dict[str, ObjectRelationDTO]] = []
     parents: List[Dict[str, ObjectRelationDTO]] = []
 
@@ -112,11 +118,15 @@ class ObjectListDTO(BaseSchema):
     object_type: str
     title: str
     state: str
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
     subtitle: Optional[str] = None
     actions: List[ActionDTO] = []
     fields: List[ObjectFieldDTO] = []
+    link: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        self.link = f"{self.object_type}/{self.id}"
 
 
 class ObjectListRequest(BaseSchema):
@@ -136,3 +146,4 @@ class ObjectListResponse(BaseSchema):
     limit: int
     offset: int
     columns: List[ColumnDefinitionDTO]
+    actions: list[ActionDTO] = []
