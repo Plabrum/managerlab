@@ -1,6 +1,6 @@
 'use client';
 
-import { GetUserUserResponseBody } from '@/server-sdk';
+import { GetUserUserResponseBody } from '@/openapi/managerLab.schemas';
 import { createContext, useContext } from 'react';
 
 // Create context that *can* be null internally

@@ -21,7 +21,7 @@ export async function getCurrentUser(): Promise<GetCurrentUserUserResponseBody> 
     redirect('/auth');
   }
 
-  const response = await fetch(`${config.api.baseUrl}/users/current-user`, {
+  const response = await fetch(`${config.api.baseUrl}/users/current_user`, {
     headers: {
       Cookie: cookieString,
       'Content-Type': 'application/json',
@@ -52,7 +52,11 @@ export default async function AuthenticatedLayout({
   return (
     <AuthProvider user={user}>
       <Nav>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6">
+          <ErrorBoundary>
+            <SuspenseWrapper>{children}</SuspenseWrapper>
+          </ErrorBoundary>
+        </main>
       </Nav>
     </AuthProvider>
   );

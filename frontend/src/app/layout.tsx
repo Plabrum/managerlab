@@ -5,6 +5,7 @@ import { GeistMono } from 'geist/font/mono';
 import { TanstackQueryProvider } from '@/lib/tanstack-query-provider';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'Arive - Next Generation Talent Management',
@@ -18,9 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="font-sans antialiased">
-        <TanstackQueryProvider>{children}</TanstackQueryProvider>
+        <TanstackQueryProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </TanstackQueryProvider>
         <Toaster />
       </body>
     </html>
