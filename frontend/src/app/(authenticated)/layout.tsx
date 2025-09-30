@@ -3,9 +3,16 @@ import { redirect } from 'next/navigation';
 import { unstable_cache } from 'next/cache';
 import { config } from '@/lib/config';
 import { AuthProvider } from '@/components/providers/auth-provider';
-import { Nav } from '@/components/nav';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { SuspenseWrapper } from '@/components/suspense-wrapper';
+import { AppSidebar } from '@/components/app-sidebar';
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb';
 import type { GetCurrentUserUserResponseBody } from '@/openapi/managerLab.schemas';
 
 async function fetchCurrentUser(
@@ -47,13 +54,26 @@ export default async function AuthenticatedLayout({
 
   return (
     <AuthProvider user={user}>
-      <Nav>
-        <main className="flex-1 p-6">
-          <ErrorBoundary>
-            <SuspenseWrapper>{children}</SuspenseWrapper>
-          </ErrorBoundary>
-        </main>
-      </Nav>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="mr-2 data-[orientation=vertical]:h-4"
+              />
+              <DynamicBreadcrumb />
+            </div>
+          </header>
+          <main className="flex-1 p-6">
+            <ErrorBoundary>
+              <SuspenseWrapper>{children}</SuspenseWrapper>
+            </ErrorBoundary>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
     </AuthProvider>
   );
 }

@@ -17,6 +17,7 @@ import {
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
 import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
+import { ActionsMenu } from '@/components/actions-menu';
 
 export default function RosterPage() {
   // Table state
@@ -57,7 +58,7 @@ export default function RosterPage() {
     search: searchTerm && searchTerm.trim().length > 0 ? searchTerm : undefined,
   };
 
-  const { data } = useListObjectsSuspense('users', request);
+  const { data } = useListObjectsSuspense('roster', request);
 
   // Store column definitions after first fetch
   if (data.columns && !columnDefs) {
@@ -69,18 +70,31 @@ export default function RosterPage() {
     // TODO: Implement bulk action handling
   };
 
+  const handleListAction = (action: string) => {
+    console.log('List action clicked:', action);
+    // TODO: Implement list action handlers
+  };
+
   return (
     <div className="space-y-4">
-      <DataTableSearch
-        value={searchTerm ?? ''}
-        onChangeAction={(value) => {
-          startTransition(() => {
-            setSearchTerm(value || undefined);
-            setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
-          });
-        }}
-        placeholder="Search roster"
-      />
+      <div className="flex items-center gap-4">
+        <DataTableSearch
+          value={searchTerm ?? ''}
+          onChangeAction={(value) => {
+            startTransition(() => {
+              setSearchTerm(value || undefined);
+              setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
+            });
+          }}
+          placeholder="Search roster"
+        />
+        {data.actions && data.actions.length > 0 && (
+          <ActionsMenu
+            actions={data.actions}
+            onActionClick={handleListAction}
+          />
+        )}
+      </div>
       {columnDefs && (
         <DataTableAppliedFilters
           filters={columnFilters}

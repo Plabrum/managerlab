@@ -4,9 +4,8 @@ from datetime import datetime, timezone
 
 from polyfactory import Use
 
-from app.users.models.users import User, WaitlistEntry
-from app.users.models.teams import Team
-from app.users.enums import UserStates
+from app.users.models import User, WaitlistEntry, Team, Role, Roster
+from app.users.enums import UserStates, RoleLevel, RosterStates
 from .base import BaseFactory
 
 
@@ -18,7 +17,7 @@ class UserFactory(BaseFactory):
     name = Use(BaseFactory.__faker__.name)
     email = Use(BaseFactory.__faker__.email)
     email_verified = Use(BaseFactory.__faker__.boolean, chance_of_getting_true=80)
-    state = UserStates.NEEDS_TEAM
+    state = UserStates.ACTIVE
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
@@ -35,6 +34,40 @@ class TeamFactory(BaseFactory):
 
     name = Use(BaseFactory.__faker__.company)
     description = Use(BaseFactory.__faker__.catch_phrase)
+    created_at = Use(
+        BaseFactory.__faker__.date_time_between,
+        start_date="-1y",
+        end_date="now",
+        tzinfo=timezone.utc,
+    )
+    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+
+
+class RoleFactory(BaseFactory):
+    """Factory for creating Role instances."""
+
+    __model__ = Role
+
+    role_level = RoleLevel.MEMBER
+    created_at = Use(
+        BaseFactory.__faker__.date_time_between,
+        start_date="-1y",
+        end_date="now",
+        tzinfo=timezone.utc,
+    )
+    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+
+
+class RosterFactory(BaseFactory):
+    """Factory for creating RosterMember instances."""
+
+    __model__ = Roster
+
+    name = Use(BaseFactory.__faker__.name)
+    email = Use(BaseFactory.__faker__.email)
+    phone = Use(BaseFactory.__faker__.phone_number)
+    instagram_handle = Use(lambda: f"@{BaseFactory.__faker__.user_name()}")
+    state = RosterStates.ACTIVE
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",

@@ -23,6 +23,7 @@ async def get_object_detail(
     transaction: AsyncSession,
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
+    request.app.logger.info(f"data:{id}, object_type:{object_type}")
     object_service = ObjectRegistry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
     return object_service.to_detail_dto(obj)
@@ -48,6 +49,7 @@ async def list_objects(
         limit=data.limit,
         offset=data.offset,
         columns=columns,
+        actions=object_service.get_list_actions(),
     )
 
 

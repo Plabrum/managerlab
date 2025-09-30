@@ -278,6 +278,7 @@ export interface ObjectDetailDTO {
   id: string;
   object_type: string;
   state: string;
+  title: string;
   fields: ObjectFieldDTO[];
   actions: ActionDTO[];
   created_at: string;
@@ -346,6 +347,7 @@ export type ObjectTypes = typeof ObjectTypes[keyof typeof ObjectTypes];
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ObjectTypes = {
   users: 'users',
+  roster: 'roster',
   brands: 'brands',
   brandcontacts: 'brandcontacts',
   campaigns: 'campaigns',

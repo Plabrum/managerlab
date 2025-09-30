@@ -7,12 +7,20 @@ from .campaigns import CampaignFactory
 from .media import MediaFactory
 from .payments import InvoiceFactory
 from .posts import PostFactory
-from .users import UserFactory, TeamFactory, WaitlistEntryFactory
+from .users import (
+    UserFactory,
+    TeamFactory,
+    RoleFactory,
+    RosterFactory,
+    WaitlistEntryFactory,
+)
 
 __all__ = [
     "BaseFactory",
     "UserFactory",
     "TeamFactory",
+    "RoleFactory",
+    "RosterFactory",
     "WaitlistEntryFactory",
     "BrandFactory",
     "BrandContactFactory",

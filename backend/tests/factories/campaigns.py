@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from polyfactory import Use
 
 from app.campaigns.models import Campaign
+from app.campaigns.enums import CampaignStates
 from .base import BaseFactory
 
 
@@ -15,6 +16,7 @@ class CampaignFactory(BaseFactory):
 
     name = Use(BaseFactory.__faker__.catch_phrase)
     description = Use(BaseFactory.__faker__.text, max_nb_chars=500)
+    state = CampaignStates.DRAFT
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",

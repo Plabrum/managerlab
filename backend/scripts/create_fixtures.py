@@ -19,6 +19,8 @@ from app.utils.configure import config
 from tests.factories import (
     UserFactory,
     TeamFactory,
+    RoleFactory,
+    RosterFactory,
     WaitlistEntryFactory,
     BrandFactory,
     BrandContactFactory,
@@ -64,6 +66,28 @@ async def create_fixtures():
                 session.add(oauth_account)
                 users.append(user)
 
+            await session.flush()
+
+            # Create roles to assign users to teams
+            print("🔑 Creating roles (assigning users to teams)...")
+            roles = []
+            for user in users:
+                # Assign each user to a random team
+                team = random.choice(teams)
+                role = RoleFactory.build(user_id=user.id, team_id=team.id)
+                session.add(role)
+                roles.append(role)
+            await session.flush()
+
+            # Create roster members (talent) owned by users
+            print("⭐ Creating roster members...")
+            roster = []
+            for i in range(25):
+                # Assign roster member to a random user
+                user = random.choice(users)
+                roster_member = RosterFactory.build(user_id=user.id)
+                session.add(roster_member)
+                roster.append(roster_member)
             await session.flush()
 
             # Create waitlist entries
@@ -183,6 +207,8 @@ async def create_fixtures():
             print("   📊 Summary:")
             print(f"   - {len(teams)} teams")
             print(f"   - {len(users)} users with OAuth accounts")
+            print(f"   - {len(roles)} roles (user-team assignments)")
+            print(f"   - {len(roster)} roster members (talent)")
             print("   - 15 waitlist entries")
             print(f"   - {len(brands)} brands")
             print(f"   - {len(brand_contacts)} brand contacts")

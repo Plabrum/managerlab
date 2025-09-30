@@ -1,8 +1,8 @@
-"""to demo
+"""Add missing state columns
 
-Revision ID: 3fad5453e29b
-Revises: 82cd4683f530
-Create Date: 2025-09-28 20:22:50.453297
+Revision ID: d88e3812dfc0
+Revises: 14cf48adaec3
+Create Date: 2025-09-30 12:54:53.810567
 
 """
 
@@ -13,8 +13,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "3fad5453e29b"
-down_revision: Union[str, Sequence[str], None] = "82cd4683f530"
+revision: str = "d88e3812dfc0"
+down_revision: Union[str, Sequence[str], None] = "14cf48adaec3"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

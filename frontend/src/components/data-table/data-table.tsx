@@ -21,6 +21,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -243,6 +244,7 @@ export function DataTable({
   onSortingChange,
   onFiltersChange,
 }: DataTableProps) {
+  const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(() => {
@@ -473,7 +475,7 @@ export function DataTable({
   // Get selected rows
   const selectedRowsData = React.useMemo(() => {
     return table.getSelectedRowModel().rows.map((row) => row.original);
-  }, [table, rowSelection]);
+  }, [table]);
 
   // Get common bulk actions across all selected rows
   const commonBulkActions = React.useMemo(() => {
@@ -528,21 +530,32 @@ export function DataTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const rowLink = row.original.link;
+                const isClickable = Boolean(rowLink);
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    onClick={() => {
+                      if (isClickable) {
+                        router.push(rowLink);
+                      }
+                    }}
+                    className={isClickable ? 'cursor-pointer' : undefined}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

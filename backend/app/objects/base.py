@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Dict, Sequence, Type, ClassVar, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Select
+from sqlalchemy import Select, select, or_, inspect
+import sqlalchemy as sa
 from sqlalchemy.sql.base import ExecutableOption
 from app.base.models import BaseDBModel
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
+    ActionDTO,
     ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
@@ -80,16 +82,43 @@ class BaseObject(ABC):
         return []
 
     @classmethod
+    def create_search_filter(cls, search_term: str | None):
+        """Create a search filter across all text fields in the model.
+
+        Returns None if search_term is empty/None (short-circuit for performance).
+        Otherwise returns an OR condition with ILIKE across all string columns.
+        """
+        # Short-circuit if no search term or empty/whitespace
+        if not search_term or not search_term.strip():
+            return None
+
+        # Introspect model to find all string/text columns
+        mapper = inspect(cls.model)
+        conditions = []
+
+        for column in mapper.columns:
+            # Check if column is a string type
+            if isinstance(column.type, (sa.String, sa.Text)):
+                # Add ILIKE condition for case-insensitive search
+                conditions.append(column.ilike(f"%{search_term}%"))
+
+        # Return OR condition if we have any conditions
+        return or_(*conditions) if conditions else None
+
+    @classmethod
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
         """Apply list request filters/sorting to create database query."""
-        from sqlalchemy import select
-
         query = select(cls.model)
 
         # Apply load options (eager loading, etc.)
         query = query.options(*cls.get_load_options())
+
+        # Apply search filter if provided
+        search_filter = cls.create_search_filter(request.search)
+        if search_filter is not None:
+            query = query.where(search_filter)
 
         # Apply structured filters and sorts using helper method
         query = cls.apply_request_to_query(query, cls.model, request)
@@ -102,9 +131,6 @@ class BaseObject(ABC):
 
     @classmethod
     async def get_by_id(cls, session: AsyncSession, object_id: int) -> BaseDBModel:
-        """Get object by ID."""
-        from sqlalchemy import select
-
         query = (
             select(cls.model)
             .where(cls.model.id == object_id)
@@ -160,3 +186,11 @@ class BaseObject(ABC):
                         query = query.order_by(column.desc())
 
         return query
+
+    @classmethod
+    def get_list_actions(cls) -> list[ActionDTO]:
+        """Return list actions available for this object type."""
+        return [
+            ActionDTO(action="download", label="Download CSV", is_bulk_allowed=False),
+            ActionDTO(action="save", label="Save view", is_bulk_allowed=False),
+        ]

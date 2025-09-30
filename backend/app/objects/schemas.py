@@ -105,6 +105,7 @@ class ObjectDetailDTO(BaseSchema):
     id: str
     object_type: str
     state: str
+    title: str
     fields: List[ObjectFieldDTO]
     actions: List[ActionDTO]
     created_at: datetime

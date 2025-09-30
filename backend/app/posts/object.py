@@ -117,6 +117,7 @@ class PostObject(BaseObject):
             id=sqid_encode(post.id),
             object_type=ObjectTypes.Posts,
             state=post.state.name,
+            title=post.title,
             fields=fields,
             actions=[],
             created_at=post.created_at,

@@ -1,4 +1,4 @@
-from typing import Sequence, List
+from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func
@@ -82,6 +82,7 @@ class UserObject(BaseObject):
             id=sqid_encode(user.id),
             object_type=ObjectTypes.Users,
             state=user.state.name,
+            title=user.name,
             fields=fields,
             actions=[],
             created_at=user.created_at,
@@ -137,52 +138,6 @@ class UserObject(BaseObject):
             updated_at=user.updated_at,
             fields=fields,
         )
-
-    @classmethod
-    def get_column_definitions(cls) -> List[ColumnDefinitionDTO]:
-        """Get column definitions for user list views."""
-        return [
-            ColumnDefinitionDTO(
-                key="name",
-                label="Name",
-                type=FieldType.String,
-                sortable=True,
-                filter_type=get_filter_by_field_type(FieldType.String),
-                default_visible=True,
-            ),
-            ColumnDefinitionDTO(
-                key="email",
-                label="Email",
-                type=FieldType.Email,
-                sortable=True,
-                filter_type=get_filter_by_field_type(FieldType.Email),
-                default_visible=True,
-            ),
-            ColumnDefinitionDTO(
-                key="email_verified",
-                label="Email Verified",
-                type=FieldType.Bool,
-                sortable=True,
-                filter_type=get_filter_by_field_type(FieldType.Bool),
-                default_visible=True,
-            ),
-            ColumnDefinitionDTO(
-                key="created_at",
-                label="Created",
-                type=FieldType.Datetime,
-                sortable=True,
-                filter_type=get_filter_by_field_type(FieldType.Datetime),
-                default_visible=True,
-            ),
-            ColumnDefinitionDTO(
-                key="updated_at",
-                label="Updated",
-                type=FieldType.Datetime,
-                sortable=True,
-                filter_type=get_filter_by_field_type(FieldType.Datetime),
-                default_visible=False,
-            ),
-        ]
 
     @classmethod
     async def query_from_request(

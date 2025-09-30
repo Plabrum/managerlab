@@ -42,24 +42,44 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.drop_index(
-        op.f("ix_state_transition_logs_object_id"), table_name="state_transition_logs"
+        op.f("ix_state_transition_logs_object_id"),
+        table_name="state_transition_logs",
+        if_exists=True,
     )
     op.drop_index(
-        op.f("ix_state_transition_logs_object_type"), table_name="state_transition_logs"
+        op.f("ix_state_transition_logs_object_type"),
+        table_name="state_transition_logs",
+        if_exists=True,
     )
     op.drop_index(
-        op.f("ix_state_transition_logs_user_id"), table_name="state_transition_logs"
+        op.f("ix_state_transition_logs_user_id"),
+        table_name="state_transition_logs",
+        if_exists=True,
     )
-    op.drop_table("state_transition_logs")
-    op.drop_index(op.f("ix_action_logs_action_name"), table_name="action_logs")
-    op.drop_index(op.f("ix_action_logs_idempotency_key"), table_name="action_logs")
-    op.drop_index(op.f("ix_action_logs_object_id"), table_name="action_logs")
-    op.drop_index(op.f("ix_action_logs_object_type"), table_name="action_logs")
-    op.drop_index(op.f("ix_action_logs_user_id"), table_name="action_logs")
-    op.drop_table("action_logs")
-    op.drop_index(op.f("ix_invoices_current_state"), table_name="invoices")
-    op.drop_index(op.f("ix_invoices_object_type"), table_name="invoices")
-    op.drop_table("invoices")
+    op.drop_table("state_transition_logs", if_exists=True)
+    op.drop_index(
+        op.f("ix_action_logs_action_name"), table_name="action_logs", if_exists=True
+    )
+    op.drop_index(
+        op.f("ix_action_logs_idempotency_key"), table_name="action_logs", if_exists=True
+    )
+    op.drop_index(
+        op.f("ix_action_logs_object_id"), table_name="action_logs", if_exists=True
+    )
+    op.drop_index(
+        op.f("ix_action_logs_object_type"), table_name="action_logs", if_exists=True
+    )
+    op.drop_index(
+        op.f("ix_action_logs_user_id"), table_name="action_logs", if_exists=True
+    )
+    op.drop_table("action_logs", if_exists=True)
+    op.drop_index(
+        op.f("ix_invoices_current_state"), table_name="invoices", if_exists=True
+    )
+    op.drop_index(
+        op.f("ix_invoices_object_type"), table_name="invoices", if_exists=True
+    )
+    op.drop_table("invoices", if_exists=True)
     op.add_column(
         "users",
         sa.Column("state", sa.Text(), server_default="NEEDS_TEAM", nullable=False),

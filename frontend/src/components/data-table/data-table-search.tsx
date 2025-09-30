@@ -16,7 +16,7 @@ export function DataTableSearch({
   value,
   onChangeAction,
   placeholder = 'Search...',
-  debounceMs = 300,
+  debounceMs = 100,
 }: DataTableSearchProps) {
   const [localValue, setLocalValue] = useState(value);
 

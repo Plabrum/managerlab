@@ -80,6 +80,7 @@ class MediaObject(BaseObject):
             id=sqid_encode(media.id),
             object_type=ObjectTypes.Media,
             state="active",
+            title=media.filename,
             fields=fields,
             actions=[],
             created_at=media.created_at.isoformat(),

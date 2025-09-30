@@ -78,7 +78,7 @@ db-downgrade:
 .PHONY: db-fixtures
 db-fixtures:
 	@echo "🎭 Creating database fixtures..."
-	cd backend/scripts && uv run python create_fixtures.py
+	cd backend && uv run python scripts/create_fixtures.py
 
 # Frontend specific targets
 .PHONY: build-frontend

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -62,7 +62,7 @@ class CampaignObject(BaseObject):
     @classmethod
     def get_load_options(cls):
         """Return load options for eager loading relationships."""
-        return [selectinload(Campaign.brand)]
+        return [joinedload(Campaign.brand)]
 
     @classmethod
     def to_detail_dto(cls, campaign: Campaign) -> ObjectDetailDTO:
@@ -87,6 +87,7 @@ class CampaignObject(BaseObject):
             id=sqid_encode(campaign.id),
             object_type=ObjectTypes.Campaigns,
             state="active",
+            title=campaign.name,
             fields=fields,
             actions=[],
             created_at=campaign.created_at,

@@ -152,6 +152,7 @@ class InvoiceObject(BaseObject):
             id=sqid_encode(invoice.id),
             object_type=ObjectTypes.Invoices,
             state=invoice.state.name,
+            title=f"Invoice #{invoice.invoice_number}",
             fields=fields,
             actions=[],
             created_at=invoice.created_at.isoformat(),
