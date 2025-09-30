@@ -25,11 +25,13 @@ export default function BrandDetailPage({
 
   // Set breadcrumb title after data loads
   useEffect(() => {
-    if (data?.title) {
+    if (data?.title && pathname) {
       setBreadcrumb(pathname, data.title);
     }
     return () => {
-      clearBreadcrumb(pathname);
+      if (pathname) {
+        clearBreadcrumb(pathname);
+      }
     };
   }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
