@@ -6,8 +6,12 @@ from polyfactory import Use
 from faker import Faker
 
 # Import our models
+from app import load_all_models
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
+
+
+load_all_models()
 
 fake = Faker()
 
@@ -15,6 +19,9 @@ fake = Faker()
 class BrandFactory(SQLAlchemyFactory[Brand]):
     __model__ = Brand
     __faker__ = fake
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
 
     name = Use(fake.company)
     description = Use(fake.text, max_nb_chars=500)
@@ -23,6 +30,9 @@ class BrandFactory(SQLAlchemyFactory[Brand]):
 class BrandContactFactory(SQLAlchemyFactory[BrandContact]):
     __model__ = BrandContact
     __faker__ = fake
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
 
     first_name = Use(fake.first_name)
     last_name = Use(fake.last_name)

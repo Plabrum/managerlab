@@ -104,7 +104,7 @@ app = Litestar(
                     poolclass=NullPool,
                     connect_args={
                         "connect_timeout": 10,
-                        "application_name": "manageros-lambda",
+                        "application_name": "manageros-ecs",
                     },
                     pool_pre_ping=False,
                 ),

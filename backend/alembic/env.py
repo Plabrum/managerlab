@@ -6,10 +6,11 @@ from sqlalchemy.engine import Connection
 from alembic import context
 
 # Import your models and config
+from app import load_all_models
 from app.base.models import BaseDBModel
 from app.utils.configure import config as app_config
 
-import app.index  # noqa: F401
+load_all_models()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -12,3 +12,6 @@ class BaseFactory(SQLAlchemyFactory[BaseDBModel]):
     __is_base_factory__ = True
     __faker__ = Faker()
     __session__ = None  # Will be set at runtime
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
