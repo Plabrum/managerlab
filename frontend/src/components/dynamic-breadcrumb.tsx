@@ -17,7 +17,11 @@ const routeLabels: Record<string, string> = {
   campaigns: 'Campaigns',
   brands: 'Brands',
   roster: 'Roster',
+  posts: 'Posts',
+  media: 'Media',
   invoices: 'Invoices',
+  users: 'Users',
+  brandcontacts: 'Brand Contacts',
   settings: 'Settings',
 };
 

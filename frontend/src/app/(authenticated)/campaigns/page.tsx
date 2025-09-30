@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -8,8 +8,16 @@ import type {
   Updater,
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/data-table/data-table';
+import { DataTableSearch } from '@/components/data-table/data-table-search';
+import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
-import { createObjectListRequest } from '@/components/data-table/utils';
+import {
+  sortingStateToSortDefinitions,
+  paginationStateToRequest,
+  columnFiltersToRequestFilters,
+} from '@/components/data-table/utils';
+import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
+import { ActionsMenu } from '@/components/actions-menu';
 
 export default function CampaignsPage() {
   // Table state
@@ -19,69 +27,98 @@ export default function CampaignsPage() {
   });
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
+  const [columnDefs, setColumnDefs] = useState<
+    ColumnDefinitionDTO[] | undefined
+  >(undefined);
+  const [isPending, startTransition] = useTransition();
 
-  // Create wrapper functions for React Table callbacks
-  const handlePaginationChange = (updaterOrValue: Updater<PaginationState>) => {
-    if (typeof updaterOrValue === 'function') {
-      setPaginationState((prev) => updaterOrValue(prev));
-    } else {
-      setPaginationState(updaterOrValue);
-    }
+  // Wrap state updates in startTransition to prevent Suspense fallback
+  const handlePaginationChange = (updater: Updater<PaginationState>) => {
+    startTransition(() => setPaginationState(updater));
   };
 
-  const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
-    if (typeof updaterOrValue === 'function') {
-      setSortingState((prev) => updaterOrValue(prev));
-    } else {
-      setSortingState(updaterOrValue);
-    }
+  const handleSortingChange = (updater: Updater<SortingState>) => {
+    startTransition(() => setSortingState(updater));
   };
 
-  const handleFiltersChange = (updaterOrValue: Updater<ColumnFiltersState>) => {
-    if (typeof updaterOrValue === 'function') {
-      setColumnFilters((prev) => updaterOrValue(prev));
-    } else {
-      setColumnFilters(updaterOrValue);
-    }
+  const handleFiltersChange = (updater: Updater<ColumnFiltersState>) => {
+    startTransition(() => setColumnFilters(updater));
   };
 
-  // Create API request from table state
-  const request = createObjectListRequest(
-    'campaigns',
-    paginationState,
-    sortingState,
-    columnFilters
-  );
+  // Build API request inline
+  const { offset, limit } = paginationStateToRequest(paginationState);
+  const request = {
+    offset,
+    limit,
+    sorts: sortingStateToSortDefinitions(sortingState),
+    filters: columnDefs
+      ? columnFiltersToRequestFilters(columnFilters, columnDefs)
+      : [],
+    search: searchTerm && searchTerm.trim().length > 0 ? searchTerm : undefined,
+  };
 
-  // Fetch data using Orval suspense query
   const { data } = useListObjectsSuspense('campaigns', request);
 
-  return (
-    <div className="container mx-auto py-6">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
-          <p className="text-muted-foreground">
-            Manage and view all your campaigns.
-          </p>
-        </div>
+  // Store column definitions after first fetch
+  if (data.columns && !columnDefs) {
+    setColumnDefs(data.columns);
+  }
 
-        <DataTable
-          columns={data.columns}
-          data={data.objects}
-          totalCount={data.total}
-          enableRowSelection={true}
-          enableSorting={true}
-          enableColumnVisibility={true}
-          enableColumnFilters={true}
-          paginationState={paginationState}
-          sortingState={sortingState}
-          columnFilters={columnFilters}
-          onPaginationChange={handlePaginationChange}
-          onSortingChange={handleSortingChange}
-          onFiltersChange={handleFiltersChange}
+  const handleBulkAction = (action: string, rows: typeof data.objects) => {
+    console.log('Bulk action:', action, 'on rows:', rows);
+    // TODO: Implement bulk action handling
+  };
+
+  const handleListAction = (action: string) => {
+    console.log('List action clicked:', action);
+    // TODO: Implement list action handlers
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <DataTableSearch
+          value={searchTerm ?? ''}
+          onChangeAction={(value) => {
+            startTransition(() => {
+              setSearchTerm(value || undefined);
+              setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
+            });
+          }}
+          placeholder="Search campaigns"
         />
+        {data.actions && data.actions.length > 0 && (
+          <ActionsMenu
+            actions={data.actions}
+            onActionClick={handleListAction}
+          />
+        )}
       </div>
+      {columnDefs && (
+        <DataTableAppliedFilters
+          filters={columnFilters}
+          columnDefs={columnDefs}
+          onUpdate={handleFiltersChange}
+        />
+      )}
+      <DataTable
+        isLoading={isPending}
+        columns={data.columns}
+        data={data.objects}
+        totalCount={data.total}
+        enableRowSelection={true}
+        enableSorting={true}
+        enableColumnVisibility={true}
+        enableColumnFilters={true}
+        paginationState={paginationState}
+        sortingState={sortingState}
+        columnFilters={columnFilters}
+        onPaginationChange={handlePaginationChange}
+        onSortingChange={handleSortingChange}
+        onFiltersChange={handleFiltersChange}
+        onBulkActionClick={handleBulkAction}
+      />
     </div>
   );
 }

@@ -9,6 +9,8 @@ import {
   Users,
   Settings2,
   GalleryVerticalEnd,
+  Image,
+  Newspaper,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -55,6 +57,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: 'Roster',
       url: '/roster',
       icon: Users,
+    },
+    {
+      title: 'Posts',
+      url: '/posts',
+      icon: Newspaper,
+    },
+    {
+      title: 'Media',
+      url: '/media',
+      icon: Image,
     },
     {
       title: 'Invoices',

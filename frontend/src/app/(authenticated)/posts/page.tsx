@@ -19,7 +19,7 @@ import {
 import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
 
-export default function BrandsPage() {
+export default function PostsPage() {
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
@@ -58,7 +58,7 @@ export default function BrandsPage() {
     search: searchTerm && searchTerm.trim().length > 0 ? searchTerm : undefined,
   };
 
-  const { data } = useListObjectsSuspense('brands', request);
+  const { data } = useListObjectsSuspense('posts', request);
 
   // Store column definitions after first fetch
   if (data.columns && !columnDefs) {
@@ -86,7 +86,7 @@ export default function BrandsPage() {
               setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
             });
           }}
-          placeholder="Search brands"
+          placeholder="Search posts"
         />
         {data.actions && data.actions.length > 0 && (
           <ActionsMenu
