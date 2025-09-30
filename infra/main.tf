@@ -61,11 +61,11 @@ variable "aws_region" {
   description = "AWS region"
 }
 
-# Lambda container image settings
+# ECS container image settings
 variable "ecr_repository" {
   type        = string
   default     = "manageros-lambda-api"
-  description = "ECR repo name for the Lambda API image"
+  description = "ECR repo name for the API image"
 }
 
 variable "image_tag" {
@@ -85,6 +85,12 @@ variable "private_subnet_cidrs" {
   type        = list(string)
   default     = ["10.20.1.0/24", "10.20.2.0/24"]
   description = "CIDR blocks for private subnets"
+}
+
+variable "public_subnet_cidrs" {
+  type        = list(string)
+  default     = ["10.20.100.0/24", "10.20.101.0/24"]
+  description = "CIDR blocks for public subnets (ALB)"
 }
 
 # Database (Aurora Serverless v2)
@@ -118,11 +124,35 @@ variable "db_max_acu" {
   description = "Maximum Aurora Capacity Units"
 }
 
-# Lambda runtime configuration
-variable "lambda_memory" {
+# ECS runtime configuration
+variable "ecs_cpu" {
+  type        = number
+  default     = 256
+  description = "CPU units for ECS task (256 = 0.25 vCPU)"
+}
+
+variable "ecs_memory" {
   type        = number
   default     = 512
-  description = "Memory allocation for Lambda function in MB (128-10240)"
+  description = "Memory for ECS task in MB"
+}
+
+variable "ecs_desired_count" {
+  type        = number
+  default     = 1
+  description = "Desired number of ECS tasks"
+}
+
+variable "ecs_min_capacity" {
+  type        = number
+  default     = 1
+  description = "Minimum number of ECS tasks for auto-scaling"
+}
+
+variable "ecs_max_capacity" {
+  type        = number
+  default     = 4
+  description = "Maximum number of ECS tasks for auto-scaling"
 }
 
 # Env/Secrets for the app
@@ -180,19 +210,24 @@ locals {
 # Outputs
 # ================================
 
-output "api_gateway_url" {
-  description = "The public URL of the API Gateway"
-  value       = aws_apigatewayv2_stage.default.invoke_url
+output "alb_dns_name" {
+  description = "The DNS name of the Application Load Balancer"
+  value       = aws_lb.main.dns_name
 }
 
-output "lambda_function_arn" {
-  description = "The ARN of the Lambda function"
-  value       = aws_lambda_function.main.arn
+output "alb_url" {
+  description = "The public URL of the Application Load Balancer"
+  value       = "https://api.managerlab.app"
 }
 
-output "lambda_function_name" {
-  description = "The name of the Lambda function"
-  value       = aws_lambda_function.main.function_name
+output "ecs_cluster_name" {
+  description = "The name of the ECS cluster"
+  value       = aws_ecs_cluster.main.name
+}
+
+output "ecs_service_name" {
+  description = "The name of the ECS service"
+  value       = aws_ecs_service.main.name
 }
 
 output "database_endpoint" {
@@ -228,12 +263,6 @@ output "vpc_id" {
 output "private_subnet_ids" {
   description = "The IDs of the private subnets"
   value       = aws_subnet.private[*].id
-}
-
-
-output "custom_domain_name" {
-  description = "The custom domain name configuration"
-  value       = aws_apigatewayv2_domain_name.main.domain_name
 }
 
 output "bastion_private_ip" {
@@ -294,10 +323,10 @@ resource "aws_eip" "nat" {
   })
 }
 
-# NAT Gateway to provide outbound internet for private subnets
+# NAT Gateway to provide outbound internet for private subnets (ECS tasks)
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public.id
+  subnet_id     = aws_subnet.public[0].id
 
   tags = merge(local.common_tags, {
     Name = "${local.name}-nat"
@@ -306,15 +335,17 @@ resource "aws_nat_gateway" "main" {
   depends_on = [aws_internet_gateway.main]
 }
 
-# Public subnet for bastion host
+# Public subnets for ALB and bastion host
 resource "aws_subnet" "public" {
+  count = local.az_count
+
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.20.100.0/24"
-  availability_zone       = data.aws_availability_zones.available.names[0]
+  cidr_block              = var.public_subnet_cidrs[count.index]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name = "${local.name}-public"
+    Name = "${local.name}-public-${count.index + 1}"
   })
 }
 
@@ -346,9 +377,11 @@ resource "aws_route_table" "public" {
   })
 }
 
-# Route table association for public subnet
+# Route table associations for public subnets
 resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
+  count = length(aws_subnet.public)
+
+  subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
@@ -380,31 +413,31 @@ resource "aws_route_table_association" "private" {
 # Security Groups
 # ================================
 
-# Security group for Lambda
-resource "aws_security_group" "lambda" {
-  name_prefix = "${local.name}-lambda-"
-  description = "Security group for Lambda function"
+# Security group for ALB
+resource "aws_security_group" "alb" {
+  name_prefix = "${local.name}-alb-"
+  description = "Security group for Application Load Balancer"
   vpc_id      = aws_vpc.main.id
 
-  # Allow outbound to database
-  egress {
-    description = "Database access"
-    from_port   = 5432
-    to_port     = 5432
+  # Allow HTTP from anywhere
+  ingress {
+    description = "HTTP from internet"
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Allow HTTPS outbound for S3 via VPC endpoint
-  egress {
-    description = "HTTPS for S3"
+  # Allow HTTPS from anywhere
+  ingress {
+    description = "HTTPS from internet"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Allow all outbound traffic for Lambda runtime
+  # Allow all outbound traffic
   egress {
     description = "All outbound traffic"
     from_port   = 0
@@ -414,7 +447,40 @@ resource "aws_security_group" "lambda" {
   }
 
   tags = merge(local.common_tags, {
-    Name = "${local.name}-lambda-sg"
+    Name = "${local.name}-alb-sg"
+  })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Security group for ECS tasks
+resource "aws_security_group" "ecs_tasks" {
+  name_prefix = "${local.name}-ecs-tasks-"
+  description = "Security group for ECS tasks"
+  vpc_id      = aws_vpc.main.id
+
+  # Allow traffic from ALB
+  ingress {
+    description     = "Traffic from ALB"
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  # Allow all outbound traffic (for database, S3, internet via NAT)
+  egress {
+    description = "All outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-ecs-tasks-sg"
   })
 
   lifecycle {
@@ -428,13 +494,13 @@ resource "aws_security_group" "database" {
   description = "Security group for Aurora database"
   vpc_id      = aws_vpc.main.id
 
-  # Allow PostgreSQL from Lambda
+  # Allow PostgreSQL from ECS tasks
   ingress {
-    description     = "PostgreSQL from Lambda"
+    description     = "PostgreSQL from ECS tasks"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.lambda.id]
+    security_groups = [aws_security_group.ecs_tasks.id]
   }
 
   # Allow PostgreSQL from bastion host
@@ -610,7 +676,7 @@ resource "aws_s3_bucket_policy" "app" {
         Sid    = "AllowVPCEndpointAccess"
         Effect = "Allow"
         Principal = {
-          AWS = aws_iam_role.lambda_execution.arn
+          AWS = aws_iam_role.ecs_task.arn
         }
         Action = [
           "s3:GetObject",
@@ -815,7 +881,7 @@ resource "aws_instance" "bastion" {
   instance_type          = var.bastion_instance_type
   key_name               = aws_key_pair.bastion.key_name
   vpc_security_group_ids = [aws_security_group.bastion.id]
-  subnet_id              = aws_subnet.public.id
+  subnet_id              = aws_subnet.public[0].id
 
   # Enable detailed monitoring
   monitoring = true
@@ -843,12 +909,12 @@ resource "aws_instance" "bastion" {
 
 
 # ================================
-# IAM Roles for Lambda
+# IAM Roles for ECS
 # ================================
 
-# IAM role for Lambda execution
-resource "aws_iam_role" "lambda_execution" {
-  name = "${local.name}-lambda-execution-role"
+# ECS task execution role (used by ECS to pull images, write logs)
+resource "aws_iam_role" "ecs_task_execution" {
+  name = "${local.name}-ecs-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -856,7 +922,7 @@ resource "aws_iam_role" "lambda_execution" {
       {
         Effect = "Allow"
         Principal = {
-          Service = "lambda.amazonaws.com"
+          Service = "ecs-tasks.amazonaws.com"
         }
         Action = "sts:AssumeRole"
       }
@@ -866,16 +932,57 @@ resource "aws_iam_role" "lambda_execution" {
   tags = local.common_tags
 }
 
-# Attach AWS managed VPC execution policy for Lambda
-resource "aws_iam_role_policy_attachment" "lambda_vpc" {
-  role       = aws_iam_role.lambda_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+# Attach AWS managed policy for ECS task execution
+resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
+  role       = aws_iam_role.ecs_task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# Policy for Secrets Manager access (task execution role needs this to inject secrets)
+resource "aws_iam_role_policy" "ecs_task_execution_secrets" {
+  name = "${local.name}-ecs-task-execution-secrets-policy"
+  role = aws_iam_role.ecs_task_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.app_secrets_v2.arn
+        ]
+      }
+    ]
+  })
+}
+
+# ECS task role (used by the application code itself)
+resource "aws_iam_role" "ecs_task" {
+  name = "${local.name}-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = local.common_tags
 }
 
 # Policy for S3 access
-resource "aws_iam_role_policy" "lambda_s3" {
-  name = "${local.name}-lambda-s3-policy"
-  role = aws_iam_role.lambda_execution.id
+resource "aws_iam_role_policy" "ecs_task_s3" {
+  name = "${local.name}-ecs-task-s3-policy"
+  role = aws_iam_role.ecs_task.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -897,10 +1004,10 @@ resource "aws_iam_role_policy" "lambda_s3" {
   })
 }
 
-# Policy for Secrets Manager access
-resource "aws_iam_role_policy" "lambda_secrets" {
-  name = "${local.name}-lambda-secrets-policy"
-  role = aws_iam_role.lambda_execution.id
+# Policy for Secrets Manager access (task role for app runtime access)
+resource "aws_iam_role_policy" "ecs_task_secrets" {
+  name = "${local.name}-ecs-task-secrets-policy"
+  role = aws_iam_role.ecs_task.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -920,152 +1027,244 @@ resource "aws_iam_role_policy" "lambda_secrets" {
 
 
 # ================================
-# Lambda Function
+# ECS Cluster and Service
 # ================================
 
-# Lambda function
-resource "aws_lambda_function" "main" {
-  function_name = "${local.name}-api"
-  role          = aws_iam_role.lambda_execution.arn
+# CloudWatch log group for ECS
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/${local.name}"
+  retention_in_days = 14
 
-  # Use container image from ECR
-  package_type = "Image"
-  image_uri    = "${aws_ecr_repository.app.repository_url}:${var.image_tag}"
+  tags = local.common_tags
+}
 
-  architectures = ["x86_64"]
+# ECS cluster
+resource "aws_ecs_cluster" "main" {
+  name = "${local.name}-cluster"
 
-  # Lambda configuration
-  timeout     = 30
-  memory_size = var.lambda_memory
-
-  # VPC configuration for database access
-  vpc_config {
-    subnet_ids         = aws_subnet.private[*].id
-    security_group_ids = [aws_security_group.lambda.id]
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
   }
 
-  # Environment variables
-  environment {
-    variables = merge(
-      {
-        ENV         = var.environment
-        DEBUG       = "false"
-        S3_BUCKET   = aws_s3_bucket.app.bucket
-        DB_ENDPOINT = aws_rds_cluster.main.endpoint
-        # Secrets will be injected at deployment time via GitHub Actions
-        # AWS_REGION is automatically available in Lambda, don't set it manually
-      },
-      var.extra_env
-    )
+  tags = local.common_tags
+}
+
+# ECS task definition
+resource "aws_ecs_task_definition" "main" {
+  family                   = "${local.name}-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = var.ecs_cpu
+  memory                   = var.ecs_memory
+  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "app"
+      image     = "${aws_ecr_repository.app.repository_url}:${var.image_tag}"
+      essential = true
+
+      portMappings = [
+        {
+          containerPort = 8000
+          protocol      = "tcp"
+        }
+      ]
+
+      environment = concat([
+        {
+          name  = "ENV"
+          value = var.environment
+        },
+        {
+          name  = "DEBUG"
+          value = "false"
+        },
+        {
+          name  = "S3_BUCKET"
+          value = aws_s3_bucket.app.bucket
+        },
+        {
+          name  = "DB_ENDPOINT"
+          value = aws_rds_cluster.main.endpoint
+        },
+        {
+          name  = "AWS_REGION"
+          value = var.aws_region
+        }
+      ], [for k, v in var.extra_env : { name = k, value = v }])
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      }
+    }
+  ])
+
+  tags = local.common_tags
+}
+
+# ECS service
+resource "aws_ecs_service" "main" {
+  name            = "${local.name}-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.main.arn
+  desired_count   = var.ecs_desired_count
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = false
   }
 
-  tags = merge(local.common_tags, {
-    Name = "${local.name}-lambda"
-  })
+  load_balancer {
+    target_group_arn = aws_lb_target_group.main.arn
+    container_name   = "app"
+    container_port   = 8000
+  }
 
   depends_on = [
-    aws_iam_role_policy.lambda_s3,
-    aws_iam_role_policy.lambda_secrets,
-    aws_iam_role_policy_attachment.lambda_vpc
+    aws_lb_listener.https,
+    aws_iam_role_policy.ecs_task_s3,
+    aws_iam_role_policy.ecs_task_secrets
   ]
+
+  tags = local.common_tags
+}
+
+# ECS Auto-scaling
+resource "aws_appautoscaling_target" "ecs" {
+  max_capacity       = var.ecs_max_capacity
+  min_capacity       = var.ecs_min_capacity
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.main.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+# Auto-scaling policy based on CPU utilization
+resource "aws_appautoscaling_policy" "ecs_cpu" {
+  name               = "${local.name}-cpu-autoscaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = 70.0
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
+}
+
+# Auto-scaling policy based on memory utilization
+resource "aws_appautoscaling_policy" "ecs_memory" {
+  name               = "${local.name}-memory-autoscaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value       = 80.0
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
 }
 
 # ================================
-# API Gateway
+# Application Load Balancer
 # ================================
 
-# API Gateway
-resource "aws_apigatewayv2_api" "main" {
-  name          = "${local.name}-api"
-  protocol_type = "HTTP"
-  description   = "HTTP API for ${local.name}"
+# ALB
+resource "aws_lb" "main" {
+  name               = "${local.name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = aws_subnet.public[*].id
 
-  cors_configuration {
-    allow_origins = ["*"]
-    allow_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    allow_headers = ["*"]
+  enable_deletion_protection = var.environment == "prod"
+
+  tags = local.common_tags
+}
+
+# Target group for ECS tasks
+resource "aws_lb_target_group" "main" {
+  name        = "${local.name}-tg"
+  port        = 8000
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 30
+    path                = "/health"
+    protocol            = "HTTP"
+    matcher             = "200"
   }
 
+  deregistration_delay = 30
+
   tags = local.common_tags
 }
 
-# Lambda integration
-resource "aws_apigatewayv2_integration" "lambda" {
-  api_id = aws_apigatewayv2_api.main.id
+# HTTPS listener
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = aws_acm_certificate.managerlab_api.arn
 
-  integration_uri        = aws_lambda_function.main.invoke_arn
-  integration_type       = "AWS_PROXY"
-  integration_method     = "POST"
-  payload_format_version = "2.0"
-}
-
-# Route to catch all paths
-resource "aws_apigatewayv2_route" "default" {
-  api_id = aws_apigatewayv2_api.main.id
-
-  route_key = "ANY /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
-}
-
-# Route for root path
-resource "aws_apigatewayv2_route" "root" {
-  api_id = aws_apigatewayv2_api.main.id
-
-  route_key = "ANY /"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
-}
-
-# Deployment stage
-resource "aws_apigatewayv2_stage" "default" {
-  api_id = aws_apigatewayv2_api.main.id
-
-  name        = "$default" # Using $default omits stage prefix from URL path
-  auto_deploy = true
-
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_gateway.arn
-    format = jsonencode({
-      requestId      = "$context.requestId"
-      ip             = "$context.identity.sourceIp"
-      requestTime    = "$context.requestTime"
-      httpMethod     = "$context.httpMethod"
-      path           = "$context.path" # HTTP API uses $context.path
-      routeKey       = "$context.routeKey"
-      status         = "$context.status"
-      protocol       = "$context.protocol"
-      responseLength = "$context.responseLength"
-    })
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main.arn
   }
-
-  tags = local.common_tags
 }
 
-# Lambda permission for API Gateway
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowExecutionFromAPIGateway"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.main.function_name
-  principal     = "apigateway.amazonaws.com"
+# HTTP listener (redirect to HTTPS)
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  protocol          = "HTTP"
 
-  source_arn = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
 }
 
-# CloudWatch log group for API Gateway
-resource "aws_cloudwatch_log_group" "api_gateway" {
-  name              = "/aws/apigateway/${local.name}"
-  retention_in_days = 14
-
-  tags = local.common_tags
-}
-
-# CloudWatch log group for Lambda
-resource "aws_cloudwatch_log_group" "lambda" {
-  name              = "/aws/lambda/${aws_lambda_function.main.function_name}"
-  retention_in_days = 14
-
-  tags = local.common_tags
-}
-
+# ACM certificate for custom domain
 resource "aws_acm_certificate" "managerlab_api" {
   domain_name       = "api.managerlab.app"
   validation_method = "DNS"
@@ -1077,22 +1276,5 @@ resource "aws_acm_certificate" "managerlab_api" {
   tags = local.common_tags
 }
 
-# Custom domain for API Gateway
-resource "aws_apigatewayv2_domain_name" "main" {
-  domain_name = "api.managerlab.app"
-
-  domain_name_configuration {
-    certificate_arn = aws_acm_certificate.managerlab_api.arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
-  }
-
-  tags = local.common_tags
-}
-
-# API mapping to custom domain
-resource "aws_apigatewayv2_api_mapping" "main" {
-  api_id      = aws_apigatewayv2_api.main.id
-  domain_name = aws_apigatewayv2_domain_name.main.id
-  stage       = aws_apigatewayv2_stage.default.id
-}
+# Note: You'll need to create a Route53 record pointing api.managerlab.app to the ALB DNS name
+# Output: aws_lb.main.dns_name

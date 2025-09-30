@@ -21,7 +21,6 @@ dependencies = [
   "ipdb",
   "ipython>=9.5.0",
   "ruff",
-  "mangum", # ASGI adapter for AWS Lambda
   "sqids>=0.5.2",
   "polyfactory>=2.22.2",
   "faker>=37.6.0",

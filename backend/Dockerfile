@@ -1,31 +1,43 @@
 FROM ghcr.io/astral-sh/uv:0.8.17 AS uv
 
-# First, bundle the dependencies into the task root.
-FROM public.ecr.aws/lambda/python:3.13 AS builder
+# Build stage - install dependencies
+FROM python:3.13-slim AS builder
 
-# Enable bytecode compilation, to improve cold-start performance.
+WORKDIR /app
+
+# Enable bytecode compilation for performance
 ENV UV_COMPILE_BYTECODE=1
-# Disable installer metadata, to create a deterministic layer.
+# Disable installer metadata for deterministic builds
 ENV UV_NO_INSTALLER_METADATA=1
-# Enable copy mode to support bind mount caching.
+# Enable copy mode to support bind mount caching
 ENV UV_LINK_MODE=copy
 
-# Bundle the dependencies into the Lambda task root via `uv pip install --target`.
-#
-# files change, but remains robust to changes in the application code.
+# Install dependencies
 COPY uv.lock pyproject.toml ./
 RUN --mount=from=uv,source=/uv,target=/bin/uv \
   --mount=type=cache,target=/root/.cache/uv \
-  uv sync --frozen --no-install-project --no-dev && \
-  cp -r .venv/lib/python*/site-packages/* "${LAMBDA_TASK_ROOT}/"
+  uv sync --frozen --no-install-project --no-dev
 
-FROM public.ecr.aws/lambda/python:3.13
+# Runtime stage
+FROM python:3.13-slim
 
-# Copy the runtime dependencies from the builder stage.
-COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
+WORKDIR /app
 
-# Copy the application code.
-COPY . ${LAMBDA_TASK_ROOT}
+# Install curl for health checks
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-# Set the AWS Lambda handler.
-CMD ["app.handler.handler"]
+# Copy the virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application code
+COPY . /app
+
+# Set Python path to use virtual environment
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app"
+
+# Expose port 8000 for the application
+EXPOSE 8000
+
+# Run Litestar via Uvicorn
+CMD ["uvicorn", "app.index:app", "--host", "0.0.0.0", "--port", "8000"]

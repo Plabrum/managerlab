@@ -9,15 +9,15 @@ on:
         default: "apply"
         type: string
     outputs:
-      lambda_function_arn:
-        description: "Lambda function ARN"
-        value: ${{ jobs.terraform.outputs.lambda_function_arn }}
-      lambda_function_name:
-        description: "Lambda function name"
-        value: ${{ jobs.terraform.outputs.lambda_function_name }}
-      api_gateway_url:
-        description: "API Gateway URL"
-        value: ${{ jobs.terraform.outputs.api_gateway_url }}
+      ecs_cluster_name:
+        description: "ECS cluster name"
+        value: ${{ jobs.terraform.outputs.ecs_cluster_name }}
+      ecs_service_name:
+        description: "ECS service name"
+        value: ${{ jobs.terraform.outputs.ecs_service_name }}
+      alb_url:
+        description: "Application Load Balancer URL"
+        value: ${{ jobs.terraform.outputs.alb_url }}
       ecr_repository_url:
         description: "ECR repository URL"
         value: ${{ jobs.terraform.outputs.ecr_repository_url }}
@@ -39,9 +39,9 @@ jobs:
       contents: read
 
     outputs:
-      lambda_function_arn: ${{ steps.outputs.outputs.lambda_function_arn }}
-      lambda_function_name: ${{ steps.outputs.outputs.lambda_function_name }}
-      api_gateway_url: ${{ steps.outputs.outputs.api_gateway_url }}
+      ecs_cluster_name: ${{ steps.outputs.outputs.ecs_cluster_name }}
+      ecs_service_name: ${{ steps.outputs.outputs.ecs_service_name }}
+      alb_url: ${{ steps.outputs.outputs.alb_url }}
       ecr_repository_url: ${{ steps.outputs.outputs.ecr_repository_url }}
       secret_env: ${{ steps.secrets.outputs.secret_env }}
 
@@ -175,9 +175,9 @@ jobs:
         run: |
           echo "📊 Getting Terraform outputs..."
           echo "ecr_repository_url=$(terraform output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
-          echo "lambda_function_arn=$(terraform output -raw lambda_function_arn)" >> $GITHUB_OUTPUT
-          echo "lambda_function_name=$(terraform output -raw lambda_function_name)" >> $GITHUB_OUTPUT
-          echo "api_gateway_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
+          echo "ecs_cluster_name=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
+          echo "ecs_service_name=$(terraform output -raw ecs_service_name)" >> $GITHUB_OUTPUT
+          echo "alb_url=$(terraform output -raw alb_url)" >> $GITHUB_OUTPUT
 
       - name: Summary
         run: |
