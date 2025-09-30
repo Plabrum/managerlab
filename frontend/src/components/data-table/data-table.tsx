@@ -2,6 +2,41 @@
 
 import * as React from 'react';
 import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  type OnChangeFn,
+  type PaginationState,
+  type SortingState,
+  type Table as ReactTable,
+  useReactTable,
+  type VisibilityState,
+} from '@tanstack/react-table';
+import {
+  Filter,
+  MoreHorizontal,
+  Settings2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Table,
   TableBody,
   TableCell,
@@ -9,368 +44,537 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { DataTableColumnSettings } from './data-table-column-settings';
-import { DataTableColumnFilter } from './data-table-column-filter';
-import { DataTablePagination } from './data-table-pagination';
-import { useNavigation } from '@/hooks/use-navigation';
-import {
-  MoreHorizontal,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Search,
-  X,
-  Filter,
-  Funnel,
-} from 'lucide-react';
-import {
+import type {
+  ColumnDefinitionDTO,
   ObjectListDTO,
-  ObjectListRequestFiltersItem,
-  ObjectListResponse,
-  SortDefinition,
 } from '@/openapi/managerLab.schemas';
+import {
+  formatCellValue,
+  columnFiltersToRequestFilters,
+  requestFiltersToColumnFilters,
+} from './utils';
+import { DataTablePagination } from './data-table-pagination';
+import { DataTableColumnFilter } from './data-table-column-filter';
 
 interface DataTableProps {
-  data: ObjectListResponse;
-  onSearch?: (query: string) => void;
-  onFiltersChange?: (filters: ObjectListRequestFiltersItem[]) => void;
-  onSortChange?: (sorts: SortDefinition[]) => void;
-  onRowAction?: (action: string, row: ObjectListDTO) => void;
-  onBulkAction?: (action: string, selectedRows: ObjectListDTO[]) => void;
-  onRowClick?: (row: ObjectListDTO) => void;
-  onPaginationChange?: (offset: number, limit: number) => void;
-  baseUrl?: string;
-  searchQuery?: string;
-  filters?: ObjectListRequestFiltersItem[];
-  sorts?: SortDefinition[];
-  loading?: boolean;
+  columns: ColumnDefinitionDTO[];
+  data: ObjectListDTO[];
+  totalCount: number;
+  enableRowSelection?: boolean;
+  enableSorting?: boolean;
+  enableColumnVisibility?: boolean;
+  enableColumnFilters?: boolean; // Enable filter buttons in column headers
+  showItemRange?: boolean; // Show "X-Y of Z" instead of "Page X of Y"
+  onActionClick?: (action: string, row: ObjectListDTO) => void; // Handler for action clicks
+  onBulkActionClick?: (action: string, rows: ObjectListDTO[]) => void; // Handler for bulk action clicks
+  isLoading?: boolean; // Loading state for data fetching
+  // Server-side state
+  paginationState: PaginationState;
+  sortingState: SortingState;
+  columnFilters: ColumnFiltersState;
+  // Callbacks
+  onPaginationChange: OnChangeFn<PaginationState>;
+  onSortingChange: OnChangeFn<SortingState>;
+  onFiltersChange: OnChangeFn<ColumnFiltersState>;
+}
+
+// Column header component that accesses current filter state and sorting
+const ColumnHeader = React.memo(
+  ({
+    columnDef,
+    columnDefs,
+    enableColumnFilters,
+    columnFilters,
+    onFiltersChange,
+    sortingState,
+    toggleSorting,
+  }: {
+    columnDef: ColumnDefinitionDTO;
+    columnDefs: ColumnDefinitionDTO[];
+    enableColumnFilters: boolean;
+    columnFilters: ColumnFiltersState;
+    onFiltersChange: OnChangeFn<ColumnFiltersState>;
+    sortingState: SortingState;
+    toggleSorting?: () => void;
+  }) => {
+    // Check if this column has an active filter
+    const activeFilter = columnFilters.find(
+      (filter) => filter.id === columnDef.key
+    );
+    const hasActiveFilter = Boolean(activeFilter?.value);
+
+    // Get sort state for this column
+    const sortState = sortingState.find((sort) => sort.id === columnDef.key);
+    const isSorted =
+      sortState?.desc === false
+        ? 'asc'
+        : sortState?.desc === true
+          ? 'desc'
+          : false;
+
+    // Get appropriate sort icon
+    const getSortIcon = () => {
+      if (!isSorted) {
+        return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      }
+      return isSorted === 'asc' ? (
+        <ArrowUp className="ml-2 h-4 w-4" />
+      ) : (
+        <ArrowDown className="ml-2 h-4 w-4" />
+      );
+    };
+
+    const labelContent = columnDef.sortable ? (
+      <Button
+        variant="ghost"
+        onClick={toggleSorting}
+        className="h-auto p-0 font-medium hover:bg-transparent"
+      >
+        {columnDef.label}
+        {getSortIcon()}
+      </Button>
+    ) : (
+      <span className="font-medium">{columnDef.label}</span>
+    );
+
+    if (!enableColumnFilters) {
+      return labelContent;
+    }
+
+    return (
+      <div className="flex items-center">
+        {labelContent}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`ml-1 h-6 w-6 p-0 ${
+                hasActiveFilter
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Filter className="h-3 w-3" />
+              <span className="sr-only">Filter {columnDef.label}</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80" align="start">
+            <DataTableColumnFilter
+              column={columnDef}
+              filters={columnFilters
+                .filter((filter) => filter.id === columnDef.key)
+                .map(
+                  (filter) =>
+                    columnFiltersToRequestFilters([filter], columnDefs)[0]
+                )
+                .filter(Boolean)}
+              onFiltersChange={(newFilters) => {
+                // Remove existing filters for this column
+                const otherFilters = columnFilters.filter(
+                  (filter) => filter.id !== columnDef.key
+                );
+
+                // Convert new filters back to TanStack format
+                const newTanStackFilters =
+                  requestFiltersToColumnFilters(newFilters);
+
+                // Update the filters
+                onFiltersChange([...otherFilters, ...newTanStackFilters]);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+);
+
+ColumnHeader.displayName = 'ColumnHeader';
+
+function createColumnDef(
+  columnDef: ColumnDefinitionDTO,
+  columnDefs: ColumnDefinitionDTO[],
+  enableColumnFilters: boolean,
+  onFiltersChange: OnChangeFn<ColumnFiltersState>
+): ColumnDef<ObjectListDTO> {
+  const column: ColumnDef<ObjectListDTO> = {
+    accessorKey: columnDef.key,
+    header: ({ table, column }) => (
+      <ColumnHeader
+        columnDef={columnDef}
+        columnDefs={columnDefs}
+        enableColumnFilters={enableColumnFilters}
+        columnFilters={table.getState().columnFilters}
+        onFiltersChange={onFiltersChange}
+        sortingState={table.getState().sorting}
+        toggleSorting={
+          columnDef.sortable
+            ? () => column.toggleSorting(column.getIsSorted() === 'asc')
+            : undefined
+        }
+      />
+    ),
+    enableSorting: columnDef.sortable ?? true,
+    cell: ({ row }) => {
+      const field = row.original.fields?.find((f) => f.key === columnDef.key);
+      return formatCellValue(field?.value, columnDef);
+    },
+  };
+
+  return column;
 }
 
 export function DataTable({
+  columns: columnDefs,
   data,
-  onSearch,
-  onFiltersChange,
-  onSortChange,
-  onRowAction,
-  onBulkAction,
-  onRowClick,
+  totalCount,
+  enableRowSelection = false,
+  enableSorting = true,
+  enableColumnVisibility = true,
+  enableColumnFilters = true,
+  showItemRange = false,
+  onActionClick,
+  onBulkActionClick,
+  paginationState,
+  sortingState,
+  columnFilters,
   onPaginationChange,
-  baseUrl = '',
-  searchQuery = '',
-  filters = [],
-  sorts = [],
-  loading = false,
+  onSortingChange,
+  onFiltersChange,
 }: DataTableProps) {
-  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
-    new Set()
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>(() => {
+      const visibility: VisibilityState = {};
+      columnDefs.forEach((col) => {
+        visibility[col.key] = col.default_visible ?? true;
+      });
+      return visibility;
+    });
+
+  // Memoize individual column definitions to prevent recreation
+  // Only recreate when column structure changes, not when filter values change
+  const dynamicColumns = React.useMemo<ColumnDef<ObjectListDTO>[]>(() => {
+    return columnDefs.map((columnDef) =>
+      createColumnDef(
+        columnDef,
+        columnDefs,
+        enableColumnFilters,
+        onFiltersChange
+      )
+    );
+  }, [columnDefs, enableColumnFilters, onFiltersChange]);
+
+  // Memoize selection column separately since it doesn't depend on columnDefs
+  const selectionColumn = React.useMemo<ColumnDef<ObjectListDTO>>(
+    () => ({
+      id: 'select',
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    }),
+    []
   );
-  const [visibleColumnKeys, setVisibleColumnKeys] = React.useState<string[]>(
-    () => {
-      const hasDefaultVisible = data.columns.some(
-        (col) => col.default_visible !== undefined
-      );
-      return hasDefaultVisible
-        ? data.columns
-            .filter((col) => col.default_visible)
-            .map((col) => col.key)
-        : data.columns.map((col) => col.key);
-    }
-  );
-  const [columnFilterOpen, setColumnFilterOpen] = React.useState<string | null>(
-    null
-  );
 
-  const { navigateToLink } = useNavigation(baseUrl);
-
-  const visibleColumns = React.useMemo(() => {
-    return data.columns.filter((col) => visibleColumnKeys.includes(col.key));
-  }, [data.columns, visibleColumnKeys]);
-
-  const selectedRowsArray = data.objects.filter((row) =>
-    selectedRows.has(row.id)
-  );
-  const completeFilters = filters.filter(isFilterComplete);
-
-  return (
-    <div className="w-full">
-      <div className="pb-2">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-            <Input
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => onSearch?.(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
+  // Create actions column header component that can access table later
+  const ActionsColumnHeader = React.useCallback(
+    ({ table }: { table: ReactTable<ObjectListDTO> }) => (
+      <div className="flex justify-end">
+        {enableColumnVisibility && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 bg-transparent">
-                <Funnel className="ml-2 h-4 w-4" />
-                {completeFilters.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 px-1.5 py-0.5 text-xs"
-                  >
-                    {completeFilters.length}
-                  </Badge>
-                )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground h-6 w-6 p-0"
+              >
+                <Settings2 className="h-3 w-3" />
+                <span className="sr-only">Column settings</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {data.columns.map((column) => (
-                <DropdownMenuSub key={column.key}>
-                  <DropdownMenuSubTrigger>
-                    {column.label}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="p-0">
-                    <DataTableColumnFilter
-                      column={column}
-                      filters={filters}
-                      onFiltersChange={onFiltersChange || (() => {})}
-                    />
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              ))}
+            <DropdownMenuContent align="end" className="w-56">
+              {table
+                .getAllColumns()
+                .filter(
+                  (column) =>
+                    typeof column.accessorFn !== 'undefined' &&
+                    column.getCanHide()
+                )
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
             </DropdownMenuContent>
           </DropdownMenu>
+        )}
+      </div>
+    ),
+    [enableColumnVisibility]
+  );
 
-          <DataTableColumnSettings
-            columns={data.columns}
-            visibleColumns={visibleColumnKeys}
-            onVisibleColumnsChange={setVisibleColumnKeys}
-          />
+  // Memoize actions column
+  const actionsColumn = React.useMemo<ColumnDef<ObjectListDTO>>(
+    () => ({
+      id: 'actions',
+      size: 60,
+      minSize: 60,
+      maxSize: 60,
+      enableResizing: false,
+      header: ({ table }) => <ActionsColumnHeader table={table} />,
+      cell: ({ row }) => {
+        const rowActions = row.original.actions;
+        const hasRowActions = rowActions && rowActions.length > 0;
 
-          {/* Global actions menu */}
-          {data.actions && data.actions.length > 0 && (
+        if (!hasRowActions) {
+          // If no row actions but column is shown for settings, render empty cell
+          return <div className="flex justify-end" />;
+        }
+
+        // Filter available actions
+        const availableActions = rowActions.filter(
+          (action) => action.available !== false
+        );
+        if (availableActions.length === 0) {
+          return <div className="flex justify-end" />;
+        }
+
+        return (
+          <div className="flex justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {data.actions.map((action) => (
-                  <DropdownMenuItem
-                    key={action.action}
-                    disabled={!action.available}
-                    onClick={() =>
-                      onBulkAction?.(action.action, selectedRowsArray)
-                    }
-                  >
-                    {action.label}
-                  </DropdownMenuItem>
-                ))}
+                {availableActions
+                  .sort((a, b) => (a.priority || 0) - (b.priority || 0)) // Sort by priority
+                  .map((action, index) => (
+                    <DropdownMenuItem
+                      key={`${action.action}-${index}`}
+                      onClick={() => {
+                        if (onActionClick) {
+                          onActionClick(action.action, row.original);
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {action.label}
+                    </DropdownMenuItem>
+                  ))}
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-        </div>
-
-        {completeFilters.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {completeFilters.map((filter) => {
-              const actualIndex = filters.findIndex((f) => f === filter);
-              return (
-                <Badge
-                  key={`${filter.column}-${actualIndex}`}
-                  variant="secondary"
-                  className="gap-1"
-                >
-                  {getFilterDisplayText(filter)}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 hover:bg-transparent"
-                    onClick={() => removeFilter(actualIndex)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              );
-            })}
           </div>
-        )}
-      </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    }),
+    [onActionClick, ActionsColumnHeader]
+  );
 
-      <div>
-        <div className="relative">
-          {loading && (
-            <div className="bg-background/50 absolute inset-0 z-10 flex items-center justify-center">
-              <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
-            </div>
-          )}
+  // Check if any row has actions to determine if we should show the actions column
+  const hasActions = React.useMemo(() => {
+    return data.some((row) => row.actions && row.actions.length > 0);
+  }, [data]);
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={
-                      selectedRows.size === data.objects.length &&
-                      data.objects.length > 0
-                    }
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-                {visibleColumns.map((column) => (
-                  <TableHead key={column.key}>
-                    <div className="flex items-center">
-                      {column.sortable ? (
-                        <Button
-                          variant="ghost"
-                          onClick={() => handleSort(column.key)}
-                          className="h-auto p-0 font-medium hover:bg-transparent"
-                        >
-                          {column.label}
-                          {getSortIcon(column.key)}
-                        </Button>
-                      ) : (
-                        <span className="font-medium">{column.label}</span>
-                      )}
-                      <Popover
-                        open={columnFilterOpen === column.key}
-                        onOpenChange={(open) => {
-                          setColumnFilterOpen(open ? column.key : null);
-                        }}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`ml-1 h-6 w-6 p-0 ${
-                              hasActiveFilter(column.key)
-                                ? 'text-primary'
-                                : 'text-muted-foreground hover:text-foreground'
-                            }`}
-                          >
-                            <Filter className="h-3 w-3" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="p-0" align="start">
-                          <DataTableColumnFilter
-                            column={column}
-                            filters={filters}
-                            onFiltersChange={onFiltersChange || (() => {})}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </TableHead>
-                ))}
-                <TableHead className="w-12"></TableHead>
+  // Show actions column if there are row actions OR if column visibility is enabled (for settings)
+  const showActionsColumn = hasActions || enableColumnVisibility;
+
+  // Combine columns with stable references
+  const columns = React.useMemo<ColumnDef<ObjectListDTO>[]>(() => {
+    const cols: ColumnDef<ObjectListDTO>[] = [];
+
+    if (enableRowSelection) {
+      cols.push(selectionColumn);
+    }
+
+    cols.push(...dynamicColumns);
+
+    // Add actions column at the end if any row has actions or if column visibility is enabled
+    if (showActionsColumn) {
+      cols.push(actionsColumn);
+    }
+
+    return cols;
+  }, [
+    dynamicColumns,
+    selectionColumn,
+    actionsColumn,
+    enableRowSelection,
+    showActionsColumn,
+  ]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    pageCount: Math.ceil(totalCount / paginationState.pageSize),
+    state: {
+      sorting: sortingState,
+      columnVisibility,
+      rowSelection,
+      columnFilters,
+      pagination: paginationState,
+    },
+    getRowId: React.useCallback((row: ObjectListDTO) => String(row.id), []),
+    enableRowSelection,
+    enableSorting,
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
+    // Prevent auto-resets that cause unnecessary re-renders
+    autoResetPageIndex: false,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: onSortingChange,
+    onColumnFiltersChange: onFiltersChange,
+    onColumnVisibilityChange: setColumnVisibility,
+    onPaginationChange: onPaginationChange,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  // Get selected rows
+  const selectedRowsData = React.useMemo(() => {
+    return table.getSelectedRowModel().rows.map((row) => row.original);
+  }, [table, rowSelection]);
+
+  // Get common bulk actions across all selected rows
+  const commonBulkActions = React.useMemo(() => {
+    if (selectedRowsData.length === 0) return [];
+
+    // Get all bulk-allowed actions from the first selected row
+    const firstRowActions =
+      selectedRowsData[0].actions?.filter(
+        (action) => action.is_bulk_allowed && action.available !== false
+      ) || [];
+
+    // Filter to only actions that exist in ALL selected rows
+    return firstRowActions.filter((action) =>
+      selectedRowsData.every((row) =>
+        row.actions?.some(
+          (a) =>
+            a.action === action.action &&
+            a.is_bulk_allowed &&
+            a.available !== false
+        )
+      )
+    );
+  }, [selectedRowsData]);
+
+  const showBulkActions =
+    selectedRowsData.length > 0 &&
+    commonBulkActions.length > 0 &&
+    onBulkActionClick;
+
+  return (
+    <div className="w-full">
+      {/* Table */}
+      <div className="overflow-hidden rounded-lg border">
+        <Table>
+          <TableHeader className="bg-muted">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} colSpan={header.colSpan}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.objects.map((row) => (
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="hover:bg-muted/50 cursor-pointer"
-                  onClick={(e) => handleRowClick(row, e)}
+                  data-state={row.getIsSelected() && 'selected'}
                 >
-                  <TableCell data-row-action>
-                    <Checkbox
-                      checked={selectedRows.has(row.id)}
-                      onCheckedChange={(checked) =>
-                        handleSelectRow(row.id, !!checked)
-                      }
-                    />
-                  </TableCell>
-                  {visibleColumns.map((column) => {
-                    const field = row.fields?.find((f) => f.key === column.key);
-                    const value =
-                      field?.value ??
-                      (row as unknown as Record<string, unknown>)[column.key];
-
-                    return (
-                      <TableCell key={column.key}>
-                        {formatCellValue(value, column.type)}
-                      </TableCell>
-                    );
-                  })}
-                  <TableCell data-row-action>
-                    {row.actions && row.actions.length > 0 && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {row.actions.map((action) => (
-                            <DropdownMenuItem
-                              key={action.action}
-                              disabled={!action.available}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onRowAction?.(action.action, row);
-                              }}
-                            >
-                              {action.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </TableCell>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {data.objects.length === 0 && (
-            <div className="text-muted-foreground py-8 text-center">
-              No data available
-            </div>
-          )}
-        </div>
-
-        {onPaginationChange && (
-          <DataTablePagination
-            total={data.total}
-            limit={data.limit}
-            offset={data.offset}
-            onPaginationChange={onPaginationChange}
-          />
-        )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
-      {selectedRows.size > 0 && (
-        <div className="bg-muted/30 border-t p-3">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-sm">
-              {selectedRows.size} row{selectedRows.size !== 1 ? 's' : ''}{' '}
-              selected
-            </span>
-            {data.actions &&
-              data.actions.map((action) => (
+      {/* Bulk Actions Bar */}
+      {showBulkActions && (
+        <div className="bg-muted mt-4 flex items-center justify-between rounded-md border p-3">
+          <div className="text-sm font-medium">
+            {selectedRowsData.length} of {data.length} row(s) selected
+          </div>
+          <div className="flex gap-2">
+            {commonBulkActions
+              .sort((a, b) => (a.priority || 0) - (b.priority || 0))
+              .map((action) => (
                 <Button
                   key={action.action}
-                  variant="outline"
+                  variant="default"
                   size="sm"
-                  disabled={!action.available}
-                  onClick={() =>
-                    onBulkAction?.(action.action, selectedRowsArray)
-                  }
+                  onClick={() => {
+                    onBulkActionClick(action.action, selectedRowsData);
+                    setRowSelection({});
+                  }}
                 >
                   {action.label}
                 </Button>
@@ -378,190 +582,13 @@ export function DataTable({
           </div>
         </div>
       )}
+
+      {/* Pagination */}
+      <DataTablePagination
+        table={table}
+        enableRowSelection={enableRowSelection && !showBulkActions}
+        showItemRange={showItemRange}
+      />
     </div>
   );
-
-  function handleRowClick(row: ObjectListDTO, event: React.MouseEvent) {
-    // Don't trigger row click if clicking on checkbox or action menu
-    if ((event.target as HTMLElement).closest('[data-row-action]')) {
-      return;
-    }
-
-    if (onRowClick) {
-      onRowClick(row);
-    } else if (row.link) {
-      navigateToLink(row.link);
-    }
-  }
-
-  function handleSelectAll(checked: boolean) {
-    if (checked) {
-      setSelectedRows(new Set(data.objects.map((row) => row.id)));
-    } else {
-      setSelectedRows(new Set());
-    }
-  }
-
-  function handleSelectRow(rowId: string, checked: boolean) {
-    const newSelected = new Set(selectedRows);
-    if (checked) {
-      newSelected.add(rowId);
-    } else {
-      newSelected.delete(rowId);
-    }
-    setSelectedRows(newSelected);
-  }
-
-  function handleSort(columnKey: string) {
-    if (!onSortChange) return;
-
-    const existingSort = sorts.find((sort) => sort.column === columnKey);
-    let newSorts: SortDefinition[];
-
-    if (!existingSort) {
-      newSorts = [{ column: columnKey, direction: 'sort_asc' }];
-    } else if (existingSort.direction === 'sort_asc') {
-      newSorts = [{ column: columnKey, direction: 'sort_desc' }];
-    } else {
-      newSorts = sorts.filter((sort) => sort.column !== columnKey);
-    }
-
-    onSortChange(newSorts);
-  }
-
-  function hasActiveFilter(columnKey: string) {
-    return filters.some(
-      (filter) => filter.column === columnKey && isFilterComplete(filter)
-    );
-  }
-
-  function isFilterComplete(filter: ObjectListRequestFiltersItem) {
-    switch (filter.type) {
-      case 'text_filter':
-        return !!filter.value;
-      case 'range_filter':
-        return filter.start !== null || filter.finish !== null;
-      case 'date_filter':
-        return !!filter.start || !!filter.finish;
-      case 'boolean_filter':
-        return (
-          'value' in filter && typeof filter.value === 'boolean' && filter.value
-        );
-      case 'enum_filter':
-        return (
-          'values' in filter &&
-          Array.isArray(filter.values) &&
-          filter.values.length > 0
-        );
-      default:
-        return false;
-    }
-  }
-
-  function getSortIcon(columnKey: string) {
-    const sort = sorts.find((sort) => sort.column === columnKey);
-    const hasFilter = hasActiveFilter(columnKey);
-
-    if (!sort && !hasFilter) return null;
-    if (!sort) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
-    return sort.direction === 'sort_asc' ? (
-      <ArrowUp className="ml-2 h-4 w-4" />
-    ) : (
-      <ArrowDown className="ml-2 h-4 w-4" />
-    );
-  }
-
-  function formatCellValue(value: unknown, type: string) {
-    if (value === null || value === undefined) return '-';
-
-    switch (type) {
-      case 'date':
-      case 'datetime':
-        return new Date(value as string).toLocaleDateString();
-      case 'usd':
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(value as number);
-      case 'bool':
-        return value ? 'Yes' : 'No';
-      case 'url':
-        return (
-          <a
-            href={value as string}
-            className="text-blue-600 hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {value as string}
-          </a>
-        );
-      case 'email':
-        return (
-          <a
-            href={`mailto:${value}`}
-            className="text-blue-600 hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {value as string}
-          </a>
-        );
-      case 'enum':
-        return <Badge variant="secondary">{value as string}</Badge>;
-      default:
-        return String(value);
-    }
-  }
-
-  function getFilterDisplayText(filter: ObjectListRequestFiltersItem) {
-    const column = data.columns.find((col) => col.key === filter.column);
-    if (!column) return '';
-
-    let text = column.label + ': ';
-
-    switch (filter.type) {
-      case 'text_filter':
-        if (filter.value) {
-          text += `${filter.operation} "${filter.value}"`;
-        }
-        break;
-      case 'range_filter':
-        if (filter.start !== null || filter.finish !== null) {
-          text += `${filter.start || '∞'} - ${filter.finish || '∞'}`;
-        }
-        break;
-      case 'date_filter':
-        if (filter.start || filter.finish) {
-          const startDate = filter.start
-            ? new Date(filter.start as string).toLocaleDateString()
-            : '∞';
-          const endDate = filter.finish
-            ? new Date(filter.finish as string).toLocaleDateString()
-            : '∞';
-          text += `${startDate} - ${endDate}`;
-        }
-        break;
-      case 'boolean_filter':
-        text +=
-          'value' in filter && typeof filter.value === 'boolean'
-            ? filter.value
-              ? 'Yes'
-              : 'No'
-            : '';
-        break;
-      case 'enum_filter':
-        text +=
-          'values' in filter && Array.isArray(filter.values)
-            ? filter.values.join(', ')
-            : '';
-        break;
-    }
-
-    return text;
-  }
-
-  function removeFilter(index: number) {
-    if (onFiltersChange) {
-      onFiltersChange(filters.filter((_, i) => i !== index));
-    }
-  }
 }

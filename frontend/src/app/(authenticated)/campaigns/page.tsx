@@ -7,7 +7,7 @@ import type {
   PaginationState,
   Updater,
 } from '@tanstack/react-table';
-import { NewDataTable } from '@/components/data-table/new-data-table';
+import { DataTable } from '@/components/data-table/data-table';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
 import { createObjectListRequest } from '@/components/data-table/utils';
 
@@ -66,7 +66,7 @@ export default function CampaignsPage() {
           </p>
         </div>
 
-        <NewDataTable
+        <DataTable
           columns={data.columns}
           data={data.objects}
           totalCount={data.total}

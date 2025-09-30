@@ -7,7 +7,7 @@ import type {
   PaginationState,
   Updater,
 } from '@tanstack/react-table';
-import { NewDataTable } from '@/components/data-table/new-data-table';
+import { DataTable } from '@/components/data-table/data-table';
 import { DataTableSearch } from '@/components/data-table/data-table-search';
 import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
@@ -88,7 +88,7 @@ export default function RosterPage() {
           onUpdate={handleFiltersChange}
         />
       )}
-      <NewDataTable
+      <DataTable
         isLoading={isPending}
         columns={data.columns}
         data={data.objects}
