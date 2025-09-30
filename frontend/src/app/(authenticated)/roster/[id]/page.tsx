@@ -1,6 +1,7 @@
 'use client';
 
-import { use } from 'react';
+import { use, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   ObjectHeader,
   ObjectActions,
@@ -9,6 +10,7 @@ import {
   ObjectChildren,
 } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
+import { useBreadcrumb } from '@/components/breadcrumb-provider';
 
 export default function RosterDetailPage({
   params,
@@ -16,8 +18,20 @@ export default function RosterDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const pathname = usePathname();
+  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('roster', id);
+
+  // Set breadcrumb title after data loads
+  useEffect(() => {
+    if (data?.title) {
+      setBreadcrumb(pathname, data.title);
+    }
+    return () => {
+      clearBreadcrumb(pathname);
+    };
+  }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
   const handleActionClick = (action: string) => {
     console.log('Action clicked:', action, 'on roster member:', id);

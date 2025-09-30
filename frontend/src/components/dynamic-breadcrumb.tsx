@@ -10,6 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { useBreadcrumb } from '@/components/breadcrumb-provider';
 
 const routeLabels: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -22,12 +23,17 @@ const routeLabels: Record<string, string> = {
 
 export function DynamicBreadcrumb() {
   const pathname = usePathname();
+  const { breadcrumbs } = useBreadcrumb();
   const segments = pathname.split('/').filter(Boolean);
 
   // Remove empty segments and build breadcrumb items
   const breadcrumbItems = segments.map((segment, index) => {
     const path = `/${segments.slice(0, index + 1).join('/')}`;
+
+    // Check if there's a custom breadcrumb override for this path
+    const customLabel = breadcrumbs.get(path);
     const label =
+      customLabel ||
       routeLabels[segment] ||
       segment.charAt(0).toUpperCase() + segment.slice(1);
     const isLast = index === segments.length - 1;
