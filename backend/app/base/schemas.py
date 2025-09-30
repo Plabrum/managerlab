@@ -40,11 +40,11 @@ class SanitizedSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
                 "." in f for f in include if isinstance(f, str)
             ):
                 max_depth = 1
-            exclude = frozenset()  # empty AbstractSet
+            exclude: frozenset[str] = frozenset()  # empty AbstractSet
         else:
             # Blacklist mode: don't set include; add raw id to exclude
             include = frozenset()  # empty AbstractSet
-            exclude = base_cfg.exclude | cls._BASE_EXCLUDE
+            exclude = frozenset(base_cfg.exclude) | cls._BASE_EXCLUDE
 
         cls.config = SQLAlchemyDTOConfig(
             include=include,
@@ -58,4 +58,41 @@ class SanitizedSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
             underscore_fields_private=base_cfg.underscore_fields_private,
             experimental_codegen_backend=base_cfg.experimental_codegen_backend,
             forbid_unknown_fields=base_cfg.forbid_unknown_fields,
+        )
+
+
+class UpdateSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
+    """Base DTO for partial updates - makes all fields optional and excludes read-only fields."""
+
+    config: ClassVar[SQLAlchemyDTOConfig] = SQLAlchemyDTOConfig(
+        partial=True,  # Makes all fields optional for updates
+        max_nested_depth=0,  # Prevent deep nesting in updates
+    )
+
+    _BASE_EXCLUDE: ClassVar[set[str]] = {
+        "id",
+        "created_at",
+        "updated_at",
+        "public_id",
+    }  # Exclude read-only fields
+    _BASE_INCLUDE_IMPLICIT: ClassVar[bool | Literal["hybrid-only"]] = (
+        False  # Don't include hybrid properties
+    )
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        base_cfg = getattr(
+            cls, "config", SQLAlchemyDTOConfig(partial=True, max_nested_depth=0)
+        )
+
+        # Always exclude read-only fields for updates
+        exclude = base_cfg.exclude | cls._BASE_EXCLUDE
+
+        # For updates, we typically don't need include/rename logic
+        # Just use blacklist mode with partial=True
+        cls.config = SQLAlchemyDTOConfig(
+            partial=True,  # Always partial for updates
+            exclude=exclude,
+            max_nested_depth=base_cfg.max_nested_depth or 0,
+            include_implicit_fields=cls._BASE_INCLUDE_IMPLICIT,
         )

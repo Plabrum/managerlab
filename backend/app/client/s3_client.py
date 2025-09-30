@@ -11,7 +11,7 @@ import boto3
 from botocore.exceptions import ClientError
 from litestar.params import Dependency
 
-from app.config import Config
+from app.utils.configure import Config
 
 
 @dataclass

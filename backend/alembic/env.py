@@ -7,7 +7,10 @@ from alembic import context
 
 # Import your models and config
 from app.base.models import BaseDBModel
-from app.config import config as app_config
+from app.utils.configure import config as app_config
+
+# Import objects models explicitly to ensure they're registered
+import app.objects.models  # noqa: F401
 
 # Import the main app to trigger all model imports via routes/dependencies
 import app.index  # noqa: F401

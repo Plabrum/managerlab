@@ -8,7 +8,7 @@ import { NavigationItem } from '@/components/navigation-item';
 import Link from 'next/link';
 import { useUsersSignupAddUserToWaitlist } from '@/openapi/users/users';
 import { createTypedForm } from '@/components/forms/base';
-import { UserWaitlistFormSchema } from '@/openapi/litestarAPI.schemas';
+import { UserWaitlistFormSchema } from '@/openapi/managerLab.schemas';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 

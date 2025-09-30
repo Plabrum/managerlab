@@ -9,10 +9,10 @@ from sqlalchemy import select
 import aiohttp
 from msgspec import Struct
 
-from app.config import Config
 from app.auth.google.services import GoogleOAuthService
 from app.auth.google.models import GoogleOAuthAccount
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +36,11 @@ class GoogleUserInfoResponseSchema(Struct):
 
 
 def provide_google_oauth_service(
-    app_config: Config,
     transaction: AsyncSession,
     http_client: aiohttp.ClientSession,
 ) -> GoogleOAuthService:
     """Provide the Google OAuth service."""
-    return GoogleOAuthService(app_config, transaction, http_client)
+    return GoogleOAuthService(transaction, http_client)
 
 
 @get("/login", guards=[])

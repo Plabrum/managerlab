@@ -1,9 +1,10 @@
-from app.base.schemas import BaseSchema
-
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 
-from app.base.schemas import SanitizedSQLAlchemyDTO
+from app.base.schemas import BaseSchema
 from app.users.models import User, WaitlistEntry
+
+
+from app.base.schemas import SanitizedSQLAlchemyDTO
 
 
 class UserDTO(SanitizedSQLAlchemyDTO[User]):
