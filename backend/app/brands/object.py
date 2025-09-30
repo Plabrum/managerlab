@@ -11,7 +11,7 @@ from app.objects.schemas import (
     FieldType,
     ColumnDefinitionDTO,
 )
-from app.objects.services import get_default_filters_for_field_type
+from app.objects.services import get_filter_by_field_type
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
 from app.utils.sqids import sqid_encode
@@ -26,7 +26,7 @@ class BrandObject(BaseObject):
             label="Name",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -34,7 +34,7 @@ class BrandObject(BaseObject):
             label="Description",
             type=FieldType.Text,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Text),
+            filter_type=get_filter_by_field_type(FieldType.Text),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -42,7 +42,7 @@ class BrandObject(BaseObject):
             label="Website",
             type=FieldType.URL,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.URL),
+            filter_type=get_filter_by_field_type(FieldType.URL),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -50,7 +50,7 @@ class BrandObject(BaseObject):
             label="Email",
             type=FieldType.Email,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Email),
+            filter_type=get_filter_by_field_type(FieldType.Email),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -58,7 +58,7 @@ class BrandObject(BaseObject):
             label="Created",
             type=FieldType.Datetime,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Datetime),
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
         ),
     ]
@@ -205,7 +205,7 @@ class BrandContactObject(BaseObject):
             label="First Name",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -213,7 +213,7 @@ class BrandContactObject(BaseObject):
             label="Last Name",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -221,7 +221,7 @@ class BrandContactObject(BaseObject):
             label="Email",
             type=FieldType.Email,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Email),
+            filter_type=get_filter_by_field_type(FieldType.Email),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -229,7 +229,7 @@ class BrandContactObject(BaseObject):
             label="Phone",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -237,7 +237,7 @@ class BrandContactObject(BaseObject):
             label="Brand ID",
             type=FieldType.Int,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Int),
+            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
         ),
     ]

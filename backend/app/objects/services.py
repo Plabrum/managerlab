@@ -56,18 +56,18 @@ def apply_filter(
             raise ValueError(f"Unknown filter definition type: {type(filter_def)}")
 
 
-def get_default_filters_for_field_type(field_type: FieldType) -> list[FilterType]:
+def get_filter_by_field_type(field_type: FieldType) -> FilterType:
     """Get default available filters for a field type."""
     match field_type:
         case FieldType.String | FieldType.Email | FieldType.URL | FieldType.Text:
-            return [FilterType.text_filter]
+            return FilterType.text_filter
         case FieldType.Int | FieldType.Float | FieldType.USD:
-            return [FilterType.range_filter]
+            return FilterType.range_filter
         case FieldType.Date | FieldType.Datetime:
-            return [FilterType.date_filter]
+            return FilterType.date_filter
         case FieldType.Bool:
-            return [FilterType.boolean_filter]
+            return FilterType.boolean_filter
         case FieldType.Enum:
-            return [FilterType.enum_filter]
+            return FilterType.enum_filter
         case _:
             assert_never(field_type)

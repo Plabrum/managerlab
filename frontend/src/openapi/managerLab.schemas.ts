@@ -33,13 +33,16 @@ export interface BooleanFilterDefinition {
   type: 'boolean_filter';
 }
 
+export type ColumnDefinitionDTOAvailableValues = string[] | null;
+
 export interface ColumnDefinitionDTO {
   key: string;
   label: string;
   type: FieldType;
+  filter_type: FilterType;
   sortable?: boolean;
-  available_filters?: FilterType[];
   default_visible?: boolean;
+  available_values?: ColumnDefinitionDTOAvailableValues;
 }
 
 export type CompensationStructure = typeof CompensationStructure[keyof typeof CompensationStructure];
@@ -75,6 +78,12 @@ export interface DateFilterDefinition {
   start?: DateFilterDefinitionStart;
   finish?: DateFilterDefinitionFinish;
   type: 'date_filter';
+}
+
+export interface EnumFilterDefinition {
+  column: string;
+  values: string[];
+  type: 'enum_filter';
 }
 
 /**
@@ -303,13 +312,16 @@ export interface ObjectListDTO {
   link?: ObjectListDTOLink;
 }
 
-export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition;
+export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition;
+
+export type ObjectListRequestSearch = string | null;
 
 export interface ObjectListRequest {
   limit?: number;
   offset?: number;
   filters?: ObjectListRequestFiltersItem[];
   sorts?: SortDefinition[];
+  search?: ObjectListRequestSearch;
 }
 
 export interface ObjectListResponse {

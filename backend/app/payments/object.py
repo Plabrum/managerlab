@@ -11,7 +11,7 @@ from app.objects.schemas import (
     FieldType,
     ColumnDefinitionDTO,
 )
-from app.objects.services import get_default_filters_for_field_type
+from app.objects.services import get_filter_by_field_type
 from app.payments.models import Invoice
 from app.utils.sqids import sqid_encode
 
@@ -25,7 +25,7 @@ class InvoiceObject(BaseObject):
             label="Invoice #",
             type=FieldType.Int,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Int),
+            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -33,7 +33,7 @@ class InvoiceObject(BaseObject):
             label="Customer",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -41,7 +41,7 @@ class InvoiceObject(BaseObject):
             label="Email",
             type=FieldType.Email,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Email),
+            filter_type=get_filter_by_field_type(FieldType.Email),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -49,7 +49,7 @@ class InvoiceObject(BaseObject):
             label="Amount Due",
             type=FieldType.USD,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.USD),
+            filter_type=get_filter_by_field_type(FieldType.USD),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -57,7 +57,7 @@ class InvoiceObject(BaseObject):
             label="Amount Paid",
             type=FieldType.USD,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.USD),
+            filter_type=get_filter_by_field_type(FieldType.USD),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -65,7 +65,7 @@ class InvoiceObject(BaseObject):
             label="Due Date",
             type=FieldType.Date,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Date),
+            filter_type=get_filter_by_field_type(FieldType.Date),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -73,7 +73,7 @@ class InvoiceObject(BaseObject):
             label="Posting Date",
             type=FieldType.Date,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Date),
+            filter_type=get_filter_by_field_type(FieldType.Date),
             default_visible=False,
         ),
     ]
@@ -154,8 +154,8 @@ class InvoiceObject(BaseObject):
             state=invoice.state.name,
             fields=fields,
             actions=[],
-            created_at=invoice.created_at,
-            updated_at=invoice.updated_at,
+            created_at=invoice.created_at.isoformat(),
+            updated_at=invoice.updated_at.isoformat(),
             children=[],
             parents=[],
         )
@@ -214,8 +214,8 @@ class InvoiceObject(BaseObject):
             subtitle=f"{invoice.customer_name} - ${invoice.amount_due}",
             state=invoice.state.name,
             actions=[],
-            created_at=invoice.created_at,
-            updated_at=invoice.updated_at,
+            created_at=invoice.created_at.isoformat(),
+            updated_at=invoice.updated_at.isoformat(),
             fields=fields,
         )
 

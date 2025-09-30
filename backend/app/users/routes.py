@@ -4,7 +4,10 @@ from litestar import Request, Router, get, post
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.objects.base import ObjectRegistry
+from app.objects.enums import ObjectTypes
 from app.users.models import User, WaitlistEntry
+from app.users.object import UserObject
 from app.users.schemas import (
     CreateUserSchema,
     UserDTO,
@@ -12,6 +15,8 @@ from app.users.schemas import (
     WaitlistEntryDTO,
 )
 from app.auth.guards import requires_authenticated_user, requires_superuser
+
+ObjectRegistry.register(ObjectTypes.Users, UserObject)
 
 
 @get("/", dto=UserDTO, return_dto=UserDTO, guards=[requires_superuser])

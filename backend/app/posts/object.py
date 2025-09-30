@@ -11,7 +11,7 @@ from app.objects.schemas import (
     FieldType,
     ColumnDefinitionDTO,
 )
-from app.objects.services import get_default_filters_for_field_type
+from app.objects.services import get_filter_by_field_type
 from app.posts.models import Post
 from app.utils.sqids import sqid_encode
 
@@ -25,7 +25,7 @@ class PostObject(BaseObject):
             label="Title",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -33,7 +33,7 @@ class PostObject(BaseObject):
             label="Content",
             type=FieldType.Text,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Text),
+            filter_type=get_filter_by_field_type(FieldType.Text),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -41,7 +41,7 @@ class PostObject(BaseObject):
             label="Platform",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -49,7 +49,7 @@ class PostObject(BaseObject):
             label="Posting Date",
             type=FieldType.Datetime,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Datetime),
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -57,7 +57,7 @@ class PostObject(BaseObject):
             label="Compensation",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=False,
         ),
     ]

@@ -9,10 +9,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Settings } from 'lucide-react';
-import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
+import type { DataTableColumn } from './types';
 
 interface DataTableColumnSettingsProps {
-  columns: ColumnDefinitionDTO[];
+  columns: DataTableColumn[];
   visibleColumns: string[];
   onVisibleColumnsChange: (visibleColumns: string[]) => void;
 }

@@ -36,6 +36,7 @@ async def list_objects(
     transaction: AsyncSession,
 ) -> ObjectListResponse:
     """List objects with filtering and pagination."""
+    request.app.logger.info(f"data:{data}")
     object_service = ObjectRegistry.get_class(object_type)
     objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)

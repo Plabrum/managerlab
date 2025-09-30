@@ -1,0 +1,85 @@
+'use client';
+
+import * as React from 'react';
+import type {
+  ColumnDefinitionDTO,
+  ObjectListRequestFiltersItem,
+} from '@/openapi/managerLab.schemas';
+import {
+  TextFilter,
+  RangeFilter,
+  DateFilter,
+  BooleanFilter,
+  EnumFilter,
+} from './filters';
+
+interface DataTableColumnFilterProps {
+  column: ColumnDefinitionDTO;
+  filters: ObjectListRequestFiltersItem[];
+  onFiltersChange: (filters: ObjectListRequestFiltersItem[]) => void;
+}
+
+export function DataTableColumnFilter({
+  column: column,
+  filters,
+  onFiltersChange,
+}: DataTableColumnFilterProps) {
+  const handleSubmit = (newFilter: ObjectListRequestFiltersItem) => {
+    onFiltersChange([...filters, newFilter]);
+  };
+
+  switch (column.filter_type) {
+    case 'text_filter':
+      return (
+        <DataTableColumnFilterWrapper label={column.label}>
+          <TextFilter column={column.key} onSubmit={handleSubmit} />
+        </DataTableColumnFilterWrapper>
+      );
+    case 'range_filter':
+      return (
+        <DataTableColumnFilterWrapper label={column.label}>
+          <RangeFilter column={column.key} onSubmit={handleSubmit} />
+        </DataTableColumnFilterWrapper>
+      );
+    case 'date_filter':
+      return (
+        <DataTableColumnFilterWrapper label={column.label}>
+          <DateFilter column={column.key} onSubmit={handleSubmit} />
+        </DataTableColumnFilterWrapper>
+      );
+    case 'boolean_filter':
+      return (
+        <DataTableColumnFilterWrapper label={column.label}>
+          <BooleanFilter column={column.key} onSubmit={handleSubmit} />
+        </DataTableColumnFilterWrapper>
+      );
+    case 'enum_filter':
+      return (
+        <DataTableColumnFilterWrapper label={column.label}>
+          <EnumFilter
+            column={column.key}
+            onSubmit={handleSubmit}
+            availableValues={column.available_values || []}
+          />
+        </DataTableColumnFilterWrapper>
+      );
+  }
+}
+
+function DataTableColumnFilterWrapper({
+  label,
+  children,
+}: {
+  label?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="w-80 space-y-4 p-4">
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium">Filter {label}</h4>
+      </div>
+
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}

@@ -32,7 +32,9 @@ class ObjectRegistry:
     def get_class(cls, object_type: ObjectTypes) -> Type["BaseObject"]:
         """Get the class for an object type."""
         if object_type not in cls._registry:
-            raise ValueError(f"Unknown object type: {object_type}")
+            raise ValueError(
+                f"Unknown object type: {object_type}, needed: {cls._registry.keys()}"
+            )
         return cls._registry[object_type]
 
     @classmethod

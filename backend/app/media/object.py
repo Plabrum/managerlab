@@ -7,7 +7,7 @@ from app.objects.schemas import (
     FieldType,
     ColumnDefinitionDTO,
 )
-from app.objects.services import get_default_filters_for_field_type
+from app.objects.services import get_filter_by_field_type
 from app.media.models import Media
 from app.utils.sqids import sqid_encode
 
@@ -21,7 +21,7 @@ class MediaObject(BaseObject):
             label="Filename",
             type=FieldType.String,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -29,7 +29,7 @@ class MediaObject(BaseObject):
             label="Image Link",
             type=FieldType.URL,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.URL),
+            filter_type=get_filter_by_field_type(FieldType.URL),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -37,7 +37,7 @@ class MediaObject(BaseObject):
             label="Thumbnail Link",
             type=FieldType.URL,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.URL),
+            filter_type=get_filter_by_field_type(FieldType.URL),
             default_visible=False,
         ),
         ColumnDefinitionDTO(
@@ -45,7 +45,7 @@ class MediaObject(BaseObject):
             label="Created",
             type=FieldType.Datetime,
             sortable=True,
-            available_filters=get_default_filters_for_field_type(FieldType.Datetime),
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=True,
         ),
     ]
@@ -82,8 +82,8 @@ class MediaObject(BaseObject):
             state="active",
             fields=fields,
             actions=[],
-            created_at=media.created_at,
-            updated_at=media.updated_at,
+            created_at=media.created_at.isoformat(),
+            updated_at=media.updated_at.isoformat(),
             children=[],
             parents=[],
         )
@@ -121,7 +121,7 @@ class MediaObject(BaseObject):
             subtitle=media.image_link,
             state="active",
             actions=[],
-            created_at=media.created_at,
-            updated_at=media.updated_at,
+            created_at=media.created_at.isoformat(),
+            updated_at=media.updated_at.isoformat(),
             fields=fields,
         )

@@ -1,45 +1,41 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
 import { config } from '@/lib/config';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { Nav } from '@/components/nav';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { SuspenseWrapper } from '@/components/suspense-wrapper';
-import { GetCurrentUserUserResponseBody } from '@/openapi/managerLab.schemas';
-import { toast } from 'sonner';
+import type { GetCurrentUserUserResponseBody } from '@/openapi/managerLab.schemas';
 
-export async function getCurrentUser(): Promise<GetCurrentUserUserResponseBody> {
-  const cooks = await cookies();
-
-  // Build cookie string from all cookies
-  const cookieString = cooks
-    .getAll()
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join('; ');
-
-  if (!cookieString) {
-    redirect('/auth');
-  }
-
-  const response = await fetch(`${config.api.baseUrl}/users/current_user`, {
+async function fetchCurrentUser(
+  session: string
+): Promise<GetCurrentUserUserResponseBody> {
+  const res = await fetch(`${config.api.baseUrl}/users/current_user`, {
     headers: {
-      Cookie: cookieString,
+      Cookie: `session=${session}`,
       'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     cache: 'no-store',
   });
 
-  if (response.status === 401) {
-    redirect('/auth/expire');
-  }
+  if (res.status === 401) redirect('/auth/expire');
+  if (!res.ok) redirect('/auth');
+  return res.json();
+}
 
-  if (!response.ok) {
-    toast.error('Failed to fetch user data. Please log in again.');
-    redirect('/auth');
-  }
+// Per-session cache only here (30s)
+const getCurrentUserCached = (session: string) =>
+  unstable_cache(() => fetchCurrentUser(session), ['me', session], {
+    revalidate: 30,
+  })();
 
-  const user = await response.json();
-  return user;
+export async function getCurrentUser() {
+  const store = await cookies(); // async on canary; drop await on stable
+  const session = store.get('session')?.value;
+  if (!session) redirect('/auth');
+  return getCurrentUserCached(session);
 }
 
 export default async function AuthenticatedLayout({

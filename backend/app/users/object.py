@@ -6,6 +6,7 @@ from sqlalchemy import func
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
+    ActionDTO,
     ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
@@ -13,12 +14,50 @@ from app.objects.schemas import (
     FieldType,
     ColumnDefinitionDTO,
 )
+from app.objects.services import get_filter_by_field_type
+from app.users.enums import UserStates
 from app.users.models import User
 from app.utils.sqids import sqid_encode
 
 
 class UserObject(BaseObject):
     object_type = ObjectTypes.Users
+    model = User
+    column_definitions = [
+        ColumnDefinitionDTO(
+            key="name",
+            label="Name",
+            type=FieldType.String,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="email",
+            label="Email",
+            type=FieldType.String,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="email_verified",
+            label="Email verified",
+            type=FieldType.Bool,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Bool),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="state",
+            label="Status",
+            type=FieldType.Enum,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Enum),
+            default_visible=True,
+            available_values=[e.name for e in UserStates],
+        ),
+    ]
 
     @classmethod
     def to_detail_dto(cls, user: User) -> ObjectDetailDTO:
@@ -75,6 +114,13 @@ class UserObject(BaseObject):
                 label="Email Verified",
                 editable=False,
             ),
+            ObjectFieldDTO(
+                key="state",
+                value=user.state.name,
+                type=FieldType.Enum,
+                label="Status",
+                editable=False,
+            ),
         ]
 
         return ObjectListDTO(
@@ -83,7 +129,7 @@ class UserObject(BaseObject):
             title=user.name,
             subtitle=user.email,
             state=user.state.name,
-            actions=[],
+            actions=[ActionDTO(action="edit", label="Edit")],
             created_at=user.created_at,
             updated_at=user.updated_at,
             fields=fields,
@@ -98,9 +144,7 @@ class UserObject(BaseObject):
                 label="Name",
                 type=FieldType.String,
                 sortable=True,
-                available_filters=cls.get_default_filters_for_field_type(
-                    FieldType.String
-                ),
+                filter_type=get_filter_by_field_type(FieldType.String),
                 default_visible=True,
             ),
             ColumnDefinitionDTO(
@@ -108,9 +152,7 @@ class UserObject(BaseObject):
                 label="Email",
                 type=FieldType.Email,
                 sortable=True,
-                available_filters=cls.get_default_filters_for_field_type(
-                    FieldType.Email
-                ),
+                filter_type=get_filter_by_field_type(FieldType.Email),
                 default_visible=True,
             ),
             ColumnDefinitionDTO(
@@ -118,9 +160,7 @@ class UserObject(BaseObject):
                 label="Email Verified",
                 type=FieldType.Bool,
                 sortable=True,
-                available_filters=cls.get_default_filters_for_field_type(
-                    FieldType.Bool
-                ),
+                filter_type=get_filter_by_field_type(FieldType.Bool),
                 default_visible=True,
             ),
             ColumnDefinitionDTO(
@@ -128,9 +168,7 @@ class UserObject(BaseObject):
                 label="Created",
                 type=FieldType.Datetime,
                 sortable=True,
-                available_filters=cls.get_default_filters_for_field_type(
-                    FieldType.Datetime
-                ),
+                filter_type=get_filter_by_field_type(FieldType.Datetime),
                 default_visible=True,
             ),
             ColumnDefinitionDTO(
@@ -138,9 +176,7 @@ class UserObject(BaseObject):
                 label="Updated",
                 type=FieldType.Datetime,
                 sortable=True,
-                available_filters=cls.get_default_filters_for_field_type(
-                    FieldType.Datetime
-                ),
+                filter_type=get_filter_by_field_type(FieldType.Datetime),
                 default_visible=False,
             ),
         ]

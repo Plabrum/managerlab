@@ -41,7 +41,6 @@ class BooleanFilterDefinition(BaseSchema, tag=FilterType.boolean_filter.value):
 class EnumFilterDefinition(BaseSchema, tag=FilterType.enum_filter.value):
     column: str
     values: List[str]  # list of selected enum values
-    available_values: List[str]  # list of all possible enum values
 
 
 FilterDefinition = Union[
@@ -49,6 +48,7 @@ FilterDefinition = Union[
     RangeFilterDefinition,
     DateFilterDefinition,
     BooleanFilterDefinition,
+    EnumFilterDefinition,
 ]
 
 
@@ -75,9 +75,10 @@ class ColumnDefinitionDTO(BaseSchema):
     key: str
     label: str
     type: FieldType
+    filter_type: FilterType
     sortable: bool = True
-    available_filters: List[FilterType] = []
     default_visible: bool = True
+    available_values: List[str] | None = None
 
 
 class ActionDTO(BaseSchema):
@@ -136,6 +137,7 @@ class ObjectListRequest(BaseSchema):
     offset: int = 0
     filters: List[FilterDefinition] = []
     sorts: List[SortDefinition] = []
+    search: str | None = None
 
 
 class ObjectListResponse(BaseSchema):

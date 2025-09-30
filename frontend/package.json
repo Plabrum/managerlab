@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 3000",
+    "dev": "next dev -p 3000",
     "lint": "next lint",
     "build": "next build",
     "start": "next start",
@@ -22,6 +22,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tanstack/react-query": "^5.85.5",
+    "@tanstack/react-table": "^8.21.3",
     "@vercel/analytics": "^1.5.0",
     "axios": "^1.12.1",
     "class-variance-authority": "^0.7.1",
