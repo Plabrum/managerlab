@@ -163,3 +163,4 @@ secrets.txt
 
 # AI
 .claude
+migrate.sh
