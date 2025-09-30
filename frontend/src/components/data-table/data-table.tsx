@@ -539,7 +539,7 @@ export function DataTable({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     onClick={() => {
-                      if (isClickable) {
+                      if (isClickable && rowLink) {
                         router.push(rowLink);
                       }
                     }}

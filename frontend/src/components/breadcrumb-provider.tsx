@@ -4,8 +4,11 @@ import { createContext, useContext, useState, useCallback } from 'react';
 
 interface BreadcrumbContextValue {
   breadcrumbs: Map<string, string>;
-  setBreadcrumb: (path: string, title: string) => void;
-  clearBreadcrumb: (path: string) => void;
+  setBreadcrumb: (
+    path: string | null,
+    title: string | null | undefined
+  ) => void;
+  clearBreadcrumb: (path: string | null) => void;
 }
 
 const BreadcrumbContext = createContext<BreadcrumbContextValue | undefined>(
@@ -21,15 +24,24 @@ export function BreadcrumbProvider({
     new Map()
   );
 
-  const setBreadcrumb = useCallback((path: string, title: string) => {
-    setBreadcrumbs((prev) => {
-      const next = new Map(prev);
-      next.set(path, title);
-      return next;
-    });
-  }, []);
+  const setBreadcrumb = useCallback(
+    (path: string | null, title: string | null | undefined) => {
+      // Handle all null/undefined cases internally
+      if (!path || !title) return;
 
-  const clearBreadcrumb = useCallback((path: string) => {
+      setBreadcrumbs((prev) => {
+        const next = new Map(prev);
+        next.set(path, title);
+        return next;
+      });
+    },
+    []
+  );
+
+  const clearBreadcrumb = useCallback((path: string | null) => {
+    // Handle null path internally
+    if (!path) return;
+
     setBreadcrumbs((prev) => {
       const next = new Map(prev);
       next.delete(path);

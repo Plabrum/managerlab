@@ -28,6 +28,12 @@ const routeLabels: Record<string, string> = {
 export function DynamicBreadcrumb() {
   const pathname = usePathname();
   const { breadcrumbs } = useBreadcrumb();
+
+  // Handle null pathname
+  if (!pathname) {
+    return null;
+  }
+
   const segments = pathname.split('/').filter(Boolean);
 
   // Remove empty segments and build breadcrumb items

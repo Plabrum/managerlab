@@ -25,13 +25,9 @@ export default function PostDetailPage({
 
   // Set breadcrumb title after data loads
   useEffect(() => {
-    if (data?.title && pathname) {
-      setBreadcrumb(pathname, data.title);
-    }
+    setBreadcrumb(pathname, data?.title);
     return () => {
-      if (pathname) {
-        clearBreadcrumb(pathname);
-      }
+      clearBreadcrumb(pathname);
     };
   }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
