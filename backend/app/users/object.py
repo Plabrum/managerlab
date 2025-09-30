@@ -129,7 +129,10 @@ class UserObject(BaseObject):
             title=user.name,
             subtitle=user.email,
             state=user.state.name,
-            actions=[ActionDTO(action="edit", label="Edit")],
+            actions=[
+                ActionDTO(action="edit", label="Edit", is_bulk_allowed=True),
+                ActionDTO(action="release", label="Release", is_bulk_allowed=True),
+            ],
             created_at=user.created_at,
             updated_at=user.updated_at,
             fields=fields,

@@ -64,6 +64,11 @@ export default function RosterPage() {
     setColumnDefs(data.columns);
   }
 
+  const handleBulkAction = (action: string, rows: typeof data.objects) => {
+    console.log('Bulk action:', action, 'on rows:', rows);
+    // TODO: Implement bulk action handling
+  };
+
   return (
     <div className="space-y-4">
       <DataTableSearch
@@ -98,6 +103,7 @@ export default function RosterPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
+        onBulkActionClick={handleBulkAction}
       />
     </div>
   );

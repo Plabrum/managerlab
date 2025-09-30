@@ -86,6 +86,7 @@ class ActionDTO(BaseSchema):
 
     action: str
     label: str
+    is_bulk_allowed: bool = False
     available: bool = True
     priority: int = 100
 

@@ -66,6 +66,7 @@ interface NewDataTableProps {
   enableColumnFilters?: boolean; // Enable filter buttons in column headers
   showItemRange?: boolean; // Show "X-Y of Z" instead of "Page X of Y"
   onActionClick?: (action: string, row: ObjectListDTO) => void; // Handler for action clicks
+  onBulkActionClick?: (action: string, rows: ObjectListDTO[]) => void; // Handler for bulk action clicks
   isLoading?: boolean; // Loading state for data fetching
   // Server-side state
   paginationState: PaginationState;
@@ -234,6 +235,7 @@ export function NewDataTable({
   enableColumnFilters = true,
   showItemRange = false,
   onActionClick,
+  onBulkActionClick,
   paginationState,
   sortingState,
   columnFilters,
@@ -468,6 +470,39 @@ export function NewDataTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  // Get selected rows
+  const selectedRowsData = React.useMemo(() => {
+    return table.getSelectedRowModel().rows.map((row) => row.original);
+  }, [table, rowSelection]);
+
+  // Get common bulk actions across all selected rows
+  const commonBulkActions = React.useMemo(() => {
+    if (selectedRowsData.length === 0) return [];
+
+    // Get all bulk-allowed actions from the first selected row
+    const firstRowActions =
+      selectedRowsData[0].actions?.filter(
+        (action) => action.is_bulk_allowed && action.available !== false
+      ) || [];
+
+    // Filter to only actions that exist in ALL selected rows
+    return firstRowActions.filter((action) =>
+      selectedRowsData.every((row) =>
+        row.actions?.some(
+          (a) =>
+            a.action === action.action &&
+            a.is_bulk_allowed &&
+            a.available !== false
+        )
+      )
+    );
+  }, [selectedRowsData]);
+
+  const showBulkActions =
+    selectedRowsData.length > 0 &&
+    commonBulkActions.length > 0 &&
+    onBulkActionClick;
+
   return (
     <div className="w-full">
       {/* Table */}
@@ -522,10 +557,36 @@ export function NewDataTable({
         </Table>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {showBulkActions && (
+        <div className="bg-muted mt-4 flex items-center justify-between rounded-md border p-3">
+          <div className="text-sm font-medium">
+            {selectedRowsData.length} of {data.length} row(s) selected
+          </div>
+          <div className="flex gap-2">
+            {commonBulkActions
+              .sort((a, b) => (a.priority || 0) - (b.priority || 0))
+              .map((action) => (
+                <Button
+                  key={action.action}
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    onBulkActionClick(action.action, selectedRowsData);
+                    setRowSelection({});
+                  }}
+                >
+                  {action.label}
+                </Button>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Pagination */}
       <NewDataTablePagination
         table={table}
-        enableRowSelection={enableRowSelection}
+        enableRowSelection={enableRowSelection && !showBulkActions}
         showItemRange={showItemRange}
       />
     </div>

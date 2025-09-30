@@ -8,6 +8,7 @@
 export interface ActionDTO {
   action: string;
   label: string;
+  is_bulk_allowed?: boolean;
   available?: boolean;
   priority?: number;
 }
@@ -48,7 +49,7 @@ export interface ColumnDefinitionDTO {
 export type CompensationStructure = typeof CompensationStructure[keyof typeof CompensationStructure];
 
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CompensationStructure = {
   flat_fee: 'flat_fee',
   per_deliverable: 'per_deliverable',
@@ -92,7 +93,7 @@ export interface EnumFilterDefinition {
 export type FieldType = typeof FieldType[keyof typeof FieldType];
 
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const FieldType = {
   string: 'string',
   int: 'int',
@@ -113,7 +114,7 @@ export const FieldType = {
 export type FilterType = typeof FilterType[keyof typeof FilterType];
 
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const FilterType = {
   text_filter: 'text_filter',
   range_filter: 'range_filter',
@@ -342,7 +343,7 @@ export interface ObjectRelationDTO {
 export type ObjectTypes = typeof ObjectTypes[keyof typeof ObjectTypes];
 
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ObjectTypes = {
   users: 'users',
   brands: 'brands',
@@ -367,7 +368,7 @@ export interface RangeFilterDefinition {
 export type SocialMediaPlatforms = typeof SocialMediaPlatforms[keyof typeof SocialMediaPlatforms];
 
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SocialMediaPlatforms = {
   instagram: 'instagram',
   facebook: 'facebook',
@@ -386,7 +387,7 @@ export interface SortDefinition {
 export type SortDirection = typeof SortDirection[keyof typeof SortDirection];
 
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SortDirection = {
   sort_asc: 'sort_asc',
   sort_desc: 'sort_desc',
@@ -395,7 +396,7 @@ export const SortDirection = {
 export type TextFilterDefinitionOperation = typeof TextFilterDefinitionOperation[keyof typeof TextFilterDefinitionOperation];
 
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TextFilterDefinitionOperation = {
   contains: 'contains',
   starts_with: 'starts_with',
