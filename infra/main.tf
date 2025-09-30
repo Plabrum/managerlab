@@ -854,7 +854,7 @@ resource "aws_secretsmanager_secret_version" "bastion_private_key" {
 # Application secrets in AWS Secrets Manager
 resource "aws_secretsmanager_secret" "app_secrets_v2" {
   name        = "${local.name}-app-secrets-v2"
-  description = "Application secrets for Lambda function"
+  description = "Application secrets for ECS tasks"
 
   tags = local.common_tags
 }
@@ -867,6 +867,7 @@ resource "aws_secretsmanager_secret_version" "app_secrets_v2" {
     GOOGLE_REDIRECT_URI   = ""
     SUCCESS_REDIRECT_URL  = ""
     SESSION_COOKIE_DOMAIN = ""
+    FRONTEND_ORIGIN       = ""
   })
 
   lifecycle {
@@ -1095,6 +1096,33 @@ resource "aws_ecs_task_definition" "main" {
           value = var.aws_region
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
+
+      secrets = [
+        {
+          name      = "GOOGLE_CLIENT_ID"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_ID::"
+        },
+        {
+          name      = "GOOGLE_CLIENT_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_SECRET::"
+        },
+        {
+          name      = "GOOGLE_REDIRECT_URI"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_REDIRECT_URI::"
+        },
+        {
+          name      = "SUCCESS_REDIRECT_URL"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SUCCESS_REDIRECT_URL::"
+        },
+        {
+          name      = "SESSION_COOKIE_DOMAIN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SESSION_COOKIE_DOMAIN::"
+        },
+        {
+          name      = "FRONTEND_ORIGIN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:FRONTEND_ORIGIN::"
+        }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
