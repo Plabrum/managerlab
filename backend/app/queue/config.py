@@ -1,26 +1,51 @@
-"""Queue configuration for SAQ."""
+"""Queue configuration for SAQ.
+
+This module automatically discovers all tasks registered via the @task
+and @scheduled_task decorators. No manual task list maintenance required!
+
+To add a new task:
+1. Create a task file (e.g., app/users/tasks.py)
+2. Import and use decorators:
+   from app.queue.registry import task, scheduled_task
+3. Define your task with the decorator
+4. Done! It's automatically registered.
+"""
+
+from datetime import timezone
 
 from litestar_saq import QueueConfig
 
-from app.queue import tasks
+from app.queue.registry import get_registry
 from app.utils.configure import config
+
+# Import all task modules to trigger decorator registration
+# Add new task modules here as you create them
+from app.queue import tasks  # noqa: F401 - Import to register tasks
+from app.users import tasks as user_tasks  # noqa: F401, F811 - Import to register user tasks
 
 
 def get_queue_config() -> list[QueueConfig]:
     """
     Create queue configurations for the application.
 
+    Tasks are automatically discovered from the registry.
+    No manual task list maintenance required!
+
     Returns:
         List of queue configurations
     """
+    registry = get_registry()
+
     return [
         QueueConfig(
             name="default",
             dsn=config.QUEUE_DSN,
-            tasks=[
-                tasks.example_task,
-                tasks.send_email_task,
-            ],
+            # Tasks are automatically collected from @task decorators
+            tasks=registry.get_all_tasks(),
+            # Scheduled tasks are automatically collected from @scheduled_task decorators
+            scheduled_tasks=registry.get_all_scheduled_tasks(),
+            # Timezone for cron schedules
+            cron_tz=timezone.utc,
             # Worker configuration
             concurrency=10,  # Number of concurrent tasks
             # Connection pool settings for Postgres

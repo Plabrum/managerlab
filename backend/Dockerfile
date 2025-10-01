@@ -15,6 +15,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy application source
 COPY . /app
 
+# Make scripts executable
+RUN chmod +x /app/scripts/start.sh /app/scripts/start-worker.sh
+
 # Ensure the project venv is preferred at runtime
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app"

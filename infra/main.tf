@@ -155,6 +155,25 @@ variable "ecs_max_capacity" {
   description = "Maximum number of ECS tasks for auto-scaling"
 }
 
+# Worker configuration
+variable "worker_cpu" {
+  type        = number
+  default     = 256
+  description = "CPU units for worker task (256 = 0.25 vCPU)"
+}
+
+variable "worker_memory" {
+  type        = number
+  default     = 512
+  description = "Memory for worker task in MB"
+}
+
+variable "worker_desired_count" {
+  type        = number
+  default     = 1
+  description = "Desired number of worker tasks"
+}
+
 # Env/Secrets for the app
 variable "extra_env" {
   description = "Map of extra env vars for the container"
@@ -267,6 +286,11 @@ output "app_secrets_arn" {
 output "ecs_exec_command" {
   description = "Command to connect to ECS task via Session Manager"
   value       = "make ecs-exec"
+}
+
+output "worker_service_name" {
+  description = "The name of the worker ECS service"
+  value       = aws_ecs_service.worker.name
 }
 
 # ================================
@@ -1170,6 +1194,132 @@ resource "aws_appautoscaling_policy" "ecs_memory" {
     scale_in_cooldown  = 300
     scale_out_cooldown = 60
   }
+}
+
+# ================================
+# Worker Service (SAQ Queue Worker)
+# ================================
+
+# CloudWatch log group for worker
+resource "aws_cloudwatch_log_group" "worker" {
+  name              = "/ecs/${local.name}-worker"
+  retention_in_days = 14
+
+  tags = local.common_tags
+}
+
+# Worker task definition
+resource "aws_ecs_task_definition" "worker" {
+  family                   = "${local.name}-worker-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = var.worker_cpu
+  memory                   = var.worker_memory
+  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "worker"
+      image     = "${aws_ecr_repository.app.repository_url}:${var.image_tag}"
+      essential = true
+
+      # Override CMD to run worker instead of API
+      command = ["./scripts/start-worker.sh"]
+
+      environment = concat([
+        {
+          name  = "ENV"
+          value = var.environment
+        },
+        {
+          name  = "DEBUG"
+          value = "false"
+        },
+        {
+          name  = "S3_BUCKET"
+          value = aws_s3_bucket.app.bucket
+        },
+        {
+          name  = "DB_ENDPOINT"
+          value = aws_rds_cluster.main.endpoint
+        },
+        {
+          name  = "AWS_REGION"
+          value = var.aws_region
+        }
+      ], [for k, v in var.extra_env : { name = k, value = v }])
+
+      secrets = [
+        {
+          name      = "GOOGLE_CLIENT_ID"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_ID::"
+        },
+        {
+          name      = "GOOGLE_CLIENT_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_SECRET::"
+        },
+        {
+          name      = "GOOGLE_REDIRECT_URI"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_REDIRECT_URI::"
+        },
+        {
+          name      = "SUCCESS_REDIRECT_URL"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SUCCESS_REDIRECT_URL::"
+        },
+        {
+          name      = "SESSION_COOKIE_DOMAIN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SESSION_COOKIE_DOMAIN::"
+        },
+        {
+          name      = "FRONTEND_ORIGIN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:FRONTEND_ORIGIN::"
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.worker.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "worker"
+        }
+      }
+    }
+  ])
+
+  tags = local.common_tags
+}
+
+# Worker ECS service
+resource "aws_ecs_service" "worker" {
+  name            = "${local.name}-worker-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.worker.arn
+  desired_count   = var.worker_desired_count
+  launch_type     = "FARGATE"
+
+  # Enable ECS Exec for debugging
+  enable_execute_command = true
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = false
+  }
+
+  # No load balancer - workers don't receive HTTP traffic
+
+  depends_on = [
+    aws_iam_role_policy.ecs_task_s3,
+    aws_iam_role_policy.ecs_task_secrets,
+    aws_iam_role_policy.ecs_task_exec,
+    aws_vpc_endpoint.ssm,
+    aws_vpc_endpoint.ssmmessages,
+    aws_vpc_endpoint.ec2messages
+  ]
+
+  tags = local.common_tags
 }
 
 # ================================

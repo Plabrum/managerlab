@@ -136,15 +136,46 @@ Follow modular organization with clear separation:
 - Auto-creates tables: `saq_versions`, `saq_jobs`, `saq_stats`
 - Web UI available at `/saq` in development mode
 - Worker runs separately via `make dev-worker` or `litestar workers run`
+- **Scheduler is built-in** - cron jobs run automatically when worker is running
 
-**Creating Tasks:**
+**Creating Tasks (Registry Pattern):**
 ```python
 from saq.types import Context
+from app.queue.registry import task, scheduled_task
 
+# Regular task - can be enqueued on-demand
+@task
 async def my_task(ctx: Context, *, arg1: str, arg2: int) -> dict:
     """Task functions must accept ctx and keyword-only arguments."""
     # Do async work here
     return {"status": "success"}
+
+# Scheduled task - runs automatically via cron
+@scheduled_task(cron="0 2 * * *", timeout=600)
+async def daily_cleanup(ctx: Context) -> dict:
+    """Runs daily at 2 AM UTC."""
+    return {"status": "cleaned"}
+```
+
+**Task Organization:**
+- `app/queue/tasks.py` - Generic/shared tasks
+- `app/users/tasks.py` - User-specific tasks
+- `app/payments/tasks.py` - Payment-specific tasks
+- Pattern: Create `tasks.py` in any domain module
+
+**Adding New Task Module:**
+```python
+# 1. Create app/payments/tasks.py
+from app.queue.registry import task
+
+@task
+async def process_invoice(ctx, *, invoice_id: int):
+    return {"status": "processed"}
+
+# 2. Register in app/queue/config.py
+from app.payments import tasks  # noqa: F401
+
+# That's it! Task is now available.
 ```
 
 **Enqueuing Tasks:**
@@ -172,6 +203,39 @@ async def my_route(task_queues: TaskQueues) -> Response:
     await queue.enqueue("my_task", arg1="value", arg2=42)
     return Response({"status": "queued"})
 ```
+
+**Scheduled/Cron Tasks:**
+```python
+from datetime import timezone
+from litestar_saq import CronJob, QueueConfig
+
+QueueConfig(
+    name="default",
+    tasks=[my_task, cleanup_task],
+    scheduled_tasks=[
+        # Run cleanup every day at 2 AM UTC
+        CronJob(
+            function=cleanup_task,
+            cron="0 2 * * *",  # Standard cron syntax
+            timeout=600,
+        ),
+        # Run report every Monday at 9 AM
+        CronJob(
+            function=weekly_report,
+            cron="0 9 * * 1",
+            kwargs={"report_type": "weekly"},
+        ),
+    ],
+    cron_tz=timezone.utc,  # Timezone for cron schedules
+)
+```
+
+**Cron Syntax Examples:**
+- `"0 2 * * *"` - Every day at 2:00 AM
+- `"*/5 * * * *"` - Every 5 minutes
+- `"0 9 * * 1"` - Every Monday at 9:00 AM
+- `"0 0 1 * *"` - First day of every month at midnight
+- `"0 */6 * * *"` - Every 6 hours
 
 
 # Code Preferences:
