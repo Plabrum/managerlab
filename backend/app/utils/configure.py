@@ -51,6 +51,15 @@ class Config:
         """Async database URL for application runtime with psycopg3."""
         return self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
 
+    @property
+    def QUEUE_DSN(self) -> str:
+        """Queue DSN for SAQ (uses same database as application)."""
+        # Check for override first
+        if queue_dsn := os.getenv("QUEUE_DSN"):
+            return queue_dsn
+        # Use standard DATABASE_URL for queue
+        return self.DATABASE_URL
+
 
 # Global config instance
 config = Config()

@@ -17,9 +17,11 @@ from litestar.middleware.session.server_side import (
     ServerSideSessionBackend,
 )
 from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
+from litestar_saq import SAQConfig, SAQPlugin
 from app.base.models import BaseDBModel
 from sqlalchemy.pool import NullPool
 
+from app.queue.config import queue_config
 from app.utils.configure import config
 from app.users.routes import user_router, public_user_router
 from app.auth.routes import auth_router
@@ -29,6 +31,7 @@ from app.campaigns.routes import campaign_router
 from app.posts.routes import post_router
 from app.media.routes import media_router
 from app.payments.routes import invoice_router
+from app.queue.routes import queue_router
 
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
@@ -74,6 +77,7 @@ app = Litestar(
         post_router,
         media_router,
         invoice_router,
+        queue_router,
     ],
     on_startup=[providers.on_startup],
     on_shutdown=[providers.on_shutdown],
@@ -115,7 +119,14 @@ app = Litestar(
                 ),
                 create_all=False,
             )
-        )
+        ),
+        SAQPlugin(
+            config=SAQConfig(
+                queue_configs=queue_config,
+                web_enabled=config.IS_DEV,  # Enable web UI in development
+                use_server_lifespan=True,  # Integrate with Litestar lifecycle
+            )
+        ),
     ],
     openapi_config=OpenAPIConfig(
         title="ManagerLab",

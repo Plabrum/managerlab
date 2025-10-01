@@ -7,6 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Core Development
 - `make install` - Install all dependencies (frontend + backend)
 - `make dev` - Start both frontend (port 3000) and backend (port 8000) in development mode
+- `make dev-all` - Start frontend, backend, and async worker together
+- `make dev-worker` - Start SAQ async worker for background task processing
 - `make test` - Run backend pytest suite
 - `make backend-check` - Run backend type checking with mypy
 - `make codegen` - Generate TypeScript API client from backend OpenAPI schema
@@ -36,6 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Tech Stack
 - **Frontend**: Next.js 15 with React 19, TypeScript, Tailwind CSS, shadcn/ui components
 - **Backend**: Python 3.13+ with Litestar (ASGI), SQLAlchemy, PostgreSQL
+- **Queue**: SAQ (Simple Async Queue) with PostgreSQL backing for background tasks
 - **Package Managers**: pnpm (frontend), uv (backend)
 - **Database**: PostgreSQL with Alembic migrations
 - **Infrastructure**: AWS (App Runner, Aurora Serverless v2, ECR) managed via Terraform
@@ -46,6 +49,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `frontend/src/openapi/` - Auto-generated API client (don't edit manually)
 - `backend/app/` - Python application code
 - `backend/app/models/` - SQLAlchemy database models
+- `backend/app/queue/` - SAQ async task definitions and configuration
 - `backend/alembic/` - Database migrations
 - `infra/` - Terraform infrastructure code
 
@@ -124,6 +128,50 @@ Follow modular organization with clear separation:
 - Structure tests to mirror application structure
 - Use fixtures for common test data and dependencies
 - Test both unit and integration levels
+
+### Async Queue Patterns (SAQ)
+- Task definitions live in `backend/app/queue/tasks.py`
+- Queue configuration in `backend/app/queue/config.py`
+- SAQ uses PostgreSQL as backing store (same database as application)
+- Auto-creates tables: `saq_versions`, `saq_jobs`, `saq_stats`
+- Web UI available at `/saq` in development mode
+- Worker runs separately via `make dev-worker` or `litestar workers run`
+
+**Creating Tasks:**
+```python
+from saq.types import Context
+
+async def my_task(ctx: Context, *, arg1: str, arg2: int) -> dict:
+    """Task functions must accept ctx and keyword-only arguments."""
+    # Do async work here
+    return {"status": "success"}
+```
+
+**Enqueuing Tasks:**
+```python
+from litestar_saq import TaskQueues
+import time
+
+async def enqueue_example(task_queues: TaskQueues) -> None:
+    queue = task_queues.get("default")  # Get queue by name
+
+    # Enqueue immediately
+    job = await queue.enqueue("my_task", arg1="value", arg2=42)
+
+    # Enqueue with delay (10 seconds)
+    await queue.enqueue("my_task", arg1="value", arg2=42, scheduled=time.time() + 10)
+```
+
+**Accessing Queue in Routes:**
+```python
+from litestar_saq import TaskQueues
+
+@post("/endpoint")
+async def my_route(task_queues: TaskQueues) -> Response:
+    queue = task_queues.get("default")
+    await queue.enqueue("my_task", arg1="value", arg2=42)
+    return Response({"status": "queued"})
+```
 
 
 # Code Preferences:

@@ -6,8 +6,10 @@ help:
 	@echo "  install-frontend - Install frontend dependencies"
 	@echo "  install-backend  - Install backend dependencies"
 	@echo "  dev              - Start both frontend and backend in development mode"
+	@echo "  dev-all          - Start frontend, backend, and worker in development mode"
 	@echo "  dev-frontend     - Start frontend development server"
 	@echo "  dev-backend      - Start backend development server"
+	@echo "  dev-worker       - Start SAQ worker for async task processing"
 	@echo "  db-start         - Start development database"
 	@echo "  db-stop          - Stop development database"
 	@echo "  db-migrate-generate - Generate new migration from model changes"
@@ -45,6 +47,11 @@ dev:
 	@echo "Starting both frontend and backend..."
 	@make -j2 dev-frontend dev-backend
 
+.PHONY: dev-all
+dev-all:
+	@echo "Starting frontend, backend, and worker..."
+	@make -j3 dev-frontend dev-backend dev-worker
+
 .PHONY: dev-frontend
 dev-frontend:
 	cd frontend && pnpm run dev
@@ -52,6 +59,11 @@ dev-frontend:
 .PHONY: dev-backend
 dev-backend:
 	cd backend && uv run litestar run -r -d -p 8000
+
+.PHONY: dev-worker
+dev-worker:
+	@echo "🔄 Starting SAQ worker..."
+	cd backend && uv run litestar workers run
 
 # Database targets
 .PHONY: db-start
