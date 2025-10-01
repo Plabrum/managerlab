@@ -172,12 +172,6 @@ variable "s3_bucket_prefix" {
 }
 
 
-# Bastion host configuration
-variable "bastion_instance_type" {
-  type        = string
-  default     = "t3.micro"
-  description = "Instance type for the bastion host"
-}
 
 
 
@@ -265,29 +259,14 @@ output "private_subnet_ids" {
   value       = aws_subnet.private[*].id
 }
 
-output "bastion_private_ip" {
-  description = "The private IP address of the bastion host"
-  value       = aws_instance.bastion.private_ip
-}
-
-output "bastion_instance_id" {
-  description = "The instance ID of the bastion host"
-  value       = aws_instance.bastion.id
-}
-
-output "bastion_ssh_command" {
-  description = "SSH command to connect to bastion host"
-  value       = "ssh -i bastion-key.pem ec2-user@${aws_instance.bastion.public_ip}"
-}
-
-output "bastion_private_key_secret" {
-  description = "AWS Secrets Manager secret name containing the SSH private key"
-  value       = aws_secretsmanager_secret.bastion_private_key.name
-}
-
 output "app_secrets_arn" {
   description = "ARN of the application secrets in Secrets Manager"
   value       = aws_secretsmanager_secret.app_secrets_v2.arn
+}
+
+output "ecs_exec_command" {
+  description = "Command to connect to ECS task via Session Manager"
+  value       = "make ecs-exec"
 }
 
 # ================================
@@ -503,15 +482,6 @@ resource "aws_security_group" "database" {
     security_groups = [aws_security_group.ecs_tasks.id]
   }
 
-  # Allow PostgreSQL from bastion host
-  ingress {
-    description     = "PostgreSQL from bastion"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.bastion.id]
-  }
-
   tags = merge(local.common_tags, {
     Name = "${local.name}-database-sg"
   })
@@ -520,49 +490,6 @@ resource "aws_security_group" "database" {
     create_before_destroy = true
   }
 }
-
-# Security group for bastion host
-resource "aws_security_group" "bastion" {
-  name_prefix = "${local.name}-bastion-"
-  description = "Security group for bastion host"
-  vpc_id      = aws_vpc.main.id
-
-  # Allow SSH from anywhere (Tailscale will handle actual access control)
-  ingress {
-    description = "SSH access"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow Tailscale UDP traffic
-  ingress {
-    description = "Tailscale UDP"
-    from_port   = 41641
-    to_port     = 41641
-    protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow all outbound traffic
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name}-bastion-sg"
-  })
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 
 # ================================
 # ECR Repository
@@ -661,6 +588,85 @@ resource "aws_vpc_endpoint" "s3" {
 
   tags = merge(local.common_tags, {
     Name = "${local.name}-s3-endpoint"
+  })
+}
+
+# ================================
+# VPC Endpoints for ECS Exec (SSM)
+# ================================
+
+# Security group for VPC endpoints
+resource "aws_security_group" "vpc_endpoints" {
+  name_prefix = "${local.name}-vpc-endpoints-"
+  description = "Security group for VPC endpoints"
+  vpc_id      = aws_vpc.main.id
+
+  # Allow HTTPS from ECS tasks
+  ingress {
+    description     = "HTTPS from ECS tasks"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
+  }
+
+  # Allow all outbound traffic
+  egress {
+    description = "All outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-vpc-endpoints-sg"
+  })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# SSM VPC Endpoint
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-ssm-endpoint"
+  })
+}
+
+# SSM Messages VPC Endpoint (required for Session Manager)
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-ssmmessages-endpoint"
+  })
+}
+
+# EC2 Messages VPC Endpoint (required for SSM Agent)
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-ec2messages-endpoint"
   })
 }
 
@@ -799,55 +805,6 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring" {
 }
 
 # ================================
-# Bastion Host with Tailscale
-# ================================
-
-# Get the latest Amazon Linux 2023 AMI
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-# Generate SSH key pair for bastion
-resource "tls_private_key" "bastion" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-# Create AWS key pair from generated public key
-resource "aws_key_pair" "bastion" {
-  key_name   = "${local.name}-bastion"
-  public_key = tls_private_key.bastion.public_key_openssh
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name}-bastion-key"
-  })
-}
-
-# Store private key in AWS Secrets Manager
-resource "aws_secretsmanager_secret" "bastion_private_key" {
-  name        = "${local.name}-bastion-private-key"
-  description = "SSH private key for bastion host access"
-
-  tags = local.common_tags
-}
-
-resource "aws_secretsmanager_secret_version" "bastion_private_key" {
-  secret_id     = aws_secretsmanager_secret.bastion_private_key.id
-  secret_string = tls_private_key.bastion.private_key_pem
-}
-
-# ================================
 # Application Secrets
 # ================================
 
@@ -874,40 +831,6 @@ resource "aws_secretsmanager_secret_version" "app_secrets_v2" {
     ignore_changes = [secret_string]
   }
 }
-
-
-# Bastion EC2 instance
-resource "aws_instance" "bastion" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.bastion_instance_type
-  key_name               = aws_key_pair.bastion.key_name
-  vpc_security_group_ids = [aws_security_group.bastion.id]
-  subnet_id              = aws_subnet.public[0].id
-
-  # Enable detailed monitoring
-  monitoring = true
-
-  # Root volume configuration
-  root_block_device {
-    volume_type           = "gp3"
-    volume_size           = 30
-    encrypted             = true
-    delete_on_termination = true
-
-    tags = merge(local.common_tags, {
-      Name = "${local.name}-bastion-root"
-    })
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name}-bastion"
-  })
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 
 # ================================
 # IAM Roles for ECS
@@ -1021,6 +944,28 @@ resource "aws_iam_role_policy" "ecs_task_secrets" {
         Resource = [
           aws_secretsmanager_secret.app_secrets_v2.arn
         ]
+      }
+    ]
+  })
+}
+
+# Policy for ECS Exec (SSM access)
+resource "aws_iam_role_policy" "ecs_task_exec" {
+  name = "${local.name}-ecs-task-exec-policy"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -1154,6 +1099,9 @@ resource "aws_ecs_service" "main" {
   desired_count   = var.ecs_desired_count
   launch_type     = "FARGATE"
 
+  # Enable ECS Exec for shell access via Session Manager
+  enable_execute_command = true
+
   network_configuration {
     subnets          = aws_subnet.private[*].id
     security_groups  = [aws_security_group.ecs_tasks.id]
@@ -1169,7 +1117,11 @@ resource "aws_ecs_service" "main" {
   depends_on = [
     aws_lb_listener.https,
     aws_iam_role_policy.ecs_task_s3,
-    aws_iam_role_policy.ecs_task_secrets
+    aws_iam_role_policy.ecs_task_secrets,
+    aws_iam_role_policy.ecs_task_exec,
+    aws_vpc_endpoint.ssm,
+    aws_vpc_endpoint.ssmmessages,
+    aws_vpc_endpoint.ec2messages
   ]
 
   tags = local.common_tags

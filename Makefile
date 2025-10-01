@@ -24,6 +24,7 @@ help:
 	@echo "  docker-test      - Test backend Docker image locally"
 	@echo "  docker-push      - Build and push backend Docker image to ECR"
 	@echo "  codegen          - Generate API client code"
+	@echo "  ecs-exec         - Connect to running ECS task via Session Manager"
 	@echo "  clean            - Clean all dependencies and build artifacts"
 
 # Installation targets
@@ -136,6 +137,27 @@ docker-test:
 	@echo "Cleaning up..."
 	cd backend && docker-compose -f docker-compose.test.yml down
 
+
+# AWS/ECS targets
+.PHONY: ecs-exec
+ecs-exec:
+	@echo "🔌 Connecting to ECS task via Session Manager..."
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster manageros-dev-cluster \
+		--service-name manageros-dev-service \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" = "None" ] || [ -z "$$TASK_ARN" ]; then \
+		echo "❌ No running tasks found for service manageros-dev-service"; \
+		exit 1; \
+	fi; \
+	echo "📋 Connecting to task: $$TASK_ARN"; \
+	aws ecs execute-command \
+		--cluster manageros-dev-cluster \
+		--task $$TASK_ARN \
+		--container app \
+		--interactive \
+		--command "/bin/bash"
 
 # Utility targets
 .PHONY: clean
