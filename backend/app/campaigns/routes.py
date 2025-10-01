@@ -9,7 +9,7 @@ from app.auth.guards import requires_authenticated_user
 # Register CampaignObject with the objects framework
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
-from app.campaigns.object import CampaignObject
+from app.campaigns.objects import CampaignObject
 
 ObjectRegistry.register(ObjectTypes.Campaigns, CampaignObject)
 

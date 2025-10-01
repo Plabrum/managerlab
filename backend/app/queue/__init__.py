@@ -27,12 +27,10 @@ Example task locations:
 
 from app.queue.config import queue_config
 from app.queue.registry import scheduled_task, task
-from app.queue.routes import queue_router
 
 # Export commonly used items
 __all__ = [
     "queue_config",
-    "queue_router",
     "task",  # Decorator for registering tasks
     "scheduled_task",  # Decorator for registering scheduled tasks
 ]

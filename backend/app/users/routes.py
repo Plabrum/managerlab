@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.users.models import User, WaitlistEntry
-from app.users.object import UserObject
-from app.users.roster_object import RosterObject
+from app.users.objects import RosterObject, UserObject
 from app.users.schemas import (
     CreateUserSchema,
     UserDTO,

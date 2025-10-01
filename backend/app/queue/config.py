@@ -8,7 +8,7 @@ To add a new task:
 2. Import and use decorators:
    from app.queue.registry import task, scheduled_task
 3. Define your task with the decorator
-4. Done! It's automatically registered.
+4. Done! It's automatically registered via auto-discovery.
 """
 
 from datetime import timezone
@@ -17,11 +17,10 @@ from litestar_saq import QueueConfig
 
 from app.queue.registry import get_registry
 from app.utils.configure import config
+from app.utils.discovery import discover_and_import
 
-# Import all task modules to trigger decorator registration
-# Add new task modules here as you create them
-from app.queue import tasks  # noqa: F401 - Import to register tasks
-from app.users import tasks as user_tasks  # noqa: F401, F811 - Import to register user tasks
+# Auto-discover all task files to trigger decorator registration
+discover_and_import(["tasks.py"], base_path="app")
 
 
 def get_queue_config() -> list[QueueConfig]:

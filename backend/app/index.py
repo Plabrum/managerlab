@@ -31,7 +31,8 @@ from app.campaigns.routes import campaign_router
 from app.posts.routes import post_router
 from app.media.routes import media_router
 from app.payments.routes import invoice_router
-from app.queue.routes import queue_router
+# Queue routes (demo endpoints) - create app/queue/routes.py if needed
+# from app.queue.routes import queue_router
 
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
@@ -77,7 +78,7 @@ app = Litestar(
         post_router,
         media_router,
         invoice_router,
-        queue_router,
+        # queue_router,  # Commented out - create app/queue/routes.py if needed
     ],
     on_startup=[providers.on_startup],
     on_shutdown=[providers.on_shutdown],

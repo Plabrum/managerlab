@@ -9,7 +9,7 @@ from app.auth.guards import requires_authenticated_user
 # Register PostObject with the objects framework
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
-from app.posts.object import PostObject
+from app.posts.objects import PostObject
 
 ObjectRegistry.register(ObjectTypes.Posts, PostObject)
 

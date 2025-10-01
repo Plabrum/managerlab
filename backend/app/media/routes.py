@@ -10,7 +10,7 @@ from app.auth.guards import requires_authenticated_user
 # Register MediaObject with the objects framework
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
-from app.media.object import MediaObject
+from app.media.objects import MediaObject
 
 ObjectRegistry.register(ObjectTypes.Media, MediaObject)
 

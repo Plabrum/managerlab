@@ -10,7 +10,7 @@ from app.auth.guards import requires_authenticated_user
 # Register BrandObject and BrandContactObject with the objects framework
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
-from app.brands.object import BrandObject, BrandContactObject
+from app.brands.objects import BrandObject, BrandContactObject
 
 ObjectRegistry.register(ObjectTypes.Brands, BrandObject)
 ObjectRegistry.register(ObjectTypes.BrandContacts, BrandContactObject)

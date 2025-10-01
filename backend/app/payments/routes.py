@@ -9,7 +9,7 @@ from app.auth.guards import requires_authenticated_user
 # Register InvoiceObject with the objects framework
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
-from app.payments.object import InvoiceObject
+from app.payments.objects import InvoiceObject
 
 ObjectRegistry.register(ObjectTypes.Invoices, InvoiceObject)
 
