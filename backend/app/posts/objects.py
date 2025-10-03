@@ -63,7 +63,7 @@ class PostObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, post: Post) -> ObjectDetailDTO:
+    def to_detail_dto(cls, post: Post, context: dict | None = None) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",
@@ -127,7 +127,7 @@ class PostObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, post: Post) -> ObjectListDTO:
+    def to_list_dto(cls, post: Post, context: dict | None = None) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",

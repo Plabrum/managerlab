@@ -66,14 +66,28 @@ class BaseObject(ABC):
 
     @classmethod
     @abstractmethod
-    def to_detail_dto(cls, object: BaseDBModel) -> ObjectDetailDTO:
-        """Convert to detailed DTO representation."""
+    def to_detail_dto(
+        cls, object: BaseDBModel, context: dict | None = None
+    ) -> ObjectDetailDTO:
+        """Convert to detailed DTO representation.
+
+        Args:
+            object: The model instance to convert
+            context: Optional context dict with dependencies (e.g., s3_client)
+        """
         ...
 
     @classmethod
     @abstractmethod
-    def to_list_dto(cls, object: BaseDBModel) -> ObjectListDTO:
-        """Convert to list DTO representation."""
+    def to_list_dto(
+        cls, object: BaseDBModel, context: dict | None = None
+    ) -> ObjectListDTO:
+        """Convert to list DTO representation.
+
+        Args:
+            object: The model instance to convert
+            context: Optional context dict with dependencies (e.g., s3_client)
+        """
         ...
 
     @classmethod

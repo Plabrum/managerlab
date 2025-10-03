@@ -50,7 +50,7 @@ dev:
 .PHONY: dev-all
 dev-all:
 	@echo "Starting frontend, backend, and worker..."
-	@make -j3 dev-frontend dev-backend dev-worker
+	@export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && make -j3 dev-frontend dev-backend dev-worker
 
 .PHONY: dev-frontend
 dev-frontend:
@@ -62,8 +62,8 @@ dev-backend:
 
 .PHONY: dev-worker
 dev-worker:
-	@echo "🔄 Starting SAQ worker..."
-	cd backend && uv run litestar workers run
+	@echo "🔄 Starting SAQ worker with auto-reload..."
+	cd backend && export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && uv run watchmedo auto-restart -d app/ -R -- uv run litestar workers run
 
 # Database targets
 .PHONY: db-start

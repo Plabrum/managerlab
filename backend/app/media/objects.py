@@ -17,28 +17,36 @@ class MediaObject(BaseObject):
     model = Media
     column_definitions = [
         ColumnDefinitionDTO(
-            key="filename",
-            label="Filename",
+            key="file_name",
+            label="File Name",
             type=FieldType.String,
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
-            key="image_link",
-            label="Image Link",
-            type=FieldType.URL,
+            key="file_type",
+            label="Type",
+            type=FieldType.String,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.URL),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
-            key="thumnbnail_link",
-            label="Thumbnail Link",
-            type=FieldType.URL,
+            key="file_size",
+            label="Size",
+            type=FieldType.Int,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.URL),
-            default_visible=False,
+            filter_type=get_filter_by_field_type(FieldType.Int),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="status",
+            label="Status",
+            type=FieldType.String,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.String),
+            default_visible=True,
         ),
         ColumnDefinitionDTO(
             key="created_at",
@@ -51,66 +59,157 @@ class MediaObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, media: Media) -> ObjectDetailDTO:
+    def to_detail_dto(
+        cls, object: Media, context: dict | None = None
+    ) -> ObjectDetailDTO:
+        media = object
+        # Extract s3_client from context if provided
+        s3_client = context.get("s3_client") if context else None
+
+        # Generate presigned URLs if s3_client is available
+        view_url = (
+            s3_client.generate_presigned_download_url(
+                key=media.file_key, expires_in=3600
+            )
+            if s3_client
+            else None
+        )
+        thumbnail_url = (
+            s3_client.generate_presigned_download_url(
+                key=media.thumbnail_key, expires_in=3600
+            )
+            if s3_client and media.thumbnail_key
+            else None
+        )
+
         fields = [
             ObjectFieldDTO(
-                key="filename",
-                value=media.filename,
+                key="file_name",
+                value=media.file_name,
                 type=FieldType.String,
-                label="Filename",
+                label="File Name",
                 editable=True,
             ),
             ObjectFieldDTO(
-                key="image_link",
-                value=media.image_link,
-                type=FieldType.URL,
-                label="Image Link",
-                editable=True,
+                key="file_type",
+                value=media.file_type,
+                type=FieldType.String,
+                label="File Type",
+                editable=False,
             ),
             ObjectFieldDTO(
-                key="thumnbnail_link",
-                value=media.thumnbnail_link,
+                key="file_size",
+                value=media.file_size,
+                type=FieldType.Int,
+                label="File Size",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="mime_type",
+                value=media.mime_type,
+                type=FieldType.String,
+                label="MIME Type",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="status",
+                value=media.status,
+                type=FieldType.String,
+                label="Status",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="view_url",
+                value=view_url,
                 type=FieldType.URL,
-                label="Thumbnail Link",
-                editable=True,
+                label="View URL",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="thumbnail_url",
+                value=thumbnail_url or view_url,
+                type=FieldType.URL,
+                label="Thumbnail URL",
+                editable=False,
             ),
         ]
 
         return ObjectDetailDTO(
             id=sqid_encode(media.id),
             object_type=ObjectTypes.Media,
-            state="active",
-            title=media.filename,
+            state=media.status,
+            title=media.file_name,
             fields=fields,
             actions=[],
-            created_at=media.created_at.isoformat(),
-            updated_at=media.updated_at.isoformat(),
+            created_at=media.created_at,
+            updated_at=media.updated_at,
             children=[],
             parents=[],
         )
 
     @classmethod
-    def to_list_dto(cls, media: Media) -> ObjectListDTO:
+    def to_list_dto(cls, object: Media, context: dict | None = None) -> ObjectListDTO:
+        media = object
+        # Extract s3_client from context if provided
+        s3_client = context.get("s3_client") if context else None
+
+        # Generate presigned URLs if s3_client is available
+        view_url = (
+            s3_client.generate_presigned_download_url(
+                key=media.file_key, expires_in=3600
+            )
+            if s3_client
+            else None
+        )
+        thumbnail_url = (
+            s3_client.generate_presigned_download_url(
+                key=media.thumbnail_key, expires_in=3600
+            )
+            if s3_client and media.thumbnail_key
+            else None
+        )
+
         fields = [
             ObjectFieldDTO(
-                key="filename",
-                value=media.filename,
+                key="file_name",
+                value=media.file_name,
                 type=FieldType.String,
-                label="Filename",
+                label="File Name",
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="image_link",
-                value=media.image_link,
-                type=FieldType.URL,
-                label="Image Link",
+                key="file_type",
+                value=media.file_type,
+                type=FieldType.String,
+                label="Type",
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="thumnbnail_link",
-                value=media.thumnbnail_link,
+                key="file_size",
+                value=media.file_size,
+                type=FieldType.Int,
+                label="Size",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="status",
+                value=media.status,
+                type=FieldType.String,
+                label="Status",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="view_url",
+                value=view_url,
                 type=FieldType.URL,
-                label="Thumbnail Link",
+                label="View URL",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="thumbnail_url",
+                value=thumbnail_url or view_url,
+                type=FieldType.URL,
+                label="Thumbnail",
                 editable=False,
             ),
         ]
@@ -118,11 +217,11 @@ class MediaObject(BaseObject):
         return ObjectListDTO(
             id=sqid_encode(media.id),
             object_type=ObjectTypes.Media,
-            title=media.filename,
-            subtitle=media.image_link,
-            state="active",
+            title=media.file_name,
+            subtitle=f"{media.file_type} - {media.mime_type}",
+            state=media.status,
             actions=[],
-            created_at=media.created_at.isoformat(),
-            updated_at=media.updated_at.isoformat(),
+            created_at=media.created_at,
+            updated_at=media.updated_at,
             fields=fields,
         )

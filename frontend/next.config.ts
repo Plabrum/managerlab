@@ -12,6 +12,22 @@ const nextConfig: NextConfig = {
     ];
   },
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/local-download/**',
+      },
+      // Add your S3 bucket for production
+      // {
+      //   protocol: 'https',
+      //   hostname: 'your-bucket.s3.amazonaws.com',
+      //   pathname: '/media/**',
+      // },
+    ],
+  },
 };
 
 export default nextConfig;

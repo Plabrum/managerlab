@@ -64,7 +64,9 @@ class BrandObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
+    def to_detail_dto(
+        cls, brand: Brand, context: dict | None = None
+    ) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -145,7 +147,7 @@ class BrandObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
+    def to_list_dto(cls, brand: Brand, context: dict | None = None) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -244,7 +246,9 @@ class BrandContactObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, contact: BrandContact) -> ObjectDetailDTO:
+    def to_detail_dto(
+        cls, contact: BrandContact, context: dict | None = None
+    ) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="first_name",
@@ -297,7 +301,9 @@ class BrandContactObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, contact: BrandContact) -> ObjectListDTO:
+    def to_list_dto(
+        cls, contact: BrandContact, context: dict | None = None
+    ) -> ObjectListDTO:
         full_name = f"{contact.first_name} {contact.last_name}"
         fields = [
             ObjectFieldDTO(

@@ -37,3 +37,6 @@ class Media(BaseDBModel):
     posts: Mapped[list["Post"]] = relationship(
         "Post", secondary="post_media", back_populates="media"
     )
+
+    # User relationship (optional - can be added when user system is implemented)
+    # user_id: Mapped[int] = mapped_column(sa.ForeignKey("users.id"), nullable=False)

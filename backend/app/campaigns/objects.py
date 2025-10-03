@@ -65,7 +65,9 @@ class CampaignObject(BaseObject):
         return [joinedload(Campaign.brand)]
 
     @classmethod
-    def to_detail_dto(cls, campaign: Campaign) -> ObjectDetailDTO:
+    def to_detail_dto(
+        cls, campaign: Campaign, context: dict | None = None
+    ) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -97,7 +99,9 @@ class CampaignObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, campaign: Campaign) -> ObjectListDTO:
+    def to_list_dto(
+        cls, campaign: Campaign, context: dict | None = None
+    ) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",

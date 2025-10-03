@@ -214,15 +214,6 @@ export interface GetInvoiceInvoiceResponseBody {
   id: string;
 }
 
-export interface GetMediaMediaResponseBody {
-  filename: string;
-  image_link: string;
-  thumnbnail_link?: string;
-  created_at: string;
-  updated_at: string;
-  id: string;
-}
-
 export type GetPostPostResponseBodyContent = string | null;
 
 export type GetPostPostResponseBodyNotes = {[key: string]: unknown};
@@ -356,6 +347,16 @@ export const ObjectTypes = {
   invoices: 'invoices',
 } as const;
 
+export interface PresignedUploadRequestSchema {
+  file_name: string;
+  content_type: string;
+}
+
+export interface PresignedUploadResponseSchema {
+  upload_url: string;
+  file_key: string;
+}
+
 export type RangeFilterDefinitionStart = number | number | null;
 
 export type RangeFilterDefinitionFinish = number | number | null;
@@ -365,6 +366,24 @@ export interface RangeFilterDefinition {
   start?: RangeFilterDefinitionStart;
   finish?: RangeFilterDefinitionFinish;
   type: 'range_filter';
+}
+
+export interface RegisterMediaMediaResponseBody {
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  status?: string;
+  created_at: string;
+  updated_at: string;
+  id: string;
+}
+
+export interface RegisterMediaSchema {
+  file_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
 }
 
 export type SocialMediaPlatforms = typeof SocialMediaPlatforms[keyof typeof SocialMediaPlatforms];
@@ -493,27 +512,6 @@ export interface UpdateInvoiceInvoiceResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
-}
-
-export interface UpdateMediaMediaResponseBody {
-  filename: string;
-  image_link: string;
-  thumnbnail_link?: string;
-  created_at: string;
-  updated_at: string;
-  id: string;
-}
-
-export type UpdateMediaSchemaFilename = string | null;
-
-export type UpdateMediaSchemaImageLink = string | null;
-
-export type UpdateMediaSchemaThumnbnailLink = string | null;
-
-export interface UpdateMediaSchema {
-  filename?: UpdateMediaSchemaFilename;
-  image_link?: UpdateMediaSchemaImageLink;
-  thumnbnail_link?: UpdateMediaSchemaThumnbnailLink;
 }
 
 export type UpdatePostPostResponseBodyContent = string | null;
@@ -740,30 +738,45 @@ export type PostsIdUpdatePost400 = {
   extra?: PostsIdUpdatePost400Extra;
 };
 
-export type MediaIdGetMedia400ExtraAnyOf = {[key: string]: unknown};
+export type MediaPresignedUploadRequestPresignedUpload400ExtraAnyOf = {[key: string]: unknown};
 
-export type MediaIdGetMedia400Extra = null | MediaIdGetMedia400ExtraAnyOf | unknown[];
+export type MediaPresignedUploadRequestPresignedUpload400Extra = null | MediaPresignedUploadRequestPresignedUpload400ExtraAnyOf | unknown[];
 
 /**
  * Validation Exception
  */
-export type MediaIdGetMedia400 = {
+export type MediaPresignedUploadRequestPresignedUpload400 = {
   status_code: number;
   detail: string;
-  extra?: MediaIdGetMedia400Extra;
+  extra?: MediaPresignedUploadRequestPresignedUpload400Extra;
 };
 
-export type MediaIdUpdateMedia400ExtraAnyOf = {[key: string]: unknown};
+export type MediaRegisterRegisterMedia400ExtraAnyOf = {[key: string]: unknown};
 
-export type MediaIdUpdateMedia400Extra = null | MediaIdUpdateMedia400ExtraAnyOf | unknown[];
+export type MediaRegisterRegisterMedia400Extra = null | MediaRegisterRegisterMedia400ExtraAnyOf | unknown[];
 
 /**
  * Validation Exception
  */
-export type MediaIdUpdateMedia400 = {
+export type MediaRegisterRegisterMedia400 = {
   status_code: number;
   detail: string;
-  extra?: MediaIdUpdateMedia400Extra;
+  extra?: MediaRegisterRegisterMedia400Extra;
+};
+
+export type MediaIdDeleteMedia200 = {[key: string]: string};
+
+export type MediaIdDeleteMedia400ExtraAnyOf = {[key: string]: unknown};
+
+export type MediaIdDeleteMedia400Extra = null | MediaIdDeleteMedia400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type MediaIdDeleteMedia400 = {
+  status_code: number;
+  detail: string;
+  extra?: MediaIdDeleteMedia400Extra;
 };
 
 export type InvoicesIdGetInvoice400ExtraAnyOf = {[key: string]: unknown};
@@ -790,5 +803,35 @@ export type InvoicesIdUpdateInvoice400 = {
   status_code: number;
   detail: string;
   extra?: InvoicesIdUpdateInvoice400Extra;
+};
+
+export type LocalUploadKeyLocalUpload200 = { [key: string]: unknown };
+
+export type LocalUploadKeyLocalUpload400ExtraAnyOf = {[key: string]: unknown};
+
+export type LocalUploadKeyLocalUpload400Extra = null | LocalUploadKeyLocalUpload400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type LocalUploadKeyLocalUpload400 = {
+  status_code: number;
+  detail: string;
+  extra?: LocalUploadKeyLocalUpload400Extra;
+};
+
+export type LocalDownloadKeyLocalDownload200 = { [key: string]: unknown };
+
+export type LocalDownloadKeyLocalDownload400ExtraAnyOf = {[key: string]: unknown};
+
+export type LocalDownloadKeyLocalDownload400Extra = null | LocalDownloadKeyLocalDownload400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type LocalDownloadKeyLocalDownload400 = {
+  status_code: number;
+  detail: string;
+  extra?: LocalDownloadKeyLocalDownload400Extra;
 };
 

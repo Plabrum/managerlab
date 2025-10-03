@@ -79,7 +79,9 @@ class InvoiceObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, invoice: Invoice) -> ObjectDetailDTO:
+    def to_detail_dto(
+        cls, invoice: Invoice, context: dict | None = None
+    ) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",
@@ -155,14 +157,16 @@ class InvoiceObject(BaseObject):
             title=f"Invoice #{invoice.invoice_number}",
             fields=fields,
             actions=[],
-            created_at=invoice.created_at.isoformat(),
-            updated_at=invoice.updated_at.isoformat(),
+            created_at=invoice.created_at,
+            updated_at=invoice.updated_at,
             children=[],
             parents=[],
         )
 
     @classmethod
-    def to_list_dto(cls, invoice: Invoice) -> ObjectListDTO:
+    def to_list_dto(
+        cls, invoice: Invoice, context: dict | None = None
+    ) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",

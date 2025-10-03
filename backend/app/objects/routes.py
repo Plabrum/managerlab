@@ -1,7 +1,7 @@
 """Generic object routes and endpoints."""
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Sequence
+from typing import Sequence, Any
 from litestar import Router, get, post, Request
 
 from app.base.models import BaseDBModel
@@ -13,6 +13,7 @@ from app.objects.schemas import (
 )
 from app.objects.enums import ObjectTypes
 from app.utils.sqids import Sqid, sqid_decode
+from app.client.s3_client import S3Dep
 
 
 @get("/{object_type:str}/{id:str}")
@@ -21,12 +22,16 @@ async def get_object_detail(
     object_type: ObjectTypes,
     id: Sqid,
     transaction: AsyncSession,
+    s3_client: S3Dep,
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
     request.app.logger.info(f"data:{id}, object_type:{object_type}")
     object_service = ObjectRegistry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
-    return object_service.to_detail_dto(obj)
+
+    # Build context dict for DTO conversion
+    context: dict[str, Any] = {"s3_client": s3_client}
+    return object_service.to_detail_dto(obj, context=context)
 
 
 @post("/{object_type:str}", operation_id="list_objects")
@@ -35,6 +40,7 @@ async def list_objects(
     object_type: ObjectTypes,
     data: ObjectListRequest,
     transaction: AsyncSession,
+    s3_client: S3Dep,
 ) -> ObjectListResponse:
     """List objects with filtering and pagination."""
     request.app.logger.info(f"data:{data}")
@@ -43,8 +49,11 @@ async def list_objects(
     objects, total = await object_service.get_list(transaction, data)
     columns = object_service.column_definitions
 
+    # Build context dict for DTO conversion
+    context: dict[str, Any] = {"s3_client": s3_client}
+
     return ObjectListResponse(
-        objects=[object_service.to_list_dto(obj) for obj in objects],
+        objects=[object_service.to_list_dto(obj, context=context) for obj in objects],
         total=total,
         limit=data.limit,
         offset=data.offset,

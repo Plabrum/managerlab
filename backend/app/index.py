@@ -29,7 +29,7 @@ from app.objects.routes import object_router
 from app.brands.routes import brand_router
 from app.campaigns.routes import campaign_router
 from app.posts.routes import post_router
-from app.media.routes import media_router
+from app.media.routes import media_router, local_media_router
 from app.payments.routes import invoice_router
 # Queue routes (demo endpoints) - create app/queue/routes.py if needed
 # from app.queue.routes import queue_router
@@ -37,6 +37,7 @@ from app.payments.routes import invoice_router
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
 from app.utils.logging import logging_config
+from app.client.s3_client import provide_s3_client
 
 
 logger = logging.getLogger(__name__)
@@ -62,24 +63,33 @@ session_auth = SessionAuth[int, ServerSideSessionBackend](
         "^/auth/google/",
         "^/users/signup",
         "^/schema",
+        "^/local-upload/",
+        "^/local-download/",
     ],
 )
 
 
+# Build route handlers list with conditional local media router
+route_handlers = [
+    health_check,
+    public_user_router,
+    user_router,
+    auth_router,
+    object_router,
+    brand_router,
+    campaign_router,
+    post_router,
+    media_router,
+    invoice_router,
+    # queue_router,  # Commented out - create app/queue/routes.py if needed
+]
+
+# Only include local media router in development
+if config.IS_DEV:
+    route_handlers.append(local_media_router)
+
 app = Litestar(
-    route_handlers=[
-        health_check,
-        public_user_router,
-        user_router,
-        auth_router,
-        object_router,
-        brand_router,
-        campaign_router,
-        post_router,
-        media_router,
-        invoice_router,
-        # queue_router,  # Commented out - create app/queue/routes.py if needed
-    ],
+    route_handlers=route_handlers,
     on_startup=[providers.on_startup],
     on_shutdown=[providers.on_shutdown],
     on_app_init=[session_auth.on_app_init],
@@ -99,6 +109,8 @@ app = Litestar(
     dependencies={
         "transaction": Provide(providers.provide_transaction),
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
+        "config": Provide(lambda: config, sync_to_thread=False),
+        "s3_client": Provide(provide_s3_client, sync_to_thread=False),
     },
     plugins=[
         SQLAlchemyPlugin(
