@@ -11,7 +11,7 @@ from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.payments.objects import InvoiceObject
 
-ObjectRegistry.register(ObjectTypes.Invoices, InvoiceObject)
+ObjectRegistry().register(ObjectTypes.Invoices, InvoiceObject)
 
 
 class InvoiceDTO(SanitizedSQLAlchemyDTO[Invoice]):

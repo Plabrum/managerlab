@@ -6,3 +6,11 @@ class CampaignStates(StrEnum):
     ACTIVE = auto()
     COMPLETED = auto()
     CANCELLED = auto()
+
+
+class CampaignActions(StrEnum):
+    """Campaign actions."""
+
+    create = "campaign.create"
+    delete = "campaign.delete"
+    update = "campaign.update"

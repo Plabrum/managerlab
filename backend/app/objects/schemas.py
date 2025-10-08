@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from app.base.schemas import BaseSchema
 from app.objects.enums import FieldType, FilterType, SortDirection
+from app.actions.schemas import ActionDTO
 
 
 class TextFilterDefinition(BaseSchema, tag=FilterType.text_filter.value):
@@ -81,16 +82,6 @@ class ColumnDefinitionDTO(BaseSchema):
     available_values: List[str] | None = None
 
 
-class ActionDTO(BaseSchema):
-    """DTO for action representation."""
-
-    action: str
-    label: str
-    is_bulk_allowed: bool = False
-    available: bool = True
-    priority: int = 100
-
-
 class ObjectRelationDTO(BaseSchema):
     """DTO for object relationships (parents/children)."""
 
@@ -140,6 +131,7 @@ class ObjectListRequest(BaseSchema):
     filters: List[FilterDefinition] = []
     sorts: List[SortDefinition] = []
     search: str | None = None
+    column: list[str] | None = None
 
 
 class ObjectListResponse(BaseSchema):

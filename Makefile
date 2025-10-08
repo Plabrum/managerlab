@@ -27,6 +27,7 @@ help:
 	@echo "  docker-push      - Build and push backend Docker image to ECR"
 	@echo "  codegen          - Generate API client code"
 	@echo "  ecs-exec         - Connect to running ECS task via Session Manager"
+	@echo "  sqid             - Encode/decode sqid (usage: make sqid 9 or make sqid abc123)"
 	@echo "  clean            - Clean all dependencies and build artifacts"
 
 # Installation targets
@@ -172,6 +173,14 @@ ecs-exec:
 		--command "/bin/bash"
 
 # Utility targets
+.PHONY: sqid
+sqid:
+	@cd backend && uv run python scripts/sqid.py $(filter-out $@,$(MAKECMDGOALS))
+
+# Catch-all target to prevent make from complaining about unknown targets when passing arguments to sqid
+%:
+	@:
+
 .PHONY: clean
 clean:
 	cd frontend && rm -rf node_modules .next

@@ -20,6 +20,15 @@ async def request_presigned_upload(
     data: PresignedUploadRequestSchema, s3_client: S3Dep
 ) -> PresignedUploadResponseSchema:
     """Generate a presigned URL for uploading a file."""
+    from app.utils.configure import config
+    from litestar.exceptions import ValidationException
+
+    # Validate file size
+    if data.file_size > config.MAX_UPLOAD_SIZE:
+        raise ValidationException(
+            f"File size {data.file_size / (1024*1024):.1f}MB exceeds maximum allowed size of {config.MAX_UPLOAD_SIZE / (1024*1024):.0f}MB"
+        )
+
     # Generate unique file key
     file_key = f"media/{uuid.uuid4()}/{data.file_name}"
 

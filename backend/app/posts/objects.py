@@ -119,7 +119,7 @@ class PostObject(BaseObject):
             state=post.state.name,
             title=post.title,
             fields=fields,
-            actions=[],
+            actions=post.actions,
             created_at=post.created_at,
             updated_at=post.updated_at,
             children=[],
@@ -173,7 +173,7 @@ class PostObject(BaseObject):
                 else post.content
             ),
             state=post.state.name,
-            actions=[],
+            actions=post.actions,
             created_at=post.created_at,
             updated_at=post.updated_at,
             fields=fields,

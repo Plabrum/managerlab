@@ -12,8 +12,8 @@ from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.brands.objects import BrandObject, BrandContactObject
 
-ObjectRegistry.register(ObjectTypes.Brands, BrandObject)
-ObjectRegistry.register(ObjectTypes.BrandContacts, BrandContactObject)
+ObjectRegistry().register(ObjectTypes.Brands, BrandObject)
+ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 
 
 class BrandDTO(SanitizedSQLAlchemyDTO[Brand]):

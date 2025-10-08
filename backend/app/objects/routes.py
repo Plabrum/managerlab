@@ -6,6 +6,7 @@ from litestar import Router, get, post, Request
 
 from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
+from app.actions.registry import ActionRegistry
 from app.objects.schemas import (
     ObjectDetailDTO,
     ObjectListRequest,
@@ -23,10 +24,11 @@ async def get_object_detail(
     id: Sqid,
     transaction: AsyncSession,
     s3_client: S3Dep,
+    object_registry: ObjectRegistry,
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
     request.app.logger.info(f"data:{id}, object_type:{object_type}")
-    object_service = ObjectRegistry.get_class(object_type)
+    object_service = object_registry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
 
     # Build context dict for DTO conversion
@@ -41,10 +43,12 @@ async def list_objects(
     data: ObjectListRequest,
     transaction: AsyncSession,
     s3_client: S3Dep,
+    object_registry: ObjectRegistry,
+    action_registry: ActionRegistry,
 ) -> ObjectListResponse:
     """List objects with filtering and pagination."""
     request.app.logger.info(f"data:{data}")
-    object_service = ObjectRegistry.get_class(object_type)
+    object_service = object_registry.get_class(object_type)
     objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)
     columns = object_service.column_definitions
@@ -52,13 +56,17 @@ async def list_objects(
     # Build context dict for DTO conversion
     context: dict[str, Any] = {"s3_client": s3_client}
 
+    # Get list-level actions
+    list_action_classes = action_registry.get_list_actions()
+    list_actions = [action_class.to_dto() for action_class in list_action_classes]
+
     return ObjectListResponse(
         objects=[object_service.to_list_dto(obj, context=context) for obj in objects],
         total=total,
         limit=data.limit,
         offset=data.offset,
         columns=columns,
-        actions=object_service.get_list_actions(),
+        actions=list_actions,
     )
 
 

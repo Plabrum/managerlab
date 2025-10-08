@@ -11,7 +11,7 @@ from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.campaigns.objects import CampaignObject
 
-ObjectRegistry.register(ObjectTypes.Campaigns, CampaignObject)
+ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
 
 
 class CampaignDTO(SanitizedSQLAlchemyDTO[Campaign]):

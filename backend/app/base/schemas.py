@@ -96,3 +96,25 @@ class UpdateSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
             max_nested_depth=base_cfg.max_nested_depth or 0,
             include_implicit_fields=cls._BASE_INCLUDE_IMPLICIT,
         )
+
+
+class CreateSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
+    config: ClassVar[SQLAlchemyDTOConfig] = SQLAlchemyDTOConfig(
+        max_nested_depth=0,
+        partial=False,  # All required fields must be present
+    )
+
+    _BASE_EXCLUDE: ClassVar[set[str]] = {"id", "public_id", "created_at", "updated_at"}
+    _BASE_INCLUDE_IMPLICIT: ClassVar[bool | Literal["hybrid-only"]] = False
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        base_cfg = getattr(cls, "config", SQLAlchemyDTOConfig(max_nested_depth=0))
+
+        exclude = base_cfg.exclude | cls._BASE_EXCLUDE
+        cls.config = SQLAlchemyDTOConfig(
+            exclude=exclude,
+            partial=False,
+            max_nested_depth=base_cfg.max_nested_depth or 0,
+            include_implicit_fields=cls._BASE_INCLUDE_IMPLICIT,
+        )

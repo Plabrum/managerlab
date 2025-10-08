@@ -1,0 +1,55 @@
+from typing import Any, Type
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.actions import BaseAction
+from app.actions.enums import ActionGroupType, ActionIcon
+from app.actions.registry import action_group_factory
+from app.actions.schemas import ActionExecutionResponse
+from app.base.models import BaseDBModel
+from app.posts.models import Post
+from app.posts.enums import TopLevelPostActions
+
+
+top_level_post_actions = action_group_factory(ActionGroupType.TopLevelPostActions)
+
+
+class PostTopLevelActionMixin:
+    """Mixin for post top-level actions."""
+
+    @classmethod
+    def get_model(cls) -> Type[BaseDBModel] | None:
+        """Top-level actions don't operate on specific instances."""
+        return None
+
+
+@top_level_post_actions
+class CreatePost(PostTopLevelActionMixin, BaseAction):
+    action_key = TopLevelPostActions.create
+    label = "Create Post"
+    is_bulk_allowed = False
+    priority = 1
+    icon = ActionIcon.add
+
+    @classmethod
+    async def execute(
+        cls,
+        obj: BaseDBModel,
+        data: Post,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        # Create new post
+        new_post = Post(**data.to_dict())
+
+        transaction.add(new_post)
+
+        return ActionExecutionResponse(
+            success=True,
+            message=f"Created post '{data.title}'",
+            results={"post_id": new_post.id},
+        )
+
+    @classmethod
+    def is_available(
+        cls, obj: BaseDBModel, context: dict[str, Any] | None = None
+    ) -> bool:
+        return True

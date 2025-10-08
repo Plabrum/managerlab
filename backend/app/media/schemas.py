@@ -29,6 +29,7 @@ class PresignedUploadRequestSchema(BaseSchema):
 
     file_name: str
     content_type: str
+    file_size: int
 
 
 class PresignedUploadResponseSchema(BaseSchema):

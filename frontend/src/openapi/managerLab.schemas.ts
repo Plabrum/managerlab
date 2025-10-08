@@ -5,12 +5,49 @@
  * Private schema of ManagerLab with Scalar OpenAPI docs
  * OpenAPI spec version: 0.0.1
  */
+export type ActionDTOIcon = string | null;
+
+export type ActionDTOConfirmationMessage = string | null;
+
 export interface ActionDTO {
   action: string;
   label: string;
   is_bulk_allowed?: boolean;
   available?: boolean;
   priority?: number;
+  icon?: ActionDTOIcon;
+  confirmation_message?: ActionDTOConfirmationMessage;
+}
+
+export type ActionExecutionResponseResults = {[key: string]: unknown};
+
+export interface ActionExecutionResponse {
+  success: boolean;
+  message: string;
+  results?: ActionExecutionResponseResults;
+}
+
+/**
+ * Types of action groups.
+ */
+export type ActionGroupType = typeof ActionGroupType[keyof typeof ActionGroupType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActionGroupType = {
+  media_actions: 'media_actions',
+  top_level_media_actions: 'top_level_media_actions',
+  post_actions: 'post_actions',
+  top_level_post_actions: 'top_level_post_actions',
+  brand_actions: 'brand_actions',
+  campaign_actions: 'campaign_actions',
+  top_level_campaign_actions: 'top_level_campaign_actions',
+  invoice_actions: 'invoice_actions',
+  top_level_invoice_actions: 'top_level_invoice_actions',
+} as const;
+
+export interface ActionListResponse {
+  actions: ActionDTO[];
 }
 
 export type AddUserToWaitlistWaitlistEntryResponseBodyCompany = string | null;
@@ -32,6 +69,20 @@ export interface BooleanFilterDefinition {
   column: string;
   value: boolean;
   type: 'boolean_filter';
+}
+
+export type CampaignActionsDeleteActionDataData = {[key: string]: unknown};
+
+export interface CampaignActionsDeleteActionData {
+  data: CampaignActionsDeleteActionDataData;
+  action: 'campaign_actions__delete';
+}
+
+export type CampaignActionsUpdateActionDataData = {[key: string]: unknown};
+
+export interface CampaignActionsUpdateActionData {
+  data: CampaignActionsUpdateActionDataData;
+  action: 'campaign_actions__update';
 }
 
 export type ColumnDefinitionDTOAvailableValues = string[] | null;
@@ -252,6 +303,20 @@ export interface GoogleUserInfoResponseSchema {
   user_id: number;
 }
 
+export type InvoiceActionsDeleteActionDataData = {[key: string]: unknown};
+
+export interface InvoiceActionsDeleteActionData {
+  data: InvoiceActionsDeleteActionDataData;
+  action: 'invoice_actions__delete';
+}
+
+export type InvoiceActionsUpdateActionDataData = {[key: string]: unknown};
+
+export interface InvoiceActionsUpdateActionData {
+  data: InvoiceActionsUpdateActionDataData;
+  action: 'invoice_actions__update';
+}
+
 export interface ListUsersUserResponseBody {
   name: string;
   email: string;
@@ -259,6 +324,27 @@ export interface ListUsersUserResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
+}
+
+export type MediaActionsDeleteActionDataData = {[key: string]: unknown};
+
+export interface MediaActionsDeleteActionData {
+  data: MediaActionsDeleteActionDataData;
+  action: 'media_actions__delete';
+}
+
+export type MediaActionsMediaDownloadActionDataData = {[key: string]: unknown};
+
+export interface MediaActionsMediaDownloadActionData {
+  data: MediaActionsMediaDownloadActionDataData;
+  action: 'media_actions__media_download';
+}
+
+export type MediaActionsUpdateActionDataData = {[key: string]: unknown};
+
+export interface MediaActionsUpdateActionData {
+  data: MediaActionsUpdateActionDataData;
+  action: 'media_actions__update';
 }
 
 export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
@@ -309,12 +395,15 @@ export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDef
 
 export type ObjectListRequestSearch = string | null;
 
+export type ObjectListRequestColumn = string[] | null;
+
 export interface ObjectListRequest {
   limit?: number;
   offset?: number;
   filters?: ObjectListRequestFiltersItem[];
   sorts?: SortDefinition[];
   search?: ObjectListRequestSearch;
+  column?: ObjectListRequestColumn;
 }
 
 export interface ObjectListResponse {
@@ -347,9 +436,31 @@ export const ObjectTypes = {
   invoices: 'invoices',
 } as const;
 
+export type PostActionsDeleteActionDataData = {[key: string]: unknown};
+
+export interface PostActionsDeleteActionData {
+  data: PostActionsDeleteActionDataData;
+  action: 'post_actions__delete';
+}
+
+export type PostActionsPostPublishActionDataData = {[key: string]: unknown};
+
+export interface PostActionsPostPublishActionData {
+  data: PostActionsPostPublishActionDataData;
+  action: 'post_actions__post_publish';
+}
+
+export type PostActionsUpdateActionDataData = {[key: string]: unknown};
+
+export interface PostActionsUpdateActionData {
+  data: PostActionsUpdateActionDataData;
+  action: 'post_actions__update';
+}
+
 export interface PresignedUploadRequestSchema {
   file_name: string;
   content_type: string;
+  file_size: number;
 }
 
 export interface PresignedUploadResponseSchema {
@@ -430,6 +541,32 @@ export interface TextFilterDefinition {
   operation: TextFilterDefinitionOperation;
   value: string;
   type: 'text_filter';
+}
+
+export type TopLevelCampaignActionsCampaignCreateActionDataData = {[key: string]: unknown};
+
+export interface TopLevelCampaignActionsCampaignCreateActionData {
+  data: TopLevelCampaignActionsCampaignCreateActionDataData;
+  action: 'top_level_campaign_actions__campaign_create';
+}
+
+export type TopLevelInvoiceActionsInvoiceCreateActionDataData = {[key: string]: unknown};
+
+export interface TopLevelInvoiceActionsInvoiceCreateActionData {
+  data: TopLevelInvoiceActionsInvoiceCreateActionDataData;
+  action: 'top_level_invoice_actions__invoice_create';
+}
+
+export type TopLevelMediaActionsTopLevelMediaCreateActionDataData = {[key: string]: unknown};
+
+export interface TopLevelMediaActionsTopLevelMediaCreateActionData {
+  data: TopLevelMediaActionsTopLevelMediaCreateActionDataData;
+  action: 'top_level_media_actions__top_level_media_create';
+}
+
+export interface TopLevelPostActionsTopLevelPostCreateActionData {
+  data: unknown;
+  action: 'top_level_post_actions__top_level_post_create';
 }
 
 export type UpdateBrandBrandResponseBodyDescription = string | null;
@@ -632,6 +769,62 @@ export type ListObjects400 = {
   status_code: number;
   detail: string;
   extra?: ListObjects400Extra;
+};
+
+export type ActionsActionGroupListActions400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupListActions400Extra = null | ActionsActionGroupListActions400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupListActions400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupListActions400Extra;
+};
+
+export type ActionsActionGroupExecuteActionBody = InvoiceActionsDeleteActionData | InvoiceActionsUpdateActionData | PostActionsDeleteActionData | PostActionsUpdateActionData | PostActionsPostPublishActionData | CampaignActionsDeleteActionData | CampaignActionsUpdateActionData | MediaActionsDeleteActionData | MediaActionsUpdateActionData | MediaActionsMediaDownloadActionData | TopLevelInvoiceActionsInvoiceCreateActionData | TopLevelPostActionsTopLevelPostCreateActionData | TopLevelCampaignActionsCampaignCreateActionData | TopLevelMediaActionsTopLevelMediaCreateActionData;
+
+export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupExecuteAction400Extra = null | ActionsActionGroupExecuteAction400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupExecuteAction400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupExecuteAction400Extra;
+};
+
+export type ActionsActionGroupObjectIdListObjectActions400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupObjectIdListObjectActions400Extra = null | ActionsActionGroupObjectIdListObjectActions400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupObjectIdListObjectActions400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
+};
+
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = InvoiceActionsDeleteActionData | InvoiceActionsUpdateActionData | PostActionsDeleteActionData | PostActionsUpdateActionData | PostActionsPostPublishActionData | CampaignActionsDeleteActionData | CampaignActionsUpdateActionData | MediaActionsDeleteActionData | MediaActionsUpdateActionData | MediaActionsMediaDownloadActionData | TopLevelInvoiceActionsInvoiceCreateActionData | TopLevelPostActionsTopLevelPostCreateActionData | TopLevelCampaignActionsCampaignCreateActionData | TopLevelMediaActionsTopLevelMediaCreateActionData;
+
+export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupObjectIdExecuteObjectAction400Extra = null | ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupObjectIdExecuteObjectAction400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupObjectIdExecuteObjectAction400Extra;
 };
 
 export type BrandsIdGetBrand400ExtraAnyOf = {[key: string]: unknown};

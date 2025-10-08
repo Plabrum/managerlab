@@ -12,7 +12,10 @@ from sqlalchemy.pool import NullPool
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.sessions.store import PostgreSQLSessionStore
-from app.utils.configure import config
+from app.utils.configure import config, Config
+from app.actions.registry import ActionRegistry
+from app.objects.base import ObjectRegistry
+from app.client.s3_client import S3Dep
 
 
 async def provide_transaction(
@@ -70,3 +73,12 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
     )
 
     return PostgreSQLSessionStore(session_factory)
+
+
+def provide_action_registry(s3_client: S3Dep, config: Config) -> ActionRegistry:
+    return ActionRegistry(s3_client=s3_client, config=config)
+
+
+def provide_object_registry() -> ObjectRegistry:
+    """Provide the ObjectRegistry singleton."""
+    return ObjectRegistry()
