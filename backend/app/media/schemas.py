@@ -1,11 +1,24 @@
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTOConfig
-from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
+from app.base.schemas import (
+    BaseSchema,
+    CreateSQLAlchemyDTO,
+    SanitizedSQLAlchemyDTO,
+    UpdateSQLAlchemyDTO,
+)
 from app.media.models.media import Media
 
 
 class MediaDTO(SanitizedSQLAlchemyDTO[Media]):
     """Data transfer object for Media model."""
 
+    config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "posts"})
+
+
+class MediaUpdateDTO(UpdateSQLAlchemyDTO[Media]):
+    config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "posts"})
+
+
+class MediaCreateDTO(CreateSQLAlchemyDTO[Media]):
     config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "posts"})
 
 

@@ -1,6 +1,6 @@
 from sqlalchemy import select, func
 from abc import ABC, abstractmethod
-from typing import Sequence, Type, ClassVar, List
+from typing import Sequence, Type, ClassVar, List, TYPE_CHECKING
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import Select, or_, inspect
 import sqlalchemy as sa
@@ -17,6 +17,9 @@ from app.objects.schemas import (
 )
 from app.objects.services import apply_filter
 
+if TYPE_CHECKING:
+    from app.actions.enums import ActionGroupType
+
 
 class ObjectRegistry(
     BaseRegistry[ObjectTypes, Type["BaseObject"]],
@@ -28,24 +31,33 @@ class BaseObject(ABC):
     object_type: ClassVar[ObjectTypes]
     model: ClassVar[Type[BaseDBModel]]
     column_definitions: ClassVar[List[ColumnDefinitionDTO]]
+    registry: ClassVar["ObjectRegistry | None"] = None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if cls.object_type is not None:
-            registry = ObjectRegistry()  # Gets singleton instance
-            registry.register(cls.object_type, cls)
+            cls.registry = ObjectRegistry()  # Store reference to singleton
+            cls.registry.register(cls.object_type, cls)
 
     @classmethod
     @abstractmethod
-    def to_detail_dto(
-        cls, object: BaseDBModel, context: dict | None = None
-    ) -> ObjectDetailDTO: ...
+    async def to_detail_dto(cls, object: BaseDBModel) -> ObjectDetailDTO: ...
 
     @classmethod
     @abstractmethod
-    def to_list_dto(
-        cls, object: BaseDBModel, context: dict | None = None
-    ) -> ObjectListDTO: ...
+    async def to_list_dto(cls, object: BaseDBModel) -> ObjectListDTO: ...
+
+    @classmethod
+    def get_top_level_action_group(cls) -> "ActionGroupType | None":
+        """Return the ActionGroupType for top-level actions (e.g., create) for this object.
+
+        Override this method to specify which action group contains top-level actions
+        like 'create' that should be displayed in the list view.
+
+        Returns:
+            ActionGroupType for top-level actions, or None if no top-level actions exist
+        """
+        return None
 
     @classmethod
     def get_load_options(cls) -> List[ExecutableOption]:

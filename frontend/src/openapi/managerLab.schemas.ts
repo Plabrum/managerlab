@@ -71,20 +71,6 @@ export interface BooleanFilterDefinition {
   type: 'boolean_filter';
 }
 
-export type CampaignActionsDeleteActionDataData = {[key: string]: unknown};
-
-export interface CampaignActionsDeleteActionData {
-  data: CampaignActionsDeleteActionDataData;
-  action: 'campaign_actions__delete';
-}
-
-export type CampaignActionsUpdateActionDataData = {[key: string]: unknown};
-
-export interface CampaignActionsUpdateActionData {
-  data: CampaignActionsUpdateActionDataData;
-  action: 'campaign_actions__update';
-}
-
 export type ColumnDefinitionDTOAvailableValues = string[] | null;
 
 export interface ColumnDefinitionDTO {
@@ -106,6 +92,26 @@ export const CompensationStructure = {
   per_deliverable: 'per_deliverable',
   performance_based: 'performance_based',
 } as const;
+
+export interface CreateCampaignAction {
+  data: AppCampaignsRoutesCampaignCreateDTOSchema;
+  action: 'top_level_campaign_actions__campaign_create';
+}
+
+export interface CreateInvoiceAction {
+  data: AppPaymentsSchemasInvoiceCreateDTOSchema;
+  action: 'top_level_invoice_actions__invoice_create';
+}
+
+export interface CreateMediaAction {
+  data: AppMediaSchemasMediaCreateDTOSchema;
+  action: 'top_level_media_actions__top_level_media_create';
+}
+
+export interface CreatePostAction {
+  data: AppPostsSchemasPostCreateDTOSchema;
+  action: 'top_level_post_actions__top_level_post_create';
+}
 
 export interface CreateUserSchema {
   name: string;
@@ -303,20 +309,6 @@ export interface GoogleUserInfoResponseSchema {
   user_id: number;
 }
 
-export type InvoiceActionsDeleteActionDataData = {[key: string]: unknown};
-
-export interface InvoiceActionsDeleteActionData {
-  data: InvoiceActionsDeleteActionDataData;
-  action: 'invoice_actions__delete';
-}
-
-export type InvoiceActionsUpdateActionDataData = {[key: string]: unknown};
-
-export interface InvoiceActionsUpdateActionData {
-  data: InvoiceActionsUpdateActionDataData;
-  action: 'invoice_actions__update';
-}
-
 export interface ListUsersUserResponseBody {
   name: string;
   email: string;
@@ -324,27 +316,6 @@ export interface ListUsersUserResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
-}
-
-export type MediaActionsDeleteActionDataData = {[key: string]: unknown};
-
-export interface MediaActionsDeleteActionData {
-  data: MediaActionsDeleteActionDataData;
-  action: 'media_actions__delete';
-}
-
-export type MediaActionsMediaDownloadActionDataData = {[key: string]: unknown};
-
-export interface MediaActionsMediaDownloadActionData {
-  data: MediaActionsMediaDownloadActionDataData;
-  action: 'media_actions__media_download';
-}
-
-export type MediaActionsUpdateActionDataData = {[key: string]: unknown};
-
-export interface MediaActionsUpdateActionData {
-  data: MediaActionsUpdateActionDataData;
-  action: 'media_actions__update';
 }
 
 export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
@@ -436,27 +407,6 @@ export const ObjectTypes = {
   invoices: 'invoices',
 } as const;
 
-export type PostActionsDeleteActionDataData = {[key: string]: unknown};
-
-export interface PostActionsDeleteActionData {
-  data: PostActionsDeleteActionDataData;
-  action: 'post_actions__delete';
-}
-
-export type PostActionsPostPublishActionDataData = {[key: string]: unknown};
-
-export interface PostActionsPostPublishActionData {
-  data: PostActionsPostPublishActionDataData;
-  action: 'post_actions__post_publish';
-}
-
-export type PostActionsUpdateActionDataData = {[key: string]: unknown};
-
-export interface PostActionsUpdateActionData {
-  data: PostActionsUpdateActionDataData;
-  action: 'post_actions__update';
-}
-
 export interface PresignedUploadRequestSchema {
   file_name: string;
   content_type: string;
@@ -543,32 +493,6 @@ export interface TextFilterDefinition {
   type: 'text_filter';
 }
 
-export type TopLevelCampaignActionsCampaignCreateActionDataData = {[key: string]: unknown};
-
-export interface TopLevelCampaignActionsCampaignCreateActionData {
-  data: TopLevelCampaignActionsCampaignCreateActionDataData;
-  action: 'top_level_campaign_actions__campaign_create';
-}
-
-export type TopLevelInvoiceActionsInvoiceCreateActionDataData = {[key: string]: unknown};
-
-export interface TopLevelInvoiceActionsInvoiceCreateActionData {
-  data: TopLevelInvoiceActionsInvoiceCreateActionDataData;
-  action: 'top_level_invoice_actions__invoice_create';
-}
-
-export type TopLevelMediaActionsTopLevelMediaCreateActionDataData = {[key: string]: unknown};
-
-export interface TopLevelMediaActionsTopLevelMediaCreateActionData {
-  data: TopLevelMediaActionsTopLevelMediaCreateActionDataData;
-  action: 'top_level_media_actions__top_level_media_create';
-}
-
-export interface TopLevelPostActionsTopLevelPostCreateActionData {
-  data: unknown;
-  action: 'top_level_post_actions__top_level_post_create';
-}
-
 export type UpdateBrandBrandResponseBodyDescription = string | null;
 
 export type UpdateBrandBrandResponseBodyToneOfVoice = string | null;
@@ -618,6 +542,11 @@ export interface UpdateBrandContactBrandContactResponseBody {
   id: string;
 }
 
+export interface UpdateCampaignAction {
+  data: AppCampaignsRoutesCampaignUpdateDTOSchema;
+  action: 'campaign_actions__campaign_update';
+}
+
 export type UpdateCampaignCampaignResponseBodyDescription = string | null;
 
 export interface UpdateCampaignCampaignResponseBody {
@@ -627,6 +556,11 @@ export interface UpdateCampaignCampaignResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
+}
+
+export interface UpdateInvoiceAction {
+  data: AppPaymentsSchemasInvoiceUpdateDTOSchema;
+  action: 'invoice_actions__invoice_update';
 }
 
 export type UpdateInvoiceInvoiceResponseBodyDescription = string | null;
@@ -649,6 +583,16 @@ export interface UpdateInvoiceInvoiceResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
+}
+
+export interface UpdateMediaAction {
+  data: AppMediaSchemasMediaUpdateDTOSchema;
+  action: 'media_actions__media_update';
+}
+
+export interface UpdatePostAction {
+  data: AppPostsSchemasPostUpdateDTOSchema;
+  action: 'post_actions__post_update';
 }
 
 export type UpdatePostPostResponseBodyContent = string | null;
@@ -679,6 +623,116 @@ export interface UserWaitlistFormSchema {
   email: string;
   company?: UserWaitlistFormSchemaCompany;
   message?: UserWaitlistFormSchemaMessage;
+}
+
+export type AppCampaignsRoutesCampaignCreateDTOSchemaDescription = string | null;
+
+export interface AppCampaignsRoutesCampaignCreateDTOSchema {
+  name: string;
+  description?: AppCampaignsRoutesCampaignCreateDTOSchemaDescription;
+  brand_id: number;
+  state: string;
+}
+
+export type AppCampaignsRoutesCampaignUpdateDTOSchemaDescription = string | null;
+
+export interface AppCampaignsRoutesCampaignUpdateDTOSchema {
+  name: string;
+  description?: AppCampaignsRoutesCampaignUpdateDTOSchemaDescription;
+  brand_id: number;
+  state: string;
+}
+
+export interface AppMediaSchemasMediaCreateDTOSchema {
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  status: string;
+}
+
+export interface AppMediaSchemasMediaUpdateDTOSchema {
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  status: string;
+}
+
+export type AppPaymentsSchemasInvoiceCreateDTOSchemaDescription = string | null;
+
+export type AppPaymentsSchemasInvoiceCreateDTOSchemaNotes = string | null;
+
+export type AppPaymentsSchemasInvoiceCreateDTOSchemaCampaignId = number | null;
+
+export interface AppPaymentsSchemasInvoiceCreateDTOSchema {
+  invoice_number: number;
+  customer_name: string;
+  customer_email: string;
+  posting_date: string;
+  due_date: string;
+  amount_due: number;
+  amount_paid: number;
+  description?: AppPaymentsSchemasInvoiceCreateDTOSchemaDescription;
+  notes?: AppPaymentsSchemasInvoiceCreateDTOSchemaNotes;
+  campaign_id?: AppPaymentsSchemasInvoiceCreateDTOSchemaCampaignId;
+  state: string;
+}
+
+export type AppPaymentsSchemasInvoiceUpdateDTOSchemaDescription = string | null;
+
+export type AppPaymentsSchemasInvoiceUpdateDTOSchemaNotes = string | null;
+
+export type AppPaymentsSchemasInvoiceUpdateDTOSchemaCampaignId = number | null;
+
+export interface AppPaymentsSchemasInvoiceUpdateDTOSchema {
+  invoice_number: number;
+  customer_name: string;
+  customer_email: string;
+  posting_date: string;
+  due_date: string;
+  amount_due: number;
+  amount_paid: number;
+  description?: AppPaymentsSchemasInvoiceUpdateDTOSchemaDescription;
+  notes?: AppPaymentsSchemasInvoiceUpdateDTOSchemaNotes;
+  campaign_id?: AppPaymentsSchemasInvoiceUpdateDTOSchemaCampaignId;
+  state: string;
+}
+
+export type AppPostsSchemasPostCreateDTOSchemaContent = string | null;
+
+export type AppPostsSchemasPostCreateDTOSchemaCompensationStructure = string | null;
+
+export type AppPostsSchemasPostCreateDTOSchemaCampaignId = number | null;
+
+export interface AppPostsSchemasPostCreateDTOSchema {
+  title: string;
+  content?: AppPostsSchemasPostCreateDTOSchemaContent;
+  platforms: string;
+  posting_date: string;
+  notes: unknown;
+  compensation_structure?: AppPostsSchemasPostCreateDTOSchemaCompensationStructure;
+  campaign_id?: AppPostsSchemasPostCreateDTOSchemaCampaignId;
+  state: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AppPostsSchemasPostUpdateDTOSchemaContent = string | null;
+
+export type AppPostsSchemasPostUpdateDTOSchemaCompensationStructure = string | null;
+
+export type AppPostsSchemasPostUpdateDTOSchemaCampaignId = number | null;
+
+export interface AppPostsSchemasPostUpdateDTOSchema {
+  title: string;
+  content?: AppPostsSchemasPostUpdateDTOSchemaContent;
+  platforms: string;
+  posting_date: string;
+  notes: unknown;
+  compensation_structure?: AppPostsSchemasPostUpdateDTOSchemaCompensationStructure;
+  campaign_id?: AppPostsSchemasPostUpdateDTOSchemaCampaignId;
+  state: string;
 }
 
 export type HealthHealthCheck200 = { [key: string]: unknown };
@@ -784,7 +838,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = InvoiceActionsDeleteActionData | InvoiceActionsUpdateActionData | PostActionsDeleteActionData | PostActionsUpdateActionData | PostActionsPostPublishActionData | CampaignActionsDeleteActionData | CampaignActionsUpdateActionData | MediaActionsDeleteActionData | MediaActionsUpdateActionData | MediaActionsMediaDownloadActionData | TopLevelInvoiceActionsInvoiceCreateActionData | TopLevelPostActionsTopLevelPostCreateActionData | TopLevelCampaignActionsCampaignCreateActionData | TopLevelMediaActionsTopLevelMediaCreateActionData;
+export type ActionsActionGroupExecuteActionBody = UpdateInvoiceAction | UpdatePostAction | UpdateCampaignAction | UpdateMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -812,7 +866,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = InvoiceActionsDeleteActionData | InvoiceActionsUpdateActionData | PostActionsDeleteActionData | PostActionsUpdateActionData | PostActionsPostPublishActionData | CampaignActionsDeleteActionData | CampaignActionsUpdateActionData | MediaActionsDeleteActionData | MediaActionsUpdateActionData | MediaActionsMediaDownloadActionData | TopLevelInvoiceActionsInvoiceCreateActionData | TopLevelPostActionsTopLevelPostCreateActionData | TopLevelCampaignActionsCampaignCreateActionData | TopLevelMediaActionsTopLevelMediaCreateActionData;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = UpdateInvoiceAction | UpdatePostAction | UpdateCampaignAction | UpdateMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

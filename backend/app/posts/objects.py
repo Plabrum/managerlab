@@ -1,6 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -63,7 +65,7 @@ class PostObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, post: Post, context: dict | None = None) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, post: Post) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",
@@ -113,13 +115,16 @@ class PostObject(BaseObject):
             ),
         ]
 
+        action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
+        actions = await action_group.get_available_actions(object=post)
+
         return ObjectDetailDTO(
             id=sqid_encode(post.id),
             object_type=ObjectTypes.Posts,
             state=post.state.name,
             title=post.title,
             fields=fields,
-            actions=post.actions,
+            actions=actions,
             created_at=post.created_at,
             updated_at=post.updated_at,
             children=[],
@@ -127,7 +132,7 @@ class PostObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, post: Post, context: dict | None = None) -> ObjectListDTO:
+    async def to_list_dto(cls, post: Post) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",
@@ -163,6 +168,9 @@ class PostObject(BaseObject):
             ),
         ]
 
+        action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
+        actions = await action_group.get_available_actions(object=post)
+
         return ObjectListDTO(
             id=sqid_encode(post.id),
             object_type=ObjectTypes.Posts,
@@ -173,7 +181,7 @@ class PostObject(BaseObject):
                 else post.content
             ),
             state=post.state.name,
-            actions=post.actions,
+            actions=actions,
             created_at=post.created_at,
             updated_at=post.updated_at,
             fields=fields,

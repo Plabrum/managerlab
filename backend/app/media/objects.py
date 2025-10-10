@@ -1,3 +1,5 @@
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -15,6 +17,11 @@ from app.utils.sqids import sqid_encode
 class MediaObject(BaseObject):
     object_type = ObjectTypes.Media
     model = Media
+
+    @classmethod
+    def get_top_level_action_group(cls):
+        return ActionGroupType.TopLevelMediaActions
+
     column_definitions = [
         ColumnDefinitionDTO(
             key="file_name",
@@ -59,12 +66,10 @@ class MediaObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(
-        cls, object: Media, context: dict | None = None
-    ) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, object: Media) -> ObjectDetailDTO:
         media = object
-        # Extract s3_client from context if provided
-        s3_client = context.get("s3_client") if context else None
+        # Get s3_client from registry dependencies
+        s3_client = cls.registry.dependencies.get("s3_client") if cls.registry else None
 
         # Generate presigned URLs if s3_client is available
         view_url = (
@@ -134,13 +139,16 @@ class MediaObject(BaseObject):
             ),
         ]
 
+        action_class = ActionRegistry().get_class(ActionGroupType.MediaActions)
+        actions = await action_class.get_available_actions(object=media)
+
         return ObjectDetailDTO(
             id=sqid_encode(media.id),
             object_type=ObjectTypes.Media,
             state=media.status,
             title=media.file_name,
             fields=fields,
-            actions=media.actions,
+            actions=actions,
             created_at=media.created_at,
             updated_at=media.updated_at,
             children=[],
@@ -148,10 +156,10 @@ class MediaObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, object: Media, context: dict | None = None) -> ObjectListDTO:
+    async def to_list_dto(cls, object: Media) -> ObjectListDTO:
         media = object
-        # Extract s3_client from context if provided
-        s3_client = context.get("s3_client") if context else None
+        # Get s3_client from registry dependencies
+        s3_client = cls.registry.dependencies.get("s3_client") if cls.registry else None
 
         # Generate presigned URLs if s3_client is available
         view_url = (
@@ -214,13 +222,16 @@ class MediaObject(BaseObject):
             ),
         ]
 
+        action_group = ActionRegistry().get_class(ActionGroupType.MediaActions)
+        actions = await action_group.get_available_actions(object=media)
+
         return ObjectListDTO(
             id=sqid_encode(media.id),
             object_type=ObjectTypes.Media,
             title=media.file_name,
             subtitle=f"{media.file_type} - {media.mime_type}",
             state=media.status,
-            actions=media.actions,
+            actions=actions,
             created_at=media.created_at,
             updated_at=media.updated_at,
             fields=fields,

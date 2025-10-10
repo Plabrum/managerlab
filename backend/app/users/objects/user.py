@@ -60,7 +60,7 @@ class UserObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, user: User, context: dict | None = None) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, user: User) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -92,7 +92,7 @@ class UserObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, user: User, context: dict | None = None) -> ObjectListDTO:
+    async def to_list_dto(cls, user: User) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",

@@ -1,22 +1,19 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Type, ClassVar, Any
+from enum import StrEnum
+from typing import Type, ClassVar, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
 from app.base.models import BaseDBModel
 from app.actions.enums import ActionIcon
-
-if TYPE_CHECKING:
-    from app.actions.schemas import ActionExecutionResponse
+from app.actions.schemas import ActionExecutionResponse
 
 
 class BaseAction(ABC):
     """Base class for all actions in the platform."""
 
-    action_key: ClassVar[
-        str
-    ]  # Required: discriminator value (e.g., MediaActions.download)
+    action_key: ClassVar[StrEnum]
     label: ClassVar[str]  # Display label
     is_bulk_allowed: ClassVar[bool] = False
     priority: ClassVar[int] = 100  # Display priority (lower = higher priority)
@@ -32,7 +29,6 @@ class BaseAction(ABC):
         cls,
         object_id: int,
         transaction: AsyncSession,
-        **kwargs: Any,
     ) -> BaseDBModel | None:
         if cls.model is None:
             return None
@@ -56,4 +52,4 @@ class BaseAction(ABC):
     @abstractmethod
     async def execute(
         cls, obj: BaseDBModel | None, data: dict[str, Any], **kwargs: Any
-    ) -> "ActionExecutionResponse": ...
+    ) -> ActionExecutionResponse: ...

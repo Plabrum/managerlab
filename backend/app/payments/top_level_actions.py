@@ -1,6 +1,5 @@
 """Top-level actions for invoices (actions that don't operate on specific invoice instances)."""
 
-from litestar.dto import DTOData
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseAction, action_group_factory, ActionGroupType
@@ -8,6 +7,8 @@ from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.payments.models import Invoice
 from app.payments.enums import InvoiceActions
+from app.payments.schemas import InvoiceCreateDTO
+from app.utils.dto import create_model
 
 
 # Create invoice action group
@@ -24,9 +25,9 @@ class CreateInvoice(BaseAction):
 
     @classmethod
     async def execute(
-        cls, data: DTOData[Invoice], transaction: AsyncSession
+        cls, data: InvoiceCreateDTO, transaction: AsyncSession
     ) -> ActionExecutionResponse:
-        new_invoice = data.create_instance()
+        new_invoice = create_model(Invoice, data)
         transaction.add(new_invoice)
         return ActionExecutionResponse(
             success=True,

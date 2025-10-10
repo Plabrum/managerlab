@@ -79,6 +79,6 @@ def provide_action_registry(s3_client: S3Dep, config: Config) -> ActionRegistry:
     return ActionRegistry(s3_client=s3_client, config=config)
 
 
-def provide_object_registry() -> ObjectRegistry:
-    """Provide the ObjectRegistry singleton."""
-    return ObjectRegistry()
+def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:
+    """Provide the ObjectRegistry singleton with dependencies."""
+    return ObjectRegistry(s3_client=s3_client, config=config)

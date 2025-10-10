@@ -1,7 +1,8 @@
 """Generic object routes and endpoints."""
 
+import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Sequence, Any
+from typing import Sequence
 from litestar import Router, get, post, Request
 
 from app.base.models import BaseDBModel
@@ -30,10 +31,7 @@ async def get_object_detail(
     request.app.logger.info(f"data:{id}, object_type:{object_type}")
     object_service = object_registry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
-
-    # Build context dict for DTO conversion
-    context: dict[str, Any] = {"s3_client": s3_client}
-    return object_service.to_detail_dto(obj, context=context)
+    return await object_service.to_detail_dto(obj)
 
 
 @post("/{object_type:str}", operation_id="list_objects")
@@ -53,15 +51,20 @@ async def list_objects(
     objects, total = await object_service.get_list(transaction, data)
     columns = object_service.column_definitions
 
-    # Build context dict for DTO conversion
-    context: dict[str, Any] = {"s3_client": s3_client}
+    # Get top-level actions for this object type (e.g., create)
+    list_actions = []
+    top_level_action_group_type = object_service.get_top_level_action_group()
+    if top_level_action_group_type:
+        top_level_action_group = action_registry.get_class(top_level_action_group_type)
+        list_actions = await top_level_action_group.get_available_actions()
 
-    # Get list-level actions
-    list_action_classes = action_registry.get_list_actions()
-    list_actions = [action_class.to_dto() for action_class in list_action_classes]
+    # Convert objects to DTOs (async)
+    object_dtos = await asyncio.gather(
+        *[object_service.to_list_dto(obj) for obj in objects]
+    )
 
     return ObjectListResponse(
-        objects=[object_service.to_list_dto(obj, context=context) for obj in objects],
+        objects=object_dtos,
         total=total,
         limit=data.limit,
         offset=data.offset,

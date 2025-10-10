@@ -61,9 +61,7 @@ class RosterObject(BaseObject):
         return [joinedload(Roster.user)]
 
     @classmethod
-    def to_detail_dto(
-        cls, roster_member: Roster, context: dict | None = None
-    ) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, roster_member: Roster) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -119,9 +117,7 @@ class RosterObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(
-        cls, roster_member: Roster, context: dict | None = None
-    ) -> ObjectListDTO:
+    async def to_list_dto(cls, roster_member: Roster) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",

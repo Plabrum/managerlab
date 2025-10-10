@@ -1,12 +1,43 @@
 from typing import Self, Type, Dict, Any
+import inspect
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.base.registry import BaseRegistry
 from app.actions.base import BaseAction
-from app.actions.enums import ActionGroupType, ActionIcon
+from app.actions.enums import ActionGroupType
 from app.base.models import BaseDBModel
-from litestar.dto import DTOData
-from app.actions.schemas import ActionExecutionResponse
+from app.actions.schemas import ActionExecutionResponse, ActionDTO
+
+
+def _filter_kwargs_by_signature(
+    func: Any, available_kwargs: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Filter kwargs to only include parameters that the function accepts.
+
+    Args:
+        func: The function/method to inspect
+        available_kwargs: Dict of all available keyword arguments
+
+    Returns:
+        Dict containing only the kwargs that the function accepts
+    """
+    # Handle classmethods by unwrapping to get the actual function
+    if isinstance(func, classmethod):
+        func = func.__func__
+
+    sig = inspect.signature(func)
+    accepted_params = set(sig.parameters.keys())
+
+    # Remove 'cls' or 'self' from accepted params as they're implicit
+    accepted_params.discard("cls")
+    accepted_params.discard("self")
+
+    # If function accepts **kwargs, return all available kwargs
+    for param in sig.parameters.values():
+        if param.kind == inspect.Parameter.VAR_KEYWORD:
+            return available_kwargs
+
+    # Otherwise, filter to only accepted parameters
+    return {k: v for k, v in available_kwargs.items() if k in accepted_params}
 
 
 class ActionRegistry(
@@ -66,102 +97,206 @@ class ActionGroup:
 
     async def trigger(
         self,
-        action_data: Any,  # Untyped - accepts the discriminated union from routes
+        data: Any,  # Untyped - accepts the discriminated union from routes
         object_id: int | None = None,
     ) -> ActionExecutionResponse:
         obj = await self.get_object(object_id=object_id)
-        action_class = self.get_action(action_data.action)
-        return await action_class.execute(
-            obj, action_data=action_data, **self.action_registry.dependencies
+        action_class = self.get_action(data.action)
+
+        # Filter dependencies to only those accepted by execute method
+        filtered_kwargs = _filter_kwargs_by_signature(
+            action_class.execute, self.action_registry.dependencies
         )
 
+        # Check if execute method expects 'data' parameter
+        sig = inspect.signature(action_class.execute)
+        if "data" in sig.parameters:
+            return await action_class.execute(obj, data=data, **filtered_kwargs)
+        else:
+            return await action_class.execute(obj, **filtered_kwargs)
+
     async def get_available_actions(
-        self, object_id: int | None = None
-    ) -> list[tuple[str, Type[BaseAction]]]:
-        obj = await self.get_object(object_id=object_id)
+        self, object_id: int | None = None, object: BaseDBModel | None = None
+    ) -> list[ActionDTO]:
+        # Determine the object to check availability against
+        obj: BaseDBModel | None = None
+        if object is not None:
+            obj = object
+        elif object_id is not None:
+            obj = await self.get_object(object_id=object_id)
+        # else: obj remains None (for top-level actions without an object context)
 
         # Filter actions by availability
-        available = [
-            (action_key, action_class)
-            for action_key, action_class in self.actions.items()
-            if action_class.is_available(obj, **self.action_registry.dependencies)
-        ]
+        available = []
+        for action_key, action_class in self.actions.items():
+            # Filter dependencies to only those accepted by is_available method
+            filtered_kwargs = _filter_kwargs_by_signature(
+                action_class.is_available, self.action_registry.dependencies
+            )
+            if action_class.is_available(obj, **filtered_kwargs):
+                available.append((action_key, action_class))
 
         # Sort by priority
         available.sort(key=lambda x: x[1].priority)
 
-        return available
-
-
-def create_default_delete_action() -> Type[BaseAction]:
-    class DefaultDelete(BaseAction):
-        action_key = "delete"
-        label = "Delete"
-        is_bulk_allowed = True
-        priority = 0
-        icon = ActionIcon.trash
-        confirmation_message = "Are you sure you want to delete this item?"
-
-        @classmethod
-        async def execute(
-            cls,
-            obj: BaseDBModel,
-            transaction: AsyncSession,
-        ) -> ActionExecutionResponse:
-            await transaction.delete(obj)
-            return ActionExecutionResponse(
-                success=True,
-                message="Deleted item",
-                results={},
+        # Transform to DTOs
+        return [
+            ActionDTO(
+                action=action_key,
+                label=action_class.label,
+                is_bulk_allowed=action_class.is_bulk_allowed,
+                priority=action_class.priority,
+                icon=action_class.icon.value if action_class.icon else None,
+                confirmation_message=action_class.confirmation_message,
             )
-
-    DefaultDelete.__name__ = "Delete"
-    return DefaultDelete
-
-
-def create_default_update_action() -> Type[BaseAction]:
-    class DefaultUpdate(BaseAction):
-        action_key = "update"
-        label = "Update"
-        is_bulk_allowed = True
-        priority = 50
-        icon = ActionIcon.edit
-
-        @classmethod
-        async def execute(
-            cls,
-            obj: BaseDBModel,
-            data: DTOData[BaseDBModel],
-            transaction: Any,
-        ) -> ActionExecutionResponse:
-            data.update_instance(obj)
-
-            return ActionExecutionResponse(
-                success=True,
-                message="Updated item",
-                results={},
-            )
-
-    DefaultUpdate.__name__ = "Update"
-    return DefaultUpdate
+            for action_key, action_class in available
+        ]
 
 
-def action_group_factory(
+#
+# def create_default_delete_action() -> type[BaseAction]:
+#     class DefaultDelete(BaseAction):
+#         action_key = "delete"
+#         label = "Delete"
+#         is_bulk_allowed = True
+#         priority = 0
+#         icon = ActionIcon.trash
+#         confirmation_message = "Are you sure you want to delete this item?"
+#
+#         @classmethod
+#         async def execute(
+#             cls,
+#             obj: BaseDBModel,
+#             transaction: AsyncSession,
+#             **kwargs: Any,
+#         ) -> ActionExecutionResponse:
+#             if transaction:
+#                 await transaction.delete(obj)
+#             return ActionExecutionResponse(
+#                 success=True,
+#                 message="Deleted item",
+#                 results={},
+#             )
+#
+#     DefaultDelete.__name__ = "Delete"
+#     return DefaultDelete
+#
+#
+# def create_default_update_action[T: BaseDBModel](
+#     model_type: Type[T], update_dto: Type[SQLAlchemyDTO[T]]
+# ) -> type[BaseAction]:
+#     class DefaultUpdate(BaseAction):
+#         action_key = "update"
+#         label = "Update"
+#         is_bulk_allowed = True
+#         priority = 50
+#         icon = ActionIcon.edit
+#
+#         dto_class = update_dto
+#         model_class = model_type
+#
+#         @classmethod
+#         async def execute(
+#             cls,
+#             obj: T,
+#             data: Any,
+#             transaction: AsyncSession,
+#             **kwargs: Any,  # Accept additional kwargs
+#         ) -> ActionExecutionResponse:
+#             # Extract the actual data from action_data
+#             # action_data should have the update fields (excluding 'action' field)
+#             if hasattr(data, "__dict__"):
+#                 # Convert action_data to dict, excluding the 'action' field
+#                 update_data = {
+#                     k: v
+#                     for k, v in data.__dict__.items()
+#                     if k != "action" and not k.startswith("_")
+#                 }
+#             else:
+#                 update_data = data if isinstance(data, dict) else {}
+#
+#             # Create DTOData instance with the update data
+#             dto_data = DTOData[cls.dto_class](update_data)
+#
+#             # Apply updates to the model instance
+#             for field, value in dto_data.as_builtins().items():
+#                 if hasattr(obj, field):
+#                     setattr(obj, field, value)
+#
+#             transaction.add(obj)
+#
+#             return ActionExecutionResponse(
+#                 success=True,
+#                 message="Updated item",
+#                 results={},
+#             )
+#
+#     DefaultUpdate.__name__ = f"Update{model_type.__name__}"
+#     return DefaultUpdate
+#
+#
+# def create_default_create_action[T: BaseDBModel](
+#     model_type: Type[T], create_dto: Type[SQLAlchemyDTO[T]]
+# ) -> type[BaseAction]:
+#     class DefaultCreate(BaseAction):
+#         action_key = "create"
+#         label = "Create"
+#         is_bulk_allowed = False
+#         priority = 100
+#         icon = ActionIcon.add
+#
+#         dto_class = create_dto
+#         model_class = model_type
+#
+#         @classmethod
+#         async def execute(
+#             cls,
+#             obj: T | None,
+#             data: create_dto,
+#             transaction: AsyncSession,
+#             **kwargs: Any,  # Accept additional kwargs
+#         ) -> ActionExecutionResponse:
+#             new_obj = model_type(**data.as_builtins())
+#             transaction.add(new_obj)
+#             return ActionExecutionResponse(
+#                 success=True,
+#                 message="Created item",
+#                 results={},
+#             )
+#
+#         @classmethod
+#         def is_available(cls, obj: T | None, **kwargs: Any) -> bool:
+#             # Create action is available when there's no object (i.e., creating new)
+#             return obj is None
+#
+#     DefaultCreate.__name__ = f"Create{model_type.__name__}"
+#     return DefaultCreate
+#
+
+
+def action_group_factory[T: BaseDBModel](
     group_type: ActionGroupType,
-    model_type: Type[BaseDBModel] | None = None,
-    include_delete: bool = True,
-    include_update: bool = True,
+    model_type: Type[T] | None = None,
+    # include_delete: bool = True,
+    # include_update: bool = True,
+    # include_create: bool = False,  # Add option for create action
+    # update_dto: Type[SQLAlchemyDTO[T]] | None = None,
+    # create_dto: Type[SQLAlchemyDTO[T]] | None = None,
 ) -> ActionGroup:
     registry = ActionRegistry()
     action_group = ActionGroup(group_type, registry, model_type)
 
-    if include_delete and model_type:
-        delete_action = create_default_delete_action()
-        action_group(delete_action)
-
-    if include_update and model_type:
-        update_action = create_default_update_action()
-        action_group(update_action)
+    # if include_delete and model_type:
+    #     delete_action = create_default_delete_action()
+    #     action_group(delete_action)
+    #
+    # if include_update and model_type and update_dto is not None:
+    #     update_action = create_default_update_action(model_type, update_dto=update_dto)
+    #     action_group(update_action)
+    #
+    # if include_create and model_type and create_dto is not None:
+    #     create_action = create_default_create_action(model_type, create_dto=create_dto)
+    #     action_group(create_action)
 
     # Register the action group with the registry
     registry.register(group_type, action_group)

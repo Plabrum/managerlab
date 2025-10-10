@@ -9,7 +9,7 @@ from sqlalchemy import func
 from app.utils.sqids import sqid_encode
 
 if TYPE_CHECKING:
-    from app.actions.schemas import ActionDTO
+    pass
 
 
 class BaseDBModel(DeclarativeBase):
@@ -52,11 +52,3 @@ class BaseDBModel(DeclarativeBase):
     @hybrid_property
     def public_id(self) -> str:
         return sqid_encode(self.id)
-
-    @property
-    def actions(self) -> list["ActionDTO"]:
-        """Get available actions for this object instance."""
-        from app.actions.registry import ActionRegistry
-
-        registry = ActionRegistry()  # Gets singleton instance
-        return registry.get_actions_for_instance(self)

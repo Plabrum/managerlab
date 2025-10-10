@@ -8,6 +8,8 @@ from app.actions.schemas import ActionExecutionResponse
 from app.base.models import BaseDBModel
 from app.posts.models import Post
 from app.posts.enums import TopLevelPostActions
+from app.posts.schemas import PostCreateDTO
+from app.utils.dto import create_model
 
 
 top_level_post_actions = action_group_factory(ActionGroupType.TopLevelPostActions)
@@ -33,19 +35,16 @@ class CreatePost(PostTopLevelActionMixin, BaseAction):
     @classmethod
     async def execute(
         cls,
-        obj: BaseDBModel,
-        data: Post,
+        obj: Post,
+        data: PostCreateDTO,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
-        # Create new post
-        new_post = Post(**data.to_dict())
-
-        transaction.add(new_post)
-
+        post = create_model(Post, data)
+        transaction.add(post)
         return ActionExecutionResponse(
             success=True,
-            message=f"Created post '{data.title}'",
-            results={"post_id": new_post.id},
+            message="Created post ",
+            results={"post_id": post.id},
         )
 
     @classmethod

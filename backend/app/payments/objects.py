@@ -1,6 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -79,9 +81,7 @@ class InvoiceObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(
-        cls, invoice: Invoice, context: dict | None = None
-    ) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, invoice: Invoice) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",
@@ -150,13 +150,16 @@ class InvoiceObject(BaseObject):
             ),
         ]
 
+        action_group = ActionRegistry().get_class(ActionGroupType.InvoiceActions)
+        actions = await action_group.get_available_actions(object=invoice)
+
         return ObjectDetailDTO(
             id=sqid_encode(invoice.id),
             object_type=ObjectTypes.Invoices,
             state=invoice.state.name,
             title=f"Invoice #{invoice.invoice_number}",
             fields=fields,
-            actions=invoice.actions,
+            actions=actions,
             created_at=invoice.created_at,
             updated_at=invoice.updated_at,
             children=[],
@@ -164,9 +167,7 @@ class InvoiceObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(
-        cls, invoice: Invoice, context: dict | None = None
-    ) -> ObjectListDTO:
+    async def to_list_dto(cls, invoice: Invoice) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",
@@ -212,13 +213,16 @@ class InvoiceObject(BaseObject):
             ),
         ]
 
+        action_group = ActionRegistry().get_class(ActionGroupType.InvoiceActions)
+        actions = await action_group.get_available_actions(object=invoice)
+
         return ObjectListDTO(
             id=sqid_encode(invoice.id),
             object_type=ObjectTypes.Invoices,
             title=f"Invoice #{invoice.invoice_number}",
             subtitle=f"{invoice.customer_name} - ${invoice.amount_due}",
             state=invoice.state.name,
-            actions=invoice.actions,
+            actions=actions,
             created_at=invoice.created_at.isoformat(),
             updated_at=invoice.updated_at.isoformat(),
             fields=fields,

@@ -2,7 +2,11 @@ from litestar import Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.campaigns.models import Campaign
-from app.base.schemas import SanitizedSQLAlchemyDTO, UpdateSQLAlchemyDTO
+from app.base.schemas import (
+    CreateSQLAlchemyDTO,
+    SanitizedSQLAlchemyDTO,
+    UpdateSQLAlchemyDTO,
+)
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
 
@@ -21,6 +25,12 @@ class CampaignDTO(SanitizedSQLAlchemyDTO[Campaign]):
 
 
 class CampaignUpdateDTO(UpdateSQLAlchemyDTO[Campaign]):
+    """DTO for partial Campaign updates."""
+
+    pass
+
+
+class CampaignCreateDTO(CreateSQLAlchemyDTO[Campaign]):
     """DTO for partial Campaign updates."""
 
     pass

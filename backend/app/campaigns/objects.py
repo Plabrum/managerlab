@@ -1,4 +1,6 @@
 from sqlalchemy.orm import joinedload
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -65,9 +67,7 @@ class CampaignObject(BaseObject):
         return [joinedload(Campaign.brand)]
 
     @classmethod
-    def to_detail_dto(
-        cls, campaign: Campaign, context: dict | None = None
-    ) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, campaign: Campaign) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -85,13 +85,16 @@ class CampaignObject(BaseObject):
             ),
         ]
 
+        action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
+        actions = await action_group.get_available_actions(object=campaign)
+
         return ObjectDetailDTO(
             id=sqid_encode(campaign.id),
             object_type=ObjectTypes.Campaigns,
             state="active",
             title=campaign.name,
             fields=fields,
-            actions=campaign.actions,
+            actions=actions,
             created_at=campaign.created_at,
             updated_at=campaign.updated_at,
             children=[],
@@ -99,9 +102,7 @@ class CampaignObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(
-        cls, campaign: Campaign, context: dict | None = None
-    ) -> ObjectListDTO:
+    async def to_list_dto(cls, campaign: Campaign) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -133,13 +134,16 @@ class CampaignObject(BaseObject):
             ),
         ]
 
+        action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
+        actions = await action_group.get_available_actions(object=campaign)
+
         return ObjectListDTO(
             id=sqid_encode(campaign.id),
             object_type=ObjectTypes.Campaigns,
             title=campaign.name,
             subtitle=campaign.description,
             state="active",
-            actions=campaign.actions,
+            actions=actions,
             created_at=campaign.created_at,
             updated_at=campaign.updated_at,
             fields=fields,

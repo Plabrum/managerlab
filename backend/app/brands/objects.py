@@ -64,9 +64,7 @@ class BrandObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(
-        cls, brand: Brand, context: dict | None = None
-    ) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -133,13 +131,16 @@ class BrandObject(BaseObject):
             ),
         ]
 
+        # TODO: Implement BrandActions when needed
+        actions = []
+
         return ObjectDetailDTO(
             id=sqid_encode(brand.id),
             object_type=ObjectTypes.Brands,
             state="active",
             title=brand.name,
             fields=fields,
-            actions=brand.actions,
+            actions=actions,
             created_at=brand.created_at,
             updated_at=brand.updated_at,
             children=[],
@@ -147,7 +148,7 @@ class BrandObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, brand: Brand, context: dict | None = None) -> ObjectListDTO:
+    async def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -186,13 +187,16 @@ class BrandObject(BaseObject):
             ),
         ]
 
+        # TODO: Implement BrandActions when needed
+        actions = []
+
         return ObjectListDTO(
             id=sqid_encode(brand.id),
             object_type=ObjectTypes.Brands,
             title=brand.name,
             subtitle=brand.description,
             state="active",
-            actions=brand.actions,
+            actions=actions,
             created_at=brand.created_at,
             updated_at=brand.updated_at,
             fields=fields,
@@ -246,9 +250,7 @@ class BrandContactObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(
-        cls, contact: BrandContact, context: dict | None = None
-    ) -> ObjectDetailDTO:
+    async def to_detail_dto(cls, contact: BrandContact) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="first_name",
@@ -287,13 +289,16 @@ class BrandContactObject(BaseObject):
             ),
         ]
 
+        # TODO: Implement BrandContactActions when needed
+        actions = []
+
         return ObjectDetailDTO(
             id=sqid_encode(contact.id),
             object_type=ObjectTypes.BrandContacts,
             state="active",
             title=f"{contact.first_name} {contact.last_name}",
             fields=fields,
-            actions=contact.actions,
+            actions=actions,
             created_at=contact.created_at,
             updated_at=contact.updated_at,
             children=[],
@@ -301,9 +306,7 @@ class BrandContactObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(
-        cls, contact: BrandContact, context: dict | None = None
-    ) -> ObjectListDTO:
+    async def to_list_dto(cls, contact: BrandContact) -> ObjectListDTO:
         full_name = f"{contact.first_name} {contact.last_name}"
         fields = [
             ObjectFieldDTO(
@@ -336,13 +339,16 @@ class BrandContactObject(BaseObject):
             ),
         ]
 
+        # TODO: Implement BrandContactActions when needed
+        actions = []
+
         return ObjectListDTO(
             id=sqid_encode(contact.id),
             object_type=ObjectTypes.BrandContacts,
             title=full_name,
             subtitle=contact.email,
             state="active",
-            actions=contact.actions,
+            actions=actions,
             created_at=contact.created_at,
             updated_at=contact.updated_at,
             fields=fields,

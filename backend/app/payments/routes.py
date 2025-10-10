@@ -2,7 +2,7 @@ from litestar import Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.payments.models import Invoice
-from app.base.schemas import SanitizedSQLAlchemyDTO, UpdateSQLAlchemyDTO
+from app.payments.schemas import InvoiceDTO, InvoiceUpdateDTO
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
 
@@ -12,18 +12,6 @@ from app.objects.enums import ObjectTypes
 from app.payments.objects import InvoiceObject
 
 ObjectRegistry().register(ObjectTypes.Invoices, InvoiceObject)
-
-
-class InvoiceDTO(SanitizedSQLAlchemyDTO[Invoice]):
-    """Data transfer object for Invoice model."""
-
-    pass
-
-
-class InvoiceUpdateDTO(UpdateSQLAlchemyDTO[Invoice]):
-    """DTO for partial Invoice updates."""
-
-    pass
 
 
 @get("/{id:str}", return_dto=InvoiceDTO)

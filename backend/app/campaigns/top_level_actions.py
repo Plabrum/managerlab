@@ -1,4 +1,3 @@
-from litestar.dto import DTOData
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseAction, action_group_factory, ActionGroupType
@@ -6,10 +5,13 @@ from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.models import Campaign
 from app.campaigns.enums import CampaignActions
+from app.campaigns.routes import CampaignCreateDTO
+from app.utils.dto import create_model
 
 
 top_level_campaign_actions = action_group_factory(
-    ActionGroupType.TopLevelCampaignActions
+    ActionGroupType.TopLevelCampaignActions,
+    model_type=Campaign,
 )
 
 
@@ -23,9 +25,9 @@ class CreateCampaign(BaseAction):
 
     @classmethod
     async def execute(
-        cls, data: DTOData[Campaign], transaction: AsyncSession
+        cls, data: CampaignCreateDTO, transaction: AsyncSession
     ) -> ActionExecutionResponse:
-        new_campaign = data.create_instance()
+        new_campaign = create_model(Campaign, data)
         transaction.add(new_campaign)
         return ActionExecutionResponse(
             success=True,

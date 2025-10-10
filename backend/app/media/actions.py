@@ -1,4 +1,4 @@
-from typing import Any
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
@@ -6,10 +6,63 @@ from app.actions.schemas import ActionExecutionResponse
 from app.client.s3_client import S3Client
 from app.media.models import Media
 from app.media.enums import MediaActions
+from app.media.schemas import MediaUpdateDTO
+from app.utils.dto import update_model
 
 
 # Create media action group
-media_actions = action_group_factory(ActionGroupType.MediaActions, model_type=Media)
+media_actions = action_group_factory(
+    ActionGroupType.MediaActions,
+    model_type=Media,
+)
+
+
+@media_actions
+class DeleteMedia(BaseAction):
+    action_key = MediaActions.delete
+    label = "Delete"
+    is_bulk_allowed = True
+    priority = 0
+    icon = ActionIcon.trash
+    confirmation_message = "Are you sure you want to delete this media?"
+
+    @classmethod
+    async def execute(
+        cls,
+        obj: Media,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        await transaction.delete(obj)
+        return ActionExecutionResponse(
+            success=True,
+            message="Deleted media",
+            results={},
+        )
+
+
+@media_actions
+class UpdateMedia(BaseAction):
+    action_key = MediaActions.update
+    label = "Update"
+    is_bulk_allowed = True
+    priority = 50
+    icon = ActionIcon.edit
+
+    @classmethod
+    async def execute(
+        cls,
+        obj: Media,
+        data: MediaUpdateDTO,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        update_model(obj, data)
+        transaction.add(obj)
+
+        return ActionExecutionResponse(
+            success=True,
+            message="Updated media",
+            results={},
+        )
 
 
 @media_actions
@@ -40,7 +93,5 @@ class DownloadMedia(BaseAction):
         )
 
     @classmethod
-    def is_available(
-        cls, obj: Media | None, context: dict[str, Any] | None = None
-    ) -> bool:
+    def is_available(cls, obj: Media | None) -> bool:
         return obj is not None and obj.status == "ready"
