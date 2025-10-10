@@ -23,7 +23,7 @@ async def list_actions(
 ) -> ActionListResponse:
     """List available top-level actions for a group (no object context)."""
     action_group_instance = action_registry.get_class(action_group)
-    available_actions = await action_group_instance.get_available_actions(None)
+    available_actions = action_group_instance.get_available_actions(None)
 
     return ActionListResponse(actions=available_actions)
 
@@ -39,9 +39,8 @@ async def list_object_actions(
 ) -> ActionListResponse:
     """List available actions for a specific object within a group."""
     action_group_instance = action_registry.get_class(action_group)
-    available_actions = await action_group_instance.get_available_actions(
-        sqid_decode(object_id)
-    )
+    object = await action_group_instance.get_object(sqid_decode(object_id))
+    available_actions = action_group_instance.get_available_actions(object)
 
     return ActionListResponse(actions=available_actions)
 

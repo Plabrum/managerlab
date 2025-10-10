@@ -45,7 +45,7 @@ class BaseObject(ABC):
 
     @classmethod
     @abstractmethod
-    async def to_list_dto(cls, object: BaseDBModel) -> ObjectListDTO: ...
+    def to_list_dto(cls, object: BaseDBModel) -> ObjectListDTO: ...
 
     @classmethod
     def get_top_level_action_group(cls) -> "ActionGroupType | None":

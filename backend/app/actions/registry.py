@@ -115,18 +115,10 @@ class ActionGroup:
         else:
             return await action_class.execute(obj, **filtered_kwargs)
 
-    async def get_available_actions(
-        self, object_id: int | None = None, object: BaseDBModel | None = None
+    def get_available_actions(
+        self,
+        obj: BaseDBModel | None = None,
     ) -> list[ActionDTO]:
-        # Determine the object to check availability against
-        obj: BaseDBModel | None = None
-        if object is not None:
-            obj = object
-        elif object_id is not None:
-            obj = await self.get_object(object_id=object_id)
-        # else: obj remains None (for top-level actions without an object context)
-
-        # Filter actions by availability
         available = []
         for action_key, action_class in self.actions.items():
             # Filter dependencies to only those accepted by is_available method

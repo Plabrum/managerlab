@@ -65,7 +65,7 @@ class PostObject(BaseObject):
     ]
 
     @classmethod
-    async def to_detail_dto(cls, post: Post) -> ObjectDetailDTO:
+    def to_detail_dto(cls, post: Post) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",
@@ -116,7 +116,7 @@ class PostObject(BaseObject):
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
-        actions = await action_group.get_available_actions(object=post)
+        actions = action_group.get_available_actions(obj=post)
 
         return ObjectDetailDTO(
             id=sqid_encode(post.id),
@@ -132,7 +132,7 @@ class PostObject(BaseObject):
         )
 
     @classmethod
-    async def to_list_dto(cls, post: Post) -> ObjectListDTO:
+    def to_list_dto(cls, post: Post) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",
@@ -169,7 +169,7 @@ class PostObject(BaseObject):
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
-        actions = await action_group.get_available_actions(object=post)
+        actions = action_group.get_available_actions(obj=post)
 
         return ObjectListDTO(
             id=sqid_encode(post.id),

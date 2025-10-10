@@ -66,10 +66,12 @@ class MediaObject(BaseObject):
     ]
 
     @classmethod
-    async def to_detail_dto(cls, object: Media) -> ObjectDetailDTO:
+    def to_detail_dto(
+        cls, object: Media, context: dict | None = None
+    ) -> ObjectDetailDTO:
         media = object
-        # Get s3_client from registry dependencies
-        s3_client = cls.registry.dependencies.get("s3_client") if cls.registry else None
+        # Extract s3_client from context if provided
+        s3_client = context.get("s3_client") if context else None
 
         # Generate presigned URLs if s3_client is available
         view_url = (
@@ -140,7 +142,7 @@ class MediaObject(BaseObject):
         ]
 
         action_class = ActionRegistry().get_class(ActionGroupType.MediaActions)
-        actions = await action_class.get_available_actions(object=media)
+        actions = action_class.get_available_actions(obj=media)
 
         return ObjectDetailDTO(
             id=sqid_encode(media.id),
@@ -156,10 +158,10 @@ class MediaObject(BaseObject):
         )
 
     @classmethod
-    async def to_list_dto(cls, object: Media) -> ObjectListDTO:
+    def to_list_dto(cls, object: Media, context: dict | None = None) -> ObjectListDTO:
         media = object
-        # Get s3_client from registry dependencies
-        s3_client = cls.registry.dependencies.get("s3_client") if cls.registry else None
+        # Extract s3_client from context if provided
+        s3_client = context.get("s3_client") if context else None
 
         # Generate presigned URLs if s3_client is available
         view_url = (
@@ -223,7 +225,7 @@ class MediaObject(BaseObject):
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.MediaActions)
-        actions = await action_group.get_available_actions(object=media)
+        actions = action_group.get_available_actions(obj=media)
 
         return ObjectListDTO(
             id=sqid_encode(media.id),

@@ -81,7 +81,7 @@ class InvoiceObject(BaseObject):
     ]
 
     @classmethod
-    async def to_detail_dto(cls, invoice: Invoice) -> ObjectDetailDTO:
+    def to_detail_dto(cls, invoice: Invoice) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",
@@ -151,7 +151,7 @@ class InvoiceObject(BaseObject):
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.InvoiceActions)
-        actions = await action_group.get_available_actions(object=invoice)
+        actions = action_group.get_available_actions(obj=invoice)
 
         return ObjectDetailDTO(
             id=sqid_encode(invoice.id),
@@ -167,7 +167,7 @@ class InvoiceObject(BaseObject):
         )
 
     @classmethod
-    async def to_list_dto(cls, invoice: Invoice) -> ObjectListDTO:
+    def to_list_dto(cls, invoice: Invoice) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",
@@ -214,7 +214,7 @@ class InvoiceObject(BaseObject):
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.InvoiceActions)
-        actions = await action_group.get_available_actions(object=invoice)
+        actions = action_group.get_available_actions(obj=invoice)
 
         return ObjectListDTO(
             id=sqid_encode(invoice.id),
@@ -223,8 +223,8 @@ class InvoiceObject(BaseObject):
             subtitle=f"{invoice.customer_name} - ${invoice.amount_due}",
             state=invoice.state.name,
             actions=actions,
-            created_at=invoice.created_at.isoformat(),
-            updated_at=invoice.updated_at.isoformat(),
+            created_at=invoice.created_at,
+            updated_at=invoice.updated_at,
             fields=fields,
         )
 

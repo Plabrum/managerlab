@@ -67,7 +67,7 @@ class CampaignObject(BaseObject):
         return [joinedload(Campaign.brand)]
 
     @classmethod
-    async def to_detail_dto(cls, campaign: Campaign) -> ObjectDetailDTO:
+    def to_detail_dto(cls, campaign: Campaign) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -86,7 +86,7 @@ class CampaignObject(BaseObject):
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
-        actions = await action_group.get_available_actions(object=campaign)
+        actions = action_group.get_available_actions(obj=campaign)
 
         return ObjectDetailDTO(
             id=sqid_encode(campaign.id),
@@ -102,7 +102,7 @@ class CampaignObject(BaseObject):
         )
 
     @classmethod
-    async def to_list_dto(cls, campaign: Campaign) -> ObjectListDTO:
+    def to_list_dto(cls, campaign: Campaign) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -135,7 +135,7 @@ class CampaignObject(BaseObject):
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
-        actions = await action_group.get_available_actions(object=campaign)
+        actions = action_group.get_available_actions(obj=campaign)
 
         return ObjectListDTO(
             id=sqid_encode(campaign.id),

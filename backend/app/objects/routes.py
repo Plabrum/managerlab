@@ -1,6 +1,5 @@
 """Generic object routes and endpoints."""
 
-import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence
 from litestar import Router, get, post, Request
@@ -56,12 +55,10 @@ async def list_objects(
     top_level_action_group_type = object_service.get_top_level_action_group()
     if top_level_action_group_type:
         top_level_action_group = action_registry.get_class(top_level_action_group_type)
-        list_actions = await top_level_action_group.get_available_actions()
+        list_actions = top_level_action_group.get_available_actions()
 
     # Convert objects to DTOs (async)
-    object_dtos = await asyncio.gather(
-        *[object_service.to_list_dto(obj) for obj in objects]
-    )
+    object_dtos = [object_service.to_list_dto(obj) for obj in objects]
 
     return ObjectListResponse(
         objects=object_dtos,
