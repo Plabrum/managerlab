@@ -25,7 +25,7 @@ class DeleteInvoice(BaseAction):
     confirmation_message = "Are you sure you want to delete this invoice?"
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Invoice,
         transaction: AsyncSession,
@@ -47,7 +47,7 @@ class UpdateInvoice(BaseAction):
     icon = ActionIcon.edit
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Invoice,
         data: InvoiceUpdateDTO,

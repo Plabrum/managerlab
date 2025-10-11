@@ -20,7 +20,7 @@ class CreateMedia(BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls, data: MediaCreateDTO, transaction: AsyncSession
     ) -> ActionExecutionResponse:
         new_media = create_model(Media, data)

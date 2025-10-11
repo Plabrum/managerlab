@@ -24,7 +24,7 @@ class CreateCampaign(BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls, data: CampaignCreateDTO, transaction: AsyncSession
     ) -> ActionExecutionResponse:
         new_campaign = create_model(Campaign, data)

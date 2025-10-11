@@ -14,8 +14,11 @@ import type { ObjectListDTO } from '@/openapi/managerLab.schemas';
 
 // Helper to extract media URLs and data from object fields
 function extractMediaData(obj: ObjectListDTO) {
-  const getField = (key: string) =>
-    obj.fields?.find((f) => f.key === key)?.value;
+  const getField = (key: string) => {
+    const field = obj.fields?.find((f) => f.key === key);
+    if (!field?.value || typeof field.value !== 'object') return undefined;
+    return 'value' in field.value ? field.value.value : undefined;
+  };
 
   return {
     id: obj.id,

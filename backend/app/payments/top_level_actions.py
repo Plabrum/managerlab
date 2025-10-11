@@ -24,7 +24,7 @@ class CreateInvoice(BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls, data: InvoiceCreateDTO, transaction: AsyncSession
     ) -> ActionExecutionResponse:
         new_invoice = create_model(Invoice, data)

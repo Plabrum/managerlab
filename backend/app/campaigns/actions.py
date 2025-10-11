@@ -25,7 +25,7 @@ class DeleteCampaign(BaseAction):
     confirmation_message = "Are you sure you want to delete this campaign?"
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Campaign,
         transaction: AsyncSession,
@@ -47,7 +47,7 @@ class UpdateCampaign(BaseAction):
     icon = ActionIcon.edit
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Campaign,
         data: CampaignUpdateDTO,
