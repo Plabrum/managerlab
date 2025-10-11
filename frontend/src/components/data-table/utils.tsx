@@ -396,22 +396,28 @@ export function formatCellValue(
     }
 
     case 'int':
-    case 'float':
-      try {
-        const numValue =
-          typeof value.value === 'number'
-            ? value.value
-            : parseFloat(String(value.value));
-        return (
-          <div className="text-right font-mono">
-            {isNaN(numValue) ? String(value.value) : numValue.toLocaleString()}
-          </div>
-        );
-      } catch {
-        return (
-          <div className="text-right font-mono">{String(value.value)}</div>
-        );
+    case 'float': {
+      if ('value' in value) {
+        try {
+          const numValue =
+            typeof value.value === 'number'
+              ? value.value
+              : parseFloat(String(value.value));
+          return (
+            <div className="text-right font-mono">
+              {isNaN(numValue)
+                ? String(value.value)
+                : numValue.toLocaleString()}
+            </div>
+          );
+        } catch {
+          return (
+            <div className="text-right font-mono">{String(value.value)}</div>
+          );
+        }
       }
+      return '-';
+    }
 
     case 'string':
     case 'text':

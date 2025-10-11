@@ -72,37 +72,45 @@ class RosterObject(BaseObject):
                 label="Name",
                 editable=True,
             ),
-            ObjectFieldDTO(
-                key="email",
-                value=EmailFieldValue(value=roster_member.email)
+            (
+                ObjectFieldDTO(
+                    key="email",
+                    value=(EmailFieldValue(value=roster_member.email)),
+                    label="Email",
+                    editable=True,
+                )
                 if roster_member.email
-                else None,
-                label="Email",
-                editable=True,
+                else None
             ),
-            ObjectFieldDTO(
-                key="phone",
-                value=StringFieldValue(value=roster_member.phone)
+            (
+                ObjectFieldDTO(
+                    key="phone",
+                    value=(StringFieldValue(value=roster_member.phone)),
+                    label="Phone",
+                    editable=True,
+                )
                 if roster_member.phone
-                else None,
-                label="Phone",
-                editable=True,
+                else None
             ),
-            ObjectFieldDTO(
-                key="instagram_handle",
-                value=StringFieldValue(value=roster_member.instagram_handle)
+            (
+                ObjectFieldDTO(
+                    key="instagram_handle",
+                    value=(StringFieldValue(value=roster_member.instagram_handle)),
+                    label="Instagram Handle",
+                    editable=True,
+                )
                 if roster_member.instagram_handle
-                else None,
-                label="Instagram Handle",
-                editable=True,
+                else None
             ),
-            ObjectFieldDTO(
-                key="owner",
-                value=StringFieldValue(value=roster_member.user.name)
+            (
+                ObjectFieldDTO(
+                    key="owner",
+                    value=(StringFieldValue(value=roster_member.user.name)),
+                    label="Owner",
+                    editable=False,
+                )
                 if roster_member.user
-                else None,
-                label="Owner",
-                editable=False,
+                else None
             ),
         ]
 
@@ -133,17 +141,21 @@ class RosterObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="email",
-                value=EmailFieldValue(value=roster_member.email)
-                if roster_member.email
-                else None,
+                value=(
+                    EmailFieldValue(value=roster_member.email)
+                    if roster_member.email
+                    else None
+                ),
                 label="Email",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="instagram_handle",
-                value=StringFieldValue(value=roster_member.instagram_handle)
-                if roster_member.instagram_handle
-                else None,
+                value=(
+                    StringFieldValue(value=roster_member.instagram_handle)
+                    if roster_member.instagram_handle
+                    else None
+                ),
                 label="Instagram",
                 editable=False,
             ),
