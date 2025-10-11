@@ -9,8 +9,25 @@ import {
   ObjectParents,
   ObjectChildren,
 } from '@/components/object-detail';
+import { MediaViewer } from '@/components/media-viewer';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
 import { useBreadcrumb } from '@/components/breadcrumb-provider';
+import type {
+  ObjectFieldDTO,
+  ImageFieldValue,
+} from '@/openapi/managerLab.schemas';
+
+// Type guard to check if a field value is an ImageFieldValue
+function isImageField(
+  field: ObjectFieldDTO
+): field is ObjectFieldDTO & { value: ImageFieldValue } {
+  return (
+    typeof field.value === 'object' &&
+    field.value !== null &&
+    'type' in field.value &&
+    field.value.type === 'image'
+  );
+}
 
 export default function MediaDetailPage({
   params,
@@ -36,6 +53,12 @@ export default function MediaDetailPage({
     // TODO: Implement action handlers
   };
 
+  // Find the image field with proper type narrowing
+  const imageField = data.fields.find(isImageField);
+
+  // Get non-image fields
+  const otherFields = data.fields.filter((field) => !isImageField(field));
+
   return (
     <div className="container mx-auto py-6">
       <div className="space-y-6">
@@ -53,8 +76,19 @@ export default function MediaDetailPage({
           />
         </div>
 
-        {/* Fields */}
-        <ObjectFields fields={data.fields} />
+        {/* Two Column Grid - only when image exists */}
+        {imageField ? (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Left Column - Fields */}
+            <ObjectFields fields={otherFields} />
+
+            {/* Right Column - Media Viewer */}
+            <MediaViewer url={imageField.value.url} alt={data.title} />
+          </div>
+        ) : (
+          /* Full width when no image */
+          <ObjectFields fields={otherFields} />
+        )}
 
         {/* Parents */}
         <ObjectParents parents={data.parents || []} />

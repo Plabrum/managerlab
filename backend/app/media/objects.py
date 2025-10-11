@@ -1,13 +1,18 @@
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
+from app.client.s3_client import S3Client
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
+    DatetimeFieldValue,
     ObjectDetailDTO,
     ObjectListDTO,
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    IntFieldValue,
+    ImageFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.media.models import Media
@@ -29,6 +34,14 @@ class MediaObject(BaseObject):
             type=FieldType.String,
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.String),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="image",
+            label="Image",
+            type=FieldType.Image,
+            sortable=False,
+            filter_type=get_filter_by_field_type(FieldType.Image),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -66,175 +79,150 @@ class MediaObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(
-        cls, object: Media, context: dict | None = None
-    ) -> ObjectDetailDTO:
-        media = object
-        # Extract s3_client from context if provided
-        s3_client = context.get("s3_client") if context else None
-
-        # Generate presigned URLs if s3_client is available
-        view_url = (
-            s3_client.generate_presigned_download_url(
-                key=media.file_key, expires_in=3600
-            )
-            if s3_client
-            else None
+    def to_detail_dto(cls, object: Media) -> ObjectDetailDTO:
+        s3_client: S3Client = cls.registry.dependencies["s3_client"]
+        view_url = s3_client.generate_presigned_download_url(
+            key=object.file_key, expires_in=3600
         )
         thumbnail_url = (
             s3_client.generate_presigned_download_url(
-                key=media.thumbnail_key, expires_in=3600
+                key=object.thumbnail_key, expires_in=3600
             )
-            if s3_client and media.thumbnail_key
+            if object.thumbnail_key
             else None
         )
 
         fields = [
             ObjectFieldDTO(
                 key="file_name",
-                value=media.file_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=object.file_name),
                 label="File Name",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="file_type",
-                value=media.file_type,
-                type=FieldType.String,
+                value=StringFieldValue(value=object.file_type),
                 label="File Type",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="file_size",
-                value=media.file_size,
-                type=FieldType.Int,
+                value=IntFieldValue(value=object.file_size),
                 label="File Size",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="mime_type",
-                value=media.mime_type,
-                type=FieldType.String,
+                value=StringFieldValue(value=object.mime_type),
                 label="MIME Type",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="status",
-                value=media.status,
-                type=FieldType.String,
+                value=StringFieldValue(value=object.status),
                 label="Status",
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="view_url",
-                value=view_url,
-                type=FieldType.URL,
-                label="View URL",
+                key="created_at",
+                value=DatetimeFieldValue(value=object.created_at),
+                label="Created At",
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="thumbnail_url",
-                value=thumbnail_url or view_url,
-                type=FieldType.URL,
-                label="Thumbnail URL",
+                key="image",
+                value=ImageFieldValue(
+                    url=view_url,
+                    thumbnail_url=thumbnail_url,
+                ),
+                label="Image",
                 editable=False,
             ),
         ]
 
         action_class = ActionRegistry().get_class(ActionGroupType.MediaActions)
-        actions = action_class.get_available_actions(obj=media)
+        actions = action_class.get_available_actions(obj=object)
 
         return ObjectDetailDTO(
-            id=sqid_encode(media.id),
+            id=sqid_encode(object.id),
             object_type=ObjectTypes.Media,
-            state=media.status,
-            title=media.file_name,
+            state=object.status,
+            title=object.file_name,
             fields=fields,
             actions=actions,
-            created_at=media.created_at,
-            updated_at=media.updated_at,
+            created_at=object.created_at,
+            updated_at=object.updated_at,
             children=[],
             parents=[],
         )
 
     @classmethod
-    def to_list_dto(cls, object: Media, context: dict | None = None) -> ObjectListDTO:
-        media = object
-        # Extract s3_client from context if provided
-        s3_client = context.get("s3_client") if context else None
-
-        # Generate presigned URLs if s3_client is available
-        view_url = (
-            s3_client.generate_presigned_download_url(
-                key=media.file_key, expires_in=3600
-            )
-            if s3_client
-            else None
+    def to_list_dto(cls, object: Media) -> ObjectListDTO:
+        s3_client: S3Client = cls.registry.dependencies["s3_client"]
+        view_url = s3_client.generate_presigned_download_url(
+            key=object.file_key, expires_in=3600
         )
         thumbnail_url = (
             s3_client.generate_presigned_download_url(
-                key=media.thumbnail_key, expires_in=3600
+                key=object.thumbnail_key, expires_in=3600
             )
-            if s3_client and media.thumbnail_key
+            if object.thumbnail_key
             else None
         )
 
         fields = [
             ObjectFieldDTO(
                 key="file_name",
-                value=media.file_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=object.file_name),
                 label="File Name",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="file_type",
-                value=media.file_type,
-                type=FieldType.String,
+                value=StringFieldValue(value=object.file_type),
                 label="Type",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="file_size",
-                value=media.file_size,
-                type=FieldType.Int,
+                value=IntFieldValue(value=object.file_size),
                 label="Size",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="status",
-                value=media.status,
-                type=FieldType.String,
+                value=StringFieldValue(value=object.status),
                 label="Status",
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="view_url",
-                value=view_url,
-                type=FieldType.URL,
-                label="View URL",
+                key="created_at",
+                value=DatetimeFieldValue(value=object.created_at),
+                label="Created At",
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="thumbnail_url",
-                value=thumbnail_url or view_url,
-                type=FieldType.URL,
-                label="Thumbnail",
+                key="image",
+                value=ImageFieldValue(
+                    url=view_url,
+                    thumbnail_url=thumbnail_url,
+                ),
+                label="Image",
                 editable=False,
             ),
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.MediaActions)
-        actions = action_group.get_available_actions(obj=media)
+        actions = action_group.get_available_actions(obj=object)
 
         return ObjectListDTO(
-            id=sqid_encode(media.id),
+            id=sqid_encode(object.id),
             object_type=ObjectTypes.Media,
-            title=media.file_name,
-            subtitle=f"{media.file_type} - {media.mime_type}",
-            state=media.status,
+            title=object.file_name,
+            subtitle=f"{object.file_type} - {object.mime_type}",
+            state=object.status,
             actions=actions,
-            created_at=media.created_at,
-            updated_at=media.updated_at,
+            created_at=object.created_at,
+            updated_at=object.updated_at,
             fields=fields,
         )

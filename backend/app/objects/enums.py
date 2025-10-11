@@ -26,6 +26,7 @@ class FieldType(StrEnum):
     Email = auto()
     URL = auto()
     Text = auto()
+    Image = auto()
 
 
 class FilterType(StrEnum):
@@ -36,6 +37,7 @@ class FilterType(StrEnum):
     date_filter = auto()
     boolean_filter = auto()
     enum_filter = auto()
+    null_filter = auto()
 
 
 class SortDirection(StrEnum):

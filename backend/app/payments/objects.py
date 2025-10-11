@@ -12,6 +12,12 @@ from app.objects.schemas import (
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    IntFieldValue,
+    TextFieldValue,
+    EmailFieldValue,
+    DateFieldValue,
+    USDFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.payments.models import Invoice
@@ -85,66 +91,61 @@ class InvoiceObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",
-                value=invoice.invoice_number,
-                type=FieldType.Int,
+                value=IntFieldValue(value=invoice.invoice_number),
                 label="Invoice Number",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="customer_name",
-                value=invoice.customer_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=invoice.customer_name),
                 label="Customer Name",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="customer_email",
-                value=invoice.customer_email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=invoice.customer_email),
                 label="Customer Email",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="posting_date",
-                value=(
-                    invoice.posting_date.isoformat() if invoice.posting_date else None
-                ),
-                type=FieldType.Date,
+                value=DateFieldValue(value=invoice.posting_date)
+                if invoice.posting_date
+                else None,
                 label="Posting Date",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="due_date",
-                value=invoice.due_date.isoformat() if invoice.due_date else None,
-                type=FieldType.Date,
+                value=DateFieldValue(value=invoice.due_date)
+                if invoice.due_date
+                else None,
                 label="Due Date",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="amount_due",
-                value=float(invoice.amount_due),
-                type=FieldType.USD,
+                value=USDFieldValue(value=float(invoice.amount_due)),
                 label="Amount Due",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="amount_paid",
-                value=float(invoice.amount_paid),
-                type=FieldType.USD,
+                value=USDFieldValue(value=float(invoice.amount_paid)),
                 label="Amount Paid",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="description",
-                value=invoice.description,
-                type=FieldType.Text,
+                value=TextFieldValue(value=invoice.description)
+                if invoice.description
+                else None,
                 label="Description",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="notes",
-                value=invoice.notes,
-                type=FieldType.Text,
+                value=TextFieldValue(value=invoice.notes) if invoice.notes else None,
                 label="Notes",
                 editable=True,
             ),
@@ -171,43 +172,39 @@ class InvoiceObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="invoice_number",
-                value=invoice.invoice_number,
-                type=FieldType.Int,
+                value=IntFieldValue(value=invoice.invoice_number),
                 label="Invoice #",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="customer_name",
-                value=invoice.customer_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=invoice.customer_name),
                 label="Customer",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="customer_email",
-                value=invoice.customer_email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=invoice.customer_email),
                 label="Email",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="amount_due",
-                value=float(invoice.amount_due),
-                type=FieldType.USD,
+                value=USDFieldValue(value=float(invoice.amount_due)),
                 label="Amount Due",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="amount_paid",
-                value=float(invoice.amount_paid),
-                type=FieldType.USD,
+                value=USDFieldValue(value=float(invoice.amount_paid)),
                 label="Amount Paid",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="due_date",
-                value=invoice.due_date.isoformat() if invoice.due_date else None,
-                type=FieldType.Date,
+                value=DateFieldValue(value=invoice.due_date)
+                if invoice.due_date
+                else None,
                 label="Due Date",
                 editable=False,
             ),

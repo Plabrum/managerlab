@@ -9,6 +9,9 @@ from app.objects.schemas import (
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    EmailFieldValue,
+    EnumFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.users.enums import RosterStates
@@ -61,40 +64,43 @@ class RosterObject(BaseObject):
         return [joinedload(Roster.user)]
 
     @classmethod
-    async def to_detail_dto(cls, roster_member: Roster) -> ObjectDetailDTO:
+    def to_detail_dto(cls, roster_member: Roster) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=roster_member.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=roster_member.name),
                 label="Name",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="email",
-                value=roster_member.email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=roster_member.email)
+                if roster_member.email
+                else None,
                 label="Email",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="phone",
-                value=roster_member.phone,
-                type=FieldType.String,
+                value=StringFieldValue(value=roster_member.phone)
+                if roster_member.phone
+                else None,
                 label="Phone",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="instagram_handle",
-                value=roster_member.instagram_handle,
-                type=FieldType.String,
+                value=StringFieldValue(value=roster_member.instagram_handle)
+                if roster_member.instagram_handle
+                else None,
                 label="Instagram Handle",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="owner",
-                value=roster_member.user.name if roster_member.user else None,
-                type=FieldType.String,
+                value=StringFieldValue(value=roster_member.user.name)
+                if roster_member.user
+                else None,
                 label="Owner",
                 editable=False,
             ),
@@ -121,29 +127,29 @@ class RosterObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=roster_member.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=roster_member.name),
                 label="Name",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="email",
-                value=roster_member.email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=roster_member.email)
+                if roster_member.email
+                else None,
                 label="Email",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="instagram_handle",
-                value=roster_member.instagram_handle,
-                type=FieldType.String,
+                value=StringFieldValue(value=roster_member.instagram_handle)
+                if roster_member.instagram_handle
+                else None,
                 label="Instagram",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="state",
-                value=roster_member.state.name,
-                type=FieldType.Enum,
+                value=EnumFieldValue(value=roster_member.state.name),
                 label="Status",
                 editable=False,
             ),

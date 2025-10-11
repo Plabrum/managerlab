@@ -31,7 +31,7 @@ class BaseObject(ABC):
     object_type: ClassVar[ObjectTypes]
     model: ClassVar[Type[BaseDBModel]]
     column_definitions: ClassVar[List[ColumnDefinitionDTO]]
-    registry: ClassVar["ObjectRegistry | None"] = None
+    registry: ClassVar["ObjectRegistry"]
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -41,7 +41,7 @@ class BaseObject(ABC):
 
     @classmethod
     @abstractmethod
-    async def to_detail_dto(cls, object: BaseDBModel) -> ObjectDetailDTO: ...
+    def to_detail_dto(cls, object: BaseDBModel) -> ObjectDetailDTO: ...
 
     @classmethod
     @abstractmethod

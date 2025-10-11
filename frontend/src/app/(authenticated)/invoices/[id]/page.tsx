@@ -53,8 +53,11 @@ export default function InvoiceDetailPage({
           />
         </div>
 
-        {/* Fields */}
-        <ObjectFields fields={data.fields} />
+        {/* Two Column Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Left Column - Fields */}
+          <ObjectFields fields={data.fields} />
+        </div>
 
         {/* Parents */}
         <ObjectParents parents={data.parents || []} />

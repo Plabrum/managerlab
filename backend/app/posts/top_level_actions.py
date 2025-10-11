@@ -33,7 +33,7 @@ class CreatePost(PostTopLevelActionMixin, BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Post,
         data: PostCreateDTO,
@@ -48,7 +48,7 @@ class CreatePost(PostTopLevelActionMixin, BaseAction):
         )
 
     @classmethod
-    def is_available(
+    def is_available(  # type: ignore[override]
         cls, obj: BaseDBModel, context: dict[str, Any] | None = None
     ) -> bool:
         return True

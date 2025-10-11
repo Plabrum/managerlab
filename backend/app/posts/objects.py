@@ -12,6 +12,9 @@ from app.objects.schemas import (
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    TextFieldValue,
+    DatetimeFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.posts.models import Post
@@ -69,47 +72,49 @@ class PostObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="title",
-                value=post.title,
-                type=FieldType.String,
+                value=StringFieldValue(value=post.title),
                 label="Title",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="content",
-                value=post.content,
-                type=FieldType.Text,
+                value=TextFieldValue(value=post.content) if post.content else None,
                 label="Content",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="platforms",
-                value=post.platforms.value if post.platforms else None,
-                type=FieldType.String,
+                value=(
+                    StringFieldValue(value=post.platforms.value)
+                    if post.platforms
+                    else None
+                ),
                 label="Platform",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="posting_date",
-                value=post.posting_date.isoformat() if post.posting_date else None,
-                type=FieldType.Datetime,
+                value=(
+                    DatetimeFieldValue(value=post.posting_date)
+                    if post.posting_date
+                    else None
+                ),
                 label="Posting Date",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="compensation_structure",
                 value=(
-                    post.compensation_structure.value
+                    StringFieldValue(value=post.compensation_structure.value)
                     if post.compensation_structure
                     else None
                 ),
-                type=FieldType.String,
                 label="Compensation Structure",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="notes",
-                value=str(post.notes) if post.notes else "{}",
-                type=FieldType.Text,
+                value=TextFieldValue(value=str(post.notes) if post.notes else "{}"),
                 label="Notes",
                 editable=True,
             ),
@@ -136,33 +141,43 @@ class PostObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="title",
-                value=post.title,
-                type=FieldType.String,
+                value=StringFieldValue(value=post.title),
                 label="Title",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="content",
                 value=(
-                    post.content[:100] + "..."
-                    if post.content and len(post.content) > 100
-                    else post.content
+                    TextFieldValue(
+                        value=(
+                            post.content[:100] + "..."
+                            if len(post.content) > 100
+                            else post.content
+                        )
+                    )
+                    if post.content
+                    else None
                 ),
-                type=FieldType.Text,
                 label="Content",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="platforms",
-                value=post.platforms.value if post.platforms else None,
-                type=FieldType.String,
+                value=(
+                    StringFieldValue(value=post.platforms.value)
+                    if post.platforms
+                    else None
+                ),
                 label="Platform",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="posting_date",
-                value=post.posting_date.isoformat() if post.posting_date else None,
-                type=FieldType.Datetime,
+                value=(
+                    DatetimeFieldValue(value=post.posting_date)
+                    if post.posting_date
+                    else None
+                ),
                 label="Posting Date",
                 editable=False,
             ),

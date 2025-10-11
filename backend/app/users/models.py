@@ -7,7 +7,7 @@ from app.users.enums import UserStates, RoleLevel, RosterStates
 
 
 if TYPE_CHECKING:
-    from auth.google.models import GoogleOAuthAccount
+    from app.auth.google.models import GoogleOAuthAccount
 
 
 class User(

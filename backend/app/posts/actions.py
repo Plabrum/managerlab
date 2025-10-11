@@ -22,7 +22,7 @@ class DeletePost(BaseAction):
     confirmation_message = "Are you sure you want to delete this post?"
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Post,
         transaction: AsyncSession,
@@ -44,7 +44,7 @@ class UpdatePost(BaseAction):
     icon = ActionIcon.edit
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Post,
         data: PostUpdateDTO,
@@ -71,7 +71,7 @@ class PublishPost(BaseAction):
     icon = ActionIcon.send
 
     @classmethod
-    async def execute(
+    async def execute(  # type: ignore[override]
         cls,
         obj: Post,
     ) -> ActionExecutionResponse:
@@ -84,5 +84,5 @@ class PublishPost(BaseAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Post | None) -> bool:
+    def is_available(cls, obj: Post | None) -> bool:  # type: ignore[override]
         return obj is not None and obj.state == PostStates.DRAFT

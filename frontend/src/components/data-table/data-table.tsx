@@ -219,7 +219,7 @@ function createColumnDef(
     enableSorting: columnDef.sortable ?? true,
     cell: ({ row }) => {
       const field = row.original.fields?.find((f) => f.key === columnDef.key);
-      return formatCellValue(field?.value, columnDef);
+      return formatCellValue(columnDef, field);
     },
   };
 
@@ -273,7 +273,10 @@ export function DataTable({
     () => ({
       id: 'select',
       header: ({ table }) => (
-        <div className="flex items-center justify-center">
+        <div
+          className="flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Checkbox
             checked={
               table.getIsAllPageRowsSelected() ||
@@ -287,7 +290,10 @@ export function DataTable({
         </div>
       ),
       cell: ({ row }) => (
-        <div className="flex items-center justify-center">
+        <div
+          className="flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}

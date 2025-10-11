@@ -77,6 +77,8 @@ def get_filter_by_field_type(field_type: FieldType) -> FilterType:
             return FilterType.boolean_filter
         case FieldType.Enum:
             return FilterType.enum_filter
+        case FieldType.Image:
+            return FilterType.null_filter
         case _:
             assert_never(field_type)
 

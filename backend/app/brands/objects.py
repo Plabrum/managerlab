@@ -10,6 +10,10 @@ from app.objects.schemas import (
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    TextFieldValue,
+    URLFieldValue,
+    EmailFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.brands.models.brands import Brand
@@ -64,68 +68,67 @@ class BrandObject(BaseObject):
     ]
 
     @classmethod
-    async def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
+    def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=brand.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=brand.name),
                 label="Name",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="description",
-                value=brand.description,
-                type=FieldType.Text,
+                value=TextFieldValue(value=brand.description)
+                if brand.description
+                else None,
                 label="Description",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="tone_of_voice",
-                value=brand.tone_of_voice,
-                type=FieldType.Text,
+                value=TextFieldValue(value=brand.tone_of_voice)
+                if brand.tone_of_voice
+                else None,
                 label="Tone of Voice",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="brand_values",
-                value=brand.brand_values,
-                type=FieldType.Text,
+                value=TextFieldValue(value=brand.brand_values)
+                if brand.brand_values
+                else None,
                 label="Brand Values",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="target_audience",
-                value=brand.target_audience,
-                type=FieldType.Text,
+                value=TextFieldValue(value=brand.target_audience)
+                if brand.target_audience
+                else None,
                 label="Target Audience",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="website",
-                value=brand.website,
-                type=FieldType.URL,
+                value=URLFieldValue(value=brand.website) if brand.website else None,
                 label="Website",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="email",
-                value=brand.email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=brand.email) if brand.email else None,
                 label="Email",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="phone",
-                value=brand.phone,
-                type=FieldType.String,
+                value=StringFieldValue(value=brand.phone) if brand.phone else None,
                 label="Phone",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="notes",
-                value=brand.notes,
-                type=FieldType.Text,
+                value=TextFieldValue(value=brand.notes) if brand.notes else None,
                 label="Notes",
                 editable=True,
             ),
@@ -148,40 +151,37 @@ class BrandObject(BaseObject):
         )
 
     @classmethod
-    async def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
+    def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=brand.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=brand.name),
                 label="Name",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="description",
-                value=brand.description,
-                type=FieldType.Text,
+                value=TextFieldValue(value=brand.description)
+                if brand.description
+                else None,
                 label="Description",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="website",
-                value=brand.website,
-                type=FieldType.URL,
+                value=URLFieldValue(value=brand.website) if brand.website else None,
                 label="Website",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="phone",
-                value=brand.phone,
-                type=FieldType.String,
+                value=StringFieldValue(value=brand.phone) if brand.phone else None,
                 label="Phone",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="email",
-                value=brand.email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=brand.email) if brand.email else None,
                 label="Email",
                 editable=False,
             ),
@@ -250,44 +250,51 @@ class BrandContactObject(BaseObject):
     ]
 
     @classmethod
-    async def to_detail_dto(cls, contact: BrandContact) -> ObjectDetailDTO:
+    def to_detail_dto(cls, contact: BrandContact) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="first_name",
-                value=contact.first_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=contact.first_name),
                 label="First Name",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="last_name",
-                value=contact.last_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=contact.last_name),
                 label="Last Name",
                 editable=True,
             ),
-            ObjectFieldDTO(
-                key="email",
-                value=contact.email,
-                type=FieldType.Email,
-                label="Email",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="phone",
-                value=contact.phone,
-                type=FieldType.String,
-                label="Phone",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="notes",
-                value=contact.notes,
-                type=FieldType.Text,
-                label="Notes",
-                editable=True,
-            ),
         ]
+
+        if contact.email:
+            fields.append(
+                ObjectFieldDTO(
+                    key="email",
+                    value=EmailFieldValue(value=contact.email),
+                    label="Email",
+                    editable=True,
+                )
+            )
+
+        if contact.phone:
+            fields.append(
+                ObjectFieldDTO(
+                    key="phone",
+                    value=StringFieldValue(value=contact.phone),
+                    label="Phone",
+                    editable=True,
+                )
+            )
+
+        if contact.notes:
+            fields.append(
+                ObjectFieldDTO(
+                    key="notes",
+                    value=TextFieldValue(value=contact.notes),
+                    label="Notes",
+                    editable=True,
+                )
+            )
 
         # TODO: Implement BrandContactActions when needed
         actions = []
@@ -306,34 +313,30 @@ class BrandContactObject(BaseObject):
         )
 
     @classmethod
-    async def to_list_dto(cls, contact: BrandContact) -> ObjectListDTO:
+    def to_list_dto(cls, contact: BrandContact) -> ObjectListDTO:
         full_name = f"{contact.first_name} {contact.last_name}"
         fields = [
             ObjectFieldDTO(
                 key="first_name",
-                value=contact.first_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=contact.first_name),
                 label="First Name",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="last_name",
-                value=contact.last_name,
-                type=FieldType.String,
+                value=StringFieldValue(value=contact.last_name),
                 label="Last Name",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="email",
-                value=contact.email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=contact.email) if contact.email else None,
                 label="Email",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="phone",
-                value=contact.phone,
-                type=FieldType.String,
+                value=StringFieldValue(value=contact.phone) if contact.phone else None,
                 label="Phone",
                 editable=False,
             ),

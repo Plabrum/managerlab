@@ -30,7 +30,7 @@ async def get_object_detail(
     request.app.logger.info(f"data:{id}, object_type:{object_type}")
     object_service = object_registry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
-    return await object_service.to_detail_dto(obj)
+    return object_service.to_detail_dto(obj)
 
 
 @post("/{object_type:str}", operation_id="list_objects")

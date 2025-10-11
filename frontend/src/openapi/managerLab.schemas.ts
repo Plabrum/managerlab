@@ -65,6 +65,11 @@ export interface AddUserToWaitlistWaitlistEntryResponseBody {
   public_id: string;
 }
 
+export interface BoolFieldValue {
+  value: boolean;
+  type: 'bool';
+}
+
 export interface BooleanFilterDefinition {
   column: string;
   value: boolean;
@@ -127,6 +132,11 @@ export interface CreateUserUserResponseBody {
   id: string;
 }
 
+export interface DateFieldValue {
+  value: string;
+  type: 'date';
+}
+
 export type DateFilterDefinitionStart = string | null;
 
 export type DateFilterDefinitionFinish = string | null;
@@ -136,6 +146,21 @@ export interface DateFilterDefinition {
   start?: DateFilterDefinitionStart;
   finish?: DateFilterDefinitionFinish;
   type: 'date_filter';
+}
+
+export interface DatetimeFieldValue {
+  value: string;
+  type: 'datetime';
+}
+
+export interface EmailFieldValue {
+  value: string;
+  type: 'email';
+}
+
+export interface EnumFieldValue {
+  value: string;
+  type: 'enum';
 }
 
 export interface EnumFilterDefinition {
@@ -163,6 +188,7 @@ export const FieldType = {
   email: 'email',
   url: 'url',
   text: 'text',
+  image: 'image',
 } as const;
 
 /**
@@ -179,6 +205,11 @@ export const FilterType = {
   boolean_filter: 'boolean_filter',
   enum_filter: 'enum_filter',
 } as const;
+
+export interface FloatFieldValue {
+  value: number;
+  type: 'float';
+}
 
 export type GetBrandBrandResponseBodyDescription = string | null;
 
@@ -309,6 +340,19 @@ export interface GoogleUserInfoResponseSchema {
   user_id: number;
 }
 
+export type ImageFieldValueThumbnailUrl = string | null;
+
+export interface ImageFieldValue {
+  url: string;
+  thumbnail_url?: ImageFieldValueThumbnailUrl;
+  type: 'image';
+}
+
+export interface IntFieldValue {
+  value: number;
+  type: 'int';
+}
+
 export interface ListUsersUserResponseBody {
   name: string;
   email: string;
@@ -335,12 +379,13 @@ export interface ObjectDetailDTO {
   parents?: ObjectDetailDTOParentsItem[];
 }
 
+export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue;
+
 export type ObjectFieldDTOLabel = string | null;
 
 export interface ObjectFieldDTO {
   key: string;
-  value: unknown;
-  type: FieldType;
+  value: ObjectFieldDTOValue;
   label?: ObjectFieldDTOLabel;
   editable?: boolean;
 }
@@ -475,6 +520,16 @@ export const SortDirection = {
   sort_desc: 'sort_desc',
 } as const;
 
+export interface StringFieldValue {
+  value: string;
+  type: 'string';
+}
+
+export interface TextFieldValue {
+  value: string;
+  type: 'text';
+}
+
 export type TextFilterDefinitionOperation = typeof TextFilterDefinitionOperation[keyof typeof TextFilterDefinitionOperation];
 
 
@@ -491,6 +546,16 @@ export interface TextFilterDefinition {
   operation: TextFilterDefinitionOperation;
   value: string;
   type: 'text_filter';
+}
+
+export interface URLFieldValue {
+  value: string;
+  type: 'url';
+}
+
+export interface USDFieldValue {
+  value: number;
+  type: 'usd';
 }
 
 export type UpdateBrandBrandResponseBodyDescription = string | null;

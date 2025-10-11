@@ -9,6 +9,10 @@ from app.objects.schemas import (
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    TextFieldValue,
+    URLFieldValue,
+    EnumFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.campaigns.models import Campaign
@@ -71,19 +75,21 @@ class CampaignObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=campaign.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=campaign.name),
                 label="Name",
                 editable=True,
             ),
-            ObjectFieldDTO(
-                key="description",
-                value=campaign.description,
-                type=FieldType.Text,
-                label="Description",
-                editable=True,
-            ),
         ]
+
+        if campaign.description:
+            fields.append(
+                ObjectFieldDTO(
+                    key="description",
+                    value=TextFieldValue(value=campaign.description),
+                    label="Description",
+                    editable=True,
+                )
+            )
 
         action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
         actions = action_group.get_available_actions(obj=campaign)
@@ -106,33 +112,42 @@ class CampaignObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=campaign.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=campaign.name),
                 label="Name",
                 editable=False,
             ),
-            ObjectFieldDTO(
-                key="description",
-                value=campaign.description,
-                type=FieldType.Text,
-                label="Description",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="brand",
-                value=campaign.brand.id,
-                type=FieldType.URL,
-                label=campaign.brand.name,
-                editable=False,
-            ),
+        ]
+
+        if campaign.description:
+            fields.append(
+                ObjectFieldDTO(
+                    key="description",
+                    value=TextFieldValue(value=campaign.description),
+                    label="Description",
+                    editable=False,
+                )
+            )
+
+        if campaign.brand:
+            fields.append(
+                ObjectFieldDTO(
+                    key="brand",
+                    value=URLFieldValue(
+                        value=f"brands/{sqid_encode(campaign.brand.id)}"
+                    ),
+                    label=campaign.brand.name,
+                    editable=False,
+                )
+            )
+
+        fields.append(
             ObjectFieldDTO(
                 key="state",
-                value=campaign.state.value,
-                type=FieldType.Enum,
+                value=EnumFieldValue(value=campaign.state.value),
                 label="Status",
                 editable=False,
-            ),
-        ]
+            )
+        )
 
         action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
         actions = action_group.get_available_actions(obj=campaign)
