@@ -78,10 +78,13 @@ class ActionGroup:
 
     def __call__(self, action_class: Type[BaseAction]) -> Type[BaseAction]:
         action_key = action_class.action_key
-        combined_key = f"{self.group_type.value}__{action_key.replace('.', '_')}"
-        self.actions[action_key] = action_class
+        combined_key = self._get_action_key(action_key)
+        self.actions[combined_key] = action_class
         self.action_registry.register_action(combined_key, action_class)
         return action_class
+
+    def _get_action_key(self, action_key: str) -> str:
+        return f"{self.group_type.value}__{action_key.replace('.', '_')}"
 
     def get_action(self, action_key: str) -> Type[BaseAction]:
         if action_key not in self.actions:

@@ -131,7 +131,7 @@ class RosterObject(BaseObject):
         )
 
     @classmethod
-    async def to_list_dto(cls, roster_member: Roster) -> ObjectListDTO:
+    def to_list_dto(cls, roster_member: Roster) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -139,25 +139,25 @@ class RosterObject(BaseObject):
                 label="Name",
                 editable=False,
             ),
-            ObjectFieldDTO(
-                key="email",
-                value=(
-                    EmailFieldValue(value=roster_member.email)
-                    if roster_member.email
-                    else None
-                ),
-                label="Email",
-                editable=False,
+            (
+                ObjectFieldDTO(
+                    key="email",
+                    value=(EmailFieldValue(value=roster_member.email)),
+                    label="Email",
+                    editable=False,
+                )
+                if roster_member.email
+                else None
             ),
-            ObjectFieldDTO(
-                key="instagram_handle",
-                value=(
-                    StringFieldValue(value=roster_member.instagram_handle)
-                    if roster_member.instagram_handle
-                    else None
-                ),
-                label="Instagram",
-                editable=False,
+            (
+                ObjectFieldDTO(
+                    key="instagram_handle",
+                    value=(StringFieldValue(value=roster_member.instagram_handle)),
+                    label="Instagram",
+                    editable=False,
+                )
+                if roster_member.instagram_handle
+                else None
             ),
             ObjectFieldDTO(
                 key="state",

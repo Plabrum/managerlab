@@ -1,4 +1,13 @@
-from typing import Any, TypeAliasType, Annotated, get_args, get_origin, get_type_hints
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    TypeAliasType,
+    Annotated,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
+from app.utils.dto import dto_to_msgspec_struct_from_mapper
 from functools import reduce
 import inspect
 import sys
@@ -8,6 +17,9 @@ import msgspec
 from app.actions.enums import ActionGroupType
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
+
+if TYPE_CHECKING:
+    from app.actions.registry import ActionRegistry
 
 
 class ActionDTO(BaseSchema):
@@ -73,7 +85,7 @@ def _extract_data_param_type(action_cls: type) -> Any | None:
     return _base_type(ann)
 
 
-def build_action_union(action_registry) -> TypeAliasType:
+def build_action_union(action_registry: "ActionRegistry") -> TypeAliasType:
     """Build a discriminated union type from all registered actions.
 
     This function iterates through all registered actions, extracts their data parameter
@@ -86,23 +98,19 @@ def build_action_union(action_registry) -> TypeAliasType:
     Returns:
         A TypeAliasType representing the union of all action struct types
     """
-    from app.utils.dto import dto_to_msgspec_struct_from_mapper
 
     action_structs: list[type[msgspec.Struct]] = []
 
     for action_key, action_cls in action_registry._flat_registry.items():
         tp = _extract_data_param_type(action_cls)
-        if tp is None:
-            continue
 
-        # Convert DTO to msgspec struct
-        tp = dto_to_msgspec_struct_from_mapper(tp)
+        fields = [("data", dto_to_msgspec_struct_from_mapper(tp))] if tp else []
 
-        # Create a tagged struct for this action
+        # Create a tagged struct for this action with data field
         action_structs.append(
             msgspec.defstruct(
                 f"{action_cls.__name__}Action",
-                [("data", tp)],  # Must be a list of tuples, not a dict
+                fields,
                 tag_field="action",
                 tag=action_key,
             )
