@@ -164,3 +164,6 @@ secrets.txt
 # AI
 .claude
 migrate.sh
+
+# Local upload files
+backend/uploads
