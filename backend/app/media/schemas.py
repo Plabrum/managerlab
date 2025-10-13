@@ -1,11 +1,9 @@
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTOConfig
 from app.base.schemas import (
     BaseSchema,
-    CreateSQLAlchemyDTO,
     SanitizedSQLAlchemyDTO,
-    UpdateSQLAlchemyDTO,
 )
-from app.media.models.media import Media
+from app.media.models import Media
 
 
 class MediaDTO(SanitizedSQLAlchemyDTO[Media]):
@@ -14,12 +12,8 @@ class MediaDTO(SanitizedSQLAlchemyDTO[Media]):
     config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "posts"})
 
 
-class MediaUpdateDTO(UpdateSQLAlchemyDTO[Media]):
-    config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "posts"})
-
-
-class MediaCreateDTO(CreateSQLAlchemyDTO[Media]):
-    config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "posts"})
+class MediaUpdateSchema(BaseSchema):
+    file_name: str | None = None
 
 
 class MediaWithUrlsSchema(BaseSchema):

@@ -6,6 +6,7 @@ from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
+    EnumFieldValue,
     ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
@@ -44,9 +45,17 @@ class PostObject(BaseObject):
         ColumnDefinitionDTO(
             key="platforms",
             label="Platform",
-            type=FieldType.String,
+            type=FieldType.Enum,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.Enum),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="state",
+            label="Status",
+            type=FieldType.Enum,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -146,6 +155,12 @@ class PostObject(BaseObject):
                 editable=False,
             ),
             ObjectFieldDTO(
+                key="state",
+                value=EnumFieldValue(value=post.state.value),
+                label="Status",
+                editable=False,
+            ),
+            ObjectFieldDTO(
                 key="content",
                 value=(
                     TextFieldValue(
@@ -163,11 +178,7 @@ class PostObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="platforms",
-                value=(
-                    StringFieldValue(value=post.platforms.value)
-                    if post.platforms
-                    else None
-                ),
+                value=EnumFieldValue(value=post.platforms.value),
                 label="Platform",
                 editable=False,
             ),

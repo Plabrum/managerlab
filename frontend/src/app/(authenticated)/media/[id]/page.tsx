@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ObjectHeader,
   ObjectActions,
@@ -15,7 +15,10 @@ import { useBreadcrumb } from '@/components/breadcrumb-provider';
 import type {
   ObjectFieldDTO,
   ImageFieldValue,
+  ActionDTO,
+  ActionExecutionResponse,
 } from '@/openapi/managerLab.schemas';
+import { ActionGroupType } from '@/openapi/managerLab.schemas';
 
 // Type guard to check if a field value is an ImageFieldValue
 function isImageField(
@@ -36,6 +39,7 @@ export default function MediaDetailPage({
 }) {
   const { id } = use(params);
   const pathname = usePathname();
+  const router = useRouter();
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('media', id);
@@ -48,9 +52,16 @@ export default function MediaDetailPage({
     };
   }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
-  const handleActionClick = (action: string) => {
-    console.log('Action clicked:', action, 'on media:', id);
-    // TODO: Implement action handlers
+  // Handle action completion - redirect on delete
+  const handleActionComplete = (
+    action: ActionDTO,
+    response: ActionExecutionResponse
+  ) => {
+    const isDeleteAction = action.action.toLowerCase().includes('delete');
+
+    if (isDeleteAction && response.success) {
+      router.push('/media');
+    }
   };
 
   // Find the image field with proper type narrowing
@@ -72,7 +83,9 @@ export default function MediaDetailPage({
           />
           <ObjectActions
             actions={data.actions}
-            onActionClick={handleActionClick}
+            actionGroup={ActionGroupType.media_actions}
+            objectId={id}
+            onActionComplete={handleActionComplete}
           />
         </div>
 

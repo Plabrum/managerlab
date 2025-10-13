@@ -48,13 +48,15 @@ async def health_check() -> Response:
     return Response(content={"detail": "ok"}, status_code=200)
 
 
-session_auth = SessionAuth[int, ServerSideSessionBackend](
+session_auth = SessionAuth[
+    int, ServerSideSessionBackend
+](
     session_backend_config=ServerSideSessionConfig(
-        samesite="none",  # Required for cross-origin requests
+        samesite="lax",  # Works for same-site (localhost in dev, *.managerlab.app in prod)
         secure=config.ENV != "development",  # False for localhost, True for production
         httponly=True,  # Security: prevent XSS access to cookies
         max_age=ONE_DAY_IN_SECONDS * 14,  # 14 days
-        domain=config.SESSION_COOKIE_DOMAIN,  # Configurable via env var
+        domain=config.SESSION_COOKIE_DOMAIN,  # Must be .managerlab.app in prod for subdomain access
     ),
     retrieve_user_handler=lambda session, conn: session.get("user_id"),
     exclude=[

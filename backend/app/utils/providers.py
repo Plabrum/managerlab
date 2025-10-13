@@ -75,8 +75,10 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
     return PostgreSQLSessionStore(session_factory)
 
 
-def provide_action_registry(s3_client: S3Dep, config: Config) -> ActionRegistry:
-    return ActionRegistry(s3_client=s3_client, config=config)
+def provide_action_registry(
+    s3_client: S3Dep, config: Config, transaction: AsyncSession
+) -> ActionRegistry:
+    return ActionRegistry(s3_client=s3_client, config=config, transaction=transaction)
 
 
 def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:

@@ -8,14 +8,35 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { ActionDTO } from '@/openapi/managerLab.schemas';
+import type { ActionDTO, ActionGroupType } from '@/openapi/managerLab.schemas';
+import {
+  useActionExecutor,
+  type ActionFormRenderer,
+} from '@/hooks/use-action-executor';
+import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
+import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 interface ActionsMenuProps {
   actions: ActionDTO[];
-  onActionClick: (action: string) => void;
+  actionGroup: ActionGroupType;
+  onActionComplete?: () => void;
+  renderActionForm?: ActionFormRenderer;
 }
 
-export function ActionsMenu({ actions, onActionClick }: ActionsMenuProps) {
+export function ActionsMenu({
+  actions,
+  actionGroup,
+  onActionComplete,
+  renderActionForm,
+}: ActionsMenuProps) {
+  const executor = useActionExecutor({
+    actionGroup,
+    renderActionForm,
+    onSuccess: () => {
+      onActionComplete?.();
+    },
+  });
+
   // Filter available actions
   const availableActions = actions.filter(
     (action) => action.available !== false
@@ -26,26 +47,54 @@ export function ActionsMenu({ actions, onActionClick }: ActionsMenuProps) {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <MoreHorizontal className="h-5 w-5" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {availableActions
-          .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-          .map((action, index) => (
-            <DropdownMenuItem
-              key={`${action.action}-${index}`}
-              onClick={() => onActionClick(action.action)}
-              className="cursor-pointer"
-            >
-              {action.label}
-            </DropdownMenuItem>
-          ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon">
+            <MoreHorizontal className="h-5 w-5" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {availableActions
+            .sort((a, b) => (a.priority || 0) - (b.priority || 0))
+            .map((action, index) => (
+              <DropdownMenuItem
+                key={`${action.action}-${index}`}
+                onClick={() => executor.initiateAction(action)}
+                className="cursor-pointer"
+              >
+                {action.label}
+              </DropdownMenuItem>
+            ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ActionConfirmationDialog
+        open={executor.showConfirmation}
+        action={executor.pendingAction}
+        isExecuting={executor.isExecuting}
+        onConfirm={executor.confirmAction}
+        onCancel={executor.cancelAction}
+      />
+
+      {executor.showForm &&
+        executor.pendingAction &&
+        executor.renderActionForm && (
+          <ActionFormDialog
+            open={executor.showForm}
+            action={executor.pendingAction}
+            isExecuting={executor.isExecuting}
+            onCancel={executor.cancelAction}
+          >
+            {executor.renderActionForm({
+              action: executor.pendingAction,
+              onSubmit: executor.executeWithData,
+              onCancel: executor.cancelAction,
+              isSubmitting: executor.isExecuting,
+            })}
+          </ActionFormDialog>
+        )}
+    </>
   );
 }

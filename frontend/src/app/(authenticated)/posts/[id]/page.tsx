@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { use, useEffect, useCallback } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ObjectHeader,
   ObjectActions,
@@ -11,6 +11,12 @@ import {
 } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
 import { useBreadcrumb } from '@/components/breadcrumb-provider';
+import { UpdatePostForm } from '@/components/actions/update-post-form';
+import type {
+  AppPostsSchemasPostUpdateDTOSchema,
+  ActionDTO,
+  ActionExecutionResponse,
+} from '@/openapi/managerLab.schemas';
 
 export default function PostDetailPage({
   params,
@@ -19,6 +25,7 @@ export default function PostDetailPage({
 }) {
   const { id } = use(params);
   const pathname = usePathname();
+  const router = useRouter();
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('posts', id);
@@ -31,10 +38,53 @@ export default function PostDetailPage({
     };
   }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
-  const handleActionClick = (action: string) => {
-    console.log('Action clicked:', action, 'on post:', id);
-    // TODO: Implement action handlers
-  };
+  // Handle action completion - redirect on delete
+  const handleActionComplete = useCallback(
+    (action: ActionDTO, response: ActionExecutionResponse) => {
+      const isDeleteAction = action.action.toLowerCase().includes('delete');
+
+      if (isDeleteAction && response.success) {
+        router.push('/posts');
+      }
+    },
+    [router]
+  );
+
+  // Custom form renderer for actions that require data
+  const renderPostActionForm = useCallback(
+    (props: {
+      action: { action: string };
+      onSubmit: (data: Record<string, unknown>) => void;
+      onCancel: () => void;
+      isSubmitting: boolean;
+    }) => {
+      const { action, onSubmit, onCancel, isSubmitting } = props;
+
+      // Handle update action with custom form
+      if (action.action === 'post_actions__post_update') {
+        // Extract post data from fields for default values
+        const defaultValues: Partial<AppPostsSchemasPostUpdateDTOSchema> = {
+          title: data.title,
+          state: data.state,
+          // Add other fields as needed from data.fields
+        };
+
+        return (
+          <UpdatePostForm
+            defaultValues={defaultValues}
+            onSubmit={onSubmit}
+            onCancel={onCancel}
+            isSubmitting={isSubmitting}
+          />
+        );
+      }
+
+      // Return null for actions that don't need custom forms
+      // They will be executed automatically
+      return null;
+    },
+    [data]
+  );
 
   return (
     <div className="container mx-auto py-6">
@@ -49,7 +99,10 @@ export default function PostDetailPage({
           />
           <ObjectActions
             actions={data.actions}
-            onActionClick={handleActionClick}
+            actionGroup="post_actions"
+            objectId={id}
+            renderActionForm={renderPostActionForm}
+            onActionComplete={handleActionComplete}
           />
         </div>
 

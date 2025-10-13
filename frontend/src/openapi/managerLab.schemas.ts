@@ -109,7 +109,7 @@ export interface CreateInvoiceAction {
 }
 
 export interface CreateMediaAction {
-  data: AppMediaSchemasMediaCreateDTOSchema;
+  data: RegisterMediaSchema;
   action: 'top_level_media_actions__top_level_media_create';
 }
 
@@ -152,6 +152,31 @@ export interface DatetimeFieldValue {
   value: string;
   type: 'datetime';
 }
+
+export const DeleteCampaignActionValue = {
+  action: 'campaign_actions__campaign_delete',
+} as const;
+export type DeleteCampaignAction = typeof DeleteCampaignActionValue;
+
+export const DeleteInvoiceActionValue = {
+  action: 'invoice_actions__invoice_delete',
+} as const;
+export type DeleteInvoiceAction = typeof DeleteInvoiceActionValue;
+
+export const DeleteMediaActionValue = {
+  action: 'media_actions__media_delete',
+} as const;
+export type DeleteMediaAction = typeof DeleteMediaActionValue;
+
+export const DeletePostActionValue = {
+  action: 'post_actions__post_delete',
+} as const;
+export type DeletePostAction = typeof DeletePostActionValue;
+
+export const DownloadMediaActionValue = {
+  action: 'media_actions__media_download',
+} as const;
+export type DownloadMediaAction = typeof DownloadMediaActionValue;
 
 export interface EmailFieldValue {
   value: string;
@@ -204,6 +229,7 @@ export const FilterType = {
   date_filter: 'date_filter',
   boolean_filter: 'boolean_filter',
   enum_filter: 'enum_filter',
+  null_filter: 'null_filter',
 } as const;
 
 export interface FloatFieldValue {
@@ -362,6 +388,12 @@ export interface ListUsersUserResponseBody {
   id: string;
 }
 
+export type MediaUpdateSchemaFileName = string | null;
+
+export interface MediaUpdateSchema {
+  file_name?: MediaUpdateSchemaFileName;
+}
+
 export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
 
 export type ObjectDetailDTOParentsItem = {[key: string]: ObjectRelationDTO};
@@ -379,13 +411,13 @@ export interface ObjectDetailDTO {
   parents?: ObjectDetailDTOParentsItem[];
 }
 
-export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue;
+export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
 
 export type ObjectFieldDTOLabel = string | null;
 
 export interface ObjectFieldDTO {
   key: string;
-  value: ObjectFieldDTOValue;
+  value?: ObjectFieldDTOValue;
   label?: ObjectFieldDTOLabel;
   editable?: boolean;
 }
@@ -462,6 +494,11 @@ export interface PresignedUploadResponseSchema {
   upload_url: string;
   file_key: string;
 }
+
+export const PublishPostActionValue = {
+  action: 'post_actions__post_publish',
+} as const;
+export type PublishPostAction = typeof PublishPostActionValue;
 
 export type RangeFilterDefinitionStart = number | number | null;
 
@@ -651,7 +688,7 @@ export interface UpdateInvoiceInvoiceResponseBody {
 }
 
 export interface UpdateMediaAction {
-  data: AppMediaSchemasMediaUpdateDTOSchema;
+  data: MediaUpdateSchema;
   action: 'media_actions__media_update';
 }
 
@@ -706,22 +743,6 @@ export interface AppCampaignsRoutesCampaignUpdateDTOSchema {
   description?: AppCampaignsRoutesCampaignUpdateDTOSchemaDescription;
   brand_id: number;
   state: string;
-}
-
-export interface AppMediaSchemasMediaCreateDTOSchema {
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  mime_type: string;
-  status: string;
-}
-
-export interface AppMediaSchemasMediaUpdateDTOSchema {
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  mime_type: string;
-  status: string;
 }
 
 export type AppPaymentsSchemasInvoiceCreateDTOSchemaDescription = string | null;
@@ -903,7 +924,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = UpdateInvoiceAction | UpdatePostAction | UpdateCampaignAction | UpdateMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -931,7 +952,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = UpdateInvoiceAction | UpdatePostAction | UpdateCampaignAction | UpdateMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

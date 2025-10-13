@@ -4,8 +4,7 @@ from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.media.models import Media
 from app.media.enums import TopLevelMediaActions
-from app.media.schemas import MediaCreateDTO
-from app.utils.dto import create_model
+from app.media.schemas import RegisterMediaSchema
 
 
 top_level_media_actions = action_group_factory(ActionGroupType.TopLevelMediaActions)
@@ -20,10 +19,20 @@ class CreateMedia(BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(  # type: ignore[override]
-        cls, data: MediaCreateDTO, transaction: AsyncSession
+    async def execute(
+        cls,
+        data: RegisterMediaSchema,
+        transaction: AsyncSession,
     ) -> ActionExecutionResponse:
-        new_media = create_model(Media, data)
+        file_type = "image" if data.mime_type.startswith("image/") else "video"
+        new_media = Media(
+            file_key=data.file_key,
+            file_name=data.file_name,
+            file_size=data.file_size,
+            mime_type=data.mime_type,
+            file_type=file_type,
+            status="pending",
+        )
         transaction.add(new_media)
         return ActionExecutionResponse(
             success=True,

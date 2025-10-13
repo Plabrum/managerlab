@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ObjectHeader,
   ObjectActions,
@@ -11,6 +11,11 @@ import {
 } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
 import { useBreadcrumb } from '@/components/breadcrumb-provider';
+import {
+  ActionGroupType,
+  type ActionDTO,
+  type ActionExecutionResponse,
+} from '@/openapi/managerLab.schemas';
 
 export default function BrandDetailPage({
   params,
@@ -19,6 +24,7 @@ export default function BrandDetailPage({
 }) {
   const { id } = use(params);
   const pathname = usePathname();
+  const router = useRouter();
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('brands', id);
@@ -31,9 +37,16 @@ export default function BrandDetailPage({
     };
   }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
-  const handleActionClick = (action: string) => {
-    console.log('Action clicked:', action, 'on brand:', id);
-    // TODO: Implement action handlers
+  // Handle action completion - redirect on delete
+  const handleActionComplete = (
+    action: ActionDTO,
+    response: ActionExecutionResponse
+  ) => {
+    const isDeleteAction = action.action.toLowerCase().includes('delete');
+
+    if (isDeleteAction && response.success) {
+      router.push('/brands');
+    }
   };
 
   return (
@@ -49,7 +62,9 @@ export default function BrandDetailPage({
           />
           <ObjectActions
             actions={data.actions}
-            onActionClick={handleActionClick}
+            actionGroup={ActionGroupType.brand_actions}
+            objectId={id}
+            onActionComplete={handleActionComplete}
           />
         </div>
 

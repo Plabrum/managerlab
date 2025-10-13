@@ -13,6 +13,7 @@ import inspect
 import sys
 
 import msgspec
+from litestar.dto.base_dto import AbstractDTO
 
 from app.actions.enums import ActionGroupType
 from app.base.schemas import BaseSchema
@@ -53,6 +54,34 @@ class ActionListResponse(BaseSchema):
 def _base_type(tp: Any) -> Any:
     """Extract base type from Annotated types."""
     return get_args(tp)[0] if get_origin(tp) is Annotated else tp
+
+
+def is_dto(tp: Any) -> bool:
+    """Return True when the provided type is a Litestar DTO subclass."""
+    if tp is None:
+        return False
+
+    if isinstance(tp, TypeAliasType):
+        alias_value = getattr(tp, "__value__", None)
+        return is_dto(alias_value)
+
+    origin = get_origin(tp)
+    if origin is not None:
+        # Support Type[SomeDTO] and similar wrappers by checking innermost arg
+        if origin is type and get_args(tp):
+            return is_dto(get_args(tp)[0])
+        return False
+
+    return inspect.isclass(tp) and issubclass(tp, AbstractDTO)
+
+
+def default_tp(tp: Any | None) -> list[tuple[str, Any]]:
+    """Return struct field definitions for the provided type."""
+    if tp is None or tp is inspect._empty:
+        return []
+    if isinstance(tp, TypeAliasType):
+        tp = getattr(tp, "__value__", tp)
+    return [("data", tp)]
 
 
 def _extract_data_param_type(action_cls: type) -> Any | None:
@@ -103,18 +132,21 @@ def build_action_union(action_registry: "ActionRegistry") -> TypeAliasType:
 
     for action_key, action_cls in action_registry._flat_registry.items():
         tp = _extract_data_param_type(action_cls)
+        tp_schema = dto_to_msgspec_struct_from_mapper(tp) if tp and is_dto(tp) else tp
 
-        fields = [("data", dto_to_msgspec_struct_from_mapper(tp))] if tp else []
+        fields = default_tp(tp_schema)
 
-        # Create a tagged struct for this action with data field
-        action_structs.append(
-            msgspec.defstruct(
-                f"{action_cls.__name__}Action",
-                fields,
-                tag_field="action",
-                tag=action_key,
-            )
+        # Create a tagged struct for this action, optionally including a data field
+        struct_class = msgspec.defstruct(
+            f"{action_cls.__name__}Action",
+            fields,
+            tag_field="action",
+            tag=action_key,
         )
+        action_structs.append(struct_class)
+
+        # Register the mapping from struct type to action class
+        action_registry._struct_to_action[struct_class] = action_cls
 
     # Build union type from all action structs
     _action_union = (

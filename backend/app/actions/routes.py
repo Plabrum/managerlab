@@ -1,4 +1,4 @@
-from litestar import Router, get, post
+from litestar import Request, Router, get, post
 
 from app.actions.registry import ActionRegistry
 from app.actions.schemas import (
@@ -54,6 +54,7 @@ Action = build_action_union(ActionRegistry())
 # --------------------------------
 @post("/{action_group:str}")
 async def execute_action(
+    request: Request,
     action_group: ActionGroupType,
     data: Action,  # type: ignore [valid-type]
     action_registry: ActionRegistry,
@@ -75,7 +76,6 @@ async def execute_object_action(
     data: Action,  # type: ignore [valid-type]
     action_registry: ActionRegistry,
 ) -> ActionExecutionResponse:
-    """Execute an action in the context of a specific object."""
     action_group_instance = action_registry.get_class(action_group)
     return await action_group_instance.trigger(
         object_id=sqid_decode(object_id),

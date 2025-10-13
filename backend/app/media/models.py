@@ -5,12 +5,17 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
+from app.media.enums import MediaStates
+from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
     from app.posts.models import Post
 
 
-class Media(BaseDBModel):
+class Media(
+    StateMachineMixin(states=MediaStates, initial_state=MediaStates.PENDING),
+    BaseDBModel,
+):
     """Media object model for photos and videos."""
 
     __tablename__ = "media"
@@ -26,11 +31,6 @@ class Media(BaseDBModel):
 
     # Thumbnail
     thumbnail_key: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
-
-    # Processing status
-    status: Mapped[str] = mapped_column(
-        sa.Text, nullable=False, default="pending"
-    )  # pending, processing, ready, failed
 
     # Relationships
     # The post_media association table is defined in app.posts.models

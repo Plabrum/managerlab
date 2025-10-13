@@ -16,14 +16,20 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
+import type {
+  ColumnDefinitionDTO,
+  ObjectListDTO,
+} from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
+import { useActionExecutor } from '@/hooks/use-action-executor';
+import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
+import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 export default function PostsPage() {
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 40,
   });
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -70,9 +76,18 @@ export default function PostsPage() {
     // TODO: Implement bulk action handling
   };
 
-  const handleListAction = (action: string) => {
-    console.log('List action clicked:', action);
-    // TODO: Implement list action handlers
+  // Row action executor - handles individual row actions from the data table
+  const rowActionExecutor = useActionExecutor({
+    actionGroup: 'post_actions',
+  });
+
+  // Handle row action clicks from data table dropdown
+  const handleRowActionClick = (actionName: string, row: ObjectListDTO) => {
+    // Find the action from the row's actions
+    const action = row.actions?.find((a) => a.action === actionName);
+    if (action) {
+      rowActionExecutor.initiateAction(action, row.id);
+    }
   };
 
   return (
@@ -91,7 +106,7 @@ export default function PostsPage() {
         {data.actions && data.actions.length > 0 && (
           <ActionsMenu
             actions={data.actions}
-            onActionClick={handleListAction}
+            actionGroup="top_level_post_actions"
           />
         )}
       </div>
@@ -117,8 +132,36 @@ export default function PostsPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
+        onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
+
+      {/* Action dialogs for row actions */}
+      <ActionConfirmationDialog
+        open={rowActionExecutor.showConfirmation}
+        action={rowActionExecutor.pendingAction}
+        isExecuting={rowActionExecutor.isExecuting}
+        onConfirm={rowActionExecutor.confirmAction}
+        onCancel={rowActionExecutor.cancelAction}
+      />
+
+      {rowActionExecutor.showForm &&
+        rowActionExecutor.pendingAction &&
+        rowActionExecutor.renderActionForm && (
+          <ActionFormDialog
+            open={rowActionExecutor.showForm}
+            action={rowActionExecutor.pendingAction}
+            isExecuting={rowActionExecutor.isExecuting}
+            onCancel={rowActionExecutor.cancelAction}
+          >
+            {rowActionExecutor.renderActionForm({
+              action: rowActionExecutor.pendingAction,
+              onSubmit: rowActionExecutor.executeWithData,
+              onCancel: rowActionExecutor.cancelAction,
+              isSubmitting: rowActionExecutor.isExecuting,
+            })}
+          </ActionFormDialog>
+        )}
     </div>
   );
 }

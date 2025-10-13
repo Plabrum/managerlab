@@ -8,6 +8,7 @@ import subprocess
 
 from app.queue.registry import task
 from app.media.models import Media
+from app.media.enums import MediaStates
 
 
 @task
@@ -25,8 +26,8 @@ async def generate_thumbnail(ctx: Context, *, media_id: int) -> dict:
             if not media:
                 return {"status": "error", "message": f"Media {media_id} not found"}
 
-            # Update status to processing
-            media.status = "processing"
+            # Update state to processing
+            media.state = MediaStates.PROCESSING
 
             try:
                 # Create temp directory for processing
@@ -86,7 +87,7 @@ async def generate_thumbnail(ctx: Context, *, media_id: int) -> dict:
 
                     # Update media record with thumbnail key
                     media.thumbnail_key = thumbnail_key
-                    media.status = "ready"
+                    media.state = MediaStates.READY
 
                 return {
                     "status": "success",
@@ -96,7 +97,7 @@ async def generate_thumbnail(ctx: Context, *, media_id: int) -> dict:
 
             except Exception as e:
                 # Mark as failed if anything goes wrong
-                media.status = "failed"
+                media.state = MediaStates.FAILED
                 return {
                     "status": "error",
                     "media_id": media_id,

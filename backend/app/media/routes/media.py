@@ -61,14 +61,8 @@ async def register_media(
     )
     transaction.add(media)
     await transaction.flush()
-
-    # Refresh to ensure we have the ID
-    await transaction.refresh(media)
-
-    # Enqueue thumbnail generation task - use the integer ID
     queue = task_queues.get("default")
     await queue.enqueue("generate_thumbnail", media_id=int(media.id))
-
     return media
 
 

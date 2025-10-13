@@ -6,7 +6,7 @@ from app.actions.schemas import ActionExecutionResponse
 from app.client.s3_client import S3Client
 from app.media.models import Media
 from app.media.enums import MediaActions
-from app.media.schemas import MediaUpdateDTO
+from app.media.schemas import MediaUpdateSchema
 from app.utils.dto import update_model
 
 
@@ -52,7 +52,7 @@ class UpdateMedia(BaseAction):
     async def execute(  # type: ignore[override]
         cls,
         obj: Media,
-        data: MediaUpdateDTO,
+        data: MediaUpdateSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)
@@ -94,4 +94,6 @@ class DownloadMedia(BaseAction):
 
     @classmethod
     def is_available(cls, obj: Media | None) -> bool:  # type: ignore[override]
-        return obj is not None and obj.status == "ready"
+        from app.media.enums import MediaStates
+
+        return obj is not None and obj.state == MediaStates.READY

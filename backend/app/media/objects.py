@@ -5,6 +5,7 @@ from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     DatetimeFieldValue,
+    EnumFieldValue,
     ObjectDetailDTO,
     ObjectListDTO,
     ObjectFieldDTO,
@@ -61,8 +62,8 @@ class MediaObject(BaseObject):
             default_visible=True,
         ),
         ColumnDefinitionDTO(
-            key="status",
-            label="Status",
+            key="state",
+            label="State",
             type=FieldType.String,
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.String),
@@ -118,9 +119,9 @@ class MediaObject(BaseObject):
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="status",
-                value=StringFieldValue(value=object.status),
-                label="Status",
+                key="state",
+                value=EnumFieldValue(value=object.state.value),
+                label="State",
                 editable=False,
             ),
             ObjectFieldDTO(
@@ -146,7 +147,7 @@ class MediaObject(BaseObject):
         return ObjectDetailDTO(
             id=sqid_encode(object.id),
             object_type=ObjectTypes.Media,
-            state=object.status,
+            state=object.state,
             title=object.file_name,
             fields=fields,
             actions=actions,
@@ -190,9 +191,9 @@ class MediaObject(BaseObject):
                 editable=False,
             ),
             ObjectFieldDTO(
-                key="status",
-                value=StringFieldValue(value=object.status),
-                label="Status",
+                key="state",
+                value=EnumFieldValue(value=object.state.value),
+                label="State",
                 editable=False,
             ),
             ObjectFieldDTO(
@@ -220,7 +221,7 @@ class MediaObject(BaseObject):
             object_type=ObjectTypes.Media,
             title=object.file_name,
             subtitle=f"{object.file_type} - {object.mime_type}",
-            state=object.status,
+            state=object.state,
             actions=actions,
             created_at=object.created_at,
             updated_at=object.updated_at,

@@ -398,7 +398,8 @@ export function DataTable({
                   .map((action, index) => (
                     <DropdownMenuItem
                       key={`${action.action}-${index}`}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (onActionClick) {
                           onActionClick(action.action, row.original);
                         }

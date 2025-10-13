@@ -44,12 +44,15 @@ class ActionRegistry(
     BaseRegistry[ActionGroupType, "ActionGroup"],
 ):
     _flat_registry: Dict[str, Type[BaseAction]]
+    _struct_to_action: Dict[type, Type[BaseAction]]
 
     def __new__(cls: type[Self], **dependencies: Any) -> Self:
         inst = super().__new__(cls, **dependencies)
         # Only initialize flat registry if it doesn't exist (singleton pattern)
         if not hasattr(inst, "_flat_registry"):
             inst._flat_registry = {}
+        if not hasattr(inst, "_struct_to_action"):
+            inst._struct_to_action = {}
         return inst
 
     def register(
@@ -100,23 +103,30 @@ class ActionGroup:
 
     async def trigger(
         self,
-        data: Any,  # Untyped - accepts the discriminated union from routes
+        data: Any,  # Discriminated union instance
         object_id: int | None = None,
     ) -> ActionExecutionResponse:
         obj = await self.get_object(object_id=object_id)
-        action_class = self.get_action(data.action)
+        action_class = self.action_registry._struct_to_action[type(data)]
 
-        # Filter dependencies to only those accepted by execute method
-        filtered_kwargs = _filter_kwargs_by_signature(
-            action_class.execute, self.action_registry.dependencies
-        )
-
-        # Check if execute method expects 'data' parameter
+        # Inspect the signature once
         sig = inspect.signature(action_class.execute)
-        if "data" in sig.parameters:
-            return await action_class.execute(obj, data=data, **filtered_kwargs)
-        else:
-            return await action_class.execute(obj, **filtered_kwargs)
+        params = sig.parameters
+
+        # Prepare possible arguments
+        candidate_args = {
+            "obj": obj,
+            "data": getattr(data, "data", data),
+            **self.action_registry.dependencies,
+        }
+
+        # Filter only those accepted by the execute() signature
+        filtered_kwargs = {
+            name: val for name, val in candidate_args.items() if name in params
+        }
+
+        # Call execute() with only supported arguments
+        return await action_class.execute(**filtered_kwargs)
 
     def get_available_actions(
         self,
