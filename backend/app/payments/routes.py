@@ -2,7 +2,7 @@ from litestar import Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.payments.models import Invoice
-from app.payments.schemas import InvoiceDTO, InvoiceUpdateDTO
+from app.payments.schemas import InvoiceDTO, InvoiceUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
 
@@ -26,7 +26,7 @@ async def get_invoice(id: Sqid, transaction: AsyncSession) -> Invoice:
 
 @post("/{id:str}", return_dto=InvoiceDTO)
 async def update_invoice(
-    id: Sqid, data: InvoiceUpdateDTO, transaction: AsyncSession
+    id: Sqid, data: InvoiceUpdateSchema, transaction: AsyncSession
 ) -> Invoice:
     """Update an invoice by SQID."""
     invoice_id = sqid_decode(id)

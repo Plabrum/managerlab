@@ -1,32 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { config } from '@/lib/config';
 
 const instance = axios.create({
-  baseURL: config.api.baseUrl,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   withCredentials: true,
-});
-
-// Add interceptor to handle server-side cookie forwarding during SSR
-instance.interceptors.request.use(async (requestConfig) => {
-  // Only run on server (during SSR/RSC)
-  if (typeof window === 'undefined') {
-    try {
-      // Dynamically import next/headers (only available on server)
-      const { cookies } = await import('next/headers');
-      const cookieStore = await cookies();
-      const session = cookieStore.get('session')?.value;
-
-      // Forward session cookie to backend
-      if (session) {
-        requestConfig.headers.Cookie = `session=${session}`;
-      }
-    } catch {
-      // Ignore if cookies() is not available or fails
-      // This can happen in edge cases or older Next.js versions
-    }
-  }
-
-  return requestConfig;
 });
 
 export const customInstance = async <T>(
@@ -35,3 +11,6 @@ export const customInstance = async <T>(
   const { data } = await instance(config);
   return data;
 };
+
+export default customInstance;
+export { instance };

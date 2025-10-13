@@ -17,7 +17,6 @@ import {
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
 import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
-import { ActionsMenu } from '@/components/actions-menu';
 
 export default function BrandContactsPage() {
   // Table state
@@ -70,11 +69,6 @@ export default function BrandContactsPage() {
     // TODO: Implement bulk action handling
   };
 
-  const handleListAction = (action: string) => {
-    console.log('List action clicked:', action);
-    // TODO: Implement list action handlers
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -88,12 +82,7 @@ export default function BrandContactsPage() {
           }}
           placeholder="Search brand contacts"
         />
-        {data.actions && data.actions.length > 0 && (
-          <ActionsMenu
-            actions={data.actions}
-            onActionClick={handleListAction}
-          />
-        )}
+        {/* TODO: Add ActionsMenu when brandcontact_actions ActionGroupType is added to backend */}
       </div>
       {columnDefs && (
         <DataTableAppliedFilters

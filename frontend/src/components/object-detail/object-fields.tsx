@@ -22,7 +22,7 @@ export function ObjectFields({ fields }: ObjectFieldsProps) {
 
     // Handle discriminated union field values
     if (typeof value === 'object' && value !== null && 'type' in value) {
-      const fieldValue = value as ObjectFieldDTOValue;
+      const fieldValue = value as NonNullable<ObjectFieldDTOValue>;
       const fieldType = fieldValue.type;
 
       switch (fieldType) {

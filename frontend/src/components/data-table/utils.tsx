@@ -397,24 +397,34 @@ export function formatCellValue(
 
     case 'int':
     case 'float': {
-      if ('value' in value) {
-        try {
-          const numValue =
-            typeof value.value === 'number'
-              ? value.value
-              : parseFloat(String(value.value));
+      if (
+        'value' in value &&
+        value.value !== null &&
+        value.value !== undefined
+      ) {
+        const rawValue = value.value;
+
+        // Handle numeric values
+        if (typeof rawValue === 'number') {
           return (
             <div className="text-right font-mono">
-              {isNaN(numValue)
-                ? String(value.value)
-                : numValue.toLocaleString()}
+              {rawValue.toLocaleString()}
             </div>
           );
-        } catch {
+        }
+
+        // Handle string values that might be numbers
+        if (typeof rawValue === 'string') {
+          const numValue = parseFloat(rawValue);
           return (
-            <div className="text-right font-mono">{String(value.value)}</div>
+            <div className="text-right font-mono">
+              {isNaN(numValue) ? rawValue : numValue.toLocaleString()}
+            </div>
           );
         }
+
+        // Fallback for other types
+        return <div className="text-right font-mono">{String(rawValue)}</div>;
       }
       return '-';
     }

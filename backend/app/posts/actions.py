@@ -1,12 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions.base import BaseAction
+from app.actions.base import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
-from app.actions.registry import action_group_factory
 from app.actions.schemas import ActionExecutionResponse
 from app.posts.enums import PostStates, PostActions
 from app.posts.models import Post
-from app.posts.routes import PostUpdateDTO
+from app.posts.schemas import PostUpdateSchema
 from app.utils.dto import update_model
 
 post_actions = action_group_factory(ActionGroupType.PostActions, model_type=Post)
@@ -22,7 +21,7 @@ class DeletePost(BaseAction):
     confirmation_message = "Are you sure you want to delete this post?"
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Post,
         transaction: AsyncSession,
@@ -44,10 +43,10 @@ class UpdatePost(BaseAction):
     icon = ActionIcon.edit
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Post,
-        data: PostUpdateDTO,
+        data: PostUpdateSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)
@@ -71,7 +70,7 @@ class PublishPost(BaseAction):
     icon = ActionIcon.send
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Post,
     ) -> ActionExecutionResponse:
@@ -84,5 +83,5 @@ class PublishPost(BaseAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Post | None) -> bool:  # type: ignore[override]
+    def is_available(cls, obj: Post | None) -> bool:
         return obj is not None and obj.state == PostStates.DRAFT

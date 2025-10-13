@@ -2,7 +2,7 @@ from litestar import Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.posts.models import Post
-from app.posts.schemas import PostDTO, PostUpdateDTO
+from app.posts.schemas import PostDTO, PostUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
 
@@ -18,7 +18,9 @@ async def get_post(id: Sqid, transaction: AsyncSession) -> Post:
 
 
 @post("/{id:str}", return_dto=PostDTO)
-async def update_post(id: Sqid, data: PostUpdateDTO, transaction: AsyncSession) -> Post:
+async def update_post(
+    id: Sqid, data: PostUpdateSchema, transaction: AsyncSession
+) -> Post:
     """Update a post by SQID."""
     post_id = sqid_decode(id)
     post = await transaction.get(Post, post_id)

@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { AppPostsSchemasPostUpdateDTOSchema } from '@/openapi/managerLab.schemas';
+import type { PostUpdateSchema } from '@/openapi/managerLab.schemas';
 import { useState } from 'react';
 
 interface UpdatePostFormProps {
-  defaultValues?: Partial<AppPostsSchemasPostUpdateDTOSchema>;
-  onSubmit: (data: Record<string, unknown>) => void;
+  defaultValues?: Partial<PostUpdateSchema>;
+  onSubmit: (data: PostUpdateSchema) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 }
@@ -32,11 +32,10 @@ export function UpdatePostForm({
     onSubmit({
       title,
       content: content || null,
-      // Include other required fields from defaultValues
-      platforms: defaultValues?.platforms || 'instagram',
-      posting_date: defaultValues?.posting_date || new Date().toISOString(),
-      notes: defaultValues?.notes || {},
-      state: defaultValues?.state || 'draft',
+      // Include other optional fields from defaultValues
+      platforms: defaultValues?.platforms || undefined,
+      posting_date: defaultValues?.posting_date || undefined,
+      notes: defaultValues?.notes || undefined,
       compensation_structure:
         defaultValues?.compensation_structure || undefined,
       campaign_id: defaultValues?.campaign_id || undefined,

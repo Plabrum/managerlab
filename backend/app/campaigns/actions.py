@@ -5,7 +5,7 @@ from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.enums import CampaignActions
 from app.campaigns.models import Campaign
-from app.campaigns.routes import CampaignUpdateDTO
+from app.campaigns.schemas import CampaignUpdateSchema
 from app.utils.dto import update_model
 
 
@@ -25,7 +25,7 @@ class DeleteCampaign(BaseAction):
     confirmation_message = "Are you sure you want to delete this campaign?"
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Campaign,
         transaction: AsyncSession,
@@ -47,10 +47,10 @@ class UpdateCampaign(BaseAction):
     icon = ActionIcon.edit
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Campaign,
-        data: CampaignUpdateDTO,
+        data: CampaignUpdateSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)

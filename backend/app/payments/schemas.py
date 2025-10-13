@@ -1,24 +1,41 @@
-from app.base.schemas import (
-    CreateSQLAlchemyDTO,
-    SanitizedSQLAlchemyDTO,
-    UpdateSQLAlchemyDTO,
-)
+from datetime import date
+from decimal import Decimal
+
+from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
 from app.payments.models import Invoice
 
 
 class InvoiceDTO(SanitizedSQLAlchemyDTO[Invoice]):
-    """Data transfer object for Invoice model."""
+    """DTO for returning Invoice data."""
 
     pass
 
 
-class InvoiceUpdateDTO(UpdateSQLAlchemyDTO[Invoice]):
-    """DTO for partial Invoice updates."""
+class InvoiceUpdateSchema(BaseSchema):
+    """Schema for updating an Invoice."""
 
-    pass
+    invoice_number: int | None = None
+    customer_name: str | None = None
+    customer_email: str | None = None
+    posting_date: date | None = None
+    due_date: date | None = None
+    amount_due: Decimal | None = None
+    amount_paid: Decimal | None = None
+    description: str | None = None
+    notes: str | None = None
+    campaign_id: int | None = None
 
 
-class InvoiceCreateDTO(CreateSQLAlchemyDTO[Invoice]):
-    """DTO for partial Invoice updates."""
+class InvoiceCreateSchema(BaseSchema):
+    """Schema for creating an Invoice."""
 
-    pass
+    invoice_number: int
+    customer_name: str
+    customer_email: str
+    posting_date: date
+    due_date: date
+    amount_due: Decimal
+    amount_paid: Decimal = Decimal("0")
+    description: str | None = None
+    notes: str | None = None
+    campaign_id: int | None = None

@@ -7,7 +7,7 @@ from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.payments.models import Invoice
 from app.payments.enums import InvoiceActions
-from app.payments.schemas import InvoiceCreateDTO
+from app.payments.schemas import InvoiceCreateSchema
 from app.utils.dto import create_model
 
 
@@ -24,8 +24,8 @@ class CreateInvoice(BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(  # type: ignore[override]
-        cls, data: InvoiceCreateDTO, transaction: AsyncSession
+    async def execute(
+        cls, data: InvoiceCreateSchema, transaction: AsyncSession
     ) -> ActionExecutionResponse:
         new_invoice = create_model(Invoice, data)
         transaction.add(new_invoice)

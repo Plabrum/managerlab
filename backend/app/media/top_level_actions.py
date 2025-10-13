@@ -1,3 +1,4 @@
+from litestar_saq import TaskQueues
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
@@ -23,9 +24,10 @@ class CreateMedia(BaseAction):
         cls,
         data: RegisterMediaSchema,
         transaction: AsyncSession,
+        task_queues: TaskQueues,
     ) -> ActionExecutionResponse:
         file_type = "image" if data.mime_type.startswith("image/") else "video"
-        new_media = Media(
+        media = Media(
             file_key=data.file_key,
             file_name=data.file_name,
             file_size=data.file_size,
@@ -33,9 +35,12 @@ class CreateMedia(BaseAction):
             file_type=file_type,
             status="pending",
         )
-        transaction.add(new_media)
+        transaction.add(media)
+        await transaction.flush()
+        queue = task_queues.get("default")
+        await queue.enqueue("generate_thumbnail", media_id=int(media.id))
         return ActionExecutionResponse(
             success=True,
-            message=f"Created media '{new_media.file_name}'",
-            results={"media_id": new_media.id},
+            message=f"Created media '{media.file_name}'",
+            results={"media_id": media.id},
         )

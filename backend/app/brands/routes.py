@@ -3,7 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
-from app.base.schemas import SanitizedSQLAlchemyDTO, UpdateSQLAlchemyDTO
+from app.brands.schemas import (
+    BrandDTO,
+    BrandUpdateSchema,
+    BrandContactDTO,
+    BrandContactUpdateSchema,
+)
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
 
@@ -14,30 +19,6 @@ from app.brands.objects import BrandObject, BrandContactObject
 
 ObjectRegistry().register(ObjectTypes.Brands, BrandObject)
 ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
-
-
-class BrandDTO(SanitizedSQLAlchemyDTO[Brand]):
-    """Data transfer object for Brand model."""
-
-    pass
-
-
-class BrandUpdateDTO(UpdateSQLAlchemyDTO[Brand]):
-    """DTO for partial Brand updates."""
-
-    pass
-
-
-class BrandContactDTO(SanitizedSQLAlchemyDTO[BrandContact]):
-    """Data transfer object for BrandContact model."""
-
-    pass
-
-
-class BrandContactUpdateDTO(UpdateSQLAlchemyDTO[BrandContact]):
-    """DTO for partial BrandContact updates."""
-
-    pass
 
 
 @get("/{id:str}", return_dto=BrandDTO)
@@ -52,7 +33,7 @@ async def get_brand(id: Sqid, transaction: AsyncSession) -> Brand:
 
 @post("/{id:str}", return_dto=BrandDTO)
 async def update_brand(
-    id: Sqid, data: BrandUpdateDTO, transaction: AsyncSession
+    id: Sqid, data: BrandUpdateSchema, transaction: AsyncSession
 ) -> Brand:
     """Update a brand by SQID."""
     brand_id = sqid_decode(id)
@@ -81,7 +62,7 @@ async def get_brand_contact(id: Sqid, transaction: AsyncSession) -> BrandContact
 
 @post("/contacts/{id:str}", return_dto=BrandContactDTO)
 async def update_brand_contact(
-    id: Sqid, data: BrandContactUpdateDTO, transaction: AsyncSession
+    id: Sqid, data: BrandContactUpdateSchema, transaction: AsyncSession
 ) -> BrandContact:
     """Update a brand contact by SQID."""
     contact_id = sqid_decode(id)

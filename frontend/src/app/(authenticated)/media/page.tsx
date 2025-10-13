@@ -24,9 +24,6 @@ import type {
 import { ActionsMenu } from '@/components/actions-menu';
 import { CreateMediaForm } from '@/components/actions/create-media-form';
 import type { ActionFormRenderer } from '@/hooks/use-action-executor';
-import { useActionExecutor } from '@/hooks/use-action-executor';
-import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
-import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 export default function MediaPage() {
   // Table state
@@ -79,18 +76,9 @@ export default function MediaPage() {
     // TODO: Implement bulk action handling
   };
 
-  // Row action executor - handles individual row actions from the data table
-  const rowActionExecutor = useActionExecutor({
-    actionGroup: 'media_actions',
-  });
-
-  // Handle row action clicks from data table dropdown
   const handleRowActionClick = (actionName: string, row: ObjectListDTO) => {
-    // Find the action from the row's actions
-    const action = row.actions?.find((a) => a.action === actionName);
-    if (action) {
-      rowActionExecutor.initiateAction(action, row.id);
-    }
+    console.log('Row action clicked:', actionName, 'on row:', row.id);
+    // TODO: Implement row action handling with dynamic objectId
   };
 
   // Custom form renderer for media actions
@@ -176,33 +164,6 @@ export default function MediaPage() {
         onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
-
-      {/* Action dialogs for row actions */}
-      <ActionConfirmationDialog
-        open={rowActionExecutor.showConfirmation}
-        action={rowActionExecutor.pendingAction}
-        isExecuting={rowActionExecutor.isExecuting}
-        onConfirm={rowActionExecutor.confirmAction}
-        onCancel={rowActionExecutor.cancelAction}
-      />
-
-      {rowActionExecutor.showForm &&
-        rowActionExecutor.pendingAction &&
-        rowActionExecutor.renderActionForm && (
-          <ActionFormDialog
-            open={rowActionExecutor.showForm}
-            action={rowActionExecutor.pendingAction}
-            isExecuting={rowActionExecutor.isExecuting}
-            onCancel={rowActionExecutor.cancelAction}
-          >
-            {rowActionExecutor.renderActionForm({
-              action: rowActionExecutor.pendingAction,
-              onSubmit: rowActionExecutor.executeWithData,
-              onCancel: rowActionExecutor.cancelAction,
-              isSubmitting: rowActionExecutor.isExecuting,
-            })}
-          </ActionFormDialog>
-        )}
     </div>
   );
 }

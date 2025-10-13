@@ -27,7 +27,7 @@ class DeleteMedia(BaseAction):
     confirmation_message = "Are you sure you want to delete this media?"
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Media,
         transaction: AsyncSession,
@@ -49,7 +49,7 @@ class UpdateMedia(BaseAction):
     icon = ActionIcon.edit
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Media,
         data: MediaUpdateSchema,
@@ -74,7 +74,7 @@ class DownloadMedia(BaseAction):
     icon = ActionIcon.download
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Media,
         s3_client: S3Client,
@@ -93,7 +93,7 @@ class DownloadMedia(BaseAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Media | None) -> bool:  # type: ignore[override]
+    def is_available(cls, obj: Media | None) -> bool:
         from app.media.enums import MediaStates
 
         return obj is not None and obj.state == MediaStates.READY

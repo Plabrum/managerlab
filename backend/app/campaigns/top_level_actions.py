@@ -5,7 +5,7 @@ from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.models import Campaign
 from app.campaigns.enums import CampaignActions
-from app.campaigns.routes import CampaignCreateDTO
+from app.campaigns.schemas import CampaignCreateSchema
 from app.utils.dto import create_model
 
 
@@ -24,8 +24,8 @@ class CreateCampaign(BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(  # type: ignore[override]
-        cls, data: CampaignCreateDTO, transaction: AsyncSession
+    async def execute(
+        cls, data: CampaignCreateSchema, transaction: AsyncSession
     ) -> ActionExecutionResponse:
         new_campaign = create_model(Campaign, data)
         transaction.add(new_campaign)

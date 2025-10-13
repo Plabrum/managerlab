@@ -29,6 +29,7 @@ import type {
 
 import type {
   GetInvoiceInvoiceResponseBody,
+  InvoiceUpdateSchema,
   InvoicesIdGetInvoice400,
   InvoicesIdUpdateInvoice400,
   UpdateInvoiceInvoiceResponseBody
@@ -185,7 +186,7 @@ export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeo
  */
 export const invoicesIdUpdateInvoice = (
     id: string,
-    invoicesIdUpdateInvoiceBody: unknown,
+    invoiceUpdateSchema: InvoiceUpdateSchema,
  signal?: AbortSignal
 ) => {
       
@@ -193,7 +194,7 @@ export const invoicesIdUpdateInvoice = (
       return customInstance<UpdateInvoiceInvoiceResponseBody>(
       {url: `/invoices/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: invoicesIdUpdateInvoiceBody, signal
+      data: invoiceUpdateSchema, signal
     },
       );
     }
@@ -201,8 +202,8 @@ export const invoicesIdUpdateInvoice = (
 
 
 export const getInvoicesIdUpdateInvoiceMutationOptions = <TError = InvoicesIdUpdateInvoice400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: InvoiceUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: InvoiceUpdateSchema}, TContext> => {
 
 const mutationKey = ['invoicesIdUpdateInvoice'];
 const {mutation: mutationOptions} = options ?
@@ -214,7 +215,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, {id: string;data: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, {id: string;data: InvoiceUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  invoicesIdUpdateInvoice(id,data,)
@@ -226,18 +227,18 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type InvoicesIdUpdateInvoiceMutationResult = NonNullable<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>>
-    export type InvoicesIdUpdateInvoiceMutationBody = unknown
+    export type InvoicesIdUpdateInvoiceMutationBody = InvoiceUpdateSchema
     export type InvoicesIdUpdateInvoiceMutationError = InvoicesIdUpdateInvoice400
 
     /**
  * @summary UpdateInvoice
  */
 export const useInvoicesIdUpdateInvoice = <TError = InvoicesIdUpdateInvoice400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: InvoiceUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>,
         TError,
-        {id: string;data: unknown},
+        {id: string;data: InvoiceUpdateSchema},
         TContext
       > => {
 

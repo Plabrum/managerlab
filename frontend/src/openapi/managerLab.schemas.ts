@@ -76,6 +76,77 @@ export interface BooleanFilterDefinition {
   type: 'boolean_filter';
 }
 
+export type BrandContactUpdateSchemaFirstName = string | null;
+
+export type BrandContactUpdateSchemaLastName = string | null;
+
+export type BrandContactUpdateSchemaEmail = string | null;
+
+export type BrandContactUpdateSchemaPhone = string | null;
+
+export type BrandContactUpdateSchemaNotes = string | null;
+
+export type BrandContactUpdateSchemaBrandId = number | null;
+
+export interface BrandContactUpdateSchema {
+  first_name?: BrandContactUpdateSchemaFirstName;
+  last_name?: BrandContactUpdateSchemaLastName;
+  email?: BrandContactUpdateSchemaEmail;
+  phone?: BrandContactUpdateSchemaPhone;
+  notes?: BrandContactUpdateSchemaNotes;
+  brand_id?: BrandContactUpdateSchemaBrandId;
+}
+
+export type BrandUpdateSchemaName = string | null;
+
+export type BrandUpdateSchemaDescription = string | null;
+
+export type BrandUpdateSchemaToneOfVoice = string | null;
+
+export type BrandUpdateSchemaBrandValues = string | null;
+
+export type BrandUpdateSchemaTargetAudience = string | null;
+
+export type BrandUpdateSchemaWebsite = string | null;
+
+export type BrandUpdateSchemaEmail = string | null;
+
+export type BrandUpdateSchemaPhone = string | null;
+
+export type BrandUpdateSchemaNotes = string | null;
+
+export interface BrandUpdateSchema {
+  name?: BrandUpdateSchemaName;
+  description?: BrandUpdateSchemaDescription;
+  tone_of_voice?: BrandUpdateSchemaToneOfVoice;
+  brand_values?: BrandUpdateSchemaBrandValues;
+  target_audience?: BrandUpdateSchemaTargetAudience;
+  website?: BrandUpdateSchemaWebsite;
+  email?: BrandUpdateSchemaEmail;
+  phone?: BrandUpdateSchemaPhone;
+  notes?: BrandUpdateSchemaNotes;
+}
+
+export type CampaignCreateSchemaDescription = string | null;
+
+export interface CampaignCreateSchema {
+  name: string;
+  brand_id: number;
+  description?: CampaignCreateSchemaDescription;
+}
+
+export type CampaignUpdateSchemaName = string | null;
+
+export type CampaignUpdateSchemaDescription = string | null;
+
+export type CampaignUpdateSchemaBrandId = number | null;
+
+export interface CampaignUpdateSchema {
+  name?: CampaignUpdateSchemaName;
+  description?: CampaignUpdateSchemaDescription;
+  brand_id?: CampaignUpdateSchemaBrandId;
+}
+
 export type ColumnDefinitionDTOAvailableValues = string[] | null;
 
 export interface ColumnDefinitionDTO {
@@ -99,12 +170,12 @@ export const CompensationStructure = {
 } as const;
 
 export interface CreateCampaignAction {
-  data: AppCampaignsRoutesCampaignCreateDTOSchema;
+  data: CampaignCreateSchema;
   action: 'top_level_campaign_actions__campaign_create';
 }
 
 export interface CreateInvoiceAction {
-  data: AppPaymentsSchemasInvoiceCreateDTOSchema;
+  data: InvoiceCreateSchema;
   action: 'top_level_invoice_actions__invoice_create';
 }
 
@@ -114,7 +185,7 @@ export interface CreateMediaAction {
 }
 
 export interface CreatePostAction {
-  data: AppPostsSchemasPostCreateDTOSchema;
+  data: PostCreateSchema;
   action: 'top_level_post_actions__top_level_post_create';
 }
 
@@ -379,6 +450,58 @@ export interface IntFieldValue {
   type: 'int';
 }
 
+export type InvoiceCreateSchemaDescription = string | null;
+
+export type InvoiceCreateSchemaNotes = string | null;
+
+export type InvoiceCreateSchemaCampaignId = number | null;
+
+export interface InvoiceCreateSchema {
+  invoice_number: number;
+  customer_name: string;
+  customer_email: string;
+  posting_date: string;
+  due_date: string;
+  amount_due: number;
+  amount_paid?: number;
+  description?: InvoiceCreateSchemaDescription;
+  notes?: InvoiceCreateSchemaNotes;
+  campaign_id?: InvoiceCreateSchemaCampaignId;
+}
+
+export type InvoiceUpdateSchemaInvoiceNumber = number | null;
+
+export type InvoiceUpdateSchemaCustomerName = string | null;
+
+export type InvoiceUpdateSchemaCustomerEmail = string | null;
+
+export type InvoiceUpdateSchemaPostingDate = string | null;
+
+export type InvoiceUpdateSchemaDueDate = string | null;
+
+export type InvoiceUpdateSchemaAmountDue = number | null;
+
+export type InvoiceUpdateSchemaAmountPaid = number | null;
+
+export type InvoiceUpdateSchemaDescription = string | null;
+
+export type InvoiceUpdateSchemaNotes = string | null;
+
+export type InvoiceUpdateSchemaCampaignId = number | null;
+
+export interface InvoiceUpdateSchema {
+  invoice_number?: InvoiceUpdateSchemaInvoiceNumber;
+  customer_name?: InvoiceUpdateSchemaCustomerName;
+  customer_email?: InvoiceUpdateSchemaCustomerEmail;
+  posting_date?: InvoiceUpdateSchemaPostingDate;
+  due_date?: InvoiceUpdateSchemaDueDate;
+  amount_due?: InvoiceUpdateSchemaAmountDue;
+  amount_paid?: InvoiceUpdateSchemaAmountPaid;
+  description?: InvoiceUpdateSchemaDescription;
+  notes?: InvoiceUpdateSchemaNotes;
+  campaign_id?: InvoiceUpdateSchemaCampaignId;
+}
+
 export interface ListUsersUserResponseBody {
   name: string;
   email: string;
@@ -484,6 +607,52 @@ export const ObjectTypes = {
   invoices: 'invoices',
 } as const;
 
+export type PostCreateSchemaContent = string | null;
+
+export type PostCreateSchemaNotesOneOf = {[key: string]: unknown};
+
+export type PostCreateSchemaNotes = PostCreateSchemaNotesOneOf | null;
+
+export type PostCreateSchemaCompensationStructure = CompensationStructure | null;
+
+export type PostCreateSchemaCampaignId = number | null;
+
+export interface PostCreateSchema {
+  title: string;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  content?: PostCreateSchemaContent;
+  notes?: PostCreateSchemaNotes;
+  compensation_structure?: PostCreateSchemaCompensationStructure;
+  campaign_id?: PostCreateSchemaCampaignId;
+}
+
+export type PostUpdateSchemaTitle = string | null;
+
+export type PostUpdateSchemaContent = string | null;
+
+export type PostUpdateSchemaPlatforms = SocialMediaPlatforms | null;
+
+export type PostUpdateSchemaPostingDate = string | null;
+
+export type PostUpdateSchemaNotesOneOf = {[key: string]: unknown};
+
+export type PostUpdateSchemaNotes = PostUpdateSchemaNotesOneOf | null;
+
+export type PostUpdateSchemaCompensationStructure = CompensationStructure | null;
+
+export type PostUpdateSchemaCampaignId = number | null;
+
+export interface PostUpdateSchema {
+  title?: PostUpdateSchemaTitle;
+  content?: PostUpdateSchemaContent;
+  platforms?: PostUpdateSchemaPlatforms;
+  posting_date?: PostUpdateSchemaPostingDate;
+  notes?: PostUpdateSchemaNotes;
+  compensation_structure?: PostUpdateSchemaCompensationStructure;
+  campaign_id?: PostUpdateSchemaCampaignId;
+}
+
 export interface PresignedUploadRequestSchema {
   file_name: string;
   content_type: string;
@@ -516,7 +685,6 @@ export interface RegisterMediaMediaResponseBody {
   file_type: string;
   file_size: number;
   mime_type: string;
-  status?: string;
   created_at: string;
   updated_at: string;
   id: string;
@@ -645,7 +813,7 @@ export interface UpdateBrandContactBrandContactResponseBody {
 }
 
 export interface UpdateCampaignAction {
-  data: AppCampaignsRoutesCampaignUpdateDTOSchema;
+  data: CampaignUpdateSchema;
   action: 'campaign_actions__campaign_update';
 }
 
@@ -661,7 +829,7 @@ export interface UpdateCampaignCampaignResponseBody {
 }
 
 export interface UpdateInvoiceAction {
-  data: AppPaymentsSchemasInvoiceUpdateDTOSchema;
+  data: InvoiceUpdateSchema;
   action: 'invoice_actions__invoice_update';
 }
 
@@ -693,7 +861,7 @@ export interface UpdateMediaAction {
 }
 
 export interface UpdatePostAction {
-  data: AppPostsSchemasPostUpdateDTOSchema;
+  data: PostUpdateSchema;
   action: 'post_actions__post_update';
 }
 
@@ -725,100 +893,6 @@ export interface UserWaitlistFormSchema {
   email: string;
   company?: UserWaitlistFormSchemaCompany;
   message?: UserWaitlistFormSchemaMessage;
-}
-
-export type AppCampaignsRoutesCampaignCreateDTOSchemaDescription = string | null;
-
-export interface AppCampaignsRoutesCampaignCreateDTOSchema {
-  name: string;
-  description?: AppCampaignsRoutesCampaignCreateDTOSchemaDescription;
-  brand_id: number;
-  state: string;
-}
-
-export type AppCampaignsRoutesCampaignUpdateDTOSchemaDescription = string | null;
-
-export interface AppCampaignsRoutesCampaignUpdateDTOSchema {
-  name: string;
-  description?: AppCampaignsRoutesCampaignUpdateDTOSchemaDescription;
-  brand_id: number;
-  state: string;
-}
-
-export type AppPaymentsSchemasInvoiceCreateDTOSchemaDescription = string | null;
-
-export type AppPaymentsSchemasInvoiceCreateDTOSchemaNotes = string | null;
-
-export type AppPaymentsSchemasInvoiceCreateDTOSchemaCampaignId = number | null;
-
-export interface AppPaymentsSchemasInvoiceCreateDTOSchema {
-  invoice_number: number;
-  customer_name: string;
-  customer_email: string;
-  posting_date: string;
-  due_date: string;
-  amount_due: number;
-  amount_paid: number;
-  description?: AppPaymentsSchemasInvoiceCreateDTOSchemaDescription;
-  notes?: AppPaymentsSchemasInvoiceCreateDTOSchemaNotes;
-  campaign_id?: AppPaymentsSchemasInvoiceCreateDTOSchemaCampaignId;
-  state: string;
-}
-
-export type AppPaymentsSchemasInvoiceUpdateDTOSchemaDescription = string | null;
-
-export type AppPaymentsSchemasInvoiceUpdateDTOSchemaNotes = string | null;
-
-export type AppPaymentsSchemasInvoiceUpdateDTOSchemaCampaignId = number | null;
-
-export interface AppPaymentsSchemasInvoiceUpdateDTOSchema {
-  invoice_number: number;
-  customer_name: string;
-  customer_email: string;
-  posting_date: string;
-  due_date: string;
-  amount_due: number;
-  amount_paid: number;
-  description?: AppPaymentsSchemasInvoiceUpdateDTOSchemaDescription;
-  notes?: AppPaymentsSchemasInvoiceUpdateDTOSchemaNotes;
-  campaign_id?: AppPaymentsSchemasInvoiceUpdateDTOSchemaCampaignId;
-  state: string;
-}
-
-export type AppPostsSchemasPostCreateDTOSchemaContent = string | null;
-
-export type AppPostsSchemasPostCreateDTOSchemaCompensationStructure = string | null;
-
-export type AppPostsSchemasPostCreateDTOSchemaCampaignId = number | null;
-
-export interface AppPostsSchemasPostCreateDTOSchema {
-  title: string;
-  content?: AppPostsSchemasPostCreateDTOSchemaContent;
-  platforms: string;
-  posting_date: string;
-  notes: unknown;
-  compensation_structure?: AppPostsSchemasPostCreateDTOSchemaCompensationStructure;
-  campaign_id?: AppPostsSchemasPostCreateDTOSchemaCampaignId;
-  state: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type AppPostsSchemasPostUpdateDTOSchemaContent = string | null;
-
-export type AppPostsSchemasPostUpdateDTOSchemaCompensationStructure = string | null;
-
-export type AppPostsSchemasPostUpdateDTOSchemaCampaignId = number | null;
-
-export interface AppPostsSchemasPostUpdateDTOSchema {
-  title: string;
-  content?: AppPostsSchemasPostUpdateDTOSchemaContent;
-  platforms: string;
-  posting_date: string;
-  notes: unknown;
-  compensation_structure?: AppPostsSchemasPostUpdateDTOSchemaCompensationStructure;
-  campaign_id?: AppPostsSchemasPostUpdateDTOSchemaCampaignId;
-  state: string;
 }
 
 export type HealthHealthCheck200 = { [key: string]: unknown };

@@ -1,14 +1,13 @@
 from typing import Any, Type
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import BaseAction
+from app.actions import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
-from app.actions.registry import action_group_factory
 from app.actions.schemas import ActionExecutionResponse
 from app.base.models import BaseDBModel
 from app.posts.models import Post
 from app.posts.enums import TopLevelPostActions
-from app.posts.schemas import PostCreateDTO
+from app.posts.schemas import PostCreateSchema
 from app.utils.dto import create_model
 
 
@@ -33,10 +32,10 @@ class CreatePost(PostTopLevelActionMixin, BaseAction):
     icon = ActionIcon.add
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Post,
-        data: PostCreateDTO,
+        data: PostCreateSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         post = create_model(Post, data)
@@ -48,7 +47,7 @@ class CreatePost(PostTopLevelActionMixin, BaseAction):
         )
 
     @classmethod
-    def is_available(  # type: ignore[override]
+    def is_available(
         cls, obj: BaseDBModel, context: dict[str, Any] | None = None
     ) -> bool:
         return True

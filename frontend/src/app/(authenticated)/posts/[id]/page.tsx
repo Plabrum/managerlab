@@ -13,10 +13,11 @@ import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objec
 import { useBreadcrumb } from '@/components/breadcrumb-provider';
 import { UpdatePostForm } from '@/components/actions/update-post-form';
 import type {
-  AppPostsSchemasPostUpdateDTOSchema,
+  PostUpdateSchema,
   ActionDTO,
   ActionExecutionResponse,
 } from '@/openapi/managerLab.schemas';
+import type { ActionFormRenderer } from '@/hooks/use-action-executor';
 
 export default function PostDetailPage({
   params,
@@ -51,28 +52,24 @@ export default function PostDetailPage({
   );
 
   // Custom form renderer for actions that require data
-  const renderPostActionForm = useCallback(
-    (props: {
-      action: { action: string };
-      onSubmit: (data: Record<string, unknown>) => void;
-      onCancel: () => void;
-      isSubmitting: boolean;
-    }) => {
+  const renderPostActionForm: ActionFormRenderer = useCallback(
+    (props) => {
       const { action, onSubmit, onCancel, isSubmitting } = props;
 
       // Handle update action with custom form
       if (action.action === 'post_actions__post_update') {
         // Extract post data from fields for default values
-        const defaultValues: Partial<AppPostsSchemasPostUpdateDTOSchema> = {
+        const defaultValues: Partial<PostUpdateSchema> = {
           title: data.title,
-          state: data.state,
           // Add other fields as needed from data.fields
         };
 
         return (
           <UpdatePostForm
             defaultValues={defaultValues}
-            onSubmit={onSubmit}
+            onSubmit={(data) =>
+              onSubmit({ action: 'post_actions__post_update', data })
+            }
             onCancel={onCancel}
             isSubmitting={isSubmitting}
           />

@@ -28,6 +28,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  BrandContactUpdateSchema,
+  BrandUpdateSchema,
   BrandsContactsIdGetBrandContact400,
   BrandsContactsIdUpdateBrandContact400,
   BrandsIdGetBrand400,
@@ -189,7 +191,7 @@ export function useBrandsIdGetBrandSuspense<TData = Awaited<ReturnType<typeof br
  */
 export const brandsIdUpdateBrand = (
     id: string,
-    brandsIdUpdateBrandBody: unknown,
+    brandUpdateSchema: BrandUpdateSchema,
  signal?: AbortSignal
 ) => {
       
@@ -197,7 +199,7 @@ export const brandsIdUpdateBrand = (
       return customInstance<UpdateBrandBrandResponseBody>(
       {url: `/brands/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: brandsIdUpdateBrandBody, signal
+      data: brandUpdateSchema, signal
     },
       );
     }
@@ -205,8 +207,8 @@ export const brandsIdUpdateBrand = (
 
 
 export const getBrandsIdUpdateBrandMutationOptions = <TError = BrandsIdUpdateBrand400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, TError,{id: string;data: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, TError,{id: string;data: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, TError,{id: string;data: BrandUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, TError,{id: string;data: BrandUpdateSchema}, TContext> => {
 
 const mutationKey = ['brandsIdUpdateBrand'];
 const {mutation: mutationOptions} = options ?
@@ -218,7 +220,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, {id: string;data: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, {id: string;data: BrandUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  brandsIdUpdateBrand(id,data,)
@@ -230,18 +232,18 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type BrandsIdUpdateBrandMutationResult = NonNullable<Awaited<ReturnType<typeof brandsIdUpdateBrand>>>
-    export type BrandsIdUpdateBrandMutationBody = unknown
+    export type BrandsIdUpdateBrandMutationBody = BrandUpdateSchema
     export type BrandsIdUpdateBrandMutationError = BrandsIdUpdateBrand400
 
     /**
  * @summary UpdateBrand
  */
 export const useBrandsIdUpdateBrand = <TError = BrandsIdUpdateBrand400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, TError,{id: string;data: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsIdUpdateBrand>>, TError,{id: string;data: BrandUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof brandsIdUpdateBrand>>,
         TError,
-        {id: string;data: unknown},
+        {id: string;data: BrandUpdateSchema},
         TContext
       > => {
 
@@ -395,7 +397,7 @@ export function useBrandsContactsIdGetBrandContactSuspense<TData = Awaited<Retur
  */
 export const brandsContactsIdUpdateBrandContact = (
     id: string,
-    brandsContactsIdUpdateBrandContactBody: unknown,
+    brandContactUpdateSchema: BrandContactUpdateSchema,
  signal?: AbortSignal
 ) => {
       
@@ -403,7 +405,7 @@ export const brandsContactsIdUpdateBrandContact = (
       return customInstance<UpdateBrandContactBrandContactResponseBody>(
       {url: `/brands/contacts/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: brandsContactsIdUpdateBrandContactBody, signal
+      data: brandContactUpdateSchema, signal
     },
       );
     }
@@ -411,8 +413,8 @@ export const brandsContactsIdUpdateBrandContact = (
 
 
 export const getBrandsContactsIdUpdateBrandContactMutationOptions = <TError = BrandsContactsIdUpdateBrandContact400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, TError,{id: string;data: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, TError,{id: string;data: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, TError,{id: string;data: BrandContactUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, TError,{id: string;data: BrandContactUpdateSchema}, TContext> => {
 
 const mutationKey = ['brandsContactsIdUpdateBrandContact'];
 const {mutation: mutationOptions} = options ?
@@ -424,7 +426,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, {id: string;data: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, {id: string;data: BrandContactUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  brandsContactsIdUpdateBrandContact(id,data,)
@@ -436,18 +438,18 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type BrandsContactsIdUpdateBrandContactMutationResult = NonNullable<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>>
-    export type BrandsContactsIdUpdateBrandContactMutationBody = unknown
+    export type BrandsContactsIdUpdateBrandContactMutationBody = BrandContactUpdateSchema
     export type BrandsContactsIdUpdateBrandContactMutationError = BrandsContactsIdUpdateBrandContact400
 
     /**
  * @summary UpdateBrandContact
  */
 export const useBrandsContactsIdUpdateBrandContact = <TError = BrandsContactsIdUpdateBrandContact400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, TError,{id: string;data: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>, TError,{id: string;data: BrandContactUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof brandsContactsIdUpdateBrandContact>>,
         TError,
-        {id: string;data: unknown},
+        {id: string;data: BrandContactUpdateSchema},
         TContext
       > => {
 

@@ -1,12 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import BaseAction
+from app.actions import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
-from app.actions.registry import action_group_factory
 from app.actions.schemas import ActionExecutionResponse
 from app.payments.enums import InvoiceActions
 from app.payments.models import Invoice
-from app.payments.routes import InvoiceUpdateDTO
+from app.payments.schemas import InvoiceUpdateSchema
 from app.utils.dto import update_model
 
 
@@ -25,7 +24,7 @@ class DeleteInvoice(BaseAction):
     confirmation_message = "Are you sure you want to delete this invoice?"
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Invoice,
         transaction: AsyncSession,
@@ -47,10 +46,10 @@ class UpdateInvoice(BaseAction):
     icon = ActionIcon.edit
 
     @classmethod
-    async def execute(  # type: ignore[override]
+    async def execute(
         cls,
         obj: Invoice,
-        data: InvoiceUpdateDTO,
+        data: InvoiceUpdateSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)

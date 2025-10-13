@@ -4,6 +4,7 @@ from litestar import Litestar
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
+from litestar_saq import TaskQueues
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -76,9 +77,14 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
 
 
 def provide_action_registry(
-    s3_client: S3Dep, config: Config, transaction: AsyncSession
+    s3_client: S3Dep, config: Config, transaction: AsyncSession, task_queues: TaskQueues
 ) -> ActionRegistry:
-    return ActionRegistry(s3_client=s3_client, config=config, transaction=transaction)
+    return ActionRegistry(
+        s3_client=s3_client,
+        config=config,
+        transaction=transaction,
+        task_queues=task_queues,
+    )
 
 
 def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:

@@ -2,11 +2,7 @@ from litestar import Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.campaigns.models import Campaign
-from app.base.schemas import (
-    CreateSQLAlchemyDTO,
-    SanitizedSQLAlchemyDTO,
-    UpdateSQLAlchemyDTO,
-)
+from app.campaigns.schemas import CampaignDTO, CampaignUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
 
@@ -16,24 +12,6 @@ from app.objects.enums import ObjectTypes
 from app.campaigns.objects import CampaignObject
 
 ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
-
-
-class CampaignDTO(SanitizedSQLAlchemyDTO[Campaign]):
-    """Data transfer object for Campaign model."""
-
-    pass
-
-
-class CampaignUpdateDTO(UpdateSQLAlchemyDTO[Campaign]):
-    """DTO for partial Campaign updates."""
-
-    pass
-
-
-class CampaignCreateDTO(CreateSQLAlchemyDTO[Campaign]):
-    """DTO for partial Campaign updates."""
-
-    pass
 
 
 @get("/{id:str}", return_dto=CampaignDTO)
@@ -48,7 +26,7 @@ async def get_campaign(id: Sqid, transaction: AsyncSession) -> Campaign:
 
 @post("/{id:str}", return_dto=CampaignDTO)
 async def update_campaign(
-    id: Sqid, data: CampaignUpdateDTO, transaction: AsyncSession
+    id: Sqid, data: CampaignUpdateSchema, transaction: AsyncSession
 ) -> Campaign:
     """Update a campaign by SQID."""
     campaign_id = sqid_decode(id)

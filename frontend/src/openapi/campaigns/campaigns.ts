@@ -28,6 +28,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CampaignUpdateSchema,
   CampaignsIdGetCampaign400,
   CampaignsIdUpdateCampaign400,
   GetCampaignCampaignResponseBody,
@@ -185,7 +186,7 @@ export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typ
  */
 export const campaignsIdUpdateCampaign = (
     id: string,
-    campaignsIdUpdateCampaignBody: unknown,
+    campaignUpdateSchema: CampaignUpdateSchema,
  signal?: AbortSignal
 ) => {
       
@@ -193,7 +194,7 @@ export const campaignsIdUpdateCampaign = (
       return customInstance<UpdateCampaignCampaignResponseBody>(
       {url: `/campaigns/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: campaignsIdUpdateCampaignBody, signal
+      data: campaignUpdateSchema, signal
     },
       );
     }
@@ -201,8 +202,8 @@ export const campaignsIdUpdateCampaign = (
 
 
 export const getCampaignsIdUpdateCampaignMutationOptions = <TError = CampaignsIdUpdateCampaign400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: CampaignUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: CampaignUpdateSchema}, TContext> => {
 
 const mutationKey = ['campaignsIdUpdateCampaign'];
 const {mutation: mutationOptions} = options ?
@@ -214,7 +215,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, {id: string;data: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, {id: string;data: CampaignUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  campaignsIdUpdateCampaign(id,data,)
@@ -226,18 +227,18 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CampaignsIdUpdateCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>>
-    export type CampaignsIdUpdateCampaignMutationBody = unknown
+    export type CampaignsIdUpdateCampaignMutationBody = CampaignUpdateSchema
     export type CampaignsIdUpdateCampaignMutationError = CampaignsIdUpdateCampaign400
 
     /**
  * @summary UpdateCampaign
  */
 export const useCampaignsIdUpdateCampaign = <TError = CampaignsIdUpdateCampaign400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: CampaignUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>,
         TError,
-        {id: string;data: unknown},
+        {id: string;data: CampaignUpdateSchema},
         TContext
       > => {
 
