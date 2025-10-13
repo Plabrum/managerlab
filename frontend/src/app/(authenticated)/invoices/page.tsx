@@ -16,14 +16,17 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
+import type {
+  ColumnDefinitionDTO,
+  ObjectListDTO,
+} from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
 
 export default function InvoicesPage() {
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 40,
   });
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -70,9 +73,9 @@ export default function InvoicesPage() {
     // TODO: Implement bulk action handling
   };
 
-  const handleListAction = (action: string) => {
-    console.log('List action clicked:', action);
-    // TODO: Implement list action handlers
+  const handleRowActionClick = (actionName: string, row: ObjectListDTO) => {
+    console.log('Row action clicked:', actionName, 'on row:', row.id);
+    // TODO: Implement row action handling with dynamic objectId
   };
 
   return (
@@ -91,7 +94,7 @@ export default function InvoicesPage() {
         {data.actions && data.actions.length > 0 && (
           <ActionsMenu
             actions={data.actions}
-            onActionClick={handleListAction}
+            actionGroup="top_level_invoice_actions"
           />
         )}
       </div>
@@ -117,6 +120,7 @@ export default function InvoicesPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
+        onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
     </div>

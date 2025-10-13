@@ -4,7 +4,6 @@ import { use, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   ObjectHeader,
-  ObjectActions,
   ObjectFields,
   ObjectParents,
   ObjectChildren,
@@ -31,11 +30,6 @@ export default function BrandContactDetailPage({
     };
   }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
-  const handleActionClick = (action: string) => {
-    console.log('Action clicked:', action, 'on brand contact:', id);
-    // TODO: Implement action handlers
-  };
-
   return (
     <div className="container mx-auto py-6">
       <div className="space-y-6">
@@ -47,10 +41,7 @@ export default function BrandContactDetailPage({
             createdAt={data.created_at}
             updatedAt={data.updated_at}
           />
-          <ObjectActions
-            actions={data.actions}
-            onActionClick={handleActionClick}
-          />
+          {/* TODO: Add ObjectActions when brandcontact_actions ActionGroupType is added to backend */}
         </div>
 
         {/* Fields */}

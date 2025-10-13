@@ -29,6 +29,7 @@ import type {
 
 import type {
   GetPostPostResponseBody,
+  PostUpdateSchema,
   PostsIdGetPost400,
   PostsIdUpdatePost400,
   UpdatePostPostResponseBody
@@ -185,7 +186,7 @@ export function usePostsIdGetPostSuspense<TData = Awaited<ReturnType<typeof post
  */
 export const postsIdUpdatePost = (
     id: string,
-    postsIdUpdatePostBody: unknown,
+    postUpdateSchema: PostUpdateSchema,
  signal?: AbortSignal
 ) => {
       
@@ -193,7 +194,7 @@ export const postsIdUpdatePost = (
       return customInstance<UpdatePostPostResponseBody>(
       {url: `/posts/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: postsIdUpdatePostBody, signal
+      data: postUpdateSchema, signal
     },
       );
     }
@@ -201,8 +202,8 @@ export const postsIdUpdatePost = (
 
 
 export const getPostsIdUpdatePostMutationOptions = <TError = PostsIdUpdatePost400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsIdUpdatePost>>, TError,{id: string;data: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof postsIdUpdatePost>>, TError,{id: string;data: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsIdUpdatePost>>, TError,{id: string;data: PostUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postsIdUpdatePost>>, TError,{id: string;data: PostUpdateSchema}, TContext> => {
 
 const mutationKey = ['postsIdUpdatePost'];
 const {mutation: mutationOptions} = options ?
@@ -214,7 +215,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postsIdUpdatePost>>, {id: string;data: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postsIdUpdatePost>>, {id: string;data: PostUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  postsIdUpdatePost(id,data,)
@@ -226,18 +227,18 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostsIdUpdatePostMutationResult = NonNullable<Awaited<ReturnType<typeof postsIdUpdatePost>>>
-    export type PostsIdUpdatePostMutationBody = unknown
+    export type PostsIdUpdatePostMutationBody = PostUpdateSchema
     export type PostsIdUpdatePostMutationError = PostsIdUpdatePost400
 
     /**
  * @summary UpdatePost
  */
 export const usePostsIdUpdatePost = <TError = PostsIdUpdatePost400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsIdUpdatePost>>, TError,{id: string;data: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsIdUpdatePost>>, TError,{id: string;data: PostUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postsIdUpdatePost>>,
         TError,
-        {id: string;data: unknown},
+        {id: string;data: PostUpdateSchema},
         TContext
       > => {
 

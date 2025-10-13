@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ObjectHeader,
   ObjectActions,
@@ -9,8 +9,28 @@ import {
   ObjectParents,
   ObjectChildren,
 } from '@/components/object-detail';
+import { MediaViewer } from '@/components/media-viewer';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
 import { useBreadcrumb } from '@/components/breadcrumb-provider';
+import type {
+  ObjectFieldDTO,
+  ImageFieldValue,
+  ActionDTO,
+  ActionExecutionResponse,
+} from '@/openapi/managerLab.schemas';
+import { ActionGroupType } from '@/openapi/managerLab.schemas';
+
+// Type guard to check if a field value is an ImageFieldValue
+function isImageField(
+  field: ObjectFieldDTO
+): field is ObjectFieldDTO & { value: ImageFieldValue } {
+  return (
+    typeof field.value === 'object' &&
+    field.value !== null &&
+    'type' in field.value &&
+    field.value.type === 'image'
+  );
+}
 
 export default function MediaDetailPage({
   params,
@@ -19,6 +39,7 @@ export default function MediaDetailPage({
 }) {
   const { id } = use(params);
   const pathname = usePathname();
+  const router = useRouter();
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('media', id);
@@ -31,10 +52,23 @@ export default function MediaDetailPage({
     };
   }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
 
-  const handleActionClick = (action: string) => {
-    console.log('Action clicked:', action, 'on media:', id);
-    // TODO: Implement action handlers
+  // Handle action completion - redirect on delete
+  const handleActionComplete = (
+    action: ActionDTO,
+    response: ActionExecutionResponse
+  ) => {
+    const isDeleteAction = action.action.toLowerCase().includes('delete');
+
+    if (isDeleteAction && response.success) {
+      router.push('/media');
+    }
   };
+
+  // Find the image field with proper type narrowing
+  const imageField = data.fields.find(isImageField);
+
+  // Get non-image fields
+  const otherFields = data.fields.filter((field) => !isImageField(field));
 
   return (
     <div className="container mx-auto py-6">
@@ -49,12 +83,25 @@ export default function MediaDetailPage({
           />
           <ObjectActions
             actions={data.actions}
-            onActionClick={handleActionClick}
+            actionGroup={ActionGroupType.media_actions}
+            objectId={id}
+            onActionComplete={handleActionComplete}
           />
         </div>
 
-        {/* Fields */}
-        <ObjectFields fields={data.fields} />
+        {/* Two Column Grid - only when image exists */}
+        {imageField ? (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Left Column - Fields */}
+            <ObjectFields fields={otherFields} />
+
+            {/* Right Column - Media Viewer */}
+            <MediaViewer url={imageField.value.url} alt={data.title} />
+          </div>
+        ) : (
+          /* Full width when no image */
+          <ObjectFields fields={otherFields} />
+        )}
 
         {/* Parents */}
         <ObjectParents parents={data.parents || []} />

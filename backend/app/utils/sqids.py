@@ -1,7 +1,13 @@
-from typing import Annotated
-import sqids
+from __future__ import annotations
 
-sqid_encoder = sqids.Sqids(alphabet="abcdefghijklmnopqrstuvwxyz", min_length=8)
+from typing import Annotated
+import sqids as _sqids
+
+__all__ = ["sqid_decode", "sqid_encode", "Sqid"]
+
+sqid_encoder: _sqids.Sqids = _sqids.Sqids(
+    alphabet="abcdefghijklmnopqrstuvwxyz", min_length=8
+)
 
 
 def sqid_decode(value: str) -> int:
@@ -13,6 +19,7 @@ def sqid_decode(value: str) -> int:
 
 
 def sqid_encode(value: int) -> str:
+    """Encode integer ID to SQID string."""
     return sqid_encoder.encode([value])
 
 

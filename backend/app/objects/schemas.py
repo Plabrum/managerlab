@@ -1,10 +1,11 @@
 """Object schemas and DTOs."""
 
-from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional, Union
+from datetime import date, datetime
+from typing import Dict, List, Literal, Optional, Union
 
 from app.base.schemas import BaseSchema
 from app.objects.enums import FieldType, FilterType, SortDirection
+from app.actions.schemas import ActionDTO
 
 
 class TextFilterDefinition(BaseSchema, tag=FilterType.text_filter.value):
@@ -59,12 +60,105 @@ class SortDefinition(BaseSchema):
     direction: SortDirection
 
 
+# Field value types for discriminated union
+class StringFieldValue(BaseSchema, tag=FieldType.String.value):
+    """String field value."""
+
+    value: str
+
+
+class IntFieldValue(BaseSchema, tag=FieldType.Int.value):
+    """Integer field value."""
+
+    value: int
+
+
+class FloatFieldValue(BaseSchema, tag=FieldType.Float.value):
+    """Float field value."""
+
+    value: float
+
+
+class BoolFieldValue(BaseSchema, tag=FieldType.Bool.value):
+    """Boolean field value."""
+
+    value: bool
+
+
+class EnumFieldValue(BaseSchema, tag=FieldType.Enum.value):
+    """Enum field value."""
+
+    value: str
+
+
+class DateFieldValue(BaseSchema, tag=FieldType.Date.value):
+    """Date field value."""
+
+    value: date
+
+
+class DatetimeFieldValue(BaseSchema, tag=FieldType.Datetime.value):
+    """Datetime field value."""
+
+    value: datetime
+
+
+class USDFieldValue(BaseSchema, tag=FieldType.USD.value):
+    """USD currency field value."""
+
+    value: float
+
+
+class EmailFieldValue(BaseSchema, tag=FieldType.Email.value):
+    """Email field value."""
+
+    value: str
+
+
+class URLFieldValue(BaseSchema, tag=FieldType.URL.value):
+    """URL field value."""
+
+    value: str
+
+
+class TextFieldValue(BaseSchema, tag=FieldType.Text.value):
+    """Text field value (long-form text)."""
+
+    value: str
+
+
+class ImageFieldValue(BaseSchema, tag=FieldType.Image.value):
+    """Image field with both full-size and thumbnail URLs.
+
+    Future: Consider adding width, height, alt for better UX.
+    """
+
+    url: str
+    thumbnail_url: str | None = None
+
+
+# Union of all field value types
+FieldValue = Union[
+    StringFieldValue,
+    IntFieldValue,
+    FloatFieldValue,
+    BoolFieldValue,
+    EnumFieldValue,
+    DateFieldValue,
+    DatetimeFieldValue,
+    USDFieldValue,
+    EmailFieldValue,
+    URLFieldValue,
+    TextFieldValue,
+    ImageFieldValue,
+]
+
+
 class ObjectFieldDTO(BaseSchema):
     """DTO for object field representation."""
 
     key: str
-    value: Any
-    type: FieldType
+    value: FieldValue | None
     label: Optional[str] = None
     editable: bool = True
 
@@ -79,16 +173,6 @@ class ColumnDefinitionDTO(BaseSchema):
     sortable: bool = True
     default_visible: bool = True
     available_values: List[str] | None = None
-
-
-class ActionDTO(BaseSchema):
-    """DTO for action representation."""
-
-    action: str
-    label: str
-    is_bulk_allowed: bool = False
-    available: bool = True
-    priority: int = 100
 
 
 class ObjectRelationDTO(BaseSchema):
@@ -140,6 +224,7 @@ class ObjectListRequest(BaseSchema):
     filters: List[FilterDefinition] = []
     sorts: List[SortDefinition] = []
     search: str | None = None
+    column: list[str] | None = None
 
 
 class ObjectListResponse(BaseSchema):

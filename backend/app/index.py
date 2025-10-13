@@ -26,17 +26,17 @@ from app.utils.configure import config
 from app.users.routes import user_router, public_user_router
 from app.auth.routes import auth_router
 from app.objects.routes import object_router
+from app.actions.routes import action_router
 from app.brands.routes import brand_router
 from app.campaigns.routes import campaign_router
 from app.posts.routes import post_router
-from app.media.routes import media_router
+from app.media.routes import media_router, local_media_router
 from app.payments.routes import invoice_router
-# Queue routes (demo endpoints) - create app/queue/routes.py if needed
-# from app.queue.routes import queue_router
 
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
 from app.utils.logging import logging_config
+from app.client.s3_client import provide_s3_client
 
 
 logger = logging.getLogger(__name__)
@@ -48,13 +48,15 @@ async def health_check() -> Response:
     return Response(content={"detail": "ok"}, status_code=200)
 
 
-session_auth = SessionAuth[int, ServerSideSessionBackend](
+session_auth = SessionAuth[
+    int, ServerSideSessionBackend
+](
     session_backend_config=ServerSideSessionConfig(
-        samesite="none",  # Required for cross-origin requests
+        samesite="lax",  # Works for same-site (localhost in dev, *.managerlab.app in prod)
         secure=config.ENV != "development",  # False for localhost, True for production
         httponly=True,  # Security: prevent XSS access to cookies
         max_age=ONE_DAY_IN_SECONDS * 14,  # 14 days
-        domain=config.SESSION_COOKIE_DOMAIN,  # Configurable via env var
+        domain=config.SESSION_COOKIE_DOMAIN,  # Must be .managerlab.app in prod for subdomain access
     ),
     retrieve_user_handler=lambda session, conn: session.get("user_id"),
     exclude=[
@@ -62,24 +64,34 @@ session_auth = SessionAuth[int, ServerSideSessionBackend](
         "^/auth/google/",
         "^/users/signup",
         "^/schema",
+        "^/local-upload/",
+        "^/local-download/",
     ],
 )
 
 
+# Build route handlers list with conditional local media router
+route_handlers = [
+    health_check,
+    public_user_router,
+    user_router,
+    auth_router,
+    object_router,
+    action_router,
+    brand_router,
+    campaign_router,
+    post_router,
+    media_router,
+    invoice_router,
+    # queue_router,  # Commented out - create app/queue/routes.py if needed
+]
+
+# Only include local media router in development
+if config.IS_DEV:
+    route_handlers.append(local_media_router)
+
 app = Litestar(
-    route_handlers=[
-        health_check,
-        public_user_router,
-        user_router,
-        auth_router,
-        object_router,
-        brand_router,
-        campaign_router,
-        post_router,
-        media_router,
-        invoice_router,
-        # queue_router,  # Commented out - create app/queue/routes.py if needed
-    ],
+    route_handlers=route_handlers,
     on_startup=[providers.on_startup],
     on_shutdown=[providers.on_shutdown],
     on_app_init=[session_auth.on_app_init],
@@ -99,6 +111,14 @@ app = Litestar(
     dependencies={
         "transaction": Provide(providers.provide_transaction),
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
+        "config": Provide(lambda: config, sync_to_thread=False),
+        "s3_client": Provide(provide_s3_client, sync_to_thread=False),
+        "action_registry": Provide(
+            providers.provide_action_registry, sync_to_thread=False
+        ),
+        "object_registry": Provide(
+            providers.provide_object_registry, sync_to_thread=False
+        ),
     },
     plugins=[
         SQLAlchemyPlugin(

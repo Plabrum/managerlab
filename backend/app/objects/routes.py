@@ -6,6 +6,7 @@ from litestar import Router, get, post, Request
 
 from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
+from app.actions.registry import ActionRegistry
 from app.objects.schemas import (
     ObjectDetailDTO,
     ObjectListRequest,
@@ -13,6 +14,7 @@ from app.objects.schemas import (
 )
 from app.objects.enums import ObjectTypes
 from app.utils.sqids import Sqid, sqid_decode
+from app.client.s3_client import S3Dep
 
 
 @get("/{object_type:str}/{id:str}")
@@ -21,10 +23,12 @@ async def get_object_detail(
     object_type: ObjectTypes,
     id: Sqid,
     transaction: AsyncSession,
+    s3_client: S3Dep,
+    object_registry: ObjectRegistry,
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
     request.app.logger.info(f"data:{id}, object_type:{object_type}")
-    object_service = ObjectRegistry.get_class(object_type)
+    object_service = object_registry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
     return object_service.to_detail_dto(obj)
 
@@ -35,21 +39,34 @@ async def list_objects(
     object_type: ObjectTypes,
     data: ObjectListRequest,
     transaction: AsyncSession,
+    s3_client: S3Dep,
+    object_registry: ObjectRegistry,
+    action_registry: ActionRegistry,
 ) -> ObjectListResponse:
     """List objects with filtering and pagination."""
     request.app.logger.info(f"data:{data}")
-    object_service = ObjectRegistry.get_class(object_type)
+    object_service = object_registry.get_class(object_type)
     objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)
     columns = object_service.column_definitions
 
+    # Get top-level actions for this object type (e.g., create)
+    list_actions = []
+    top_level_action_group_type = object_service.get_top_level_action_group()
+    if top_level_action_group_type:
+        top_level_action_group = action_registry.get_class(top_level_action_group_type)
+        list_actions = top_level_action_group.get_available_actions()
+
+    # Convert objects to DTOs (async)
+    object_dtos = [object_service.to_list_dto(obj) for obj in objects]
+
     return ObjectListResponse(
-        objects=[object_service.to_list_dto(obj) for obj in objects],
+        objects=object_dtos,
         total=total,
         limit=data.limit,
         offset=data.offset,
         columns=columns,
-        actions=object_service.get_list_actions(),
+        actions=list_actions,
     )
 
 

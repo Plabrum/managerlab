@@ -16,14 +16,18 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
+import type {
+  ColumnDefinitionDTO,
+  ObjectListDTO,
+} from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
+import { ActionGroupType } from '@/openapi/managerLab.schemas';
 
 export default function BrandsPage() {
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 40,
   });
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -70,9 +74,12 @@ export default function BrandsPage() {
     // TODO: Implement bulk action handling
   };
 
-  const handleListAction = (action: string) => {
-    console.log('List action clicked:', action);
-    // TODO: Implement list action handlers
+  // Handle row action clicks from data table dropdown
+  const handleRowActionClick = (actionName: string, row: ObjectListDTO) => {
+    console.log('Row action clicked:', actionName, 'on row:', row.id);
+    // TODO: Implement row action handling with dynamic objectId
+    // Note: useActionExecutor requires objectId at creation time, so for row actions
+    // we need a different approach (possibly creating executors on-demand or using direct API calls)
   };
 
   return (
@@ -91,7 +98,7 @@ export default function BrandsPage() {
         {data.actions && data.actions.length > 0 && (
           <ActionsMenu
             actions={data.actions}
-            onActionClick={handleListAction}
+            actionGroup={ActionGroupType.brand_actions}
           />
         )}
       </div>
@@ -117,6 +124,7 @@ export default function BrandsPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
+        onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
     </div>

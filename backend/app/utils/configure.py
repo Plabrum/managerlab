@@ -31,6 +31,9 @@ class Config:
 
     FRONTEND_ORIGIN: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 
+    # Upload Configuration
+    MAX_UPLOAD_SIZE: int = 40 * 1024 * 1024  # 40MB in bytes
+
     @property
     def DATABASE_URL(self) -> str:
         """Sync database URL for migrations and sync operations."""

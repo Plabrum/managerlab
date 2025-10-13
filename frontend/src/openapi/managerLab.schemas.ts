@@ -5,12 +5,49 @@
  * Private schema of ManagerLab with Scalar OpenAPI docs
  * OpenAPI spec version: 0.0.1
  */
+export type ActionDTOIcon = string | null;
+
+export type ActionDTOConfirmationMessage = string | null;
+
 export interface ActionDTO {
   action: string;
   label: string;
   is_bulk_allowed?: boolean;
   available?: boolean;
   priority?: number;
+  icon?: ActionDTOIcon;
+  confirmation_message?: ActionDTOConfirmationMessage;
+}
+
+export type ActionExecutionResponseResults = {[key: string]: unknown};
+
+export interface ActionExecutionResponse {
+  success: boolean;
+  message: string;
+  results?: ActionExecutionResponseResults;
+}
+
+/**
+ * Types of action groups.
+ */
+export type ActionGroupType = typeof ActionGroupType[keyof typeof ActionGroupType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActionGroupType = {
+  media_actions: 'media_actions',
+  top_level_media_actions: 'top_level_media_actions',
+  post_actions: 'post_actions',
+  top_level_post_actions: 'top_level_post_actions',
+  brand_actions: 'brand_actions',
+  campaign_actions: 'campaign_actions',
+  top_level_campaign_actions: 'top_level_campaign_actions',
+  invoice_actions: 'invoice_actions',
+  top_level_invoice_actions: 'top_level_invoice_actions',
+} as const;
+
+export interface ActionListResponse {
+  actions: ActionDTO[];
 }
 
 export type AddUserToWaitlistWaitlistEntryResponseBodyCompany = string | null;
@@ -28,10 +65,86 @@ export interface AddUserToWaitlistWaitlistEntryResponseBody {
   public_id: string;
 }
 
+export interface BoolFieldValue {
+  value: boolean;
+  type: 'bool';
+}
+
 export interface BooleanFilterDefinition {
   column: string;
   value: boolean;
   type: 'boolean_filter';
+}
+
+export type BrandContactUpdateSchemaFirstName = string | null;
+
+export type BrandContactUpdateSchemaLastName = string | null;
+
+export type BrandContactUpdateSchemaEmail = string | null;
+
+export type BrandContactUpdateSchemaPhone = string | null;
+
+export type BrandContactUpdateSchemaNotes = string | null;
+
+export type BrandContactUpdateSchemaBrandId = number | null;
+
+export interface BrandContactUpdateSchema {
+  first_name?: BrandContactUpdateSchemaFirstName;
+  last_name?: BrandContactUpdateSchemaLastName;
+  email?: BrandContactUpdateSchemaEmail;
+  phone?: BrandContactUpdateSchemaPhone;
+  notes?: BrandContactUpdateSchemaNotes;
+  brand_id?: BrandContactUpdateSchemaBrandId;
+}
+
+export type BrandUpdateSchemaName = string | null;
+
+export type BrandUpdateSchemaDescription = string | null;
+
+export type BrandUpdateSchemaToneOfVoice = string | null;
+
+export type BrandUpdateSchemaBrandValues = string | null;
+
+export type BrandUpdateSchemaTargetAudience = string | null;
+
+export type BrandUpdateSchemaWebsite = string | null;
+
+export type BrandUpdateSchemaEmail = string | null;
+
+export type BrandUpdateSchemaPhone = string | null;
+
+export type BrandUpdateSchemaNotes = string | null;
+
+export interface BrandUpdateSchema {
+  name?: BrandUpdateSchemaName;
+  description?: BrandUpdateSchemaDescription;
+  tone_of_voice?: BrandUpdateSchemaToneOfVoice;
+  brand_values?: BrandUpdateSchemaBrandValues;
+  target_audience?: BrandUpdateSchemaTargetAudience;
+  website?: BrandUpdateSchemaWebsite;
+  email?: BrandUpdateSchemaEmail;
+  phone?: BrandUpdateSchemaPhone;
+  notes?: BrandUpdateSchemaNotes;
+}
+
+export type CampaignCreateSchemaDescription = string | null;
+
+export interface CampaignCreateSchema {
+  name: string;
+  brand_id: number;
+  description?: CampaignCreateSchemaDescription;
+}
+
+export type CampaignUpdateSchemaName = string | null;
+
+export type CampaignUpdateSchemaDescription = string | null;
+
+export type CampaignUpdateSchemaBrandId = number | null;
+
+export interface CampaignUpdateSchema {
+  name?: CampaignUpdateSchemaName;
+  description?: CampaignUpdateSchemaDescription;
+  brand_id?: CampaignUpdateSchemaBrandId;
 }
 
 export type ColumnDefinitionDTOAvailableValues = string[] | null;
@@ -56,6 +169,26 @@ export const CompensationStructure = {
   performance_based: 'performance_based',
 } as const;
 
+export interface CreateCampaignAction {
+  data: CampaignCreateSchema;
+  action: 'top_level_campaign_actions__campaign_create';
+}
+
+export interface CreateInvoiceAction {
+  data: InvoiceCreateSchema;
+  action: 'top_level_invoice_actions__invoice_create';
+}
+
+export interface CreateMediaAction {
+  data: RegisterMediaSchema;
+  action: 'top_level_media_actions__top_level_media_create';
+}
+
+export interface CreatePostAction {
+  data: PostCreateSchema;
+  action: 'top_level_post_actions__top_level_post_create';
+}
+
 export interface CreateUserSchema {
   name: string;
   email: string;
@@ -70,6 +203,11 @@ export interface CreateUserUserResponseBody {
   id: string;
 }
 
+export interface DateFieldValue {
+  value: string;
+  type: 'date';
+}
+
 export type DateFilterDefinitionStart = string | null;
 
 export type DateFilterDefinitionFinish = string | null;
@@ -79,6 +217,46 @@ export interface DateFilterDefinition {
   start?: DateFilterDefinitionStart;
   finish?: DateFilterDefinitionFinish;
   type: 'date_filter';
+}
+
+export interface DatetimeFieldValue {
+  value: string;
+  type: 'datetime';
+}
+
+export const DeleteCampaignActionValue = {
+  action: 'campaign_actions__campaign_delete',
+} as const;
+export type DeleteCampaignAction = typeof DeleteCampaignActionValue;
+
+export const DeleteInvoiceActionValue = {
+  action: 'invoice_actions__invoice_delete',
+} as const;
+export type DeleteInvoiceAction = typeof DeleteInvoiceActionValue;
+
+export const DeleteMediaActionValue = {
+  action: 'media_actions__media_delete',
+} as const;
+export type DeleteMediaAction = typeof DeleteMediaActionValue;
+
+export const DeletePostActionValue = {
+  action: 'post_actions__post_delete',
+} as const;
+export type DeletePostAction = typeof DeletePostActionValue;
+
+export const DownloadMediaActionValue = {
+  action: 'media_actions__media_download',
+} as const;
+export type DownloadMediaAction = typeof DownloadMediaActionValue;
+
+export interface EmailFieldValue {
+  value: string;
+  type: 'email';
+}
+
+export interface EnumFieldValue {
+  value: string;
+  type: 'enum';
 }
 
 export interface EnumFilterDefinition {
@@ -106,6 +284,7 @@ export const FieldType = {
   email: 'email',
   url: 'url',
   text: 'text',
+  image: 'image',
 } as const;
 
 /**
@@ -121,7 +300,13 @@ export const FilterType = {
   date_filter: 'date_filter',
   boolean_filter: 'boolean_filter',
   enum_filter: 'enum_filter',
+  null_filter: 'null_filter',
 } as const;
+
+export interface FloatFieldValue {
+  value: number;
+  type: 'float';
+}
 
 export type GetBrandBrandResponseBodyDescription = string | null;
 
@@ -214,15 +399,6 @@ export interface GetInvoiceInvoiceResponseBody {
   id: string;
 }
 
-export interface GetMediaMediaResponseBody {
-  filename: string;
-  image_link: string;
-  thumnbnail_link?: string;
-  created_at: string;
-  updated_at: string;
-  id: string;
-}
-
 export type GetPostPostResponseBodyContent = string | null;
 
 export type GetPostPostResponseBodyNotes = {[key: string]: unknown};
@@ -261,6 +437,71 @@ export interface GoogleUserInfoResponseSchema {
   user_id: number;
 }
 
+export type ImageFieldValueThumbnailUrl = string | null;
+
+export interface ImageFieldValue {
+  url: string;
+  thumbnail_url?: ImageFieldValueThumbnailUrl;
+  type: 'image';
+}
+
+export interface IntFieldValue {
+  value: number;
+  type: 'int';
+}
+
+export type InvoiceCreateSchemaDescription = string | null;
+
+export type InvoiceCreateSchemaNotes = string | null;
+
+export type InvoiceCreateSchemaCampaignId = number | null;
+
+export interface InvoiceCreateSchema {
+  invoice_number: number;
+  customer_name: string;
+  customer_email: string;
+  posting_date: string;
+  due_date: string;
+  amount_due: number;
+  amount_paid?: number;
+  description?: InvoiceCreateSchemaDescription;
+  notes?: InvoiceCreateSchemaNotes;
+  campaign_id?: InvoiceCreateSchemaCampaignId;
+}
+
+export type InvoiceUpdateSchemaInvoiceNumber = number | null;
+
+export type InvoiceUpdateSchemaCustomerName = string | null;
+
+export type InvoiceUpdateSchemaCustomerEmail = string | null;
+
+export type InvoiceUpdateSchemaPostingDate = string | null;
+
+export type InvoiceUpdateSchemaDueDate = string | null;
+
+export type InvoiceUpdateSchemaAmountDue = number | null;
+
+export type InvoiceUpdateSchemaAmountPaid = number | null;
+
+export type InvoiceUpdateSchemaDescription = string | null;
+
+export type InvoiceUpdateSchemaNotes = string | null;
+
+export type InvoiceUpdateSchemaCampaignId = number | null;
+
+export interface InvoiceUpdateSchema {
+  invoice_number?: InvoiceUpdateSchemaInvoiceNumber;
+  customer_name?: InvoiceUpdateSchemaCustomerName;
+  customer_email?: InvoiceUpdateSchemaCustomerEmail;
+  posting_date?: InvoiceUpdateSchemaPostingDate;
+  due_date?: InvoiceUpdateSchemaDueDate;
+  amount_due?: InvoiceUpdateSchemaAmountDue;
+  amount_paid?: InvoiceUpdateSchemaAmountPaid;
+  description?: InvoiceUpdateSchemaDescription;
+  notes?: InvoiceUpdateSchemaNotes;
+  campaign_id?: InvoiceUpdateSchemaCampaignId;
+}
+
 export interface ListUsersUserResponseBody {
   name: string;
   email: string;
@@ -268,6 +509,12 @@ export interface ListUsersUserResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
+}
+
+export type MediaUpdateSchemaFileName = string | null;
+
+export interface MediaUpdateSchema {
+  file_name?: MediaUpdateSchemaFileName;
 }
 
 export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
@@ -287,12 +534,13 @@ export interface ObjectDetailDTO {
   parents?: ObjectDetailDTOParentsItem[];
 }
 
+export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
+
 export type ObjectFieldDTOLabel = string | null;
 
 export interface ObjectFieldDTO {
   key: string;
-  value: unknown;
-  type: FieldType;
+  value?: ObjectFieldDTOValue;
   label?: ObjectFieldDTOLabel;
   editable?: boolean;
 }
@@ -318,12 +566,15 @@ export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDef
 
 export type ObjectListRequestSearch = string | null;
 
+export type ObjectListRequestColumn = string[] | null;
+
 export interface ObjectListRequest {
   limit?: number;
   offset?: number;
   filters?: ObjectListRequestFiltersItem[];
   sorts?: SortDefinition[];
   search?: ObjectListRequestSearch;
+  column?: ObjectListRequestColumn;
 }
 
 export interface ObjectListResponse {
@@ -356,6 +607,68 @@ export const ObjectTypes = {
   invoices: 'invoices',
 } as const;
 
+export type PostCreateSchemaContent = string | null;
+
+export type PostCreateSchemaNotesOneOf = {[key: string]: unknown};
+
+export type PostCreateSchemaNotes = PostCreateSchemaNotesOneOf | null;
+
+export type PostCreateSchemaCompensationStructure = CompensationStructure | null;
+
+export type PostCreateSchemaCampaignId = number | null;
+
+export interface PostCreateSchema {
+  title: string;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  content?: PostCreateSchemaContent;
+  notes?: PostCreateSchemaNotes;
+  compensation_structure?: PostCreateSchemaCompensationStructure;
+  campaign_id?: PostCreateSchemaCampaignId;
+}
+
+export type PostUpdateSchemaTitle = string | null;
+
+export type PostUpdateSchemaContent = string | null;
+
+export type PostUpdateSchemaPlatforms = SocialMediaPlatforms | null;
+
+export type PostUpdateSchemaPostingDate = string | null;
+
+export type PostUpdateSchemaNotesOneOf = {[key: string]: unknown};
+
+export type PostUpdateSchemaNotes = PostUpdateSchemaNotesOneOf | null;
+
+export type PostUpdateSchemaCompensationStructure = CompensationStructure | null;
+
+export type PostUpdateSchemaCampaignId = number | null;
+
+export interface PostUpdateSchema {
+  title?: PostUpdateSchemaTitle;
+  content?: PostUpdateSchemaContent;
+  platforms?: PostUpdateSchemaPlatforms;
+  posting_date?: PostUpdateSchemaPostingDate;
+  notes?: PostUpdateSchemaNotes;
+  compensation_structure?: PostUpdateSchemaCompensationStructure;
+  campaign_id?: PostUpdateSchemaCampaignId;
+}
+
+export interface PresignedUploadRequestSchema {
+  file_name: string;
+  content_type: string;
+  file_size: number;
+}
+
+export interface PresignedUploadResponseSchema {
+  upload_url: string;
+  file_key: string;
+}
+
+export const PublishPostActionValue = {
+  action: 'post_actions__post_publish',
+} as const;
+export type PublishPostAction = typeof PublishPostActionValue;
+
 export type RangeFilterDefinitionStart = number | number | null;
 
 export type RangeFilterDefinitionFinish = number | number | null;
@@ -365,6 +678,23 @@ export interface RangeFilterDefinition {
   start?: RangeFilterDefinitionStart;
   finish?: RangeFilterDefinitionFinish;
   type: 'range_filter';
+}
+
+export interface RegisterMediaMediaResponseBody {
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  created_at: string;
+  updated_at: string;
+  id: string;
+}
+
+export interface RegisterMediaSchema {
+  file_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
 }
 
 export type SocialMediaPlatforms = typeof SocialMediaPlatforms[keyof typeof SocialMediaPlatforms];
@@ -395,6 +725,16 @@ export const SortDirection = {
   sort_desc: 'sort_desc',
 } as const;
 
+export interface StringFieldValue {
+  value: string;
+  type: 'string';
+}
+
+export interface TextFieldValue {
+  value: string;
+  type: 'text';
+}
+
 export type TextFilterDefinitionOperation = typeof TextFilterDefinitionOperation[keyof typeof TextFilterDefinitionOperation];
 
 
@@ -411,6 +751,16 @@ export interface TextFilterDefinition {
   operation: TextFilterDefinitionOperation;
   value: string;
   type: 'text_filter';
+}
+
+export interface URLFieldValue {
+  value: string;
+  type: 'url';
+}
+
+export interface USDFieldValue {
+  value: number;
+  type: 'usd';
 }
 
 export type UpdateBrandBrandResponseBodyDescription = string | null;
@@ -462,6 +812,11 @@ export interface UpdateBrandContactBrandContactResponseBody {
   id: string;
 }
 
+export interface UpdateCampaignAction {
+  data: CampaignUpdateSchema;
+  action: 'campaign_actions__campaign_update';
+}
+
 export type UpdateCampaignCampaignResponseBodyDescription = string | null;
 
 export interface UpdateCampaignCampaignResponseBody {
@@ -471,6 +826,11 @@ export interface UpdateCampaignCampaignResponseBody {
   created_at: string;
   updated_at: string;
   id: string;
+}
+
+export interface UpdateInvoiceAction {
+  data: InvoiceUpdateSchema;
+  action: 'invoice_actions__invoice_update';
 }
 
 export type UpdateInvoiceInvoiceResponseBodyDescription = string | null;
@@ -495,25 +855,14 @@ export interface UpdateInvoiceInvoiceResponseBody {
   id: string;
 }
 
-export interface UpdateMediaMediaResponseBody {
-  filename: string;
-  image_link: string;
-  thumnbnail_link?: string;
-  created_at: string;
-  updated_at: string;
-  id: string;
+export interface UpdateMediaAction {
+  data: MediaUpdateSchema;
+  action: 'media_actions__media_update';
 }
 
-export type UpdateMediaSchemaFilename = string | null;
-
-export type UpdateMediaSchemaImageLink = string | null;
-
-export type UpdateMediaSchemaThumnbnailLink = string | null;
-
-export interface UpdateMediaSchema {
-  filename?: UpdateMediaSchemaFilename;
-  image_link?: UpdateMediaSchemaImageLink;
-  thumnbnail_link?: UpdateMediaSchemaThumnbnailLink;
+export interface UpdatePostAction {
+  data: PostUpdateSchema;
+  action: 'post_actions__post_update';
 }
 
 export type UpdatePostPostResponseBodyContent = string | null;
@@ -636,6 +985,62 @@ export type ListObjects400 = {
   extra?: ListObjects400Extra;
 };
 
+export type ActionsActionGroupListActions400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupListActions400Extra = null | ActionsActionGroupListActions400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupListActions400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupListActions400Extra;
+};
+
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+
+export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupExecuteAction400Extra = null | ActionsActionGroupExecuteAction400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupExecuteAction400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupExecuteAction400Extra;
+};
+
+export type ActionsActionGroupObjectIdListObjectActions400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupObjectIdListObjectActions400Extra = null | ActionsActionGroupObjectIdListObjectActions400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupObjectIdListObjectActions400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
+};
+
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+
+export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
+
+export type ActionsActionGroupObjectIdExecuteObjectAction400Extra = null | ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ActionsActionGroupObjectIdExecuteObjectAction400 = {
+  status_code: number;
+  detail: string;
+  extra?: ActionsActionGroupObjectIdExecuteObjectAction400Extra;
+};
+
 export type BrandsIdGetBrand400ExtraAnyOf = {[key: string]: unknown};
 
 export type BrandsIdGetBrand400Extra = null | BrandsIdGetBrand400ExtraAnyOf | unknown[];
@@ -740,30 +1145,45 @@ export type PostsIdUpdatePost400 = {
   extra?: PostsIdUpdatePost400Extra;
 };
 
-export type MediaIdGetMedia400ExtraAnyOf = {[key: string]: unknown};
+export type MediaPresignedUploadRequestPresignedUpload400ExtraAnyOf = {[key: string]: unknown};
 
-export type MediaIdGetMedia400Extra = null | MediaIdGetMedia400ExtraAnyOf | unknown[];
+export type MediaPresignedUploadRequestPresignedUpload400Extra = null | MediaPresignedUploadRequestPresignedUpload400ExtraAnyOf | unknown[];
 
 /**
  * Validation Exception
  */
-export type MediaIdGetMedia400 = {
+export type MediaPresignedUploadRequestPresignedUpload400 = {
   status_code: number;
   detail: string;
-  extra?: MediaIdGetMedia400Extra;
+  extra?: MediaPresignedUploadRequestPresignedUpload400Extra;
 };
 
-export type MediaIdUpdateMedia400ExtraAnyOf = {[key: string]: unknown};
+export type MediaRegisterRegisterMedia400ExtraAnyOf = {[key: string]: unknown};
 
-export type MediaIdUpdateMedia400Extra = null | MediaIdUpdateMedia400ExtraAnyOf | unknown[];
+export type MediaRegisterRegisterMedia400Extra = null | MediaRegisterRegisterMedia400ExtraAnyOf | unknown[];
 
 /**
  * Validation Exception
  */
-export type MediaIdUpdateMedia400 = {
+export type MediaRegisterRegisterMedia400 = {
   status_code: number;
   detail: string;
-  extra?: MediaIdUpdateMedia400Extra;
+  extra?: MediaRegisterRegisterMedia400Extra;
+};
+
+export type MediaIdDeleteMedia200 = {[key: string]: string};
+
+export type MediaIdDeleteMedia400ExtraAnyOf = {[key: string]: unknown};
+
+export type MediaIdDeleteMedia400Extra = null | MediaIdDeleteMedia400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type MediaIdDeleteMedia400 = {
+  status_code: number;
+  detail: string;
+  extra?: MediaIdDeleteMedia400Extra;
 };
 
 export type InvoicesIdGetInvoice400ExtraAnyOf = {[key: string]: unknown};
@@ -790,5 +1210,35 @@ export type InvoicesIdUpdateInvoice400 = {
   status_code: number;
   detail: string;
   extra?: InvoicesIdUpdateInvoice400Extra;
+};
+
+export type LocalUploadKeyLocalUpload200 = { [key: string]: unknown };
+
+export type LocalUploadKeyLocalUpload400ExtraAnyOf = {[key: string]: unknown};
+
+export type LocalUploadKeyLocalUpload400Extra = null | LocalUploadKeyLocalUpload400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type LocalUploadKeyLocalUpload400 = {
+  status_code: number;
+  detail: string;
+  extra?: LocalUploadKeyLocalUpload400Extra;
+};
+
+export type LocalDownloadKeyLocalDownload200 = { [key: string]: unknown };
+
+export type LocalDownloadKeyLocalDownload400ExtraAnyOf = {[key: string]: unknown};
+
+export type LocalDownloadKeyLocalDownload400Extra = null | LocalDownloadKeyLocalDownload400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type LocalDownloadKeyLocalDownload400 = {
+  status_code: number;
+  detail: string;
+  extra?: LocalDownloadKeyLocalDownload400Extra;
 };
 

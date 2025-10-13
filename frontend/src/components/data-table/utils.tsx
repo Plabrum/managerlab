@@ -4,6 +4,7 @@ import type {
   ObjectListRequestFiltersItem,
   ObjectListRequest,
   ColumnDefinitionDTO,
+  ObjectFieldDTO,
 } from '@/openapi/managerLab.schemas';
 import { humanizeEnumValue } from '@/lib/format';
 
@@ -56,12 +57,7 @@ export function columnFiltersToRequestFilters(
   columnFilters: ColumnFiltersState,
   columnDefs: ColumnDefinitionDTO[]
 ): ObjectListRequestFiltersItem[] {
-  console.log('columnFiltersToRequestFilters called with:', {
-    columnFilters,
-    columnDefs,
-  });
   return columnFilters.map((filter) => {
-    console.log('Processing filter:', filter, 'columnDefs:', columnDefs);
     const columnDef = columnDefs.find((def) => def.key === filter.id);
     const filterType = columnDef?.filter_type || 'text_filter';
 
@@ -216,13 +212,6 @@ export function createObjectListRequest(
   const { offset, limit } = paginationStateToRequest(paginationState);
   const { columnDefs, search } = options;
 
-  console.log('createObjectListRequest called:', {
-    objectType,
-    columnFilters,
-    columnDefs,
-    options,
-  });
-
   return {
     offset,
     limit,
@@ -317,20 +306,45 @@ function getStatusBadgeVariant(value: string) {
 
 /**
  * Robust cell value formatter with proper type handling and enum color coding
+ * Now handles discriminated union field values from backend
  */
-export function formatCellValue(
-  value: unknown,
-  columnDef: ColumnDefinitionDTO
-): React.ReactNode {
-  if (value === null || value === undefined) return '-';
 
-  switch (columnDef.type) {
+export function formatCellValue(
+  columnDef: ColumnDefinitionDTO,
+  field?: ObjectFieldDTO
+): React.ReactNode {
+  if (!field || field.value === null || field.value === undefined) {
+    return '-';
+  }
+
+  const value = field.value;
+  const fieldLabel = field.label;
+
+  switch (value.type) {
+    case 'image':
+      // Image field with url and optional thumbnail_url
+      if (value.url) {
+        return (
+          <div className="flex items-center gap-2">
+            <img
+              src={value.thumbnail_url || value.url}
+              alt="Image"
+              className="h-16 w-16 rounded-md border object-cover transition-transform hover:scale-105"
+            />
+          </div>
+        );
+      }
+      return '-';
+
     case 'date':
     case 'datetime':
       try {
-        return new Date(value as string).toLocaleDateString();
+        if (value.value) {
+          return new Date(value.value).toLocaleDateString();
+        }
+        return '-';
       } catch {
-        return String(value);
+        return String(value.value);
       }
 
     case 'usd':
@@ -338,33 +352,36 @@ export function formatCellValue(
         return new Intl.NumberFormat('en-US', {
           style: 'currency',
           currency: 'USD',
-        }).format(value as number);
+        }).format(value.value);
       } catch {
-        return String(value);
+        return String(value.value);
       }
 
     case 'bool':
       return (
-        <Badge variant={value ? 'default' : 'secondary'}>
-          {value ? 'Yes' : 'No'}
+        <Badge variant={value.value ? 'default' : 'secondary'}>
+          {value.value ? 'Yes' : 'No'}
         </Badge>
       );
 
     case 'url':
-      return (
-        <a
-          href={value as string}
-          className="text-blue-600 hover:underline dark:text-blue-400"
-          onClick={(e) => e.stopPropagation()}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {String(value)}
-        </a>
-      );
+      if (value.value) {
+        return (
+          <a
+            href={value.value}
+            className="text-blue-600 hover:underline dark:text-blue-400"
+            onClick={(e) => e.stopPropagation()}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {fieldLabel || String(value.value)}
+          </a>
+        );
+      }
+      return '-';
 
     case 'enum': {
-      const stringValue = String(value);
+      const stringValue = String(value.value);
       // Try status-based coloring first, then fall back to position-based
       const statusVariant = getStatusBadgeVariant(stringValue);
       const variant =
@@ -379,26 +396,49 @@ export function formatCellValue(
     }
 
     case 'int':
-    case 'float':
-      try {
-        const numValue =
-          typeof value === 'number' ? value : parseFloat(String(value));
-        return (
-          <div className="text-right font-mono">
-            {isNaN(numValue) ? String(value) : numValue.toLocaleString()}
-          </div>
-        );
-      } catch {
-        return <div className="text-right font-mono">{String(value)}</div>;
+    case 'float': {
+      if (
+        'value' in value &&
+        value.value !== null &&
+        value.value !== undefined
+      ) {
+        const rawValue = value.value;
+
+        // Handle numeric values
+        if (typeof rawValue === 'number') {
+          return (
+            <div className="text-right font-mono">
+              {rawValue.toLocaleString()}
+            </div>
+          );
+        }
+
+        // Handle string values that might be numbers
+        if (typeof rawValue === 'string') {
+          const numValue = parseFloat(rawValue);
+          return (
+            <div className="text-right font-mono">
+              {isNaN(numValue) ? rawValue : numValue.toLocaleString()}
+            </div>
+          );
+        }
+
+        // Fallback for other types
+        return <div className="text-right font-mono">{String(rawValue)}</div>;
       }
+      return '-';
+    }
 
     case 'string':
-    default:
-      const stringValue = String(value);
+    case 'text':
+    case 'email':
+    default: {
+      const stringValue = String(value.value || '');
       return (
         <div className="max-w-[200px] truncate" title={stringValue}>
           {stringValue}
         </div>
       );
+    }
   }
 }

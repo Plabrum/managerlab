@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Set, Type
+from typing import Any, Dict, Set, Type, TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -7,6 +7,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import func
 
 from app.utils.sqids import sqid_encode
+
+if TYPE_CHECKING:
+    pass
 
 
 class BaseDBModel(DeclarativeBase):

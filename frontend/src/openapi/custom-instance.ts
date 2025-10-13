@@ -1,8 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { config } from '@/lib/config';
 
 const instance = axios.create({
-  baseURL: config.api.baseUrl,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   withCredentials: true,
 });
 
@@ -12,3 +11,6 @@ export const customInstance = async <T>(
   const { data } = await instance(config);
   return data;
 };
+
+export default customInstance;
+export { instance };

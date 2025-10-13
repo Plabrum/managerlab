@@ -6,6 +6,7 @@ import { TanstackQueryProvider } from '@/lib/tanstack-query-provider';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
+import '@/openapi/interceptors';
 
 export const metadata: Metadata = {
   title: 'Arive - Next Generation Talent Management',

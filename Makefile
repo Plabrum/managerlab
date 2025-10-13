@@ -27,6 +27,7 @@ help:
 	@echo "  docker-push      - Build and push backend Docker image to ECR"
 	@echo "  codegen          - Generate API client code"
 	@echo "  ecs-exec         - Connect to running ECS task via Session Manager"
+	@echo "  sqid             - Encode/decode sqid (usage: make sqid 9 or make sqid abc123)"
 	@echo "  clean            - Clean all dependencies and build artifacts"
 
 # Installation targets
@@ -50,7 +51,7 @@ dev:
 .PHONY: dev-all
 dev-all:
 	@echo "Starting frontend, backend, and worker..."
-	@make -j3 dev-frontend dev-backend dev-worker
+	@export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && make -j3 dev-frontend dev-backend dev-worker
 
 .PHONY: dev-frontend
 dev-frontend:
@@ -62,8 +63,8 @@ dev-backend:
 
 .PHONY: dev-worker
 dev-worker:
-	@echo "🔄 Starting SAQ worker..."
-	cd backend && uv run litestar workers run
+	@echo "🔄 Starting SAQ worker with auto-reload..."
+	cd backend && export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && uv run watchmedo auto-restart -d app/ -R -- uv run litestar workers run
 
 # Database targets
 .PHONY: db-start
@@ -172,6 +173,14 @@ ecs-exec:
 		--command "/bin/bash"
 
 # Utility targets
+.PHONY: sqid
+sqid:
+	@cd backend && uv run python scripts/sqid.py $(filter-out $@,$(MAKECMDGOALS))
+
+# Catch-all target to prevent make from complaining about unknown targets when passing arguments to sqid
+%:
+	@:
+
 .PHONY: clean
 clean:
 	cd frontend && rm -rf node_modules .next

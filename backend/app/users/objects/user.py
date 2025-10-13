@@ -13,6 +13,10 @@ from app.objects.schemas import (
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    EmailFieldValue,
+    BoolFieldValue,
+    EnumFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.users.enums import UserStates
@@ -64,15 +68,13 @@ class UserObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=user.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=user.name),
                 label="Name",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="email",
-                value=user.email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=user.email),
                 label="Email",
                 editable=True,
             ),
@@ -92,33 +94,29 @@ class UserObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, user: User) -> ObjectListDTO:
+    async def to_list_dto(cls, user: User) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
-                value=user.name,
-                type=FieldType.String,
+                value=StringFieldValue(value=user.name),
                 label="Name",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="email",
-                value=user.email,
-                type=FieldType.Email,
+                value=EmailFieldValue(value=user.email),
                 label="Email",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="email_verified",
-                value=user.email_verified,
-                type=FieldType.Bool,
+                value=BoolFieldValue(value=user.email_verified),
                 label="Email Verified",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="state",
-                value=user.state.name,
-                type=FieldType.Enum,
+                value=EnumFieldValue(value=user.state.name),
                 label="Status",
                 editable=False,
             ),

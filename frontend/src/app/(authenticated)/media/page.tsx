@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -16,14 +16,20 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
+import type {
+  ColumnDefinitionDTO,
+  RegisterMediaSchema,
+  ObjectListDTO,
+} from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
+import { CreateMediaForm } from '@/components/actions/create-media-form';
+import type { ActionFormRenderer } from '@/hooks/use-action-executor';
 
 export default function MediaPage() {
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 40,
   });
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -70,10 +76,43 @@ export default function MediaPage() {
     // TODO: Implement bulk action handling
   };
 
-  const handleListAction = (action: string) => {
-    console.log('List action clicked:', action);
-    // TODO: Implement list action handlers
+  const handleRowActionClick = (actionName: string, row: ObjectListDTO) => {
+    console.log('Row action clicked:', actionName, 'on row:', row.id);
+    // TODO: Implement row action handling with dynamic objectId
   };
+
+  // Custom form renderer for media actions
+  const renderMediaActionForm: ActionFormRenderer = useCallback((props) => {
+    const { action, onSubmit, onCancel, isSubmitting } = props;
+
+    // Handle create media action with file upload form
+    if (action.action === 'top_level_media_actions__top_level_media_create') {
+      return (
+        <CreateMediaForm
+          onSubmit={(uploadData) => {
+            // Build the properly typed media creation data
+            const mediaData: RegisterMediaSchema = {
+              file_key: uploadData.file_key,
+              file_name: uploadData.file_name,
+              file_size: uploadData.file_size,
+              mime_type: uploadData.mime_type,
+            };
+
+            // Pass to the action - backend will handle media creation
+            onSubmit({
+              action: 'top_level_media_actions__top_level_media_create',
+              data: mediaData,
+            });
+          }}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    }
+
+    // Return null for actions that don't need custom forms
+    return null;
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -91,7 +130,12 @@ export default function MediaPage() {
         {data.actions && data.actions.length > 0 && (
           <ActionsMenu
             actions={data.actions}
-            onActionClick={handleListAction}
+            actionGroup="top_level_media_actions"
+            renderActionForm={renderMediaActionForm}
+            onActionComplete={() => {
+              // Refresh the media list after action completion
+              // Note: For media upload, the refresh happens via the register mutation
+            }}
           />
         )}
       </div>
@@ -117,6 +161,7 @@ export default function MediaPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
+        onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
     </div>

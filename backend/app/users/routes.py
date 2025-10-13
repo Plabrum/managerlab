@@ -17,8 +17,8 @@ from app.users.schemas import (
 from app.auth.guards import requires_authenticated_user, requires_superuser
 
 # Register objects (auto-registered via __init_subclass__, but explicit for clarity)
-ObjectRegistry.register(ObjectTypes.Users, UserObject)
-ObjectRegistry.register(ObjectTypes.Roster, RosterObject)
+ObjectRegistry().register(ObjectTypes.Users, UserObject)
+ObjectRegistry().register(ObjectTypes.Roster, RosterObject)
 
 
 @get("/", dto=UserDTO, return_dto=UserDTO, guards=[requires_superuser])

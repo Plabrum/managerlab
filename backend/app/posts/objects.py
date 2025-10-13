@@ -1,15 +1,21 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
+    EnumFieldValue,
     ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
+    StringFieldValue,
+    TextFieldValue,
+    DatetimeFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.posts.models import Post
@@ -39,9 +45,17 @@ class PostObject(BaseObject):
         ColumnDefinitionDTO(
             key="platforms",
             label="Platform",
-            type=FieldType.String,
+            type=FieldType.Enum,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
+            filter_type=get_filter_by_field_type(FieldType.Enum),
+            default_visible=True,
+        ),
+        ColumnDefinitionDTO(
+            key="state",
+            label="Status",
+            type=FieldType.Enum,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
         ),
         ColumnDefinitionDTO(
@@ -67,51 +81,56 @@ class PostObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="title",
-                value=post.title,
-                type=FieldType.String,
+                value=StringFieldValue(value=post.title),
                 label="Title",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="content",
-                value=post.content,
-                type=FieldType.Text,
+                value=TextFieldValue(value=post.content) if post.content else None,
                 label="Content",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="platforms",
-                value=post.platforms.value if post.platforms else None,
-                type=FieldType.String,
+                value=(
+                    StringFieldValue(value=post.platforms.value)
+                    if post.platforms
+                    else None
+                ),
                 label="Platform",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="posting_date",
-                value=post.posting_date.isoformat() if post.posting_date else None,
-                type=FieldType.Datetime,
+                value=(
+                    DatetimeFieldValue(value=post.posting_date)
+                    if post.posting_date
+                    else None
+                ),
                 label="Posting Date",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="compensation_structure",
                 value=(
-                    post.compensation_structure.value
+                    StringFieldValue(value=post.compensation_structure.value)
                     if post.compensation_structure
                     else None
                 ),
-                type=FieldType.String,
                 label="Compensation Structure",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="notes",
-                value=str(post.notes) if post.notes else "{}",
-                type=FieldType.Text,
+                value=TextFieldValue(value=str(post.notes) if post.notes else "{}"),
                 label="Notes",
                 editable=True,
             ),
         ]
+
+        action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
+        actions = action_group.get_available_actions(obj=post)
 
         return ObjectDetailDTO(
             id=sqid_encode(post.id),
@@ -119,7 +138,7 @@ class PostObject(BaseObject):
             state=post.state.name,
             title=post.title,
             fields=fields,
-            actions=[],
+            actions=actions,
             created_at=post.created_at,
             updated_at=post.updated_at,
             children=[],
@@ -131,37 +150,52 @@ class PostObject(BaseObject):
         fields = [
             ObjectFieldDTO(
                 key="title",
-                value=post.title,
-                type=FieldType.String,
+                value=StringFieldValue(value=post.title),
                 label="Title",
+                editable=False,
+            ),
+            ObjectFieldDTO(
+                key="state",
+                value=EnumFieldValue(value=post.state.value),
+                label="Status",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="content",
                 value=(
-                    post.content[:100] + "..."
-                    if post.content and len(post.content) > 100
-                    else post.content
+                    TextFieldValue(
+                        value=(
+                            post.content[:100] + "..."
+                            if len(post.content) > 100
+                            else post.content
+                        )
+                    )
+                    if post.content
+                    else None
                 ),
-                type=FieldType.Text,
                 label="Content",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="platforms",
-                value=post.platforms.value if post.platforms else None,
-                type=FieldType.String,
+                value=EnumFieldValue(value=post.platforms.value),
                 label="Platform",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="posting_date",
-                value=post.posting_date.isoformat() if post.posting_date else None,
-                type=FieldType.Datetime,
+                value=(
+                    DatetimeFieldValue(value=post.posting_date)
+                    if post.posting_date
+                    else None
+                ),
                 label="Posting Date",
                 editable=False,
             ),
         ]
+
+        action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
+        actions = action_group.get_available_actions(obj=post)
 
         return ObjectListDTO(
             id=sqid_encode(post.id),
@@ -173,7 +207,7 @@ class PostObject(BaseObject):
                 else post.content
             ),
             state=post.state.name,
-            actions=[],
+            actions=actions,
             created_at=post.created_at,
             updated_at=post.updated_at,
             fields=fields,

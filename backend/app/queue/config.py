@@ -12,6 +12,7 @@ To add a new task:
 """
 
 from datetime import timezone
+from saq.types import Context
 
 from litestar_saq import QueueConfig
 
@@ -21,6 +22,27 @@ from app.utils.discovery import discover_and_import
 
 # Auto-discover all task files to trigger decorator registration
 discover_and_import(["tasks.py"], base_path="app")
+
+
+async def queue_startup(ctx: Context) -> None:
+    """
+    Initialize SAQ worker context with dependencies.
+
+    This runs when each SAQ worker starts up, injecting the necessary
+    dependencies into the context for use by background tasks.
+    """
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from app.client.s3_client import provide_s3_client
+
+    # Create database session factory
+    engine = create_async_engine(config.ASYNC_DATABASE_URL, pool_pre_ping=True)
+    ctx["db_sessionmaker"] = async_sessionmaker(engine, expire_on_commit=False)
+
+    # Inject S3 client
+    ctx["s3_client"] = provide_s3_client(config)
+
+    # Inject config
+    ctx["config"] = config
 
 
 def get_queue_config() -> list[QueueConfig]:
@@ -45,6 +67,8 @@ def get_queue_config() -> list[QueueConfig]:
             scheduled_tasks=registry.get_all_scheduled_tasks(),
             # Timezone for cron schedules
             cron_tz=timezone.utc,
+            # Worker lifecycle hooks
+            startup=queue_startup,  # Inject dependencies when worker starts
             # Worker configuration
             concurrency=10,  # Number of concurrent tasks
             # Connection pool settings for Postgres

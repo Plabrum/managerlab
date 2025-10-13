@@ -4,6 +4,7 @@ from litestar import Litestar
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
+from litestar_saq import TaskQueues
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +13,10 @@ from sqlalchemy.pool import NullPool
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.sessions.store import PostgreSQLSessionStore
-from app.utils.configure import config
+from app.utils.configure import config, Config
+from app.actions.registry import ActionRegistry
+from app.objects.base import ObjectRegistry
+from app.client.s3_client import S3Dep
 
 
 async def provide_transaction(
@@ -70,3 +74,19 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
     )
 
     return PostgreSQLSessionStore(session_factory)
+
+
+def provide_action_registry(
+    s3_client: S3Dep, config: Config, transaction: AsyncSession, task_queues: TaskQueues
+) -> ActionRegistry:
+    return ActionRegistry(
+        s3_client=s3_client,
+        config=config,
+        transaction=transaction,
+        task_queues=task_queues,
+    )
+
+
+def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:
+    """Provide the ObjectRegistry singleton with dependencies."""
+    return ObjectRegistry(s3_client=s3_client, config=config)

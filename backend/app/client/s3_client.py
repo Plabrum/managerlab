@@ -1,114 +1,122 @@
-import os
 import shutil
-import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import boto3
-from botocore.exceptions import ClientError
 from litestar.params import Dependency
 
 from app.utils.configure import Config
-
-
-@dataclass
-class S3ObjectMeta:
-    """Metadata for an S3 object."""
-
-    last_modified: Optional[datetime]  # timezone-aware UTC
-    size: Optional[int]
 
 
 class BaseS3Client(ABC):
     """Abstract base class for S3-like operations."""
 
     @abstractmethod
-    def download(self, local_path: str | Path, s3_key: str = "nfl_odds.db") -> bool:
+    def download(self, local_path: str | Path, s3_key: str) -> None:
+        """Download file from storage."""
         pass
 
     @abstractmethod
-    def upload(self, local_path: str | Path, s3_key: str = "nfl_odds.db") -> None:
+    def upload(self, local_path: str | Path, s3_key: str) -> None:
         """Upload file to storage."""
         pass
 
     @abstractmethod
-    def _head(self, key: str) -> Optional[S3ObjectMeta]:
-        """Get metadata for a storage object."""
+    def upload_fileobj(self, fileobj, s3_key: str) -> None:
+        """Upload file-like object to storage."""
+        pass
+
+    @abstractmethod
+    def generate_presigned_upload_url(
+        self, key: str, content_type: str, expires_in: int = 300
+    ) -> str:
+        """Generate presigned URL for uploading a file."""
+        pass
+
+    @abstractmethod
+    def generate_presigned_download_url(self, key: str, expires_in: int = 3600) -> str:
+        """Generate presigned URL for downloading/viewing a file."""
+        pass
+
+    @abstractmethod
+    def delete_file(self, key: str) -> None:
+        """Delete a file from storage."""
+        pass
+
+    @abstractmethod
+    def file_exists(self, key: str) -> bool:
+        """Check if a file exists in storage."""
+        pass
+
+    @abstractmethod
+    def get_file_bytes(self, key: str) -> bytes:
+        """Get file contents as bytes."""
         pass
 
 
 class LocalS3Client(BaseS3Client):
+    """Local filesystem implementation for development."""
+
     def __init__(self, uploads_dir: str = "uploads"):
         self.uploads_dir = Path(uploads_dir)
         self.uploads_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_local_storage_path(self, key: str) -> Path:
         """Convert S3 key to local storage path."""
+        # Strip leading slash to ensure relative path
+        key = key.lstrip("/")
         return self.uploads_dir / key
 
-    def _head(self, key: str) -> Optional[S3ObjectMeta]:
-        """Return local file metadata or None if file not found."""
-        storage_path = self._get_local_storage_path(key)
-
-        if not storage_path.exists():
-            return None
-
-        stat = storage_path.stat()
-        return S3ObjectMeta(
-            last_modified=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
-            size=stat.st_size,
-        )
-
-    def download(self, local_path: str | Path, s3_key: str = "nfl_odds.db") -> bool:
+    def download(self, local_path: str | Path, s3_key: str) -> None:
         """Copy from local storage to target location."""
         local_path = Path(local_path)
         storage_path = self._get_local_storage_path(s3_key)
 
-        self._ensure_parent_dir(local_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Check if source exists in storage
-        if not storage_path.exists():
-            # Create empty file if nothing in storage
-            if not local_path.exists():
-                local_path.touch()
-            return False
-
-        # Check if we need to copy
-        local_mtime = self._get_file_mtime(local_path)
-        storage_mtime = self._get_file_mtime(storage_path)
-
-        if local_mtime is None or (storage_mtime and storage_mtime > local_mtime):
+        if storage_path.exists():
             shutil.copy2(storage_path, local_path)
-            return True
 
-        return False
-
-    def upload(self, local_path: str | Path, s3_key: str = "nfl_odds.db") -> None:
+    def upload(self, local_path: str | Path, s3_key: str) -> None:
         """Copy from local path to storage location."""
         local_path = Path(local_path)
         storage_path = self._get_local_storage_path(s3_key)
 
-        self._ensure_parent_dir(storage_path)
+        storage_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(local_path, storage_path)
 
-        # Update local file timestamp
-        now = time.time()
-        os.utime(local_path, (now, now))
+    def upload_fileobj(self, fileobj, s3_key: str) -> None:
+        """Upload file-like object to storage location."""
+        storage_path = self._get_local_storage_path(s3_key)
+        storage_path.parent.mkdir(parents=True, exist_ok=True)
+        storage_path.write_bytes(fileobj.read())
 
-    @staticmethod
-    def _get_file_mtime(path: Path) -> Optional[datetime]:
-        """Get file modification time as UTC datetime."""
-        if not path.exists():
-            return None
-        return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+    def generate_presigned_upload_url(
+        self, key: str, content_type: str, expires_in: int = 300
+    ) -> str:
+        """Generate mock presigned URL for local development."""
+        # In local mode, return a fake URL that includes the key
+        # The frontend can use this to know where to "upload" (store the key)
+        return f"http://localhost:8000/local-upload/{key}"
 
-    @staticmethod
-    def _ensure_parent_dir(path: Path) -> None:
-        """Ensure parent directory exists."""
-        path.parent.mkdir(parents=True, exist_ok=True)
+    def generate_presigned_download_url(self, key: str, expires_in: int = 3600) -> str:
+        """Generate mock presigned URL for local development."""
+        return f"http://localhost:8000/local-download/{key}"
+
+    def delete_file(self, key: str) -> None:
+        """Delete file from local storage."""
+        storage_path = self._get_local_storage_path(key)
+        if storage_path.exists():
+            storage_path.unlink()
+
+    def file_exists(self, key: str) -> bool:
+        """Check if file exists in local storage."""
+        return self._get_local_storage_path(key).exists()
+
+    def get_file_bytes(self, key: str) -> bytes:
+        """Get file contents as bytes."""
+        return self._get_local_storage_path(key).read_bytes()
 
 
 class S3Client(BaseS3Client):
@@ -118,71 +126,61 @@ class S3Client(BaseS3Client):
         self.bucket_name = config.S3_BUCKET
         self.s3 = boto3.client("s3")
 
-    def _head(self, key: str) -> Optional[S3ObjectMeta]:
-        """Return remote S3 metadata or None if object not found."""
-        try:
-            resp = self.s3.head_object(Bucket=self.bucket_name, Key=key)
-        except ClientError as e:
-            # Handle 404/NoSuchKey as missing object
-            error_code = e.response.get("Error", {}).get("Code")
-            if error_code in {"404", "NoSuchKey", "NotFound"}:
-                return None
-            raise  # Re-raise other errors
-
-        return S3ObjectMeta(
-            last_modified=resp.get("LastModified"),  # Already timezone-aware
-            size=resp.get("ContentLength"),
-        )
-
-    def download(self, local_path: str | Path, s3_key: str = "nfl_odds.db") -> bool:
-        """Download file from S3 if newer than local version."""
+    def download(self, local_path: str | Path, s3_key: str) -> None:
+        """Download file from S3."""
         local_path = Path(local_path)
-        self._ensure_parent_dir(local_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        self.s3.download_file(self.bucket_name, s3_key, str(local_path))
 
-        # Get remote metadata
-        remote_meta = self._head(s3_key)
-        if not remote_meta or not remote_meta.last_modified:
-            # Nothing to download, ensure local file exists
-            if not local_path.exists():
-                local_path.touch()
-            return False
-
-        # Compare timestamps
-        local_mtime = self._get_file_mtime(local_path)
-        if local_mtime is None or remote_meta.last_modified > local_mtime:
-            # Download and sync timestamps
-            self.s3.download_file(self.bucket_name, s3_key, str(local_path))
-            self._sync_file_time(local_path, remote_meta.last_modified)
-            return True
-
-        return False
-
-    def upload(self, local_path: str | Path, s3_key: str = "nfl_odds.db") -> None:
+    def upload(self, local_path: str | Path, s3_key: str) -> None:
         """Upload file to S3."""
-        local_path = Path(local_path)
         self.s3.upload_file(str(local_path), self.bucket_name, s3_key)
 
-        # Update local timestamp to indicate successful upload
-        now = time.time()
-        os.utime(local_path, (now, now))
+    def upload_fileobj(self, fileobj, s3_key: str) -> None:
+        """Upload file-like object to S3."""
+        self.s3.upload_fileobj(fileobj, self.bucket_name, s3_key)
 
-    @staticmethod
-    def _get_file_mtime(path: Path) -> Optional[datetime]:
-        """Get file modification time as UTC datetime."""
-        if not path.exists():
-            return None
-        return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+    def generate_presigned_upload_url(
+        self, key: str, content_type: str, expires_in: int = 300
+    ) -> str:
+        """Generate presigned URL for uploading a file to S3."""
+        return self.s3.generate_presigned_url(
+            "put_object",
+            Params={
+                "Bucket": self.bucket_name,
+                "Key": key,
+                "ContentType": content_type,
+            },
+            ExpiresIn=expires_in,
+        )
 
-    @staticmethod
-    def _ensure_parent_dir(path: Path) -> None:
-        """Ensure parent directory exists."""
-        path.parent.mkdir(parents=True, exist_ok=True)
+    def generate_presigned_download_url(self, key: str, expires_in: int = 3600) -> str:
+        """Generate presigned URL for downloading/viewing a file from S3."""
+        return self.s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self.bucket_name, "Key": key},
+            ExpiresIn=expires_in,
+        )
 
-    @staticmethod
-    def _sync_file_time(path: Path, remote_time: datetime) -> None:
-        """Set local file time to match remote time."""
-        timestamp = remote_time.timestamp()
-        os.utime(path, (timestamp, timestamp))
+    def delete_file(self, key: str) -> None:
+        """Delete a file from S3."""
+        self.s3.delete_object(Bucket=self.bucket_name, Key=key)
+
+    def file_exists(self, key: str) -> bool:
+        """Check if a file exists in S3."""
+        try:
+            self.s3.head_object(Bucket=self.bucket_name, Key=key)
+            return True
+        except Exception:
+            return False
+
+    def get_file_bytes(self, key: str) -> bytes:
+        """Get file contents as bytes from S3."""
+        from io import BytesIO
+
+        fileobj = BytesIO()
+        self.s3.download_fileobj(self.bucket_name, key, fileobj)
+        return fileobj.getvalue()
 
 
 def provide_s3_client(config: Config) -> BaseS3Client:
