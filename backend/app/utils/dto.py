@@ -76,7 +76,7 @@ def _pk_pytype(mapper: Mapper) -> Any:
         return Any
     # Assume a single-column PK, which is true for 99% of cases
     col = pks[0]
-    return _sa_column_to_pytype(col)  # type: ignore[index]
+    return _sa_column_to_pytype(col)  # type: ignore[arg-type]
 
 
 # ------------ main converter
@@ -128,7 +128,7 @@ def dto_to_msgspec_struct_from_mapper(
                 target_pk_t = _pk_pytype(rel.mapper)
                 t = target_pk_t
                 if rel.uselist:
-                    t = list[target_pk_t]  # type: ignore[index]
+                    t = list[target_pk_t]  # type: ignore[valid-type]
                 # relationships are typically optional on write
                 fields[key] = Optional[t]  # type: ignore[valid-type]
             elif include_relationships == "nested":
