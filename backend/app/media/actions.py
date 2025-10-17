@@ -7,7 +7,7 @@ from app.client.s3_client import S3Client
 from app.media.models import Media
 from app.media.enums import MediaActions
 from app.media.schemas import MediaUpdateSchema
-from app.utils.dto import update_model
+from app.utils.db import update_model
 
 
 # Create media action group

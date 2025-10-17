@@ -22,13 +22,67 @@ from app.client.s3_client import S3Dep
 async def provide_transaction(
     db_session: AsyncSession,
 ) -> AsyncGenerator[AsyncSession, None]:
-    # Listener that injects `raiseload("*")` into every ORM SELECT
-    def _enforce_raiseload(execute_state):
-        if execute_state.is_select:
-            execute_state.statement = execute_state.statement.options(raiseload("*"))
+    from app.auth.scope_context import get_request_scope
+    from app.base.scope_mixins import TeamScopedMixin, DualScopedMixin
+    from litestar.exceptions import PermissionDeniedException
+
+    # Listener that injects scope filters and soft delete filters into every ORM SELECT
+    def _apply_filters(execute_state):
+        if not execute_state.is_select:
+            return
+
+        statement = execute_state.statement
+
+        # Get the model from the statement
+        from_clause = list(statement.get_final_froms())
+        if not from_clause:
+            return
+
+        # Get the mapped class (model)
+        mapper = from_clause[0]
+        if not hasattr(mapper, "entity"):
+            return
+
+        model = mapper.entity
+
+        # Apply soft delete filter (all models have deleted_at from BaseDBModel)
+        if hasattr(model, "deleted_at"):
+            statement = statement.where(model.deleted_at.is_(None))
+
+        # Apply scope filter
+        scope = get_request_scope()
+        if scope:
+            # Check if model uses scope mixins
+            is_team_scoped = issubclass(model, TeamScopedMixin)
+            is_dual_scoped = issubclass(model, DualScopedMixin)
+
+            if is_dual_scoped:
+                # DualScopedMixin: Has both team_id and campaign_id
+                if scope.is_team_scoped:
+                    # Team scope: Filter by team_id
+                    statement = statement.where(model.team_id == scope.team_id)
+                elif scope.is_campaign_scoped:
+                    # Campaign scope: Filter by campaign_id
+                    statement = statement.where(model.campaign_id == scope.campaign_id)
+
+            elif is_team_scoped:
+                # TeamScopedMixin: Has only team_id
+                if scope.is_team_scoped:
+                    # Team scope: Filter by team_id
+                    statement = statement.where(model.team_id == scope.team_id)
+                elif scope.is_campaign_scoped:
+                    # Campaign guests cannot access team-only resources
+                    raise PermissionDeniedException(
+                        f"Campaign guests cannot access {model.__name__} resources"
+                    )
+
+        # Also apply raiseload for eager loading enforcement
+        statement = statement.options(raiseload("*"))
+
+        execute_state.statement = statement
 
     # Attach the listener to THIS session only
-    event.listen(db_session.sync_session, "do_orm_execute", _enforce_raiseload)
+    event.listen(db_session.sync_session, "do_orm_execute", _apply_filters)
     try:
         async with db_session.begin():
             yield db_session
@@ -36,7 +90,7 @@ async def provide_transaction(
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
     finally:
         # Always remove the listener so it doesn't leak to other sessions
-        event.remove(db_session.sync_session, "do_orm_execute", _enforce_raiseload)
+        event.remove(db_session.sync_session, "do_orm_execute", _apply_filters)
 
 
 async def on_startup(app: Litestar) -> None:

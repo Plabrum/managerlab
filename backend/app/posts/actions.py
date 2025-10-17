@@ -6,7 +6,7 @@ from app.actions.schemas import ActionExecutionResponse
 from app.posts.enums import PostStates, PostActions
 from app.posts.models import Post
 from app.posts.schemas import PostUpdateSchema
-from app.utils.dto import update_model
+from app.utils.db import update_model
 
 post_actions = action_group_factory(ActionGroupType.PostActions, model_type=Post)
 
