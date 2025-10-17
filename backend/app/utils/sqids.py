@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, TypeAlias
 import sqids as _sqids
 
 __all__ = ["sqid_decode", "sqid_encode", "Sqid"]
@@ -23,4 +23,4 @@ def sqid_encode(value: int) -> str:
     return sqid_encoder.encode([value])
 
 
-Sqid = Annotated[str, sqid_decode]
+Sqid: TypeAlias = Annotated[str, sqid_decode]

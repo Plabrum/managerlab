@@ -1,8 +1,9 @@
 """Generic object routes and endpoints."""
 
+from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence
-from litestar import Router, get, post, Request
+from litestar import Router, get, post
 
 from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
@@ -19,15 +20,15 @@ from app.client.s3_client import S3Dep
 
 @get("/{object_type:str}/{id:str}")
 async def get_object_detail(
-    request: Request,
     object_type: ObjectTypes,
     id: Sqid,
     transaction: AsyncSession,
     s3_client: S3Dep,
     object_registry: ObjectRegistry,
+    logger: Logger,
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
-    request.app.logger.info(f"data:{id}, object_type:{object_type}")
+    logger.info(f"data:{id}, object_type:{object_type}")
     object_service = object_registry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
     return object_service.to_detail_dto(obj)
@@ -35,16 +36,16 @@ async def get_object_detail(
 
 @post("/{object_type:str}", operation_id="list_objects")
 async def list_objects(
-    request: Request,
     object_type: ObjectTypes,
     data: ObjectListRequest,
     transaction: AsyncSession,
     s3_client: S3Dep,
     object_registry: ObjectRegistry,
     action_registry: ActionRegistry,
+    logger: Logger,
 ) -> ObjectListResponse:
     """List objects with filtering and pagination."""
-    request.app.logger.info(f"data:{data}")
+    logger.info(f"data:{data}")
     object_service = object_registry.get_class(object_type)
     objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)

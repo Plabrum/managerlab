@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 from advanced_alchemy.exceptions import RepositoryError
 from litestar import Litestar, Response, get
 from litestar.config.cors import CORSConfig
@@ -71,7 +72,7 @@ session_auth = SessionAuth[
 
 
 # Build route handlers list with conditional local media router
-route_handlers = [
+route_handlers: list[Any] = [
     health_check,
     public_user_router,
     user_router,

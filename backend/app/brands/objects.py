@@ -1,3 +1,4 @@
+from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -135,7 +136,7 @@ class BrandObject(BaseObject):
         ]
 
         # TODO: Implement BrandActions when needed
-        actions = []
+        actions: list[Any] = []
 
         return ObjectDetailDTO(
             id=sqid_encode(brand.id),
@@ -188,7 +189,7 @@ class BrandObject(BaseObject):
         ]
 
         # TODO: Implement BrandActions when needed
-        actions = []
+        actions: list[Any] = []
 
         return ObjectListDTO(
             id=sqid_encode(brand.id),
@@ -297,7 +298,7 @@ class BrandContactObject(BaseObject):
             )
 
         # TODO: Implement BrandContactActions when needed
-        actions = []
+        actions: list[Any] = []
 
         return ObjectDetailDTO(
             id=sqid_encode(contact.id),
@@ -343,7 +344,7 @@ class BrandContactObject(BaseObject):
         ]
 
         # TODO: Implement BrandContactActions when needed
-        actions = []
+        actions: list[Any] = []
 
         return ObjectListDTO(
             id=sqid_encode(contact.id),

@@ -64,6 +64,7 @@ async def requires_verified_user(
     if not sqlalchemy_plugin:
         raise NotAuthorizedException("Database connection required")
 
+    assert isinstance(sqlalchemy_plugin, SQLAlchemyPlugin)  # Type narrowing for mypy
     async with sqlalchemy_plugin.get_session() as db_session:
         stmt = select(User).where(User.id == user_id)
         result = await db_session.execute(stmt)
@@ -95,6 +96,7 @@ async def requires_superuser(connection: ASGIConnection, _: BaseRouteHandler) ->
     if not sqlalchemy_plugin:
         raise NotAuthorizedException("Database connection required")
 
+    assert isinstance(sqlalchemy_plugin, SQLAlchemyPlugin)  # Type narrowing for mypy
     async with sqlalchemy_plugin.get_session() as db_session:
         stmt = select(User).where(User.id == user_id)
         result = await db_session.execute(stmt)
