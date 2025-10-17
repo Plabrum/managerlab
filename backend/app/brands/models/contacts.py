@@ -6,6 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
+from app.base.scope_mixins import TeamScopedMixin
 
 
 if TYPE_CHECKING:
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from app.campaigns.models import Campaign
 
 
-class BrandContact(BaseDBModel):
+class BrandContact(TeamScopedMixin, BaseDBModel):
     """Contact object model."""
 
     __tablename__ = "brand_contacts"

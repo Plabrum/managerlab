@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Set, Type, TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer
@@ -30,6 +30,12 @@ class BaseDBModel(DeclarativeBase):
         server_onupdate=func.now(),
         nullable=False,
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        index=True,
+    )
 
     def __init_subclass__(cls, **kwargs):
         """Automatically register model classes when they're defined."""
@@ -52,3 +58,16 @@ class BaseDBModel(DeclarativeBase):
     @hybrid_property
     def public_id(self) -> str:
         return sqid_encode(self.id)
+
+    def soft_delete(self) -> None:
+        """Soft delete this record by setting deleted_at timestamp."""
+        self.deleted_at = datetime.now(tz=timezone.utc)
+
+    def restore(self) -> None:
+        """Restore a soft-deleted record by clearing deleted_at."""
+        self.deleted_at = None
+
+    @property
+    def is_deleted(self) -> bool:
+        """Check if this record is soft-deleted."""
+        return self.deleted_at is not None

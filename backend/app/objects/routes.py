@@ -26,7 +26,10 @@ async def get_object_detail(
     s3_client: S3Dep,
     object_registry: ObjectRegistry,
 ) -> ObjectDetailDTO:
-    """Get detailed object information."""
+    """Get detailed object information.
+
+    Scope filtering is applied automatically via SQLAlchemy events.
+    """
     request.app.logger.info(f"data:{id}, object_type:{object_type}")
     object_service = object_registry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
@@ -43,7 +46,10 @@ async def list_objects(
     object_registry: ObjectRegistry,
     action_registry: ActionRegistry,
 ) -> ObjectListResponse:
-    """List objects with filtering and pagination."""
+    """List objects with filtering and pagination.
+
+    Scope filtering is applied automatically via SQLAlchemy events.
+    """
     request.app.logger.info(f"data:{data}")
     object_service = object_registry.get_class(object_type)
     objects: Sequence[BaseDBModel]

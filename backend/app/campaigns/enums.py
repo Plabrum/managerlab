@@ -14,3 +14,10 @@ class CampaignActions(StrEnum):
     create = "campaign.create"
     delete = "campaign.delete"
     update = "campaign.update"
+
+
+class CampaignGuestAccessLevel(StrEnum):
+    """Access levels for campaign guests."""
+
+    VIEWER = auto()  # Can view campaign data
+    CONTRIBUTOR = auto()  # Can view and edit campaign data

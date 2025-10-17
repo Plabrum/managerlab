@@ -86,6 +86,10 @@ class BaseObject(ABC):
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
+        """Build query from request filters, sorts, and search.
+
+        Scope and soft-delete filtering are applied automatically via SQLAlchemy events.
+        """
         query = select(cls.model)
 
         # Apply load options (eager loading, etc.)
@@ -107,6 +111,10 @@ class BaseObject(ABC):
 
     @classmethod
     async def get_by_id(cls, session: AsyncSession, object_id: int) -> BaseDBModel:
+        """Get object by ID.
+
+        Scope and soft-delete filtering are applied automatically via SQLAlchemy events.
+        """
         query = (
             select(cls.model)
             .where(cls.model.id == object_id)
@@ -123,6 +131,10 @@ class BaseObject(ABC):
     async def get_list(
         cls, session: AsyncSession, request: ObjectListRequest
     ) -> tuple[Sequence[BaseDBModel], int]:
+        """Get list of objects with filtering and pagination.
+
+        Scope and soft-delete filtering are applied automatically via SQLAlchemy events.
+        """
         query = await cls.query_from_request(session, request)
         total_rows = await session.execute(
             select(func.count()).select_from(query.subquery())
