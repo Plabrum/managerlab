@@ -68,6 +68,22 @@ export interface AddUserToWaitlistWaitlistEntryResponseBody {
   public_id: string;
 }
 
+/**
+ * Aggregation types for time series data.
+ */
+export type AggregationType = typeof AggregationType[keyof typeof AggregationType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AggregationType = {
+  sum: 'sum',
+  avg: 'avg',
+  max: 'max',
+  min: 'min',
+  count: 'count',
+  mode: 'mode',
+} as const;
+
 export interface BoolFieldValue {
   value: boolean;
   type: 'bool';
@@ -168,6 +184,19 @@ export interface CampaignUpdateSchema {
   name?: CampaignUpdateSchemaName;
   description?: CampaignUpdateSchemaDescription;
   brand_id?: CampaignUpdateSchemaBrandId;
+}
+
+export type CategoricalDataPointBreakdowns = {[key: string]: number};
+
+export interface CategoricalDataPoint {
+  timestamp: string;
+  breakdowns: CategoricalDataPointBreakdowns;
+  total_count: number;
+}
+
+export interface CategoricalTimeSeriesData {
+  data_points: CategoricalDataPoint[];
+  type: 'categorical';
 }
 
 export type ColumnDefinitionDTOAvailableValues = string[] | null;
@@ -509,6 +538,23 @@ export interface GoogleUserInfoResponseSchema {
   user_id: number;
 }
 
+/**
+ * Time series granularity/bucketing options.
+ */
+export type Granularity = typeof Granularity[keyof typeof Granularity];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const Granularity = {
+  automatic: 'automatic',
+  hour: 'hour',
+  day: 'day',
+  week: 'week',
+  month: 'month',
+  quarter: 'quarter',
+  year: 'year',
+} as const;
+
 export type ImageFieldValueThumbnailUrl = string | null;
 
 export interface ImageFieldValue {
@@ -609,6 +655,19 @@ export type MediaUpdateSchemaFileName = string | null;
 
 export interface MediaUpdateSchema {
   file_name?: MediaUpdateSchemaFileName;
+}
+
+export type NumericalDataPointValue = number | number | null;
+
+export interface NumericalDataPoint {
+  timestamp: string;
+  value?: NumericalDataPointValue;
+  count: number;
+}
+
+export interface NumericalTimeSeriesData {
+  data_points: NumericalDataPoint[];
+  type: 'numerical';
 }
 
 export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
@@ -906,6 +965,58 @@ export interface TextFilterDefinition {
   type: 'text_filter';
 }
 
+/**
+ * Relative time range options for time series queries.
+ */
+export type TimeRange = typeof TimeRange[keyof typeof TimeRange];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TimeRange = {
+  last_7_days: 'last_7_days',
+  last_30_days: 'last_30_days',
+  last_90_days: 'last_90_days',
+  last_6_months: 'last_6_months',
+  last_year: 'last_year',
+  year_to_date: 'year_to_date',
+  month_to_date: 'month_to_date',
+  all_time: 'all_time',
+} as const;
+
+export type TimeSeriesDataRequestTimeRange = TimeRange | null;
+
+export type TimeSeriesDataRequestStartDate = string | null;
+
+export type TimeSeriesDataRequestEndDate = string | null;
+
+export type TimeSeriesDataRequestAggregation = AggregationType | null;
+
+export type TimeSeriesDataRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition;
+
+export interface TimeSeriesDataRequest {
+  field: string;
+  time_range?: TimeSeriesDataRequestTimeRange;
+  start_date?: TimeSeriesDataRequestStartDate;
+  end_date?: TimeSeriesDataRequestEndDate;
+  granularity?: Granularity;
+  aggregation?: TimeSeriesDataRequestAggregation;
+  filters?: TimeSeriesDataRequestFiltersItem[];
+  fill_missing?: boolean;
+}
+
+export type TimeSeriesDataResponseData = NumericalTimeSeriesData | CategoricalTimeSeriesData;
+
+export interface TimeSeriesDataResponse {
+  data: TimeSeriesDataResponseData;
+  field_name: string;
+  field_type: FieldType;
+  aggregation_type: AggregationType;
+  granularity_used: Granularity;
+  start_date: string;
+  end_date: string;
+  total_records: number;
+}
+
 export interface URLFieldValue {
   value: string;
   type: 'url';
@@ -1199,6 +1310,19 @@ export type ListObjects400 = {
   status_code: number;
   detail: string;
   extra?: ListObjects400Extra;
+};
+
+export type GetTimeSeriesData400ExtraAnyOf = {[key: string]: unknown};
+
+export type GetTimeSeriesData400Extra = null | GetTimeSeriesData400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type GetTimeSeriesData400 = {
+  status_code: number;
+  detail: string;
+  extra?: GetTimeSeriesData400Extra;
 };
 
 export type ActionsActionGroupListActions400ExtraAnyOf = {[key: string]: unknown};

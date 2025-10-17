@@ -1,9 +1,16 @@
 from typing import assert_never
-from sqlalchemy import Select, and_
+from datetime import datetime, timedelta, timezone
+from sqlalchemy import Select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.base.models import BaseDBModel
-from app.objects.enums import FieldType, FilterType
+from app.objects.enums import (
+    FieldType,
+    FilterType,
+    TimeRange,
+    Granularity,
+    AggregationType,
+)
 from app.objects.schemas import (
     BooleanFilterDefinition,
     DateFilterDefinition,
@@ -13,6 +20,8 @@ from app.objects.schemas import (
     ObjectListRequest,
     SortDefinition,
     EnumFilterDefinition,
+    NumericalDataPoint,
+    CategoricalDataPoint,
 )
 
 
@@ -171,3 +180,406 @@ async def export_to_csv(
     filename = f"{model_class.__name__.lower()}_export.csv"
 
     return csv_content, filename
+
+
+# ============================================================================
+# Time Series Functions
+# ============================================================================
+
+
+def resolve_time_range(
+    time_range: TimeRange | None, start_date: datetime | None, end_date: datetime | None
+) -> tuple[datetime, datetime]:
+    """Resolve time range to absolute start and end datetimes.
+
+    Args:
+        time_range: Relative time range enum
+        start_date: Explicit start date (overrides time_range)
+        end_date: Explicit end date (overrides time_range)
+
+    Returns:
+        Tuple of (start_datetime, end_datetime) in UTC
+    """
+    now = datetime.now(tz=timezone.utc)
+
+    # Explicit dates override time_range
+    if start_date and end_date:
+        return start_date, end_date
+
+    # If only one explicit date is provided, use it with time_range
+    if start_date and not end_date:
+        end_date = now
+
+    if end_date and not start_date:
+        # Use time_range to calculate start, or default to 30 days
+        if time_range:
+            start_date = _calculate_start_from_range(time_range, end_date)
+        else:
+            start_date = end_date - timedelta(days=30)
+
+    # Both are None, use time_range or default
+    if not start_date and not end_date:
+        end_date = now
+        if time_range:
+            start_date = _calculate_start_from_range(time_range, end_date)
+        else:
+            start_date = end_date - timedelta(days=30)  # default to last 30 days
+
+    return start_date, end_date
+
+
+def _calculate_start_from_range(time_range: TimeRange, end_date: datetime) -> datetime:
+    """Calculate start date from relative time range."""
+    match time_range:
+        case TimeRange.last_7_days:
+            return end_date - timedelta(days=7)
+        case TimeRange.last_30_days:
+            return end_date - timedelta(days=30)
+        case TimeRange.last_90_days:
+            return end_date - timedelta(days=90)
+        case TimeRange.last_6_months:
+            return end_date - timedelta(days=180)
+        case TimeRange.last_year:
+            return end_date - timedelta(days=365)
+        case TimeRange.year_to_date:
+            return end_date.replace(
+                month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+            )
+        case TimeRange.month_to_date:
+            return end_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        case TimeRange.all_time:
+            # Return a very old date (e.g., 10 years ago)
+            return end_date - timedelta(days=3650)
+        case _:
+            assert_never(time_range)
+
+
+def determine_granularity(
+    granularity: Granularity, start_date: datetime, end_date: datetime
+) -> Granularity:
+    """Determine appropriate granularity based on time range.
+
+    Args:
+        granularity: Requested granularity (may be 'auto')
+        start_date: Start of time range
+        end_date: End of time range
+
+    Returns:
+        Resolved granularity
+    """
+    if granularity != Granularity.automatic:
+        return granularity
+
+    # Auto-determine based on range
+    delta = end_date - start_date
+
+    if delta <= timedelta(days=1):
+        return Granularity.hour
+    elif delta <= timedelta(days=7):
+        return Granularity.day
+    elif delta <= timedelta(days=90):
+        return Granularity.week
+    elif delta <= timedelta(days=365):
+        return Granularity.month
+    elif delta <= timedelta(days=730):  # 2 years
+        return Granularity.quarter
+    else:
+        return Granularity.year
+
+
+def get_date_trunc_format(granularity: Granularity) -> str:
+    """Get PostgreSQL date_trunc format string for granularity."""
+    match granularity:
+        case Granularity.hour:
+            return "hour"
+        case Granularity.day:
+            return "day"
+        case Granularity.week:
+            return "week"
+        case Granularity.month:
+            return "month"
+        case Granularity.quarter:
+            return "quarter"
+        case Granularity.year:
+            return "year"
+        case Granularity.automatic:
+            raise ValueError(
+                "Granularity must be resolved before getting date_trunc format"
+            )
+        case _:
+            assert_never(granularity)
+
+
+def get_default_aggregation(field_type: FieldType) -> AggregationType:
+    """Get default aggregation type for a field type."""
+    match field_type:
+        case FieldType.Int | FieldType.Float | FieldType.USD:
+            return AggregationType.sum
+        case (
+            FieldType.String
+            | FieldType.Enum
+            | FieldType.Bool
+            | FieldType.Email
+            | FieldType.URL
+            | FieldType.Text
+        ):
+            return AggregationType.count
+        case FieldType.Date | FieldType.Datetime:
+            return AggregationType.count
+        case FieldType.Image:
+            return AggregationType.count
+        case _:
+            assert_never(field_type)
+
+
+def is_numerical_field(field_type: FieldType) -> bool:
+    """Check if a field type is numerical."""
+    return field_type in (FieldType.Int, FieldType.Float, FieldType.USD)
+
+
+def is_categorical_field(field_type: FieldType) -> bool:
+    """Check if a field type is categorical."""
+    return field_type in (FieldType.String, FieldType.Enum, FieldType.Bool)
+
+
+def generate_time_buckets(
+    start_date: datetime, end_date: datetime, granularity: Granularity
+) -> list[datetime]:
+    """Generate list of time bucket start timestamps.
+
+    Args:
+        start_date: Start of range
+        end_date: End of range
+        granularity: Bucket size
+
+    Returns:
+        List of bucket start timestamps
+    """
+    buckets = []
+    current = start_date
+
+    match granularity:
+        case Granularity.hour:
+            delta = timedelta(hours=1)
+        case Granularity.day:
+            delta = timedelta(days=1)
+        case Granularity.week:
+            delta = timedelta(weeks=1)
+        case Granularity.month:
+            # Month is tricky, handle separately
+            while current <= end_date:
+                buckets.append(current)
+                # Add one month
+                if current.month == 12:
+                    current = current.replace(year=current.year + 1, month=1)
+                else:
+                    current = current.replace(month=current.month + 1)
+            return buckets
+        case Granularity.quarter:
+            # Quarter handling
+            while current <= end_date:
+                buckets.append(current)
+                # Add 3 months
+                new_month = current.month + 3
+                if new_month > 12:
+                    current = current.replace(
+                        year=current.year + 1, month=new_month - 12
+                    )
+                else:
+                    current = current.replace(month=new_month)
+            return buckets
+        case Granularity.year:
+            delta = timedelta(days=365)  # Approximate, will be refined
+            while current <= end_date:
+                buckets.append(current)
+                current = current.replace(year=current.year + 1)
+            return buckets
+        case _:
+            delta = timedelta(days=1)
+
+    # For hour, day, week
+    while current <= end_date:
+        buckets.append(current)
+        current += delta
+
+    return buckets
+
+
+def fill_missing_numerical_datapoints(
+    data_points: list[NumericalDataPoint],
+    start_date: datetime,
+    end_date: datetime,
+    granularity: Granularity,
+    default_value: float | int | None = 0,
+) -> list[NumericalDataPoint]:
+    """Fill missing time buckets with default values for numerical data.
+
+    Args:
+        data_points: Existing data points (may have gaps)
+        start_date: Start of range
+        end_date: End of range
+        granularity: Bucket size
+        default_value: Value to use for missing buckets (0 by default)
+
+    Returns:
+        Complete list of data points with no gaps
+    """
+    # Generate all expected buckets
+    all_buckets = generate_time_buckets(start_date, end_date, granularity)
+
+    # Create lookup dict from existing data
+    existing_data = {dp.timestamp: dp for dp in data_points}
+
+    # Fill in missing buckets
+    filled_data = []
+    for bucket in all_buckets:
+        if bucket in existing_data:
+            filled_data.append(existing_data[bucket])
+        else:
+            filled_data.append(
+                NumericalDataPoint(timestamp=bucket, value=default_value, count=0)
+            )
+
+    return filled_data
+
+
+async def query_time_series_data(
+    session: AsyncSession,
+    model_class: type[BaseDBModel],
+    field_name: str,
+    field_type: FieldType,
+    start_date: datetime,
+    end_date: datetime,
+    granularity: Granularity,
+    aggregation: AggregationType,
+    filters: list[FilterDefinition],
+) -> tuple[list[NumericalDataPoint] | list[CategoricalDataPoint], int]:
+    """Query time series data with aggregation.
+
+    Args:
+        session: Database session
+        model_class: Model to query
+        field_name: Column name to aggregate
+        field_type: Type of the field
+        start_date: Start of time range
+        end_date: End of time range
+        granularity: Time bucket size
+        aggregation: Aggregation type to apply
+        filters: Filters to apply before aggregation
+
+    Returns:
+        Tuple of (data_points, total_record_count)
+    """
+    from sqlalchemy import select
+
+    # Get the column reference
+    column = getattr(model_class, field_name, None)
+    if column is None:
+        raise ValueError(f"Column {field_name} not found on {model_class.__name__}")
+
+    # Get timestamp column (default to created_at)
+    timestamp_column = model_class.created_at
+
+    # Get date_trunc format
+    trunc_format = get_date_trunc_format(granularity)
+
+    # Build base query
+    query = select(model_class)
+
+    # Apply filters
+    for filter_def in filters:
+        query = apply_filter(query, model_class, filter_def)
+
+    # Add time range filter
+    query = query.where(timestamp_column >= start_date, timestamp_column <= end_date)
+
+    # Count total records
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await session.execute(count_query)
+    total_count = total_result.scalar_one()
+
+    # Build time-bucketed aggregation query
+    time_bucket = func.date_trunc(trunc_format, timestamp_column).label("time_bucket")
+
+    # Handle categorical vs numerical aggregation
+    if is_categorical_field(field_type) or aggregation == AggregationType.mode:
+        # For categorical: GROUP BY time_bucket and field value, then count
+        agg_query = (
+            select(
+                time_bucket,
+                column.label("category_value"),
+                func.count().label("count"),
+            )
+            .select_from(query.subquery())
+            .group_by(time_bucket, column)
+            .order_by(time_bucket)
+        )
+
+        result = await session.execute(agg_query)
+        rows = result.all()
+
+        # Convert to CategoricalBreakdown format
+        breakdown_dict: dict[datetime, dict[str, int]] = {}
+        for row in rows:
+            bucket_time = row.time_bucket
+            category = (
+                str(row.category_value) if row.category_value is not None else "null"
+            )
+            count_val = row.count
+
+            if bucket_time not in breakdown_dict:
+                breakdown_dict[bucket_time] = {}
+
+            breakdown_dict[bucket_time][category] = count_val
+
+        categorical_data = [
+            CategoricalDataPoint(
+                timestamp=bucket,
+                breakdowns=breakdowns,
+                total_count=sum(breakdowns.values()),
+            )
+            for bucket, breakdowns in sorted(breakdown_dict.items())
+        ]
+
+        return categorical_data, total_count
+
+    else:
+        # For numerical: apply aggregation function
+        match aggregation:
+            case AggregationType.sum:
+                agg_func = func.sum(column)
+            case AggregationType.avg:
+                agg_func = func.avg(column)
+            case AggregationType.max:
+                agg_func = func.max(column)
+            case AggregationType.min:
+                agg_func = func.min(column)
+            case AggregationType.count:
+                agg_func = func.count(column)
+            case _:
+                agg_func = func.sum(column)  # default fallback
+
+        agg_query = (
+            select(
+                time_bucket,
+                agg_func.label("agg_value"),
+                func.count().label("record_count"),
+            )
+            .select_from(query.subquery())
+            .group_by(time_bucket)
+            .order_by(time_bucket)
+        )
+
+        result = await session.execute(agg_query)
+        rows = result.all()
+
+        data_points = [
+            NumericalDataPoint(
+                timestamp=row.time_bucket,
+                value=float(row.agg_value) if row.agg_value is not None else None,
+                count=row.record_count,
+            )
+            for row in rows
+        ]
+
+        return data_points, total_count

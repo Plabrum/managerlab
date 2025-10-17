@@ -4,7 +4,14 @@ from datetime import date, datetime
 from typing import Dict, List, Literal, Optional, Union
 
 from app.base.schemas import BaseSchema
-from app.objects.enums import FieldType, FilterType, SortDirection
+from app.objects.enums import (
+    FieldType,
+    FilterType,
+    SortDirection,
+    TimeRange,
+    Granularity,
+    AggregationType,
+)
 from app.actions.schemas import ActionDTO
 
 
@@ -236,3 +243,67 @@ class ObjectListResponse(BaseSchema):
     offset: int
     columns: List[ColumnDefinitionDTO]
     actions: list[ActionDTO] = []
+
+
+# ============================================================================
+# Time Series Schemas
+# ============================================================================
+
+
+class TimeSeriesDataRequest(BaseSchema):
+    """Request schema for time series data queries."""
+
+    field: str  # Column name to aggregate
+    time_range: TimeRange | None = None  # Relative time range
+    start_date: datetime | None = None  # Absolute start (overrides time_range)
+    end_date: datetime | None = None  # Absolute end (overrides time_range)
+    granularity: Granularity = Granularity.automatic  # Time bucket size
+    aggregation: AggregationType | None = (
+        None  # Aggregation type (auto-determined if None)
+    )
+    filters: List[FilterDefinition] = []  # Reuse existing filter system
+    fill_missing: bool = True  # Fill gaps with null/0
+
+
+class NumericalDataPoint(BaseSchema):
+    """A single numerical data point."""
+
+    timestamp: datetime
+    value: float | int | None
+    count: int  # Number of records in this bucket
+
+
+class CategoricalDataPoint(BaseSchema):
+    """A single categorical data point with breakdowns."""
+
+    timestamp: datetime
+    breakdowns: Dict[str, int]  # category -> count mapping
+    total_count: int
+
+
+class NumericalTimeSeriesData(BaseSchema, tag="numerical"):
+    """Numerical time series data response."""
+
+    data_points: List[NumericalDataPoint]
+
+
+class CategoricalTimeSeriesData(BaseSchema, tag="categorical"):
+    """Categorical time series data response."""
+
+    data_points: List[CategoricalDataPoint]
+
+
+TimeSeriesData = Union[NumericalTimeSeriesData, CategoricalTimeSeriesData]
+
+
+class TimeSeriesDataResponse(BaseSchema):
+    """Response schema for time series data queries."""
+
+    data: TimeSeriesData
+    field_name: str
+    field_type: FieldType
+    aggregation_type: AggregationType
+    granularity_used: Granularity
+    start_date: datetime
+    end_date: datetime
+    total_records: int  # Total records considered (after filters)

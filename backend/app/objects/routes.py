@@ -11,6 +11,19 @@ from app.objects.schemas import (
     ObjectDetailDTO,
     ObjectListRequest,
     ObjectListResponse,
+    TimeSeriesDataRequest,
+    TimeSeriesDataResponse,
+    NumericalDataPoint,
+    NumericalTimeSeriesData,
+    CategoricalTimeSeriesData,
+)
+from app.objects.services import (
+    resolve_time_range,
+    determine_granularity,
+    get_default_aggregation,
+    query_time_series_data,
+    fill_missing_numerical_datapoints,
+    is_numerical_field,
 )
 from app.objects.enums import ObjectTypes
 from app.utils.logging import logger
@@ -24,7 +37,6 @@ async def get_object_detail(
     transaction: AsyncSession,
     object_registry: ObjectRegistry,
 ) -> ObjectDetailDTO:
-    """Get detailed object information."""
     logger.info(f"data:{id}, object_type:{object_type}")
     object_service = object_registry.get_class(object_type)
     obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
@@ -39,7 +51,6 @@ async def list_objects(
     object_registry: ObjectRegistry,
     action_registry: ActionRegistry,
 ) -> ObjectListResponse:
-    """List objects with filtering and pagination."""
     logger.info(f"data:{data}")
     object_service = object_registry.get_class(object_type)
     objects: Sequence[BaseDBModel]
@@ -92,12 +103,98 @@ async def list_objects(
 #
 
 
+@post("/{object_type:str}/data", operation_id="get_time_series_data")
+async def get_time_series_data(
+    request: Request,
+    object_type: ObjectTypes,
+    data: TimeSeriesDataRequest,
+    transaction: AsyncSession,
+    object_registry: ObjectRegistry,
+) -> TimeSeriesDataResponse:
+    """Get time series data for an object field with aggregation.
+
+    This endpoint allows querying any field of an object type as a time series,
+    with support for filtering, time ranges, and aggregation functions.
+    """
+    request.app.logger.info(f"Time series request for {object_type}: {data}")
+
+    # Get object service
+    object_service = object_registry.get_class(object_type)
+
+    # Validate field exists and get metadata
+    object_service.validate_field_exists(data.field)
+    field_metadata = object_service.get_field_metadata(data.field)
+
+    if field_metadata is None:
+        raise ValueError(f"Field {data.field} not found")
+
+    field_type = field_metadata.type
+
+    # Resolve time range
+    start_date, end_date = resolve_time_range(
+        data.time_range, data.start_date, data.end_date
+    )
+
+    # Determine granularity
+    granularity = determine_granularity(data.granularity, start_date, end_date)
+
+    # Determine aggregation type
+    aggregation = data.aggregation or get_default_aggregation(field_type)
+
+    # Query data
+    data_points, total_records = await query_time_series_data(
+        session=transaction,
+        model_class=object_service.model,
+        field_name=data.field,
+        field_type=field_type,
+        start_date=start_date,
+        end_date=end_date,
+        granularity=granularity,
+        aggregation=aggregation,
+        filters=data.filters,
+    )
+
+    # Wrap data in appropriate discriminated union type
+    if isinstance(data_points, list) and len(data_points) > 0:
+        if isinstance(data_points[0], NumericalDataPoint):
+            # Fill missing data points if requested
+            if data.fill_missing:
+                default_value = 0 if is_numerical_field(field_type) else None
+                data_points = fill_missing_numerical_datapoints(
+                    data_points,  # type: ignore
+                    start_date,
+                    end_date,
+                    granularity,
+                    default_value,
+                )
+
+            time_series_data = NumericalTimeSeriesData(data_points=data_points)  # type: ignore
+        else:
+            # Categorical data
+            time_series_data = CategoricalTimeSeriesData(data_points=data_points)  # type: ignore
+    else:
+        # Empty data, default to numerical
+        time_series_data = NumericalTimeSeriesData(data_points=[])
+
+    return TimeSeriesDataResponse(
+        data=time_series_data,
+        field_name=data.field,
+        field_type=field_type,
+        aggregation_type=aggregation,
+        granularity_used=granularity,
+        start_date=start_date,
+        end_date=end_date,
+        total_records=total_records,
+    )
+
+
 # Object router
 object_router = Router(
     path="/o",
     route_handlers=[
         get_object_detail,
         list_objects,
+        get_time_series_data,
         # perform_object_action,
     ],
     tags=["objects"],
