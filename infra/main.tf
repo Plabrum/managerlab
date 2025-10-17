@@ -886,7 +886,8 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# Policy for Secrets Manager access (task execution role needs this to inject secrets)
+# Policy for Secrets Manager access (legacy - kept for compatibility)
+# Note: Secrets are now loaded at app startup via task role, not injected by ECS
 resource "aws_iam_role_policy" "ecs_task_execution_secrets" {
   name = "${local.name}-ecs-task-execution-secrets-policy"
   role = aws_iam_role.ecs_task_execution.id
@@ -952,7 +953,7 @@ resource "aws_iam_role_policy" "ecs_task_s3" {
   })
 }
 
-# Policy for Secrets Manager access (task role for app runtime access)
+# Policy for Secrets Manager access (app fetches secrets at startup)
 resource "aws_iam_role_policy" "ecs_task_secrets" {
   name = "${local.name}-ecs-task-secrets-policy"
   role = aws_iam_role.ecs_task.id
@@ -1063,35 +1064,12 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "AWS_REGION"
           value = var.aws_region
+        },
+        {
+          name  = "APP_SECRETS_ARN"
+          value = aws_secretsmanager_secret.app_secrets_v2.arn
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
-
-      secrets = [
-        {
-          name      = "GOOGLE_CLIENT_ID"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_ID::"
-        },
-        {
-          name      = "GOOGLE_CLIENT_SECRET"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_SECRET::"
-        },
-        {
-          name      = "GOOGLE_REDIRECT_URI"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_REDIRECT_URI::"
-        },
-        {
-          name      = "SUCCESS_REDIRECT_URL"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SUCCESS_REDIRECT_URL::"
-        },
-        {
-          name      = "SESSION_COOKIE_DOMAIN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SESSION_COOKIE_DOMAIN::"
-        },
-        {
-          name      = "FRONTEND_ORIGIN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:FRONTEND_ORIGIN::"
-        }
-      ]
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -1247,35 +1225,12 @@ resource "aws_ecs_task_definition" "worker" {
         {
           name  = "AWS_REGION"
           value = var.aws_region
+        },
+        {
+          name  = "APP_SECRETS_ARN"
+          value = aws_secretsmanager_secret.app_secrets_v2.arn
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
-
-      secrets = [
-        {
-          name      = "GOOGLE_CLIENT_ID"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_ID::"
-        },
-        {
-          name      = "GOOGLE_CLIENT_SECRET"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_CLIENT_SECRET::"
-        },
-        {
-          name      = "GOOGLE_REDIRECT_URI"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:GOOGLE_REDIRECT_URI::"
-        },
-        {
-          name      = "SUCCESS_REDIRECT_URL"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SUCCESS_REDIRECT_URL::"
-        },
-        {
-          name      = "SESSION_COOKIE_DOMAIN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:SESSION_COOKIE_DOMAIN::"
-        },
-        {
-          name      = "FRONTEND_ORIGIN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:FRONTEND_ORIGIN::"
-        }
-      ]
 
       logConfiguration = {
         logDriver = "awslogs"

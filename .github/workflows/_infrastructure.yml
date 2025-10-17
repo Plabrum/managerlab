@@ -21,9 +21,6 @@ on:
       ecr_repository_url:
         description: "ECR repository URL"
         value: ${{ jobs.terraform.outputs.ecr_repository_url }}
-      secret_env:
-        description: "Application secrets from AWS Secrets Manager"
-        value: ${{ jobs.terraform.outputs.secret_env }}
 
 env:
   AWS_REGION: us-east-1
@@ -43,7 +40,6 @@ jobs:
       ecs_service_name: ${{ steps.outputs.outputs.ecs_service_name }}
       alb_url: ${{ steps.outputs.outputs.alb_url }}
       ecr_repository_url: ${{ steps.outputs.outputs.ecr_repository_url }}
-      secret_env: ${{ steps.secrets.outputs.secret_env }}
 
     defaults:
       run:
@@ -158,16 +154,6 @@ jobs:
           echo "🚀 Applying Terraform changes..."
           terraform apply -auto-approve tfplan
           echo "✅ Apply completed successfully"
-
-      - name: Pull Application Secrets from AWS
-        if: inputs.terraform_action == 'apply'
-        id: secrets
-        run: |
-          echo "🔐 Pulling application secrets from AWS Secrets Manager..."
-          SECRET_ARN=$(terraform output -raw app_secrets_arn)
-          SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ARN" --query 'SecretString' --output text)
-          echo "secret_env=$SECRET_VALUE" >> $GITHUB_OUTPUT
-          echo "✅ Secrets retrieved successfully"
 
       - name: Get Terraform Outputs
         if: inputs.terraform_action == 'apply'

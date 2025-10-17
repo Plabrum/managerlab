@@ -15,10 +15,6 @@ on:
         description: "ECS service name"
         required: true
         type: string
-      secret_env:
-        description: "Application secrets from AWS Secrets Manager"
-        required: false
-        type: string
 
 env:
   AWS_REGION: us-east-1

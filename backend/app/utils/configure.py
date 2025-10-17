@@ -1,10 +1,31 @@
+import json
+import logging
 import os
 from dataclasses import dataclass
 
+import boto3
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables once
 load_dotenv(".env.local")
+
+# Load secrets from AWS Secrets Manager if running in AWS
+# This must happen AFTER dotenv but BEFORE Config class instantiation
+secret_arn = os.getenv("APP_SECRETS_ARN")
+if secret_arn:
+    # Create Secrets Manager client and fetch secrets
+    client = boto3.client("secretsmanager")
+    response = client.get_secret_value(SecretId=secret_arn)
+    secrets = json.loads(response["SecretString"])
+
+    # Load all secrets into environment variables
+    for key, value in secrets.items():
+        if value:  # Only set non-empty values
+            os.environ[key] = value
+
+    logger.info(f"Loaded {len(secrets)} secrets from AWS Secrets Manager")
 
 
 @dataclass

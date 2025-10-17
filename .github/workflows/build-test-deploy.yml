@@ -93,5 +93,4 @@ jobs:
       ecr_repository_url: ${{ needs.infrastructure.outputs.ecr_repository_url }}
       ecs_cluster_name: ${{ needs.infrastructure.outputs.ecs_cluster_name }}
       ecs_service_name: ${{ needs.infrastructure.outputs.ecs_service_name }}
-      secret_env: ${{ needs.infrastructure.outputs.secret_env }}
     secrets: inherit
