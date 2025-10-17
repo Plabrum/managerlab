@@ -163,29 +163,3 @@ def dto_to_msgspec_struct_from_mapper(
     # Cache the result to prevent duplicate struct creation
     _struct_cache[cache_key] = struct
     return struct
-
-
-def update_model(object, update_vals):
-    """Update an existing model instance from a DTO/struct, skipping None values."""
-    for field, value in update_vals.__dict__.items():
-        if value is not None:
-            setattr(object, field, value)
-
-
-def create_model(model_class: type, create_vals) -> Any:
-    """Create a new model instance from a CreateDTO/struct.
-
-    Args:
-        model_class: The SQLAlchemy model class to instantiate
-        create_vals: A DTO or msgspec.Struct containing the values
-
-    Returns:
-        A new instance of model_class with fields populated from create_vals
-    """
-    # Convert struct/DTO to dict, filtering out None values
-    data = {
-        field: value
-        for field, value in create_vals.__dict__.items()
-        if value is not None
-    }
-    return model_class(**data)
