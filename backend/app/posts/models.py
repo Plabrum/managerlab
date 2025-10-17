@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.mutable import MutableDict
 
 from app.base.models import BaseDBModel
+from app.base.scope_mixins import DualScopedMixin
 from app.posts.enums import CompensationStructure, PostStates, SocialMediaPlatforms
 from app.state_machine.models import StateMachineMixin
 
@@ -17,7 +18,9 @@ if TYPE_CHECKING:
 
 
 class Post(
-    StateMachineMixin(initial_state=PostStates.DRAFT, states=PostStates), BaseDBModel
+    DualScopedMixin,
+    StateMachineMixin(initial_state=PostStates.DRAFT, states=PostStates),
+    BaseDBModel,
 ):
     """Post object model."""
 
@@ -40,12 +43,7 @@ class Post(
         nullable=True,
     )
 
-    # Foreign keys
-    campaign_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("campaigns.id"), nullable=True
-    )
-
-    # Relationships
+    # Relationships (campaign_id is from DualScopedMixin)
     campaign: Mapped["Campaign | None"] = relationship(
         "Campaign", back_populates="posts"
     )
