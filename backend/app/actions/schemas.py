@@ -150,6 +150,6 @@ def build_action_union(action_registry: "ActionRegistry") -> TypeAliasType:
 
     # Build union type from all action structs
     _action_union = (
-        reduce(lambda a, b: a | b, action_structs) if action_structs else msgspec.Struct
+        reduce(lambda a, b: a | b, action_structs) if action_structs else msgspec.Struct  # type: ignore[arg-type, return-value]
     )
     return TypeAliasType("Action", _action_union)  # type: ignore[valid-type]

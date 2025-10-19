@@ -5,16 +5,14 @@ from app.posts.models import Post
 from app.posts.schemas import PostDTO, PostUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
+from app.utils.db import get_or_404, update_model
 
 
 @get("/{id:str}", return_dto=PostDTO)
 async def get_post(id: Sqid, transaction: AsyncSession) -> Post:
     """Get a post by SQID."""
     post_id = sqid_decode(id)
-    post = await transaction.get(Post, post_id)
-    if not post:
-        raise ValueError(f"Post with id {id} not found")
-    return post
+    return await get_or_404(transaction, Post, post_id)
 
 
 @post("/{id:str}", return_dto=PostDTO)
@@ -23,15 +21,8 @@ async def update_post(
 ) -> Post:
     """Update a post by SQID."""
     post_id = sqid_decode(id)
-    post = await transaction.get(Post, post_id)
-    if not post:
-        raise ValueError(f"Post with id {id} not found")
-
-    # Apply updates from DTO - partial=True means only provided fields are included
-    for field, value in data.__dict__.items():
-        if hasattr(post, field):  # Only update existing model fields
-            setattr(post, field, value)
-
+    post = await get_or_404(transaction, Post, post_id)
+    update_model(post, data)
     await transaction.flush()
     return post
 

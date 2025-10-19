@@ -11,6 +11,7 @@ from app.brands.schemas import (
 )
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
+from app.utils.db import get_or_404, update_model
 
 # Register BrandObject and BrandContactObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -25,10 +26,7 @@ ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 async def get_brand(id: Sqid, transaction: AsyncSession) -> Brand:
     """Get a brand by SQID."""
     brand_id = sqid_decode(id)
-    brand = await transaction.get(Brand, brand_id)
-    if not brand:
-        raise ValueError(f"Brand with id {id} not found")
-    return brand
+    return await get_or_404(transaction, Brand, brand_id)
 
 
 @post("/{id:str}", return_dto=BrandDTO)
@@ -37,15 +35,8 @@ async def update_brand(
 ) -> Brand:
     """Update a brand by SQID."""
     brand_id = sqid_decode(id)
-    brand = await transaction.get(Brand, brand_id)
-    if not brand:
-        raise ValueError(f"Brand with id {id} not found")
-
-    # Apply updates from DTO - partial=True means only provided fields are included
-    for field, value in data.__dict__.items():
-        if hasattr(brand, field):  # Only update existing model fields
-            setattr(brand, field, value)
-
+    brand = await get_or_404(transaction, Brand, brand_id)
+    update_model(brand, data)
     await transaction.flush()
     return brand
 
@@ -54,10 +45,7 @@ async def update_brand(
 async def get_brand_contact(id: Sqid, transaction: AsyncSession) -> BrandContact:
     """Get a brand contact by SQID."""
     contact_id = sqid_decode(id)
-    contact = await transaction.get(BrandContact, contact_id)
-    if not contact:
-        raise ValueError(f"BrandContact with id {id} not found")
-    return contact
+    return await get_or_404(transaction, BrandContact, contact_id)
 
 
 @post("/contacts/{id:str}", return_dto=BrandContactDTO)
@@ -66,15 +54,8 @@ async def update_brand_contact(
 ) -> BrandContact:
     """Update a brand contact by SQID."""
     contact_id = sqid_decode(id)
-    contact = await transaction.get(BrandContact, contact_id)
-    if not contact:
-        raise ValueError(f"BrandContact with id {id} not found")
-
-    # Apply updates from DTO - partial=True means only provided fields are included
-    for field, value in data.__dict__.items():
-        if hasattr(contact, field):  # Only update existing model fields
-            setattr(contact, field, value)
-
+    contact = await get_or_404(transaction, BrandContact, contact_id)
+    update_model(contact, data)
     await transaction.flush()
     return contact
 

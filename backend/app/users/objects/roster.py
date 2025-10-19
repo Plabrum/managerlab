@@ -119,7 +119,7 @@ class RosterObject(BaseObject):
             object_type=ObjectTypes.Roster,
             state=roster_member.state.name,
             title=roster_member.name,
-            fields=fields,
+            fields=[f for f in fields if f is not None],
             actions=[
                 ActionDTO(action="edit", label="Edit"),
                 ActionDTO(action="archive", label="Archive"),
@@ -179,5 +179,5 @@ class RosterObject(BaseObject):
             ],
             created_at=roster_member.created_at,
             updated_at=roster_member.updated_at,
-            fields=fields,
+            fields=[f for f in fields if f is not None],
         )

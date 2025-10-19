@@ -5,6 +5,7 @@ from app.payments.models import Invoice
 from app.payments.schemas import InvoiceDTO, InvoiceUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
 from app.auth.guards import requires_authenticated_user
+from app.utils.db import get_or_404, update_model
 
 # Register InvoiceObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -18,10 +19,7 @@ ObjectRegistry().register(ObjectTypes.Invoices, InvoiceObject)
 async def get_invoice(id: Sqid, transaction: AsyncSession) -> Invoice:
     """Get an invoice by SQID."""
     invoice_id = sqid_decode(id)
-    invoice = await transaction.get(Invoice, invoice_id)
-    if not invoice:
-        raise ValueError(f"Invoice with id {id} not found")
-    return invoice
+    return await get_or_404(transaction, Invoice, invoice_id)
 
 
 @post("/{id:str}", return_dto=InvoiceDTO)
@@ -30,15 +28,8 @@ async def update_invoice(
 ) -> Invoice:
     """Update an invoice by SQID."""
     invoice_id = sqid_decode(id)
-    invoice = await transaction.get(Invoice, invoice_id)
-    if not invoice:
-        raise ValueError(f"Invoice with id {id} not found")
-
-    # Apply updates from DTO - partial=True means only provided fields are included
-    for field, value in data.__dict__.items():
-        if hasattr(invoice, field):  # Only update existing model fields
-            setattr(invoice, field, value)
-
+    invoice = await get_or_404(transaction, Invoice, invoice_id)
+    update_model(invoice, data)
     await transaction.flush()
     return invoice
 

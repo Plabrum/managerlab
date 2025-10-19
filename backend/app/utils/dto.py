@@ -76,7 +76,7 @@ def _pk_pytype(mapper: Mapper) -> Any:
         return Any
     # Assume a single-column PK, which is true for 99% of cases
     col = pks[0]
-    return _sa_column_to_pytype(col)  # type: ignore[index]
+    return _sa_column_to_pytype(col)  # type: ignore[arg-type]
 
 
 # ------------ main converter
@@ -128,7 +128,7 @@ def dto_to_msgspec_struct_from_mapper(
                 target_pk_t = _pk_pytype(rel.mapper)
                 t = target_pk_t
                 if rel.uselist:
-                    t = list[target_pk_t]  # type: ignore[index]
+                    t = list[target_pk_t]  # type: ignore[valid-type]
                 # relationships are typically optional on write
                 fields[key] = Optional[t]  # type: ignore[valid-type]
             elif include_relationships == "nested":
@@ -163,29 +163,3 @@ def dto_to_msgspec_struct_from_mapper(
     # Cache the result to prevent duplicate struct creation
     _struct_cache[cache_key] = struct
     return struct
-
-
-def update_model(object, update_vals):
-    """Update an existing model instance from a DTO/struct, skipping None values."""
-    for field, value in update_vals.__dict__.items():
-        if value is not None:
-            setattr(object, field, value)
-
-
-def create_model(model_class: type, create_vals) -> Any:
-    """Create a new model instance from a CreateDTO/struct.
-
-    Args:
-        model_class: The SQLAlchemy model class to instantiate
-        create_vals: A DTO or msgspec.Struct containing the values
-
-    Returns:
-        A new instance of model_class with fields populated from create_vals
-    """
-    # Convert struct/DTO to dict, filtering out None values
-    data = {
-        field: value
-        for field, value in create_vals.__dict__.items()
-        if value is not None
-    }
-    return model_class(**data)
