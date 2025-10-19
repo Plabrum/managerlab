@@ -10,6 +10,8 @@ import {
   Settings2,
   Image,
   Newspaper,
+  GalleryVerticalEnd,
+  FolderKanban,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -64,39 +66,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: dashboardItems,
     },
     {
-      title: 'Campaigns',
-      url: '/campaigns',
-      icon: Megaphone,
-    },
-    {
-      title: 'Brands',
-      url: '/brands',
-      icon: Building2,
-    },
-    {
-      title: 'Roster',
-      url: '/roster',
-      icon: Users,
-    },
-    {
-      title: 'Posts',
-      url: '/posts',
-      icon: Newspaper,
-    },
-    {
-      title: 'Media',
-      url: '/media',
-      icon: Image,
-    },
-    {
-      title: 'Invoices',
-      url: '/invoices',
-      icon: FileText,
-    },
-    {
-      title: 'Settings',
-      url: '/settings',
-      icon: Settings2,
+      title: 'Management',
+      url: '#',
+      icon: FolderKanban,
+      items: [
+        {
+          title: 'Campaigns',
+          url: '/campaigns',
+        },
+        {
+          title: 'Brands',
+          url: '/brands',
+        },
+        {
+          title: 'Roster',
+          url: '/roster',
+        },
+        {
+          title: 'Posts',
+          url: '/posts',
+        },
+        {
+          title: 'Media',
+          url: '/media',
+        },
+        {
+          title: 'Invoices',
+          url: '/invoices',
+        },
+      ],
     },
   ];
 
