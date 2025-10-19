@@ -44,6 +44,7 @@ export const ActionGroupType = {
   top_level_campaign_actions: 'top_level_campaign_actions',
   invoice_actions: 'invoice_actions',
   top_level_invoice_actions: 'top_level_invoice_actions',
+  dashboard_actions: 'dashboard_actions',
 } as const;
 
 export interface ActionListResponse {
@@ -226,6 +227,39 @@ export interface CreateCampaignAction {
   action: 'top_level_campaign_actions__campaign_create';
 }
 
+export type CreateDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type CreateDashboardDashboardResponseBodyUserId = number | null;
+
+export type CreateDashboardDashboardResponseBodyTeamId = number | null;
+
+export interface CreateDashboardDashboardResponseBody {
+  name: string;
+  config: CreateDashboardDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: CreateDashboardDashboardResponseBodyUserId;
+  team_id?: CreateDashboardDashboardResponseBodyTeamId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  id: string;
+}
+
+export type CreateDashboardSchemaConfig = {[key: string]: unknown};
+
+export type CreateDashboardSchemaUserId = number | null;
+
+export type CreateDashboardSchemaTeamId = number | null;
+
+export interface CreateDashboardSchema {
+  name: string;
+  config: CreateDashboardSchemaConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: CreateDashboardSchemaUserId;
+  team_id?: CreateDashboardSchemaTeamId;
+  is_default?: boolean;
+}
+
 export interface CreateInvoiceAction {
   data: InvoiceCreateSchema;
   action: 'top_level_invoice_actions__invoice_create';
@@ -278,6 +312,18 @@ export interface CreateUserUserResponseBody {
   id: string;
 }
 
+/**
+ * Dashboard ownership types.
+ */
+export type DashboardOwnerType = typeof DashboardOwnerType[keyof typeof DashboardOwnerType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DashboardOwnerType = {
+  user: 'user',
+  team: 'team',
+} as const;
+
 export interface DateFieldValue {
   value: string;
   type: 'date';
@@ -303,6 +349,11 @@ export const DeleteCampaignActionValue = {
   action: 'campaign_actions__campaign_delete',
 } as const;
 export type DeleteCampaignAction = typeof DeleteCampaignActionValue;
+
+export const DeleteDashboardActionValue = {
+  action: 'dashboard_actions__delete',
+} as const;
+export type DeleteDashboardAction = typeof DeleteDashboardActionValue;
 
 export const DeleteInvoiceActionValue = {
   action: 'invoice_actions__invoice_delete',
@@ -464,6 +515,24 @@ export interface GetCurrentUserUserResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetCurrentUserUserResponseBodyDeletedAt;
+  id: string;
+}
+
+export type GetDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type GetDashboardDashboardResponseBodyUserId = number | null;
+
+export type GetDashboardDashboardResponseBodyTeamId = number | null;
+
+export interface GetDashboardDashboardResponseBody {
+  name: string;
+  config: GetDashboardDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: GetDashboardDashboardResponseBodyUserId;
+  team_id?: GetDashboardDashboardResponseBodyTeamId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
   id: string;
 }
 
@@ -640,6 +709,24 @@ export interface ListTeamsResponse {
 }
 
 export type ListUsersUserResponseBodyDeletedAt = string | null;
+
+export type ListDashboardsDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type ListDashboardsDashboardResponseBodyUserId = number | null;
+
+export type ListDashboardsDashboardResponseBodyTeamId = number | null;
+
+export interface ListDashboardsDashboardResponseBody {
+  name: string;
+  config: ListDashboardsDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: ListDashboardsDashboardResponseBodyUserId;
+  team_id?: ListDashboardsDashboardResponseBodyTeamId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  id: string;
+}
 
 export interface ListUsersUserResponseBody {
   name: string;
@@ -1104,6 +1191,43 @@ export interface UpdateCampaignCampaignResponseBody {
   id: string;
 }
 
+export interface UpdateDashboardAction {
+  data: UpdateDashboardSchema;
+  action: 'dashboard_actions__update';
+}
+
+export type UpdateDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type UpdateDashboardDashboardResponseBodyUserId = number | null;
+
+export type UpdateDashboardDashboardResponseBodyTeamId = number | null;
+
+export interface UpdateDashboardDashboardResponseBody {
+  name: string;
+  config: UpdateDashboardDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: UpdateDashboardDashboardResponseBodyUserId;
+  team_id?: UpdateDashboardDashboardResponseBodyTeamId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  id: string;
+}
+
+export type UpdateDashboardSchemaName = string | null;
+
+export type UpdateDashboardSchemaConfigOneOf = {[key: string]: unknown};
+
+export type UpdateDashboardSchemaConfig = UpdateDashboardSchemaConfigOneOf | null;
+
+export type UpdateDashboardSchemaIsDefault = boolean | null;
+
+export interface UpdateDashboardSchema {
+  name?: UpdateDashboardSchemaName;
+  config?: UpdateDashboardSchemaConfig;
+  is_default?: UpdateDashboardSchemaIsDefault;
+}
+
 export interface UpdateInvoiceAction {
   data: InvoiceUpdateSchema;
   action: 'invoice_actions__invoice_update';
@@ -1338,7 +1462,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1366,7 +1490,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1550,6 +1674,45 @@ export type InvoicesIdUpdateInvoice400 = {
   status_code: number;
   detail: string;
   extra?: InvoicesIdUpdateInvoice400Extra;
+};
+
+export type DashboardsCreateDashboard400ExtraAnyOf = {[key: string]: unknown};
+
+export type DashboardsCreateDashboard400Extra = null | DashboardsCreateDashboard400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DashboardsCreateDashboard400 = {
+  status_code: number;
+  detail: string;
+  extra?: DashboardsCreateDashboard400Extra;
+};
+
+export type DashboardsIdGetDashboard400ExtraAnyOf = {[key: string]: unknown};
+
+export type DashboardsIdGetDashboard400Extra = null | DashboardsIdGetDashboard400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DashboardsIdGetDashboard400 = {
+  status_code: number;
+  detail: string;
+  extra?: DashboardsIdGetDashboard400Extra;
+};
+
+export type DashboardsIdUpdateDashboard400ExtraAnyOf = {[key: string]: unknown};
+
+export type DashboardsIdUpdateDashboard400Extra = null | DashboardsIdUpdateDashboard400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DashboardsIdUpdateDashboard400 = {
+  status_code: number;
+  detail: string;
+  extra?: DashboardsIdUpdateDashboard400Extra;
 };
 
 export type LocalUploadKeyLocalUpload200 = { [key: string]: unknown };

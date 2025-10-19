@@ -1,6 +1,6 @@
 from typing import assert_never
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import Select, and_, func
+from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.base.models import BaseDBModel
@@ -342,105 +342,27 @@ def is_categorical_field(field_type: FieldType) -> bool:
     return field_type in (FieldType.String, FieldType.Enum, FieldType.Bool)
 
 
-def generate_time_buckets(
-    start_date: datetime, end_date: datetime, granularity: Granularity
-) -> list[datetime]:
-    """Generate list of time bucket start timestamps.
-
-    Args:
-        start_date: Start of range
-        end_date: End of range
-        granularity: Bucket size
-
-    Returns:
-        List of bucket start timestamps
-    """
-    buckets = []
-    current = start_date
-
+def get_series_interval(granularity: Granularity) -> str:
+    """Get PostgreSQL interval string for generate_series."""
     match granularity:
         case Granularity.hour:
-            delta = timedelta(hours=1)
+            return "1 hour"
         case Granularity.day:
-            delta = timedelta(days=1)
+            return "1 day"
         case Granularity.week:
-            delta = timedelta(weeks=1)
+            return "1 week"
         case Granularity.month:
-            # Month is tricky, handle separately
-            while current <= end_date:
-                buckets.append(current)
-                # Add one month
-                if current.month == 12:
-                    current = current.replace(year=current.year + 1, month=1)
-                else:
-                    current = current.replace(month=current.month + 1)
-            return buckets
+            return "1 month"
         case Granularity.quarter:
-            # Quarter handling
-            while current <= end_date:
-                buckets.append(current)
-                # Add 3 months
-                new_month = current.month + 3
-                if new_month > 12:
-                    current = current.replace(
-                        year=current.year + 1, month=new_month - 12
-                    )
-                else:
-                    current = current.replace(month=new_month)
-            return buckets
+            return "3 months"
         case Granularity.year:
-            delta = timedelta(days=365)  # Approximate, will be refined
-            while current <= end_date:
-                buckets.append(current)
-                current = current.replace(year=current.year + 1)
-            return buckets
-        case _:
-            delta = timedelta(days=1)
-
-    # For hour, day, week
-    while current <= end_date:
-        buckets.append(current)
-        current += delta
-
-    return buckets
-
-
-def fill_missing_numerical_datapoints(
-    data_points: list[NumericalDataPoint],
-    start_date: datetime,
-    end_date: datetime,
-    granularity: Granularity,
-    default_value: float | int | None = 0,
-) -> list[NumericalDataPoint]:
-    """Fill missing time buckets with default values for numerical data.
-
-    Args:
-        data_points: Existing data points (may have gaps)
-        start_date: Start of range
-        end_date: End of range
-        granularity: Bucket size
-        default_value: Value to use for missing buckets (0 by default)
-
-    Returns:
-        Complete list of data points with no gaps
-    """
-    # Generate all expected buckets
-    all_buckets = generate_time_buckets(start_date, end_date, granularity)
-
-    # Create lookup dict from existing data
-    existing_data = {dp.timestamp: dp for dp in data_points}
-
-    # Fill in missing buckets
-    filled_data = []
-    for bucket in all_buckets:
-        if bucket in existing_data:
-            filled_data.append(existing_data[bucket])
-        else:
-            filled_data.append(
-                NumericalDataPoint(timestamp=bucket, value=default_value, count=0)
+            return "1 year"
+        case Granularity.automatic:
+            raise ValueError(
+                "Granularity must be resolved before getting series interval"
             )
-
-    return filled_data
+        case _:
+            assert_never(granularity)
 
 
 async def query_time_series_data(
@@ -454,23 +376,7 @@ async def query_time_series_data(
     aggregation: AggregationType,
     filters: list[FilterDefinition],
 ) -> tuple[list[NumericalDataPoint] | list[CategoricalDataPoint], int]:
-    """Query time series data with aggregation.
-
-    Args:
-        session: Database session
-        model_class: Model to query
-        field_name: Column name to aggregate
-        field_type: Type of the field
-        start_date: Start of time range
-        end_date: End of time range
-        granularity: Time bucket size
-        aggregation: Aggregation type to apply
-        filters: Filters to apply before aggregation
-
-    Returns:
-        Tuple of (data_points, total_record_count)
-    """
-    from sqlalchemy import select
+    from sqlalchemy import text
 
     # Get the column reference
     column = getattr(model_class, field_name, None)
@@ -480,8 +386,9 @@ async def query_time_series_data(
     # Get timestamp column (default to created_at)
     timestamp_column = model_class.created_at
 
-    # Get date_trunc format
+    # Get date_trunc format and series interval
     trunc_format = get_date_trunc_format(granularity)
+    series_interval = get_series_interval(granularity)
 
     # Build base query
     query = select(model_class)
@@ -498,39 +405,70 @@ async def query_time_series_data(
     total_result = await session.execute(count_query)
     total_count = total_result.scalar_one()
 
-    # Build time-bucketed aggregation query
-    time_bucket = func.date_trunc(trunc_format, timestamp_column).label("time_bucket")
+    # Generate time series using generate_series
+    # Use date_trunc on start_date to align to granularity boundary
+    time_series = select(
+        func.generate_series(
+            func.date_trunc(trunc_format, start_date),
+            func.date_trunc(trunc_format, end_date),
+            text(f"interval '{series_interval}'"),
+        ).label("time_bucket")
+    ).subquery()
 
     # Handle categorical vs numerical aggregation
     if is_categorical_field(field_type) or aggregation == AggregationType.mode:
         # For categorical: GROUP BY time_bucket and field value, then count
+        # Build aggregation directly from the filtered table
+        time_bucket_expr = func.date_trunc(trunc_format, timestamp_column)
+
         agg_query = (
             select(
-                time_bucket,
+                time_bucket_expr.label("time_bucket"),
                 column.label("category_value"),
                 func.count().label("count"),
             )
-            .select_from(query.subquery())
-            .group_by(time_bucket, column)
-            .order_by(time_bucket)
+            .where(timestamp_column >= start_date, timestamp_column <= end_date)
+            .group_by(time_bucket_expr, column)
         )
 
-        result = await session.execute(agg_query)
+        # Apply filters to aggregation query
+        for filter_def in filters:
+            agg_query = apply_filter(agg_query, model_class, filter_def)
+
+        agg_subquery = agg_query.subquery()
+
+        # Join with time series to fill gaps
+        final_query = (
+            select(
+                time_series.c.time_bucket,
+                agg_subquery.c.category_value,
+                func.coalesce(agg_subquery.c.count, 0).label("count"),
+            )
+            .select_from(time_series)
+            .outerjoin(
+                agg_subquery,
+                time_series.c.time_bucket == agg_subquery.c.time_bucket,
+            )
+            .order_by(time_series.c.time_bucket)
+        )
+
+        result = await session.execute(final_query)
         rows = result.all()
 
         # Convert to CategoricalBreakdown format
+        # Note: generate_series ensures all time buckets exist
         breakdown_dict: dict[datetime, dict[str, int]] = {}
         for row in rows:
             bucket_time = row.time_bucket
-            category = (
-                str(row.category_value) if row.category_value is not None else "null"
-            )
-            count_val = row.count
 
+            # Initialize bucket if needed
             if bucket_time not in breakdown_dict:
                 breakdown_dict[bucket_time] = {}
 
-            breakdown_dict[bucket_time][category] = count_val
+            # Only add category if it has data (skip NULL categories from LEFT JOIN)
+            if row.category_value is not None:
+                category = str(row.category_value)
+                breakdown_dict[bucket_time][category] = row.count
 
         categorical_data = [
             CategoricalDataPoint(
@@ -559,18 +497,58 @@ async def query_time_series_data(
             case _:
                 agg_func = func.sum(column)  # default fallback
 
+        # Build aggregation directly from the filtered table
+        time_bucket_expr = func.date_trunc(trunc_format, timestamp_column)
+
         agg_query = (
             select(
-                time_bucket,
+                time_bucket_expr.label("time_bucket"),
                 agg_func.label("agg_value"),
                 func.count().label("record_count"),
             )
-            .select_from(query.subquery())
-            .group_by(time_bucket)
-            .order_by(time_bucket)
+            .where(timestamp_column >= start_date, timestamp_column <= end_date)
+            .group_by(time_bucket_expr)
         )
 
-        result = await session.execute(agg_query)
+        # Apply filters to aggregation query
+        for filter_def in filters:
+            agg_query = apply_filter(agg_query, model_class, filter_def)
+
+        agg_subquery = agg_query.subquery()
+
+        # Determine the default value for COALESCE based on field type
+        # For datetime/date fields, use NULL; for numeric fields, use 0
+        if field_type in (FieldType.Date, FieldType.Datetime):
+            # For timestamp aggregations, we can't use 0, so use NULL
+            default_agg_value = None
+        else:
+            # For numeric fields, use 0
+            default_agg_value = 0
+
+        # Join with time series to fill gaps using COALESCE
+        # Only COALESCE the agg_value if it's numeric, otherwise leave as NULL
+        if default_agg_value is not None:
+            agg_value_expr = func.coalesce(
+                agg_subquery.c.agg_value, default_agg_value
+            ).label("agg_value")
+        else:
+            agg_value_expr = agg_subquery.c.agg_value.label("agg_value")
+
+        final_query = (
+            select(
+                time_series.c.time_bucket,
+                agg_value_expr,
+                func.coalesce(agg_subquery.c.record_count, 0).label("record_count"),
+            )
+            .select_from(time_series)
+            .outerjoin(
+                agg_subquery,
+                time_series.c.time_bucket == agg_subquery.c.time_bucket,
+            )
+            .order_by(time_series.c.time_bucket)
+        )
+
+        result = await session.execute(final_query)
         rows = result.all()
 
         data_points = [

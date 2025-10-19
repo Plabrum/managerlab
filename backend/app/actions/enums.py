@@ -13,6 +13,7 @@ class ActionGroupType(StrEnum):
     TopLevelCampaignActions = "top_level_campaign_actions"
     InvoiceActions = "invoice_actions"
     TopLevelInvoiceActions = "top_level_invoice_actions"
+    DashboardActions = "dashboard_actions"
 
 
 class ActionIcon(StrEnum):

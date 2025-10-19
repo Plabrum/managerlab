@@ -24,6 +24,30 @@ class CampaignObject(BaseObject):
     model = Campaign
     column_definitions = [
         ColumnDefinitionDTO(
+            key="id",
+            label="ID",
+            type=FieldType.Int,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Int),
+            default_visible=False,
+        ),
+        ColumnDefinitionDTO(
+            key="created_at",
+            label="Created At",
+            type=FieldType.Datetime,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
+            default_visible=False,
+        ),
+        ColumnDefinitionDTO(
+            key="updated_at",
+            label="Updated At",
+            type=FieldType.Datetime,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
+            default_visible=False,
+        ),
+        ColumnDefinitionDTO(
             key="name",
             label="Name",
             type=FieldType.String,

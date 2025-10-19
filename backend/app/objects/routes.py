@@ -1,5 +1,3 @@
-"""Generic object routes and endpoints."""
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence
 from litestar import Router, get, post
@@ -22,8 +20,6 @@ from app.objects.services import (
     determine_granularity,
     get_default_aggregation,
     query_time_series_data,
-    fill_missing_numerical_datapoints,
-    is_numerical_field,
 )
 from app.objects.enums import ObjectTypes
 from app.utils.logging import logger
@@ -77,46 +73,14 @@ async def list_objects(
     )
 
 
-# @post("/{object_type:str}/{id:str}/actions")
-# async def perform_object_action(
-#     object_type: str,
-#     id: Sqid,
-#     request: Request,
-#     data: PerformActionRequest,
-#     session: AsyncSession,
-#     action_service: ActionService,
-# ) -> Response:
-#     """Perform an action on an object."""
-#     obj = await get_object_by_id(session, object_type, id)
-#     user_id = request.session.get("user_id")
-#
-#     await action_service.perform_action(
-#         session=session,
-#         obj=obj,
-#         action_name=data.action,
-#         user_id=user_id,
-#         object_version=data.object_version,
-#         idempotency_key=data.idempotency_key,
-#         context=data.context,
-#     )
-#     return Response(content="Action completed", status_code=200)
-#
-
-
 @post("/{object_type:str}/data", operation_id="get_time_series_data")
 async def get_time_series_data(
-    request: Request,
     object_type: ObjectTypes,
     data: TimeSeriesDataRequest,
     transaction: AsyncSession,
     object_registry: ObjectRegistry,
 ) -> TimeSeriesDataResponse:
-    """Get time series data for an object field with aggregation.
-
-    This endpoint allows querying any field of an object type as a time series,
-    with support for filtering, time ranges, and aggregation functions.
-    """
-    request.app.logger.info(f"Time series request for {object_type}: {data}")
+    logger.info(f"Time series request for {object_type}: {data}")
 
     # Get object service
     object_service = object_registry.get_class(object_type)
@@ -155,19 +119,9 @@ async def get_time_series_data(
     )
 
     # Wrap data in appropriate discriminated union type
+    # Note: query_time_series_data now always returns complete data with gaps filled via SQL
     if isinstance(data_points, list) and len(data_points) > 0:
         if isinstance(data_points[0], NumericalDataPoint):
-            # Fill missing data points if requested
-            if data.fill_missing:
-                default_value = 0 if is_numerical_field(field_type) else None
-                data_points = fill_missing_numerical_datapoints(
-                    data_points,  # type: ignore
-                    start_date,
-                    end_date,
-                    granularity,
-                    default_value,
-                )
-
             time_series_data = NumericalTimeSeriesData(data_points=data_points)  # type: ignore
         else:
             # Categorical data

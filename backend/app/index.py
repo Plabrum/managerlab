@@ -33,6 +33,7 @@ from app.campaigns.routes import campaign_router
 from app.posts.routes import post_router
 from app.media.routes import media_router, local_media_router
 from app.payments.routes import invoice_router
+from app.dashboard.routes import dashboard_router
 
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
@@ -84,6 +85,7 @@ route_handlers: list[Any] = [
     post_router,
     media_router,
     invoice_router,
+    dashboard_router,
     # queue_router,  # Commented out - create app/queue/routes.py if needed
 ]
 
@@ -103,7 +105,7 @@ app = Litestar(
     cors_config=CORSConfig(
         allow_origins=[config.FRONTEND_ORIGIN],
         allow_credentials=True,  # Required for session cookies
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
     ),
     exception_handlers={

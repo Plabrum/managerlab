@@ -262,7 +262,7 @@ class TimeSeriesDataRequest(BaseSchema):
         None  # Aggregation type (auto-determined if None)
     )
     filters: List[FilterDefinition] = []  # Reuse existing filter system
-    fill_missing: bool = True  # Fill gaps with null/0
+    fill_missing: bool = True  # Deprecated: gaps are now always filled via SQL (kept for API compatibility)
 
 
 class NumericalDataPoint(BaseSchema):
