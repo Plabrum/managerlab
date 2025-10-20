@@ -9,8 +9,13 @@ from sqlalchemy.dialects.postgresql import JSONB
 from app.base.models import BaseDBModel
 
 
-class Session(BaseDBModel):
-    """Session storage model for PostgreSQL-backed sessions."""
+class Session(BaseDBModel.registry.generate_base()):
+    """Session storage model for PostgreSQL-backed sessions.
+
+    Note: Inherits directly from DeclarativeBase instead of BaseDBModel
+    to avoid soft delete functionality and extra columns. Sessions use
+    expiration-based cleanup via expires_at.
+    """
 
     __tablename__ = "sessions"
 

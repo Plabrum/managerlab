@@ -1,6 +1,5 @@
 """Generic object routes and endpoints."""
 
-from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence
 from litestar import Router, get, post
@@ -14,8 +13,8 @@ from app.objects.schemas import (
     ObjectListResponse,
 )
 from app.objects.enums import ObjectTypes
+from app.utils.logging import logger
 from app.utils.sqids import Sqid, sqid_decode
-from app.client.s3_client import S3Dep
 
 
 @get("/{object_type:str}/{id:str}")
@@ -23,9 +22,7 @@ async def get_object_detail(
     object_type: ObjectTypes,
     id: Sqid,
     transaction: AsyncSession,
-    s3_client: S3Dep,
     object_registry: ObjectRegistry,
-    logger: Logger,
 ) -> ObjectDetailDTO:
     """Get detailed object information."""
     logger.info(f"data:{id}, object_type:{object_type}")
@@ -39,10 +36,8 @@ async def list_objects(
     object_type: ObjectTypes,
     data: ObjectListRequest,
     transaction: AsyncSession,
-    s3_client: S3Dep,
     object_registry: ObjectRegistry,
     action_registry: ActionRegistry,
-    logger: Logger,
 ) -> ObjectListResponse:
     """List objects with filtering and pagination."""
     logger.info(f"data:{data}")

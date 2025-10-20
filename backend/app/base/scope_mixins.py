@@ -1,10 +1,14 @@
 from typing import Type, Any
+import os
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 from alembic_utils.pg_policy import PGPolicy
 
 # Global registry for RLS policies - consumed by alembic env.py
 RLS_POLICY_REGISTRY: list[PGPolicy] = []
+
+# Flag to disable policy registration during migration generation
+REGISTER_POLICIES = os.getenv("REGISTER_RLS_POLICIES", "true").lower() == "true"
 
 
 def RLSMixin(scope_with_campaign_id: bool = False) -> Type:
@@ -27,8 +31,8 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> Type:
                 """Auto-register RLS policy when model class is defined."""
                 super().__init_subclass__(**kwargs)
 
-                # Only register if this is an actual table model
-                if hasattr(cls, "__tablename__"):
+                # Only register if this is an actual table model and policies are enabled
+                if REGISTER_POLICIES and hasattr(cls, "__tablename__"):
                     # Create RLS policy for dual-scoped table
                     policy = PGPolicy(
                         schema="public",
@@ -62,8 +66,8 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> Type:
                 """Auto-register RLS policy when model class is defined."""
                 super().__init_subclass__(**kwargs)
 
-                # Only register if this is an actual table model
-                if hasattr(cls, "__tablename__"):
+                # Only register if this is an actual table model and policies are enabled
+                if REGISTER_POLICIES and hasattr(cls, "__tablename__"):
                     # Create RLS policy for team-scoped table
                     policy = PGPolicy(
                         schema="public",
