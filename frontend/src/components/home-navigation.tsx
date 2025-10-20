@@ -28,7 +28,7 @@ const availablePages = {
 const navigationItems = Object.values(availablePages);
 
 export function HomeNavigation() {
-  const user = useAuth();
+  const { user } = useAuth();
   const pathname = usePathname();
 
   return (

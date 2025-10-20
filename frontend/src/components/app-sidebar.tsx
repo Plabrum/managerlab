@@ -8,7 +8,6 @@ import {
   Building2,
   Users,
   Settings2,
-  GalleryVerticalEnd,
   Image,
   Newspaper,
 } from 'lucide-react';
@@ -16,6 +15,7 @@ import {
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
+import { CreateTeamModal } from '@/components/create-team-modal';
 import {
   Sidebar,
   SidebarContent,
@@ -25,16 +25,9 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/components/providers/auth-provider';
 
-const teams = [
-  {
-    name: 'Arive',
-    logo: GalleryVerticalEnd,
-    plan: 'Enterprise',
-  },
-];
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const user = useAuth();
+  const { user } = useAuth();
+  const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
 
   const navMain = [
     {
@@ -80,17 +73,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ];
 
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={teams} />
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={navMain} />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={{ name: user.name, email: user.email, avatar: '' }} />
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+    <>
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <TeamSwitcher onAddTeamClick={() => setIsTeamModalOpen(true)} />
+        </SidebarHeader>
+        <SidebarContent>
+          <NavMain items={navMain} />
+        </SidebarContent>
+        <SidebarFooter>
+          <NavUser user={{ name: user.name, email: user.email, avatar: '' }} />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+      <CreateTeamModal
+        open={isTeamModalOpen}
+        onOpenChange={setIsTeamModalOpen}
+      />
+    </>
   );
 }

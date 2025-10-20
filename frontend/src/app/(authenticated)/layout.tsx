@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { unstable_cache } from 'next/cache';
 import { config } from '@/lib/config';
@@ -14,12 +14,30 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb';
 import { BreadcrumbProvider } from '@/components/breadcrumb-provider';
-import type { GetCurrentUserUserResponseBody } from '@/openapi/managerLab.schemas';
+import type {
+  GetCurrentUserUserResponseBody,
+  ListTeamsResponse,
+} from '@/openapi/managerLab.schemas';
 
 async function fetchCurrentUser(
   session: string
 ): Promise<GetCurrentUserUserResponseBody> {
   const res = await fetch(`${config.api.baseUrl}/users/current_user`, {
+    headers: {
+      Cookie: `session=${session}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    cache: 'no-store',
+  });
+
+  if (res.status === 401) redirect('/auth/expire');
+  if (!res.ok) redirect('/auth');
+  return res.json();
+}
+
+async function fetchTeams(session: string): Promise<ListTeamsResponse> {
+  const res = await fetch(`${config.api.baseUrl}/users/teams`, {
     headers: {
       Cookie: `session=${session}`,
       'Content-Type': 'application/json',
@@ -39,22 +57,51 @@ const getCurrentUserCached = (session: string) =>
     revalidate: 30,
   })();
 
-export async function getCurrentUser() {
-  const store = await cookies(); // async on canary; drop await on stable
-  const session = store.get('session')?.value;
-  if (!session) redirect('/auth');
-  return getCurrentUserCached(session);
-}
+const getTeamsCached = (session: string) =>
+  unstable_cache(() => fetchTeams(session), ['teams', session], {
+    revalidate: 30,
+  })();
 
 export default async function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
+  const store = await cookies();
+  const session = store.get('session')?.value;
+  if (!session) redirect('/auth');
 
+  const [user, teams] = await Promise.all([
+    getCurrentUserCached(session),
+    getTeamsCached(session),
+  ]);
+
+  // Get current pathname to check if we're on onboarding
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '';
+
+  // If user has no teams and not on onboarding page, redirect to onboarding
+  const hasNoTeams = teams.teams.length === 0;
+  const isOnboardingPage = pathname.includes('/onboarding');
+
+  if (hasNoTeams && !isOnboardingPage) {
+    redirect('/onboarding');
+  }
+
+  // If on onboarding page, render without sidebar
+  if (isOnboardingPage) {
+    return (
+      <AuthProvider user={user} initialTeams={teams}>
+        <ErrorBoundary>
+          <SuspenseWrapper>{children}</SuspenseWrapper>
+        </ErrorBoundary>
+      </AuthProvider>
+    );
+  }
+
+  // Normal layout with sidebar for users with teams
   return (
-    <AuthProvider user={user}>
+    <AuthProvider user={user} initialTeams={teams}>
       <BreadcrumbProvider>
         <SidebarProvider>
           <AppSidebar />

@@ -49,7 +49,7 @@ function NavigationContent({
   isCollapsed?: boolean;
   onItemClick?: () => void;
 }) {
-  const user = useAuth();
+  const { user } = useAuth();
   const pathname = usePathname();
 
   return (

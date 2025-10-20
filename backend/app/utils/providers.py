@@ -5,15 +5,15 @@ from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
 from litestar_saq import TaskQueues
-from sqlalchemy import event, text
+from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.pool import NullPool
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.auth.enums import ScopeType
 from app.sessions.store import PostgreSQLSessionStore
 from app.utils.configure import config, Config
+from app.utils.db import set_rls_variables
 from app.utils.db_filters import apply_soft_delete_filter
 from app.actions.registry import ActionRegistry
 from app.objects.base import ObjectRegistry
@@ -32,26 +32,12 @@ async def provide_transaction(
 
     Also applies soft delete filtering via SQLAlchemy event listener.
     """
-    # Set RLS session variables based on session scope
-    scope_type = request.session.get("scope_type")
-    if scope_type == ScopeType.TEAM.value:
-        team_id = request.session.get("team_id")
-        if team_id:
-            await db_session.execute(
-                text("SET LOCAL app.team_id = :team_id"), {"team_id": team_id}
-            )
-    elif scope_type == ScopeType.CAMPAIGN.value:
-        campaign_id = request.session.get("campaign_id")
-        if campaign_id:
-            await db_session.execute(
-                text("SET LOCAL app.campaign_id = :campaign_id"),
-                {"campaign_id": campaign_id},
-            )
-
     # Attach soft delete filter listener to THIS session only
     event.listen(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
     try:
         async with db_session.begin():
+            # Set RLS session variables within the transaction
+            await set_rls_variables(db_session, request)
             yield db_session
     except IntegrityError as exc:
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc

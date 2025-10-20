@@ -10,8 +10,8 @@ from app.auth.enums import ScopeType
 from app.auth.google.routes import google_auth_router
 from app.auth.guards import requires_user_id
 from app.auth.schemas import (
-    TeamScopeDTO,
-    CampaignScopeDTO,
+    TeamScopeSchema,
+    CampaignScopeSchema,
     ListScopesResponse,
     SwitchScopeRequest,
 )
@@ -39,7 +39,7 @@ async def list_scopes(
     team_rows = team_result.all()
 
     teams = [
-        TeamScopeDTO(
+        TeamScopeSchema(
             team_id=role.team_id, team_name=team.name, role_level=role.role_level
         )
         for role, team in team_rows
@@ -56,7 +56,7 @@ async def list_scopes(
     campaign_rows = campaign_result.all()
 
     campaigns = [
-        CampaignScopeDTO(
+        CampaignScopeSchema(
             campaign_id=guest.campaign_id,
             campaign_name=campaign.name,
             team_id=campaign.team_id,
@@ -115,11 +115,11 @@ async def switch_scope(
 
     elif data.scope_type == ScopeType.CAMPAIGN:
         # Verify user has access to this campaign via CampaignGuest table
-        stmt = select(CampaignGuest).where(
+        campaign_stmt = select(CampaignGuest).where(
             CampaignGuest.user_id == user_id, CampaignGuest.campaign_id == data.scope_id
         )
-        result = await transaction.execute(stmt)
-        guest = result.scalar_one_or_none()
+        campaign_result = await transaction.execute(campaign_stmt)
+        guest = campaign_result.scalar_one_or_none()
 
         if not guest:
             raise HTTPException(

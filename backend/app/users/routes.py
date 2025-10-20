@@ -1,6 +1,8 @@
 from typing import List
 
 from litestar import Request, Router, get, post
+from litestar.exceptions import HTTPException
+from litestar.status_codes import HTTP_400_BAD_REQUEST
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,9 +17,14 @@ from app.users.schemas import (
     UserDTO,
     UserWaitlistFormSchema,
     WaitlistEntryDTO,
+    TeamListItemSchema,
+    ListTeamsResponse,
+    SwitchTeamRequest,
 )
 from app.auth.guards import requires_user_id, requires_superuser
+from app.auth.enums import ScopeType
 from app.users.enums import RoleLevel, UserStates
+from app.campaigns.models import Campaign
 
 # Register objects (auto-registered via __init_subclass__, but explicit for clarity)
 ObjectRegistry().register(ObjectTypes.Users, UserObject)
@@ -106,7 +113,119 @@ async def create_team(
     if user.state == UserStates.NEEDS_TEAM:
         user.state = UserStates.ACTIVE
 
+    # Set the session to use this team as the active scope
+    request.session["scope_type"] = ScopeType.TEAM.value
+    request.session["team_id"] = team.id
+
     return team
+
+
+@get("/teams", guards=[requires_user_id])
+async def list_teams(request: Request, transaction: AsyncSession) -> ListTeamsResponse:
+    """List all teams for the current user.
+
+    If user is in campaign scope, returns only the campaign's team (read-only).
+    If user is in team scope or no scope, returns all teams they have access to.
+    """
+    user_id: int = request.user
+
+    # Check if user is in campaign scope
+    current_scope_type = request.session.get("scope_type")
+    is_campaign_scoped = current_scope_type == ScopeType.CAMPAIGN.value
+
+    if is_campaign_scoped:
+        # User is in campaign scope - return only the campaign's team
+        campaign_id = request.session.get("campaign_id")
+        if not campaign_id:
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail="Campaign scope is active but no campaign_id in session",
+            )
+
+        # Get the campaign's team
+        stmt = (
+            select(Campaign, Team)
+            .join(Team, Campaign.team_id == Team.id)
+            .where(Campaign.id == campaign_id)
+        )
+        result = await transaction.execute(stmt)
+        row = result.one_or_none()
+
+        if not row:
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail=f"Campaign {campaign_id} not found",
+            )
+
+        campaign, team = row
+        teams = [
+            TeamListItemSchema(
+                team_id=team.id,
+                team_name=team.name,
+                role_level=RoleLevel.VIEWER,  # Campaign guests are treated as viewers
+            )
+        ]
+        current_team_id = team.id
+    else:
+        # User is in team scope or no scope - return all teams via Role table
+        team_stmt = (
+            select(Role, Team)
+            .join(Team, Role.team_id == Team.id)
+            .where(Role.user_id == user_id)
+        )
+        team_result = await transaction.execute(team_stmt)
+        rows = team_result.all()
+
+        teams = [
+            TeamListItemSchema(
+                team_id=role.team_id, team_name=team.name, role_level=role.role_level
+            )
+            for role, team in rows
+        ]
+        current_team_id = request.session.get("team_id")
+
+    return ListTeamsResponse(
+        teams=teams,
+        current_team_id=current_team_id,
+        is_campaign_scoped=is_campaign_scoped,
+    )
+
+
+@post("/switch-team", guards=[requires_user_id])
+async def switch_team(
+    request: Request, data: SwitchTeamRequest, transaction: AsyncSession
+) -> dict:
+    """Switch to a different team.
+
+    Only allowed when not in campaign scope. Validates user has access to the team.
+    """
+    user_id: int = request.user
+
+    # Check if user is in campaign scope
+    current_scope_type = request.session.get("scope_type")
+    if current_scope_type == ScopeType.CAMPAIGN.value:
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail="Cannot switch teams while in campaign scope",
+        )
+
+    # Verify user has access to this team via Role table
+    stmt = select(Role).where(Role.user_id == user_id, Role.team_id == data.team_id)
+    result = await transaction.execute(stmt)
+    role = result.scalar_one_or_none()
+
+    if not role:
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=f"User does not have access to team {data.team_id}",
+        )
+
+    # Update session to team scope
+    request.session["scope_type"] = ScopeType.TEAM.value
+    request.session["team_id"] = data.team_id
+    request.session.pop("campaign_id", None)  # Clear campaign_id if present
+
+    return {"detail": "Switched to team", "team_id": data.team_id}
 
 
 # Public router for waitlist signup (no authentication required)
@@ -126,6 +245,8 @@ user_router = Router(
         create_user,
         create_team,
         get_current_user,
+        list_teams,
+        switch_team,
     ],
     tags=["users"],
 )

@@ -7,7 +7,7 @@ from app.users.enums import RoleLevel
 from app.campaigns.enums import CampaignGuestAccessLevel
 
 
-class TeamScopeDTO(Struct):
+class TeamScopeSchema(Struct):
     """Team scope information."""
 
     team_id: int
@@ -15,7 +15,7 @@ class TeamScopeDTO(Struct):
     role_level: RoleLevel
 
 
-class CampaignScopeDTO(Struct):
+class CampaignScopeSchema(Struct):
     """Campaign scope information."""
 
     campaign_id: int
@@ -28,8 +28,8 @@ class CampaignScopeDTO(Struct):
 class ListScopesResponse(Struct):
     """Response for listing available scopes."""
 
-    teams: list[TeamScopeDTO]
-    campaigns: list[CampaignScopeDTO]
+    teams: list[TeamScopeSchema]
+    campaigns: list[CampaignScopeSchema]
     current_scope_type: str | None
     current_scope_id: int | None
 
