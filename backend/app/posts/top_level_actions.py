@@ -8,7 +8,7 @@ from app.base.models import BaseDBModel
 from app.posts.models import Post
 from app.posts.enums import TopLevelPostActions
 from app.posts.schemas import PostCreateSchema
-from app.utils.dto import create_model
+from app.utils.db import create_model
 
 
 top_level_post_actions = action_group_factory(ActionGroupType.TopLevelPostActions)

@@ -8,6 +8,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
+from app.base.scope_mixins import RLSMixin
 from app.payments.enums import InvoiceStates
 from app.state_machine.models import StateMachineMixin
 
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
 
 
 class Invoice(
+    RLSMixin(scope_with_campaign_id=True),
     StateMachineMixin(states=InvoiceStates, initial_state=InvoiceStates.DRAFT),
     BaseDBModel,
 ):
@@ -37,12 +39,7 @@ class Invoice(
     description: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     notes: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
-    # Foreign keys
-    campaign_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("campaigns.id"), nullable=True
-    )
-
-    # Relationships
+    # Relationships (campaign_id is from RLSMixin)
     campaign: Mapped["Campaign | None"] = relationship(
         "Campaign", back_populates="invoices"
     )

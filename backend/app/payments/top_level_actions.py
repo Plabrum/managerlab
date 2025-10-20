@@ -8,7 +8,7 @@ from app.actions.schemas import ActionExecutionResponse
 from app.payments.models import Invoice
 from app.payments.enums import InvoiceActions
 from app.payments.schemas import InvoiceCreateSchema
-from app.utils.dto import create_model
+from app.utils.db import create_model
 
 
 # Create invoice action group

@@ -2,6 +2,7 @@ from sqlalchemy.orm import mapped_column, relationship, Mapped
 import sqlalchemy as sa
 from typing import TYPE_CHECKING
 from app.base.models import BaseDBModel
+from app.base.scope_mixins import RLSMixin
 from app.state_machine.models import StateMachineMixin
 from app.users.enums import UserStates, RoleLevel, RosterStates
 
@@ -87,6 +88,7 @@ class Role(BaseDBModel):
 
 
 class Roster(
+    RLSMixin(),
     StateMachineMixin(
         states=RosterStates,
         initial_state=RosterStates.PROSPECT,

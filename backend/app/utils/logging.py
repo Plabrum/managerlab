@@ -17,3 +17,4 @@ logging_config = LoggingConfig(
         },
     }
 )
+logger = logging_config.configure()()

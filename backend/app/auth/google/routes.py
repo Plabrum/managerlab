@@ -9,6 +9,7 @@ from sqlalchemy import select
 import aiohttp
 from msgspec import Struct
 
+from app.auth.enums import ScopeType
 from app.auth.google.services import GoogleOAuthService
 from app.auth.google.models import GoogleOAuthAccount
 import logging
@@ -104,6 +105,44 @@ async def google_callback(
     # Create secure session
     request.session["user_id"] = user.id
     request.session["authenticated"] = True
+
+    # Set initial scope - check for team membership first, then campaign access
+    from app.users.models import Role
+    from app.campaigns.models import CampaignGuest
+
+    # Check if user has team membership
+    team_stmt = select(Role).where(Role.user_id == user.id).limit(1)
+    team_result = await transaction.execute(team_stmt)
+    first_role = team_result.scalar_one_or_none()
+
+    if first_role:
+        # User has team access - set team scope
+        request.session["scope_type"] = ScopeType.TEAM.value
+        request.session["team_id"] = first_role.team_id
+        logger.info(
+            f"User {user.id} logged in with team scope (team_id={first_role.team_id})"
+        )
+    else:
+        # Check if user has campaign guest access
+        campaign_stmt = (
+            select(CampaignGuest).where(CampaignGuest.user_id == user.id).limit(1)
+        )
+        campaign_result = await transaction.execute(campaign_stmt)
+        first_guest = campaign_result.scalar_one_or_none()
+
+        if first_guest:
+            # User has campaign access - set campaign scope
+            request.session["scope_type"] = ScopeType.CAMPAIGN.value
+            request.session["campaign_id"] = first_guest.campaign_id
+            logger.info(
+                f"User {user.id} logged in with campaign scope (campaign_id={first_guest.campaign_id})"
+            )
+        else:
+            # User has no access - they'll need to be invited to a team or campaign
+            logger.warning(
+                f"User {user.id} logged in but has no team or campaign access"
+            )
+            # Don't set scope - they'll see an error when trying to access resources
 
     # Redirect to frontend success page
     frontend_url = oauth_service.config.SUCCESS_REDIRECT_URL

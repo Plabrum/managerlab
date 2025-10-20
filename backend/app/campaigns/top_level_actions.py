@@ -6,7 +6,7 @@ from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.models import Campaign
 from app.campaigns.enums import CampaignActions
 from app.campaigns.schemas import CampaignCreateSchema
-from app.utils.dto import create_model
+from app.utils.db import create_model
 
 
 top_level_campaign_actions = action_group_factory(

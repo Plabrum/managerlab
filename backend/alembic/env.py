@@ -4,13 +4,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Connection
 
 from alembic import context
+from alembic_utils.replaceable_entity import register_entities
 
 # Import your models and config
 from app import load_all_models
 from app.base.models import BaseDBModel
+from app.base.scope_mixins import RLS_POLICY_REGISTRY
 from app.utils.configure import config as app_config
 
 load_all_models()
+
+# Register RLS policies for auto-diffing
+register_entities(RLS_POLICY_REGISTRY)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

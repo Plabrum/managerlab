@@ -96,7 +96,9 @@ app = Litestar(
     on_startup=[providers.on_startup],
     on_shutdown=[providers.on_shutdown],
     on_app_init=[session_auth.on_app_init],
-    middleware=[session_auth.middleware],  # Add this line
+    middleware=[
+        session_auth.middleware,
+    ],
     logging_config=logging_config,
     cors_config=CORSConfig(
         allow_origins=[config.FRONTEND_ORIGIN],

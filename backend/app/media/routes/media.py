@@ -10,7 +10,7 @@ from app.media.schemas import (
     RegisterMediaSchema,
 )
 from app.utils.sqids import Sqid, sqid_decode
-from app.auth.guards import requires_authenticated_user
+from app.auth.guards import requires_user_id
 from app.client.s3_client import S3Dep
 from litestar_saq import TaskQueues
 
@@ -89,7 +89,7 @@ async def delete_media(
 # Media router
 media_router = Router(
     path="/media",
-    guards=[requires_authenticated_user],
+    guards=[requires_user_id],
     route_handlers=[
         request_presigned_upload,
         register_media,
