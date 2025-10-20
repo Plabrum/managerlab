@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.posts.models import Post
 from app.posts.schemas import PostDTO, PostUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
-from app.auth.guards import requires_authenticated_user
+from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 
 
@@ -30,7 +30,7 @@ async def update_post(
 # Post router
 post_router = Router(
     path="/posts",
-    guards=[requires_authenticated_user],
+    guards=[requires_user_id],
     route_handlers=[
         get_post,
         update_post,

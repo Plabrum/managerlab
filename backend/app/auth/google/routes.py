@@ -9,6 +9,7 @@ from sqlalchemy import select
 import aiohttp
 from msgspec import Struct
 
+from app.auth.enums import ScopeType
 from app.auth.google.services import GoogleOAuthService
 from app.auth.google.models import GoogleOAuthAccount
 import logging
@@ -116,7 +117,7 @@ async def google_callback(
 
     if first_role:
         # User has team access - set team scope
-        request.session["scope_type"] = "team"
+        request.session["scope_type"] = ScopeType.TEAM.value
         request.session["team_id"] = first_role.team_id
         logger.info(
             f"User {user.id} logged in with team scope (team_id={first_role.team_id})"
@@ -131,7 +132,7 @@ async def google_callback(
 
         if first_guest:
             # User has campaign access - set campaign scope
-            request.session["scope_type"] = "campaign"
+            request.session["scope_type"] = ScopeType.CAMPAIGN.value
             request.session["campaign_id"] = first_guest.campaign_id
             logger.info(
                 f"User {user.id} logged in with campaign scope (campaign_id={first_guest.campaign_id})"

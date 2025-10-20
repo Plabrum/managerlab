@@ -1,88 +1,55 @@
 from typing import AsyncGenerator
 import aiohttp
-from litestar import Litestar
+from litestar import Litestar, Request
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
 from litestar_saq import TaskQueues
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from app.auth.enums import ScopeType
 from app.sessions.store import PostgreSQLSessionStore
 from app.utils.configure import config, Config
+from app.utils.db_filters import apply_soft_delete_filter
 from app.actions.registry import ActionRegistry
 from app.objects.base import ObjectRegistry
 from app.client.s3_client import S3Dep
 
 
 async def provide_transaction(
-    db_session: AsyncSession,
+    db_session: AsyncSession, request: Request
 ) -> AsyncGenerator[AsyncSession, None]:
-    from app.auth.scope_context import get_request_scope
-    from app.base.scope_mixins import TeamScopedMixin, DualScopedMixin
-    from litestar.exceptions import PermissionDeniedException
+    """Provide a database transaction with RLS session variables and soft delete filtering.
 
-    # Listener that injects scope filters and soft delete filters into every ORM SELECT
-    def _apply_filters(execute_state):
-        if not execute_state.is_select:
-            return
+    Sets PostgreSQL session variables for Row-Level Security based on session scope:
+    - app.team_id: Set when user has team scope
+    - app.campaign_id: Set when user has campaign scope
+    - Neither set for admin/system operations
 
-        statement = execute_state.statement
+    Also applies soft delete filtering via SQLAlchemy event listener.
+    """
+    # Set RLS session variables based on session scope
+    scope_type = request.session.get("scope_type")
+    if scope_type == ScopeType.TEAM.value:
+        team_id = request.session.get("team_id")
+        if team_id:
+            await db_session.execute(
+                text("SET LOCAL app.team_id = :team_id"), {"team_id": team_id}
+            )
+    elif scope_type == ScopeType.CAMPAIGN.value:
+        campaign_id = request.session.get("campaign_id")
+        if campaign_id:
+            await db_session.execute(
+                text("SET LOCAL app.campaign_id = :campaign_id"),
+                {"campaign_id": campaign_id},
+            )
 
-        # Get the model from the statement
-        from_clause = list(statement.get_final_froms())
-        if not from_clause:
-            return
-
-        # Get the mapped class (model)
-        mapper = from_clause[0]
-        if not hasattr(mapper, "entity"):
-            return
-
-        model = mapper.entity
-
-        # Apply soft delete filter (all models have deleted_at from BaseDBModel)
-        if hasattr(model, "deleted_at"):
-            statement = statement.where(model.deleted_at.is_(None))
-
-        # Apply scope filter
-        scope = get_request_scope()
-        if scope:
-            # Check if model uses scope mixins
-            is_team_scoped = issubclass(model, TeamScopedMixin)
-            is_dual_scoped = issubclass(model, DualScopedMixin)
-
-            if is_dual_scoped:
-                # DualScopedMixin: Has both team_id and campaign_id
-                if scope.is_team_scoped:
-                    # Team scope: Filter by team_id
-                    statement = statement.where(model.team_id == scope.team_id)
-                elif scope.is_campaign_scoped:
-                    # Campaign scope: Filter by campaign_id
-                    statement = statement.where(model.campaign_id == scope.campaign_id)
-
-            elif is_team_scoped:
-                # TeamScopedMixin: Has only team_id
-                if scope.is_team_scoped:
-                    # Team scope: Filter by team_id
-                    statement = statement.where(model.team_id == scope.team_id)
-                elif scope.is_campaign_scoped:
-                    # Campaign guests cannot access team-only resources
-                    raise PermissionDeniedException(
-                        f"Campaign guests cannot access {model.__name__} resources"
-                    )
-
-        # Also apply raiseload for eager loading enforcement
-        statement = statement.options(raiseload("*"))
-
-        execute_state.statement = statement
-
-    # Attach the listener to THIS session only
-    event.listen(db_session.sync_session, "do_orm_execute", _apply_filters)
+    # Attach soft delete filter listener to THIS session only
+    event.listen(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
     try:
         async with db_session.begin():
             yield db_session
@@ -90,7 +57,9 @@ async def provide_transaction(
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
     finally:
         # Always remove the listener so it doesn't leak to other sessions
-        event.remove(db_session.sync_session, "do_orm_execute", _apply_filters)
+        event.remove(
+            db_session.sync_session, "do_orm_execute", apply_soft_delete_filter
+        )
 
 
 async def on_startup(app: Litestar) -> None:

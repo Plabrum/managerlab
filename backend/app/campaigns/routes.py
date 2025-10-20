@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.campaigns.models import Campaign
 from app.campaigns.schemas import CampaignDTO, CampaignUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
-from app.auth.guards import requires_authenticated_user
+from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 
 # Register CampaignObject with the objects framework
@@ -37,7 +37,7 @@ async def update_campaign(
 # Campaign router
 campaign_router = Router(
     path="/campaigns",
-    guards=[requires_authenticated_user],
+    guards=[requires_user_id],
     route_handlers=[
         get_campaign,
         update_campaign,

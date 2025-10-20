@@ -1,55 +1,83 @@
-"""Scope mixins for multi-tenancy support.
-
-These mixins provide team and campaign scoping for models.
-Models inherit from these mixins to automatically get scope filtering.
-"""
-
+from typing import Type, Any
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
+from alembic_utils.pg_policy import PGPolicy
+
+# Global registry for RLS policies - consumed by alembic env.py
+RLS_POLICY_REGISTRY: list[PGPolicy] = []
 
 
-class TeamScopedMixin:
-    """Mixin for models that are scoped to a team only.
+def RLSMixin(scope_with_campaign_id: bool = False) -> Type:
+    if scope_with_campaign_id:
+        # Dual-scoped mixin: Has both team_id and campaign_id
+        class _DualScopedMixin:
+            team_id: Mapped[int] = mapped_column(
+                sa.ForeignKey("teams.id", ondelete="RESTRICT"),
+                nullable=False,
+                index=True,
+            )
 
-    Examples: Brand, BrandContact, Campaign, Roster
+            campaign_id: Mapped[int | None] = mapped_column(
+                sa.ForeignKey("campaigns.id", ondelete="RESTRICT"),
+                nullable=True,
+                index=True,
+            )
 
-    Team members can see all resources with their team_id.
-    Campaign guests cannot access these resources.
+            def __init_subclass__(cls, **kwargs: Any) -> None:
+                """Auto-register RLS policy when model class is defined."""
+                super().__init_subclass__(**kwargs)
 
-    Uses RESTRICT on delete to prevent accidental data loss.
-    Use soft delete (deleted_at) from BaseDBModel instead.
-    """
+                # Only register if this is an actual table model
+                if hasattr(cls, "__tablename__"):
+                    # Create RLS policy for dual-scoped table
+                    policy = PGPolicy(
+                        schema="public",
+                        signature="dual_scope_policy",
+                        on_entity=f"public.{getattr(cls, '__tablename__')}",
+                        definition="""
+                            AS PERMISSIVE
+                            FOR ALL
+                            USING (
+                                (team_id = current_setting('app.team_id', true)::int)
+                                OR (campaign_id = current_setting('app.campaign_id', true)::int)
+                                OR (current_setting('app.team_id', true) IS NULL
+                                    AND current_setting('app.campaign_id', true) IS NULL)
+                            )
+                        """,
+                    )
+                    RLS_POLICY_REGISTRY.append(policy)
 
-    team_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("teams.id", ondelete="RESTRICT"),
-        nullable=False,
-        index=True,
-    )
+        return _DualScopedMixin
 
+    else:
 
-class DualScopedMixin:
-    """Mixin for models that are scoped to both team AND campaign.
+        class _TeamScopedMixin:
+            team_id: Mapped[int] = mapped_column(
+                sa.ForeignKey("teams.id", ondelete="RESTRICT"),
+                nullable=False,
+                index=True,
+            )
 
-    Examples: Post, Invoice, Media
+            def __init_subclass__(cls, **kwargs: Any) -> None:
+                """Auto-register RLS policy when model class is defined."""
+                super().__init_subclass__(**kwargs)
 
-    These models have both team_id and campaign_id:
-    - Team members see all resources with their team_id (all campaigns)
-    - Campaign guests see only resources with their specific campaign_id
+                # Only register if this is an actual table model
+                if hasattr(cls, "__tablename__"):
+                    # Create RLS policy for team-scoped table
+                    policy = PGPolicy(
+                        schema="public",
+                        signature="team_scope_policy",
+                        on_entity=f"public.{getattr(cls, '__tablename__')}",
+                        definition="""
+                            AS PERMISSIVE
+                            FOR ALL
+                            USING (
+                                team_id = current_setting('app.team_id', true)::int
+                                OR current_setting('app.team_id', true) IS NULL
+                            )
+                        """,
+                    )
+                    RLS_POLICY_REGISTRY.append(policy)
 
-    Note: team_id is denormalized from Campaign for efficient filtering.
-
-    Uses RESTRICT on delete to prevent accidental data loss.
-    Use soft delete (deleted_at) from BaseDBModel instead.
-    """
-
-    team_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("teams.id", ondelete="RESTRICT"),
-        nullable=False,
-        index=True,
-    )
-
-    campaign_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("campaigns.id", ondelete="RESTRICT"),
-        nullable=True,
-        index=True,
-    )
+        return _TeamScopedMixin

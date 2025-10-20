@@ -10,7 +10,7 @@ from app.brands.schemas import (
     BrandContactUpdateSchema,
 )
 from app.utils.sqids import Sqid, sqid_decode
-from app.auth.guards import requires_authenticated_user
+from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 
 # Register BrandObject and BrandContactObject with the objects framework
@@ -63,7 +63,7 @@ async def update_brand_contact(
 # Brand router
 brand_router = Router(
     path="/brands",
-    guards=[requires_authenticated_user],
+    guards=[requires_user_id],
     route_handlers=[
         get_brand,
         update_brand,

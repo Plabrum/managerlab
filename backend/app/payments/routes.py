@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.payments.models import Invoice
 from app.payments.schemas import InvoiceDTO, InvoiceUpdateSchema
 from app.utils.sqids import Sqid, sqid_decode
-from app.auth.guards import requires_authenticated_user
+from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 
 # Register InvoiceObject with the objects framework
@@ -37,7 +37,7 @@ async def update_invoice(
 # Invoice router
 invoice_router = Router(
     path="/invoices",
-    guards=[requires_authenticated_user],
+    guards=[requires_user_id],
     route_handlers=[
         get_invoice,
         update_invoice,

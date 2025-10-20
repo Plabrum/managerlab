@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
-from app.base.scope_mixins import DualScopedMixin
+from app.base.scope_mixins import RLSMixin
 from app.media.enums import MediaStates
 from app.state_machine.models import StateMachineMixin
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class Media(
-    DualScopedMixin,
+    RLSMixin(scope_with_campaign_id=True),
     StateMachineMixin(states=MediaStates, initial_state=MediaStates.PENDING),
     BaseDBModel,
 ):

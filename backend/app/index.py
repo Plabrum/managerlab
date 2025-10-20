@@ -38,7 +38,6 @@ from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
 from app.utils.logging import logging_config
 from app.client.s3_client import provide_s3_client
-from app.middleware.scope import ScopeMiddleware
 
 
 logger = logging.getLogger(__name__)
@@ -99,7 +98,6 @@ app = Litestar(
     on_app_init=[session_auth.on_app_init],
     middleware=[
         session_auth.middleware,
-        ScopeMiddleware,  # Add scope middleware AFTER session middleware
     ],
     logging_config=logging_config,
     cors_config=CORSConfig(

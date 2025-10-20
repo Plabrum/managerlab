@@ -1,7 +1,7 @@
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 
 from app.base.schemas import BaseSchema
-from app.users.models import User, WaitlistEntry
+from app.users.models import User, WaitlistEntry, Team
 
 
 from app.base.schemas import SanitizedSQLAlchemyDTO
@@ -19,9 +19,22 @@ class WaitlistEntryDTO(SQLAlchemyDTO[WaitlistEntry]):
     pass
 
 
+class TeamDTO(SanitizedSQLAlchemyDTO[Team]):
+    """Data transfer object for Team model."""
+
+    pass
+
+
 class CreateUserSchema(BaseSchema):
     name: str
     email: str
+
+
+class CreateTeamSchema(BaseSchema):
+    """Schema for creating a new team."""
+
+    name: str
+    description: str | None = None
 
 
 class UserWaitlistFormSchema(BaseSchema):

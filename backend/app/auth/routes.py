@@ -5,51 +5,21 @@ from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from msgspec import Struct
 
+from app.auth.enums import ScopeType
 from app.auth.google.routes import google_auth_router
-from app.auth.guards import requires_authenticated_user
+from app.auth.guards import requires_user_id
+from app.auth.schemas import (
+    TeamScopeDTO,
+    CampaignScopeDTO,
+    ListScopesResponse,
+    SwitchScopeRequest,
+)
 from app.users.models import Role, Team
 from app.campaigns.models import CampaignGuest, Campaign
-from app.users.enums import RoleLevel
-from app.campaigns.enums import CampaignGuestAccessLevel
 
 
-class TeamScopeDTO(Struct):
-    """Team scope information."""
-
-    team_id: int
-    team_name: str
-    role_level: RoleLevel
-
-
-class CampaignScopeDTO(Struct):
-    """Campaign scope information."""
-
-    campaign_id: int
-    campaign_name: str
-    team_id: int
-    team_name: str
-    access_level: CampaignGuestAccessLevel
-
-
-class ListScopesResponse(Struct):
-    """Response for listing available scopes."""
-
-    teams: list[TeamScopeDTO]
-    campaigns: list[CampaignScopeDTO]
-    current_scope_type: str | None
-    current_scope_id: int | None
-
-
-class SwitchScopeRequest(Struct):
-    """Request to switch scope."""
-
-    scope_type: str  # "team" or "campaign"
-    scope_id: int  # team_id or campaign_id
-
-
-@get("/list-scopes", guards=[requires_authenticated_user])
+@get("/list-scopes", guards=[requires_user_id])
 async def list_scopes(
     request: Request, transaction: AsyncSession
 ) -> ListScopesResponse:
@@ -99,9 +69,9 @@ async def list_scopes(
     # Get current scope from session
     current_scope_type = request.session.get("scope_type")
     current_scope_id = None
-    if current_scope_type == "team":
+    if current_scope_type == ScopeType.TEAM.value:
         current_scope_id = request.session.get("team_id")
-    elif current_scope_type == "campaign":
+    elif current_scope_type == ScopeType.CAMPAIGN.value:
         current_scope_id = request.session.get("campaign_id")
 
     return ListScopesResponse(
@@ -112,7 +82,7 @@ async def list_scopes(
     )
 
 
-@post("/switch-scope", guards=[requires_authenticated_user])
+@post("/switch-scope", guards=[requires_user_id])
 async def switch_scope(
     request: Request, data: SwitchScopeRequest, transaction: AsyncSession
 ) -> dict:
@@ -122,7 +92,7 @@ async def switch_scope(
     """
     user_id: int = request.user
 
-    if data.scope_type == "team":
+    if data.scope_type == ScopeType.TEAM:
         # Verify user has access to this team via Role table
         stmt = select(Role).where(
             Role.user_id == user_id, Role.team_id == data.scope_id
@@ -137,13 +107,13 @@ async def switch_scope(
             )
 
         # Update session
-        request.session["scope_type"] = "team"
+        request.session["scope_type"] = ScopeType.TEAM.value
         request.session["team_id"] = data.scope_id
         request.session.pop("campaign_id", None)  # Clear campaign_id
 
         return {"detail": "Switched to team scope", "team_id": data.scope_id}
 
-    elif data.scope_type == "campaign":
+    elif data.scope_type == ScopeType.CAMPAIGN:
         # Verify user has access to this campaign via CampaignGuest table
         stmt = select(CampaignGuest).where(
             CampaignGuest.user_id == user_id, CampaignGuest.campaign_id == data.scope_id
@@ -158,7 +128,7 @@ async def switch_scope(
             )
 
         # Update session
-        request.session["scope_type"] = "campaign"
+        request.session["scope_type"] = ScopeType.CAMPAIGN.value
         request.session["campaign_id"] = data.scope_id
         request.session.pop("team_id", None)  # Clear team_id
 

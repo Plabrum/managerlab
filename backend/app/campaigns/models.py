@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
-from app.base.scope_mixins import TeamScopedMixin
+from app.base.scope_mixins import RLSMixin
 from app.campaigns.enums import CampaignStates, CampaignGuestAccessLevel
 from app.state_machine.models import StateMachineMixin
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class Campaign(
-    TeamScopedMixin,
+    RLSMixin(),
     StateMachineMixin(
         states=CampaignStates,
         initial_state=CampaignStates.DRAFT,
