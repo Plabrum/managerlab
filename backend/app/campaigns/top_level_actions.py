@@ -25,9 +25,14 @@ class CreateCampaign(BaseAction):
 
     @classmethod
     async def execute(
-        cls, data: CampaignCreateSchema, transaction: AsyncSession
+        cls, data: CampaignCreateSchema, transaction: AsyncSession, team_id: int
     ) -> ActionExecutionResponse:
-        new_campaign = create_model(Campaign, data)
+        new_campaign = create_model(
+            team_id=team_id,
+            campaign_id=None,
+            model_class=Campaign,
+            create_vals=data,
+        )
         transaction.add(new_campaign)
         return ActionExecutionResponse(
             success=True,

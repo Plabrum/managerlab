@@ -149,7 +149,6 @@ object_router = Router(
         get_object_detail,
         list_objects,
         get_time_series_data,
-        # perform_object_action,
     ],
     tags=["objects"],
 )

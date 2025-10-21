@@ -2,10 +2,12 @@
 
 from litestar import Request
 from litestar.exceptions import NotFoundException
+from msgspec import structs
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.enums import ScopeType
+from app.base.schemas import BaseSchema
 
 
 async def get_or_404[T](session: AsyncSession, model_class: type[T], id: int) -> T:
@@ -16,22 +18,28 @@ async def get_or_404[T](session: AsyncSession, model_class: type[T], id: int) ->
     return entity
 
 
-def update_model[T](model_instance: T, update_vals) -> T:
+def update_model[T](model_instance: T, update_vals: BaseSchema) -> T:
     """Update a model instance from a DTO/struct."""
-    for field, value in update_vals.__dict__.items():
+    for field, value in structs.asdict(update_vals).items():
         if hasattr(model_instance, field):
             setattr(model_instance, field, value)
     return model_instance
 
 
-def create_model[T](model_class: type[T], create_vals) -> T:
+def create_model[T](
+    team_id: int | None,
+    campaign_id: int | None,
+    model_class: type[T],
+    create_vals: BaseSchema,
+) -> T:
     """Create a new model instance from a DTO/struct."""
     data = {
         field: value
-        for field, value in create_vals.__dict__.items()
+        for field, value in structs.asdict(create_vals).items()
         if value is not None
     }
-    return model_class(**data)
+    rls_fields = {"team_id": team_id, "campaign_id": campaign_id}
+    return model_class(**data, **rls_fields)
 
 
 async def set_rls_variables(session: AsyncSession, request: Request) -> None:

@@ -86,13 +86,18 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
 
 
 def provide_action_registry(
-    s3_client: S3Dep, config: Config, transaction: AsyncSession, task_queues: TaskQueues
+    s3_client: S3Dep,
+    config: Config,
+    transaction: AsyncSession,
+    task_queues: TaskQueues,
+    request: Request,
 ) -> ActionRegistry:
     return ActionRegistry(
         s3_client=s3_client,
         config=config,
         transaction=transaction,
         task_queues=task_queues,
+        request=request,
     )
 
 

@@ -26,6 +26,11 @@ from app.utils.sqids import sqid_encode
 class PostObject(BaseObject):
     object_type = ObjectTypes.Posts
     model = Post
+
+    @classmethod
+    def get_top_level_action_group(cls):
+        return ActionGroupType.TopLevelPostActions
+
     column_definitions = [
         ColumnDefinitionDTO(
             key="id",

@@ -137,10 +137,13 @@ class ActionGroup:
         sig = inspect.signature(action_class.execute)
         params = sig.parameters
 
+        request = self.action_registry.dependencies.get("request")
         # Prepare possible arguments
         candidate_args = {
             "obj": obj,
             "data": getattr(data, "data", data),
+            "team_id": request.session.get("team_id"),
+            "campaign_id": request.session.get("campaign_id"),
             **self.action_registry.dependencies,
         }
 

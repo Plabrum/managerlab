@@ -1,4 +1,4 @@
-from typing import Any, Type
+from typing import Type
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseAction, action_group_factory
@@ -37,17 +37,17 @@ class CreatePost(PostTopLevelActionMixin, BaseAction):
         obj: Post,
         data: PostCreateSchema,
         transaction: AsyncSession,
+        team_id: int,
     ) -> ActionExecutionResponse:
-        post = create_model(Post, data)
+        post = create_model(
+            team_id=team_id,
+            campaign_id=None,
+            model_class=Post,
+            create_vals=data,
+        )
         transaction.add(post)
         return ActionExecutionResponse(
             success=True,
             message="Created post ",
             results={"post_id": post.id},
         )
-
-    @classmethod
-    def is_available(
-        cls, obj: BaseDBModel, context: dict[str, Any] | None = None
-    ) -> bool:
-        return True

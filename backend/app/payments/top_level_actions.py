@@ -25,9 +25,17 @@ class CreateInvoice(BaseAction):
 
     @classmethod
     async def execute(
-        cls, data: InvoiceCreateSchema, transaction: AsyncSession
+        cls,
+        data: InvoiceCreateSchema,
+        transaction: AsyncSession,
+        team_id: int,
     ) -> ActionExecutionResponse:
-        new_invoice = create_model(Invoice, data)
+        new_invoice = create_model(
+            team_id=team_id,
+            campaign_id=None,
+            model_class=Invoice,
+            create_vals=data,
+        )
         transaction.add(new_invoice)
         return ActionExecutionResponse(
             success=True,
