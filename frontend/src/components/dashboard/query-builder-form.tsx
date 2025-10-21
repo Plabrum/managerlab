@@ -27,7 +27,7 @@ interface QueryBuilderFormProps {
 const OBJECT_TYPES: ObjectTypes[] = [
   'brands',
   'campaigns',
-  'posts',
+  'deliverables',
   'invoices',
   'users',
   'media',

@@ -2,6 +2,15 @@ FROM ghcr.io/astral-sh/uv:python3.13-bookworm
 
 WORKDIR /app
 
+# Install PostgreSQL client tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    pspg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure PostgreSQL pager
+ENV PSQL_PAGER='pspg -s 16'
+
 # Configure uv behaviour for reproducible builds
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_NO_INSTALLER_METADATA=1
