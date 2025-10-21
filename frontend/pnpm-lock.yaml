@@ -118,7 +118,7 @@ importers:
         version: 1.0.0(tailwindcss@4.1.14)
     devDependencies:
       '@eslint/eslintrc':
-        specifier: ^3
+        specifier: ^3.3.1
         version: 3.3.1
       '@next/eslint-plugin-next':
         specifier: ^15.5.3
