@@ -11,15 +11,15 @@ import {
 } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
 import { useBreadcrumb } from '@/components/breadcrumb-provider';
-import { UpdatePostForm } from '@/components/actions/update-post-form';
+import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
 import type {
-  PostUpdateSchema,
+  DeliverableUpdateSchema,
   ActionDTO,
   ActionExecutionResponse,
 } from '@/openapi/managerLab.schemas';
 import type { ActionFormRenderer } from '@/hooks/use-action-executor';
 
-export default function PostDetailPage({
+export default function DeliverableDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -29,7 +29,7 @@ export default function PostDetailPage({
   const router = useRouter();
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
-  const { data } = useOObjectTypeIdGetObjectDetailSuspense('posts', id);
+  const { data } = useOObjectTypeIdGetObjectDetailSuspense('deliverables', id);
 
   // Set breadcrumb title after data loads
   useEffect(() => {
@@ -45,30 +45,33 @@ export default function PostDetailPage({
       const isDeleteAction = action.action.toLowerCase().includes('delete');
 
       if (isDeleteAction && response.success) {
-        router.push('/posts');
+        router.push('/deliverables');
       }
     },
     [router]
   );
 
   // Custom form renderer for actions that require data
-  const renderPostActionForm: ActionFormRenderer = useCallback(
+  const renderDeliverableActionForm: ActionFormRenderer = useCallback(
     (props) => {
       const { action, onSubmit, onCancel, isSubmitting } = props;
 
       // Handle update action with custom form
-      if (action.action === 'post_actions__post_update') {
-        // Extract post data from fields for default values
-        const defaultValues: Partial<PostUpdateSchema> = {
+      if (action.action === 'deliverable_actions__deliverable_update') {
+        // Extract deliverable data from fields for default values
+        const defaultValues: Partial<DeliverableUpdateSchema> = {
           title: data.title,
           // Add other fields as needed from data.fields
         };
 
         return (
-          <UpdatePostForm
+          <UpdateDeliverableForm
             defaultValues={defaultValues}
             onSubmit={(data) =>
-              onSubmit({ action: 'post_actions__post_update', data })
+              onSubmit({
+                action: 'deliverable_actions__deliverable_update',
+                data,
+              })
             }
             onCancel={onCancel}
             isSubmitting={isSubmitting}
@@ -96,9 +99,9 @@ export default function PostDetailPage({
           />
           <ObjectActions
             actions={data.actions}
-            actionGroup="post_actions"
+            actionGroup="deliverable_actions"
             objectId={id}
-            renderActionForm={renderPostActionForm}
+            renderActionForm={renderDeliverableActionForm}
             onActionComplete={handleActionComplete}
           />
         </div>

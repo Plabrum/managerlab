@@ -6,8 +6,8 @@ class ActionGroupType(StrEnum):
 
     MediaActions = "media_actions"
     TopLevelMediaActions = "top_level_media_actions"
-    PostActions = "post_actions"
-    TopLevelPostActions = "top_level_post_actions"
+    DeliverableActions = "deliverable_actions"
+    TopLevelDeliverableActions = "top_level_deliverable_actions"
     BrandActions = "brand_actions"
     CampaignActions = "campaign_actions"
     TopLevelCampaignActions = "top_level_campaign_actions"

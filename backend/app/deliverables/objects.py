@@ -18,18 +18,18 @@ from app.objects.schemas import (
     DatetimeFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
-from app.posts.models import Post
-from app.posts.enums import PostStates, SocialMediaPlatforms
+from app.deliverables.models import Deliverable
+from app.deliverables.enums import DeliverableStates, SocialMediaPlatforms
 from app.utils.sqids import sqid_encode
 
 
-class PostObject(BaseObject):
-    object_type = ObjectTypes.Posts
-    model = Post
+class DeliverableObject(BaseObject):
+    object_type = ObjectTypes.Deliverables
+    model = Deliverable
 
     @classmethod
     def get_top_level_action_group(cls):
-        return ActionGroupType.TopLevelPostActions
+        return ActionGroupType.TopLevelDeliverableActions
 
     column_definitions = [
         ColumnDefinitionDTO(
@@ -88,7 +88,7 @@ class PostObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
-            available_values=[state.value for state in PostStates],
+            available_values=[state.value for state in DeliverableStates],
         ),
         ColumnDefinitionDTO(
             key="posting_date",
@@ -109,25 +109,27 @@ class PostObject(BaseObject):
     ]
 
     @classmethod
-    def to_detail_dto(cls, post: Post) -> ObjectDetailDTO:
+    def to_detail_dto(cls, deliverable: Deliverable) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",
-                value=StringFieldValue(value=post.title),
+                value=StringFieldValue(value=deliverable.title),
                 label="Title",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="content",
-                value=TextFieldValue(value=post.content) if post.content else None,
+                value=TextFieldValue(value=deliverable.content)
+                if deliverable.content
+                else None,
                 label="Content",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="platforms",
                 value=(
-                    StringFieldValue(value=post.platforms.value)
-                    if post.platforms
+                    StringFieldValue(value=deliverable.platforms.value)
+                    if deliverable.platforms
                     else None
                 ),
                 label="Platform",
@@ -136,8 +138,8 @@ class PostObject(BaseObject):
             ObjectFieldDTO(
                 key="posting_date",
                 value=(
-                    DatetimeFieldValue(value=post.posting_date)
-                    if post.posting_date
+                    DatetimeFieldValue(value=deliverable.posting_date)
+                    if deliverable.posting_date
                     else None
                 ),
                 label="Posting Date",
@@ -146,8 +148,8 @@ class PostObject(BaseObject):
             ObjectFieldDTO(
                 key="compensation_structure",
                 value=(
-                    StringFieldValue(value=post.compensation_structure.value)
-                    if post.compensation_structure
+                    StringFieldValue(value=deliverable.compensation_structure.value)
+                    if deliverable.compensation_structure
                     else None
                 ),
                 label="Compensation Structure",
@@ -155,40 +157,42 @@ class PostObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="notes",
-                value=TextFieldValue(value=str(post.notes) if post.notes else "{}"),
+                value=TextFieldValue(
+                    value=str(deliverable.notes) if deliverable.notes else "{}"
+                ),
                 label="Notes",
                 editable=True,
             ),
         ]
 
-        action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
-        actions = action_group.get_available_actions(obj=post)
+        action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
+        actions = action_group.get_available_actions(obj=deliverable)
 
         return ObjectDetailDTO(
-            id=sqid_encode(post.id),
-            object_type=ObjectTypes.Posts,
-            state=post.state.name,
-            title=post.title,
+            id=sqid_encode(deliverable.id),
+            object_type=ObjectTypes.Deliverables,
+            state=deliverable.state.name,
+            title=deliverable.title,
             fields=fields,
             actions=actions,
-            created_at=post.created_at,
-            updated_at=post.updated_at,
+            created_at=deliverable.created_at,
+            updated_at=deliverable.updated_at,
             children=[],
             parents=[],
         )
 
     @classmethod
-    def to_list_dto(cls, post: Post) -> ObjectListDTO:
+    def to_list_dto(cls, deliverable: Deliverable) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="title",
-                value=StringFieldValue(value=post.title),
+                value=StringFieldValue(value=deliverable.title),
                 label="Title",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="state",
-                value=EnumFieldValue(value=post.state.value),
+                value=EnumFieldValue(value=deliverable.state.value),
                 label="Status",
                 editable=False,
             ),
@@ -197,12 +201,12 @@ class PostObject(BaseObject):
                 value=(
                     TextFieldValue(
                         value=(
-                            post.content[:100] + "..."
-                            if len(post.content) > 100
-                            else post.content
+                            deliverable.content[:100] + "..."
+                            if len(deliverable.content) > 100
+                            else deliverable.content
                         )
                     )
-                    if post.content
+                    if deliverable.content
                     else None
                 ),
                 label="Content",
@@ -210,15 +214,15 @@ class PostObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="platforms",
-                value=EnumFieldValue(value=post.platforms.value),
+                value=EnumFieldValue(value=deliverable.platforms.value),
                 label="Platform",
                 editable=False,
             ),
             ObjectFieldDTO(
                 key="posting_date",
                 value=(
-                    DatetimeFieldValue(value=post.posting_date)
-                    if post.posting_date
+                    DatetimeFieldValue(value=deliverable.posting_date)
+                    if deliverable.posting_date
                     else None
                 ),
                 label="Posting Date",
@@ -226,22 +230,22 @@ class PostObject(BaseObject):
             ),
         ]
 
-        action_group = ActionRegistry().get_class(ActionGroupType.PostActions)
-        actions = action_group.get_available_actions(obj=post)
+        action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
+        actions = action_group.get_available_actions(obj=deliverable)
 
         return ObjectListDTO(
-            id=sqid_encode(post.id),
-            object_type=ObjectTypes.Posts,
-            title=post.title,
+            id=sqid_encode(deliverable.id),
+            object_type=ObjectTypes.Deliverables,
+            title=deliverable.title,
             subtitle=(
-                post.content[:100] + "..."
-                if post.content and len(post.content) > 100
-                else post.content
+                deliverable.content[:100] + "..."
+                if deliverable.content and len(deliverable.content) > 100
+                else deliverable.content
             ),
-            state=post.state.name,
+            state=deliverable.state.name,
             actions=actions,
-            created_at=post.created_at,
-            updated_at=post.updated_at,
+            created_at=deliverable.created_at,
+            updated_at=deliverable.updated_at,
             fields=fields,
         )
 
@@ -249,15 +253,15 @@ class PostObject(BaseObject):
     async def query_from_request(
         cls, session: AsyncSession, request: ObjectListRequest
     ):
-        """Override default sorting for Post."""
+        """Override default sorting for Deliverable."""
 
         query = select(cls.model)
 
         # Apply structured filters and sorts using helper method
         query = cls.apply_request_to_query(query, cls.model, request)
 
-        # Custom default sort for posts
+        # Custom default sort for deliverables
         if not request.sorts:
-            query = query.order_by(Post.posting_date.desc())
+            query = query.order_by(Deliverable.posting_date.desc())
 
         return query

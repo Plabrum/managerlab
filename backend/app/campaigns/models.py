@@ -8,7 +8,7 @@ from app.campaigns.enums import CampaignStates, CampaignGuestAccessLevel
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
-    from app.posts.models import Post
+    from app.deliverables.models import Deliverable
     from app.brands.models.brands import Brand
     from app.brands.models.contacts import BrandContact
     from app.payments.models import Invoice
@@ -33,7 +33,9 @@ class Campaign(
 
     # Relationships
     brand: Mapped["Brand"] = relationship("Brand", back_populates="campaigns")
-    posts: Mapped[list["Post"]] = relationship("Post", back_populates="campaign")
+    deliverables: Mapped[list["Deliverable"]] = relationship(
+        "Deliverable", back_populates="campaign"
+    )
     lead_contacts: Mapped[list["BrandContact"]] = relationship(
         "BrandContact",
         secondary="campaign_lead_contacts",

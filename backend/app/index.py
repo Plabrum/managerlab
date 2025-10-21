@@ -30,7 +30,7 @@ from app.objects.routes import object_router
 from app.actions.routes import action_router
 from app.brands.routes import brand_router
 from app.campaigns.routes import campaign_router
-from app.posts.routes import post_router
+from app.deliverables.routes import deliverable_router
 from app.media.routes import media_router, local_media_router
 from app.payments.routes import invoice_router
 from app.dashboard.routes import dashboard_router
@@ -80,7 +80,7 @@ route_handlers: list[Any] = [
     action_router,
     brand_router,
     campaign_router,
-    post_router,
+    deliverable_router,
     media_router,
     invoice_router,
     dashboard_router,

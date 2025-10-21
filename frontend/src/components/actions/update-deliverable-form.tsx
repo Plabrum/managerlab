@@ -4,26 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { PostUpdateSchema } from '@/openapi/managerLab.schemas';
+import type { DeliverableUpdateSchema } from '@/openapi/managerLab.schemas';
 import { useState } from 'react';
 
-interface UpdatePostFormProps {
-  defaultValues?: Partial<PostUpdateSchema>;
-  onSubmit: (data: PostUpdateSchema) => void;
+interface UpdateDeliverableFormProps {
+  defaultValues?: Partial<DeliverableUpdateSchema>;
+  onSubmit: (data: DeliverableUpdateSchema) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 }
 
 /**
- * Example form for updating a post
+ * Example form for updating a deliverable
  * This demonstrates how to create action-specific forms
  */
-export function UpdatePostForm({
+export function UpdateDeliverableForm({
   defaultValues,
   onSubmit,
   onCancel,
   isSubmitting,
-}: UpdatePostFormProps) {
+}: UpdateDeliverableFormProps) {
   const [title, setTitle] = useState(defaultValues?.title || '');
   const [content, setContent] = useState(defaultValues?.content || '');
 
@@ -50,7 +50,7 @@ export function UpdatePostForm({
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Post title"
+          placeholder="Deliverable title"
           disabled={isSubmitting}
           required
         />
@@ -70,7 +70,7 @@ export function UpdatePostForm({
 
       <div className="flex gap-3 pt-4">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Updating...' : 'Update Post'}
+          {isSubmitting ? 'Updating...' : 'Update Deliverable'}
         </Button>
         <Button
           type="button"

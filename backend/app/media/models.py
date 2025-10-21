@@ -10,7 +10,7 @@ from app.media.enums import MediaStates
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
-    from app.posts.models import Post
+    from app.deliverables.models import Deliverable
 
 
 class Media(
@@ -35,7 +35,7 @@ class Media(
     thumbnail_key: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
     # Relationships
-    # The post_media association table is defined in app.posts.models
-    posts: Mapped[list["Post"]] = relationship(
-        "Post", secondary="post_media", back_populates="media"
+    # The deliverable_media association table is defined in app.deliverables.models
+    deliverables: Mapped[list["Deliverable"]] = relationship(
+        "Deliverable", secondary="deliverable_media", back_populates="media"
     )

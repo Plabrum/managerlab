@@ -1,7 +1,7 @@
 from enum import StrEnum, auto
 
 
-class PostStates(StrEnum):
+class DeliverableStates(StrEnum):
     DRAFT = auto()
     IN_REVIEW = auto()
     APPROVED = auto()
@@ -21,15 +21,15 @@ class CompensationStructure(StrEnum):
     PERFORMANCE_BASED = auto()
 
 
-class PostActions(StrEnum):
-    """Actions for Post objects."""
+class DeliverableActions(StrEnum):
+    """Actions for Deliverable objects."""
 
-    publish = "post.publish"
-    delete = "post.delete"
-    update = "post.update"
+    publish = "deliverable.publish"
+    delete = "deliverable.delete"
+    update = "deliverable.update"
 
 
-class TopLevelPostActions(StrEnum):
-    """Top-level Post actions (no object context)."""
+class TopLevelDeliverableActions(StrEnum):
+    """Top-level Deliverable actions (no object context)."""
 
-    create = "top_level_post.create"
+    create = "top_level_deliverable.create"

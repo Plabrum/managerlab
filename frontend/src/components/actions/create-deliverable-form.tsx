@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type {
-  PostCreateSchema,
+  DeliverableCreateSchema,
   SocialMediaPlatforms,
   CompensationStructure,
 } from '@/openapi/managerLab.schemas';
@@ -21,20 +21,20 @@ import { CompensationStructure as CompensationStructureEnum } from '@/openapi/ma
 import { useState } from 'react';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
 
-interface CreatePostFormProps {
-  onSubmit: (data: PostCreateSchema) => void;
+interface CreateDeliverableFormProps {
+  onSubmit: (data: DeliverableCreateSchema) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 }
 
 /**
- * Form for creating a new post
+ * Form for creating a new deliverable
  */
-export function CreatePostForm({
+export function CreateDeliverableForm({
   onSubmit,
   onCancel,
   isSubmitting,
-}: CreatePostFormProps) {
+}: CreateDeliverableFormProps) {
   const [title, setTitle] = useState('');
   const [platforms, setPlatforms] = useState<SocialMediaPlatforms | ''>('');
   const [postingDate, setPostingDate] = useState('');
@@ -72,7 +72,7 @@ export function CreatePostForm({
       }
     }
 
-    const postData: PostCreateSchema = {
+    const deliverableData: DeliverableCreateSchema = {
       title: title.trim(),
       platforms: platforms as SocialMediaPlatforms,
       posting_date: new Date(postingDate).toISOString(),
@@ -82,7 +82,7 @@ export function CreatePostForm({
       notes: parsedNotes,
     };
 
-    onSubmit(postData);
+    onSubmit(deliverableData);
   };
 
   return (
@@ -95,7 +95,7 @@ export function CreatePostForm({
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Post title"
+          placeholder="Deliverable title"
           disabled={isSubmitting}
           required
         />
@@ -151,7 +151,7 @@ export function CreatePostForm({
           id="content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Post content..."
+          placeholder="Deliverable content..."
           rows={4}
           disabled={isSubmitting}
         />
@@ -220,7 +220,7 @@ export function CreatePostForm({
 
       <div className="flex gap-3 pt-4">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Creating...' : 'Create Post'}
+          {isSubmitting ? 'Creating...' : 'Create Deliverable'}
         </Button>
         <Button
           type="button"

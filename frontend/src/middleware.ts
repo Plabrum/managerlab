@@ -37,7 +37,7 @@ export const config = {
     '/campaigns/:path*',
     '/brands/:path*',
     '/roster/:path*',
-    '/posts/:path*',
+    '/deliverables/:path*',
     '/media/:path*',
     '/invoices/:path*',
     '/users/:path*',

@@ -25,7 +25,7 @@ from tests.factories import (
     BrandFactory,
     BrandContactFactory,
     CampaignFactory,
-    PostFactory,
+    DeliverableFactory,
     MediaFactory,
     InvoiceFactory,
     GoogleOAuthAccountFactory,
@@ -138,28 +138,28 @@ async def create_fixtures():
                 media_assets.append(media)
             await session.flush()
 
-            # Create posts for campaigns
-            print("📱 Creating posts...")
-            posts = []
+            # Create deliverables for campaigns
+            print("📱 Creating deliverables...")
+            deliverables = []
             for campaign in campaigns:
-                # Each campaign gets 2-5 posts
+                # Each campaign gets 2-5 deliverables
                 for j in range(4):
-                    post = PostFactory.build(campaign_id=campaign.id)
-                    session.add(post)
-                    posts.append(post)
+                    deliverable = DeliverableFactory.build(campaign_id=campaign.id)
+                    session.add(deliverable)
+                    deliverables.append(deliverable)
 
             await session.flush()
 
-            # Associate posts with media (many-to-many relationship) using direct SQL
-            print("🔗 Associating posts with media...")
-            from app.posts.models import post_media
+            # Associate deliverables with media (many-to-many relationship) using direct SQL
+            print("🔗 Associating deliverables with media...")
+            from app.deliverables.models import deliverable_media
 
-            for post in posts:
-                # Each post gets 1-3 media assets
+            for deliverable in deliverables:
+                # Each deliverable gets 1-3 media assets
                 selected_media = random.sample(media_assets, min(3, len(media_assets)))
                 for media in selected_media:
-                    insert_stmt = post_media.insert().values(
-                        post_id=post.id, media_id=media.id
+                    insert_stmt = deliverable_media.insert().values(
+                        deliverable_id=deliverable.id, media_id=media.id
                     )
                     await session.execute(insert_stmt)
 
@@ -213,7 +213,7 @@ async def create_fixtures():
             print(f"   - {len(brands)} brands")
             print(f"   - {len(brand_contacts)} brand contacts")
             print(f"   - {len(campaigns)} campaigns")
-            print(f"   - {len(posts)} posts")
+            print(f"   - {len(deliverables)} deliverables")
             print(f"   - {len(media_assets)} media assets")
             print(f"   - {len(campaigns) * 2} invoices")
 

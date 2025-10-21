@@ -21,10 +21,10 @@ import type {
   ObjectListDTO,
 } from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
-import { CreatePostForm } from '@/components/actions/create-post-form';
+import { CreateDeliverableForm } from '@/components/actions/create-deliverable-form';
 import type { ActionFormRenderer } from '@/hooks/use-action-executor';
 
-export default function PostsPage() {
+export default function DeliverablesPage() {
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
@@ -63,7 +63,7 @@ export default function PostsPage() {
     search: searchTerm && searchTerm.trim().length > 0 ? searchTerm : undefined,
   };
 
-  const { data } = useListObjectsSuspense('posts', request);
+  const { data } = useListObjectsSuspense('deliverables', request);
 
   // Store column definitions after first fetch
   if (data.columns && !columnDefs) {
@@ -80,30 +80,37 @@ export default function PostsPage() {
     // TODO: Implement row action handling with dynamic objectId
   };
 
-  // Custom form renderer for post actions
-  const renderPostActionForm: ActionFormRenderer = useCallback((props) => {
-    const { action, onSubmit, onCancel, isSubmitting } = props;
+  // Custom form renderer for deliverable actions
+  const renderDeliverableActionForm: ActionFormRenderer = useCallback(
+    (props) => {
+      const { action, onSubmit, onCancel, isSubmitting } = props;
 
-    // Handle create post action with custom form
-    if (action.action === 'top_level_post_actions__top_level_post_create') {
-      return (
-        <CreatePostForm
-          onSubmit={(postData) => {
-            // Pass to action executor
-            onSubmit({
-              action: 'top_level_post_actions__top_level_post_create',
-              data: postData,
-            });
-          }}
-          onCancel={onCancel}
-          isSubmitting={isSubmitting}
-        />
-      );
-    }
+      // Handle create deliverable action with custom form
+      if (
+        action.action ===
+        'top_level_deliverable_actions__top_level_deliverable_create'
+      ) {
+        return (
+          <CreateDeliverableForm
+            onSubmit={(deliverableData) => {
+              // Pass to action executor
+              onSubmit({
+                action:
+                  'top_level_deliverable_actions__top_level_deliverable_create',
+                data: deliverableData,
+              });
+            }}
+            onCancel={onCancel}
+            isSubmitting={isSubmitting}
+          />
+        );
+      }
 
-    // Return null for actions that don't need custom forms
-    return null;
-  }, []);
+      // Return null for actions that don't need custom forms
+      return null;
+    },
+    []
+  );
 
   return (
     <div className="space-y-4">
@@ -116,15 +123,15 @@ export default function PostsPage() {
               setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
             });
           }}
-          placeholder="Search posts"
+          placeholder="Search deliverables"
         />
         {data.actions && data.actions.length > 0 && (
           <ActionsMenu
             actions={data.actions}
-            actionGroup="top_level_post_actions"
-            renderActionForm={renderPostActionForm}
+            actionGroup="top_level_deliverable_actions"
+            renderActionForm={renderDeliverableActionForm}
             onActionComplete={() => {
-              // Refresh posts list after action completion
+              // Refresh deliverables list after action completion
             }}
           />
         )}

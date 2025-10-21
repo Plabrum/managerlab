@@ -2,18 +2,18 @@ from datetime import datetime
 from typing import Any
 
 from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
-from app.posts.enums import CompensationStructure, SocialMediaPlatforms
-from app.posts.models import Post
+from app.deliverables.enums import CompensationStructure, SocialMediaPlatforms
+from app.deliverables.models import Deliverable
 
 
-class PostDTO(SanitizedSQLAlchemyDTO[Post]):
-    """DTO for returning Post data."""
+class DeliverableDTO(SanitizedSQLAlchemyDTO[Deliverable]):
+    """DTO for returning Deliverable data."""
 
     pass
 
 
-class PostUpdateSchema(BaseSchema):
-    """Schema for updating a Post."""
+class DeliverableUpdateSchema(BaseSchema):
+    """Schema for updating a Deliverable."""
 
     title: str | None = None
     content: str | None = None
@@ -24,8 +24,8 @@ class PostUpdateSchema(BaseSchema):
     campaign_id: int | None = None
 
 
-class PostCreateSchema(BaseSchema):
-    """Schema for creating a Post."""
+class DeliverableCreateSchema(BaseSchema):
+    """Schema for creating a Deliverable."""
 
     title: str
     platforms: SocialMediaPlatforms

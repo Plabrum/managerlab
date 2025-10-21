@@ -1,4 +1,4 @@
-"""Post object model."""
+"""Deliverable object model."""
 
 from datetime import datetime
 from typing import Any, TYPE_CHECKING
@@ -9,7 +9,11 @@ from sqlalchemy.ext.mutable import MutableDict
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
-from app.posts.enums import CompensationStructure, PostStates, SocialMediaPlatforms
+from app.deliverables.enums import (
+    CompensationStructure,
+    DeliverableStates,
+    SocialMediaPlatforms,
+)
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
@@ -17,16 +21,18 @@ if TYPE_CHECKING:
     from app.campaigns.models import Campaign
 
 
-class Post(
+class Deliverable(
     RLSMixin(scope_with_campaign_id=True),
-    StateMachineMixin(initial_state=PostStates.DRAFT, state_enum=PostStates),
+    StateMachineMixin(
+        initial_state=DeliverableStates.DRAFT, state_enum=DeliverableStates
+    ),
     BaseDBModel,
 ):
-    """Post object model."""
+    """Deliverable object model."""
 
-    __tablename__ = "posts"
+    __tablename__ = "deliverables"
 
-    # Post-specific fields
+    # Deliverable-specific fields
     title: Mapped[str] = mapped_column(sa.Text, nullable=False)
     content: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     platforms: Mapped[SocialMediaPlatforms] = mapped_column(
@@ -45,17 +51,17 @@ class Post(
 
     # Relationships (campaign_id is from RLSMixin)
     campaign: Mapped["Campaign | None"] = relationship(
-        "Campaign", back_populates="posts"
+        "Campaign", back_populates="deliverables"
     )
     media: Mapped[list["Media"]] = relationship(
-        "Media", secondary="post_media", back_populates="posts"
+        "Media", secondary="deliverable_media", back_populates="deliverables"
     )
 
 
-# Association table for many-to-many relationship between posts and media
-post_media = sa.Table(
-    "post_media",
+# Association table for many-to-many relationship between deliverables and media
+deliverable_media = sa.Table(
+    "deliverable_media",
     BaseDBModel.metadata,
-    sa.Column("post_id", sa.ForeignKey("posts.id"), primary_key=True),
+    sa.Column("deliverable_id", sa.ForeignKey("deliverables.id"), primary_key=True),
     sa.Column("media_id", sa.ForeignKey("media.id"), primary_key=True),
 )

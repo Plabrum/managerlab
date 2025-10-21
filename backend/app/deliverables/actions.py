@@ -3,40 +3,42 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.actions.base import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.posts.enums import PostStates, PostActions
-from app.posts.models import Post
-from app.posts.schemas import PostUpdateSchema
+from app.deliverables.enums import DeliverableStates, DeliverableActions
+from app.deliverables.models import Deliverable
+from app.deliverables.schemas import DeliverableUpdateSchema
 from app.utils.db import update_model
 
-post_actions = action_group_factory(ActionGroupType.PostActions, model_type=Post)
+deliverable_actions = action_group_factory(
+    ActionGroupType.DeliverableActions, model_type=Deliverable
+)
 
 
-@post_actions
-class DeletePost(BaseAction):
-    action_key = PostActions.delete
+@deliverable_actions
+class DeleteDeliverable(BaseAction):
+    action_key = DeliverableActions.delete
     label = "Delete"
     is_bulk_allowed = True
     priority = 0
     icon = ActionIcon.trash
-    confirmation_message = "Are you sure you want to delete this post?"
+    confirmation_message = "Are you sure you want to delete this deliverable?"
 
     @classmethod
     async def execute(
         cls,
-        obj: Post,
+        obj: Deliverable,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             success=True,
-            message="Deleted post",
+            message="Deleted deliverable",
             results={},
         )
 
 
-@post_actions
-class UpdatePost(BaseAction):
-    action_key = PostActions.update
+@deliverable_actions
+class UpdateDeliverable(BaseAction):
+    action_key = DeliverableActions.update
     label = "Update"
     is_bulk_allowed = True
     priority = 50
@@ -45,8 +47,8 @@ class UpdatePost(BaseAction):
     @classmethod
     async def execute(
         cls,
-        obj: Post,
-        data: PostUpdateSchema,
+        obj: Deliverable,
+        data: DeliverableUpdateSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)
@@ -54,16 +56,16 @@ class UpdatePost(BaseAction):
 
         return ActionExecutionResponse(
             success=True,
-            message="Updated post",
+            message="Updated deliverable",
             results={},
         )
 
 
-@post_actions
-class PublishPost(BaseAction):
-    """Publish a draft post."""
+@deliverable_actions
+class PublishDeliverable(BaseAction):
+    """Publish a draft deliverable."""
 
-    action_key = PostActions.publish
+    action_key = DeliverableActions.publish
     label = "Publish"
     is_bulk_allowed = True
     priority = 1
@@ -72,16 +74,16 @@ class PublishPost(BaseAction):
     @classmethod
     async def execute(
         cls,
-        obj: Post,
+        obj: Deliverable,
     ) -> ActionExecutionResponse:
-        obj.state = PostStates.POSTED
+        obj.state = DeliverableStates.POSTED
 
         return ActionExecutionResponse(
             success=True,
-            message="Published post",
+            message="Published deliverable",
             results={},
         )
 
     @classmethod
-    def is_available(cls, obj: Post | None) -> bool:
-        return obj is not None and obj.state == PostStates.DRAFT
+    def is_available(cls, obj: Deliverable | None) -> bool:
+        return obj is not None and obj.state == DeliverableStates.DRAFT

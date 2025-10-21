@@ -7,7 +7,7 @@ class ObjectTypes(StrEnum):
     Brands = auto()
     BrandContacts = auto()
     Campaigns = auto()
-    Posts = auto()
+    Deliverables = auto()
     Media = auto()
     Invoices = auto()
 

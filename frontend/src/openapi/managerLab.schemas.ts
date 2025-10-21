@@ -37,8 +37,8 @@ export type ActionGroupType = typeof ActionGroupType[keyof typeof ActionGroupTyp
 export const ActionGroupType = {
   media_actions: 'media_actions',
   top_level_media_actions: 'top_level_media_actions',
-  post_actions: 'post_actions',
-  top_level_post_actions: 'top_level_post_actions',
+  deliverable_actions: 'deliverable_actions',
+  top_level_deliverable_actions: 'top_level_deliverable_actions',
   brand_actions: 'brand_actions',
   campaign_actions: 'campaign_actions',
   top_level_campaign_actions: 'top_level_campaign_actions',
@@ -276,6 +276,11 @@ export interface CreateDashboardSchema {
   is_default?: boolean;
 }
 
+export interface CreateDeliverableAction {
+  data: DeliverableCreateSchema;
+  action: 'top_level_deliverable_actions__top_level_deliverable_create';
+}
+
 export interface CreateInvoiceAction {
   data: InvoiceCreateSchema;
   action: 'top_level_invoice_actions__invoice_create';
@@ -284,11 +289,6 @@ export interface CreateInvoiceAction {
 export interface CreateMediaAction {
   data: RegisterMediaSchema;
   action: 'top_level_media_actions__top_level_media_create';
-}
-
-export interface CreatePostAction {
-  data: PostCreateSchema;
-  action: 'top_level_post_actions__top_level_post_create';
 }
 
 export interface CreateRosterAction {
@@ -377,6 +377,11 @@ export const DeleteDashboardActionValue = {
 } as const;
 export type DeleteDashboardAction = typeof DeleteDashboardActionValue;
 
+export const DeleteDeliverableActionValue = {
+  action: 'deliverable_actions__deliverable_delete',
+} as const;
+export type DeleteDeliverableAction = typeof DeleteDeliverableActionValue;
+
 export const DeleteInvoiceActionValue = {
   action: 'invoice_actions__invoice_delete',
 } as const;
@@ -387,10 +392,62 @@ export const DeleteMediaActionValue = {
 } as const;
 export type DeleteMediaAction = typeof DeleteMediaActionValue;
 
-export const DeletePostActionValue = {
-  action: 'post_actions__post_delete',
+export type DeliverableCreateSchemaContent = string | null;
+
+export type DeliverableCreateSchemaNotesOneOf = {[key: string]: unknown};
+
+export type DeliverableCreateSchemaNotes = DeliverableCreateSchemaNotesOneOf | null;
+
+export type DeliverableCreateSchemaCompensationStructure = CompensationStructure | null;
+
+export type DeliverableCreateSchemaCampaignId = number | null;
+
+export interface DeliverableCreateSchema {
+  title: string;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  content?: DeliverableCreateSchemaContent;
+  notes?: DeliverableCreateSchemaNotes;
+  compensation_structure?: DeliverableCreateSchemaCompensationStructure;
+  campaign_id?: DeliverableCreateSchemaCampaignId;
+}
+
+export type DeliverableStates = typeof DeliverableStates[keyof typeof DeliverableStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DeliverableStates = {
+  draft: 'draft',
+  in_review: 'in_review',
+  approved: 'approved',
+  posted: 'posted',
 } as const;
-export type DeletePostAction = typeof DeletePostActionValue;
+
+export type DeliverableUpdateSchemaTitle = string | null;
+
+export type DeliverableUpdateSchemaContent = string | null;
+
+export type DeliverableUpdateSchemaPlatforms = SocialMediaPlatforms | null;
+
+export type DeliverableUpdateSchemaPostingDate = string | null;
+
+export type DeliverableUpdateSchemaNotesOneOf = {[key: string]: unknown};
+
+export type DeliverableUpdateSchemaNotes = DeliverableUpdateSchemaNotesOneOf | null;
+
+export type DeliverableUpdateSchemaCompensationStructure = CompensationStructure | null;
+
+export type DeliverableUpdateSchemaCampaignId = number | null;
+
+export interface DeliverableUpdateSchema {
+  title?: DeliverableUpdateSchemaTitle;
+  content?: DeliverableUpdateSchemaContent;
+  platforms?: DeliverableUpdateSchemaPlatforms;
+  posting_date?: DeliverableUpdateSchemaPostingDate;
+  notes?: DeliverableUpdateSchemaNotes;
+  compensation_structure?: DeliverableUpdateSchemaCompensationStructure;
+  campaign_id?: DeliverableUpdateSchemaCampaignId;
+}
 
 export const DownloadMediaActionValue = {
   action: 'media_actions__media_download',
@@ -563,6 +620,30 @@ export interface GetDashboardDashboardResponseBody {
   id: string;
 }
 
+export type GetDeliverableDeliverableResponseBodyContent = string | null;
+
+export type GetDeliverableDeliverableResponseBodyNotes = {[key: string]: unknown};
+
+export type GetDeliverableDeliverableResponseBodyDeletedAt = string | null;
+
+export type GetDeliverableDeliverableResponseBodyCampaignId = number | null;
+
+export interface GetDeliverableDeliverableResponseBody {
+  title: string;
+  content?: GetDeliverableDeliverableResponseBodyContent;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  notes: GetDeliverableDeliverableResponseBodyNotes;
+  compensation_structure?: CompensationStructure;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: GetDeliverableDeliverableResponseBodyDeletedAt;
+  state?: DeliverableStates;
+  team_id: number;
+  campaign_id?: GetDeliverableDeliverableResponseBodyCampaignId;
+  id: string;
+}
+
 export type GetInvoiceInvoiceResponseBodyDescription = string | null;
 
 export type GetInvoiceInvoiceResponseBodyNotes = string | null;
@@ -587,30 +668,6 @@ export interface GetInvoiceInvoiceResponseBody {
   state?: InvoiceStates;
   team_id: number;
   campaign_id?: GetInvoiceInvoiceResponseBodyCampaignId;
-  id: string;
-}
-
-export type GetPostPostResponseBodyContent = string | null;
-
-export type GetPostPostResponseBodyNotes = {[key: string]: unknown};
-
-export type GetPostPostResponseBodyDeletedAt = string | null;
-
-export type GetPostPostResponseBodyCampaignId = number | null;
-
-export interface GetPostPostResponseBody {
-  title: string;
-  content?: GetPostPostResponseBodyContent;
-  platforms: SocialMediaPlatforms;
-  posting_date: string;
-  notes: GetPostPostResponseBodyNotes;
-  compensation_structure?: CompensationStructure;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetPostPostResponseBodyDeletedAt;
-  state?: PostStates;
-  team_id: number;
-  campaign_id?: GetPostPostResponseBodyCampaignId;
   id: string;
 }
 
@@ -899,67 +956,10 @@ export const ObjectTypes = {
   brands: 'brands',
   brandcontacts: 'brandcontacts',
   campaigns: 'campaigns',
-  posts: 'posts',
+  deliverables: 'deliverables',
   media: 'media',
   invoices: 'invoices',
 } as const;
-
-export type PostCreateSchemaContent = string | null;
-
-export type PostCreateSchemaNotesOneOf = {[key: string]: unknown};
-
-export type PostCreateSchemaNotes = PostCreateSchemaNotesOneOf | null;
-
-export type PostCreateSchemaCompensationStructure = CompensationStructure | null;
-
-export type PostCreateSchemaCampaignId = number | null;
-
-export interface PostCreateSchema {
-  title: string;
-  platforms: SocialMediaPlatforms;
-  posting_date: string;
-  content?: PostCreateSchemaContent;
-  notes?: PostCreateSchemaNotes;
-  compensation_structure?: PostCreateSchemaCompensationStructure;
-  campaign_id?: PostCreateSchemaCampaignId;
-}
-
-export type PostStates = typeof PostStates[keyof typeof PostStates];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const PostStates = {
-  draft: 'draft',
-  in_review: 'in_review',
-  approved: 'approved',
-  posted: 'posted',
-} as const;
-
-export type PostUpdateSchemaTitle = string | null;
-
-export type PostUpdateSchemaContent = string | null;
-
-export type PostUpdateSchemaPlatforms = SocialMediaPlatforms | null;
-
-export type PostUpdateSchemaPostingDate = string | null;
-
-export type PostUpdateSchemaNotesOneOf = {[key: string]: unknown};
-
-export type PostUpdateSchemaNotes = PostUpdateSchemaNotesOneOf | null;
-
-export type PostUpdateSchemaCompensationStructure = CompensationStructure | null;
-
-export type PostUpdateSchemaCampaignId = number | null;
-
-export interface PostUpdateSchema {
-  title?: PostUpdateSchemaTitle;
-  content?: PostUpdateSchemaContent;
-  platforms?: PostUpdateSchemaPlatforms;
-  posting_date?: PostUpdateSchemaPostingDate;
-  notes?: PostUpdateSchemaNotes;
-  compensation_structure?: PostUpdateSchemaCompensationStructure;
-  campaign_id?: PostUpdateSchemaCampaignId;
-}
 
 export interface PresignedUploadRequestSchema {
   file_name: string;
@@ -972,10 +972,10 @@ export interface PresignedUploadResponseSchema {
   file_key: string;
 }
 
-export const PublishPostActionValue = {
-  action: 'post_actions__post_publish',
+export const PublishDeliverableActionValue = {
+  action: 'deliverable_actions__deliverable_publish',
 } as const;
-export type PublishPostAction = typeof PublishPostActionValue;
+export type PublishDeliverableAction = typeof PublishDeliverableActionValue;
 
 export type RangeFilterDefinitionStart = number | number | null;
 
@@ -1314,6 +1314,35 @@ export interface UpdateDashboardSchema {
   is_default?: UpdateDashboardSchemaIsDefault;
 }
 
+export interface UpdateDeliverableAction {
+  data: DeliverableUpdateSchema;
+  action: 'deliverable_actions__deliverable_update';
+}
+
+export type UpdateDeliverableDeliverableResponseBodyContent = string | null;
+
+export type UpdateDeliverableDeliverableResponseBodyNotes = {[key: string]: unknown};
+
+export type UpdateDeliverableDeliverableResponseBodyDeletedAt = string | null;
+
+export type UpdateDeliverableDeliverableResponseBodyCampaignId = number | null;
+
+export interface UpdateDeliverableDeliverableResponseBody {
+  title: string;
+  content?: UpdateDeliverableDeliverableResponseBodyContent;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  notes: UpdateDeliverableDeliverableResponseBodyNotes;
+  compensation_structure?: CompensationStructure;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: UpdateDeliverableDeliverableResponseBodyDeletedAt;
+  state?: DeliverableStates;
+  team_id: number;
+  campaign_id?: UpdateDeliverableDeliverableResponseBodyCampaignId;
+  id: string;
+}
+
 export interface UpdateInvoiceAction {
   data: InvoiceUpdateSchema;
   action: 'invoice_actions__invoice_update';
@@ -1349,35 +1378,6 @@ export interface UpdateInvoiceInvoiceResponseBody {
 export interface UpdateMediaAction {
   data: MediaUpdateSchema;
   action: 'media_actions__media_update';
-}
-
-export interface UpdatePostAction {
-  data: PostUpdateSchema;
-  action: 'post_actions__post_update';
-}
-
-export type UpdatePostPostResponseBodyContent = string | null;
-
-export type UpdatePostPostResponseBodyNotes = {[key: string]: unknown};
-
-export type UpdatePostPostResponseBodyDeletedAt = string | null;
-
-export type UpdatePostPostResponseBodyCampaignId = number | null;
-
-export interface UpdatePostPostResponseBody {
-  title: string;
-  content?: UpdatePostPostResponseBodyContent;
-  platforms: SocialMediaPlatforms;
-  posting_date: string;
-  notes: UpdatePostPostResponseBodyNotes;
-  compensation_structure?: CompensationStructure;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdatePostPostResponseBodyDeletedAt;
-  state?: PostStates;
-  team_id: number;
-  campaign_id?: UpdatePostPostResponseBodyCampaignId;
-  id: string;
 }
 
 export type UserStates = typeof UserStates[keyof typeof UserStates];
@@ -1560,7 +1560,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | UpdateDeliverableAction | PublishDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1588,7 +1588,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | UpdateDeliverableAction | PublishDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1681,30 +1681,30 @@ export type CampaignsIdUpdateCampaign400 = {
   extra?: CampaignsIdUpdateCampaign400Extra;
 };
 
-export type PostsIdGetPost400ExtraAnyOf = {[key: string]: unknown};
+export type DeliverablesIdGetDeliverable400ExtraAnyOf = {[key: string]: unknown};
 
-export type PostsIdGetPost400Extra = null | PostsIdGetPost400ExtraAnyOf | unknown[];
+export type DeliverablesIdGetDeliverable400Extra = null | DeliverablesIdGetDeliverable400ExtraAnyOf | unknown[];
 
 /**
  * Validation Exception
  */
-export type PostsIdGetPost400 = {
+export type DeliverablesIdGetDeliverable400 = {
   status_code: number;
   detail: string;
-  extra?: PostsIdGetPost400Extra;
+  extra?: DeliverablesIdGetDeliverable400Extra;
 };
 
-export type PostsIdUpdatePost400ExtraAnyOf = {[key: string]: unknown};
+export type DeliverablesIdUpdateDeliverable400ExtraAnyOf = {[key: string]: unknown};
 
-export type PostsIdUpdatePost400Extra = null | PostsIdUpdatePost400ExtraAnyOf | unknown[];
+export type DeliverablesIdUpdateDeliverable400Extra = null | DeliverablesIdUpdateDeliverable400ExtraAnyOf | unknown[];
 
 /**
  * Validation Exception
  */
-export type PostsIdUpdatePost400 = {
+export type DeliverablesIdUpdateDeliverable400 = {
   status_code: number;
   detail: string;
-  extra?: PostsIdUpdatePost400Extra;
+  extra?: DeliverablesIdUpdateDeliverable400Extra;
 };
 
 export type MediaPresignedUploadRequestPresignedUpload400ExtraAnyOf = {[key: string]: unknown};

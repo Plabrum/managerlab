@@ -9,7 +9,7 @@ from app.media.models import Media
 class MediaDTO(SanitizedSQLAlchemyDTO[Media]):
     """Data transfer object for Media model."""
 
-    config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "posts"})
+    config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "deliverables"})
 
 
 class MediaUpdateSchema(BaseSchema):

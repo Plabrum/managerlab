@@ -5,17 +5,19 @@ from app.actions import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.base.models import BaseDBModel
-from app.posts.models import Post
-from app.posts.enums import TopLevelPostActions
-from app.posts.schemas import PostCreateSchema
+from app.deliverables.models import Deliverable
+from app.deliverables.enums import TopLevelDeliverableActions
+from app.deliverables.schemas import DeliverableCreateSchema
 from app.utils.db import create_model
 
 
-top_level_post_actions = action_group_factory(ActionGroupType.TopLevelPostActions)
+top_level_deliverable_actions = action_group_factory(
+    ActionGroupType.TopLevelDeliverableActions
+)
 
 
-class PostTopLevelActionMixin:
-    """Mixin for post top-level actions."""
+class DeliverableTopLevelActionMixin:
+    """Mixin for deliverable top-level actions."""
 
     @classmethod
     def get_model(cls) -> Type[BaseDBModel] | None:
@@ -23,10 +25,10 @@ class PostTopLevelActionMixin:
         return None
 
 
-@top_level_post_actions
-class CreatePost(PostTopLevelActionMixin, BaseAction):
-    action_key = TopLevelPostActions.create
-    label = "Create Post"
+@top_level_deliverable_actions
+class CreateDeliverable(DeliverableTopLevelActionMixin, BaseAction):
+    action_key = TopLevelDeliverableActions.create
+    label = "Create Deliverable"
     is_bulk_allowed = False
     priority = 1
     icon = ActionIcon.add
@@ -34,20 +36,20 @@ class CreatePost(PostTopLevelActionMixin, BaseAction):
     @classmethod
     async def execute(
         cls,
-        obj: Post,
-        data: PostCreateSchema,
+        obj: Deliverable,
+        data: DeliverableCreateSchema,
         transaction: AsyncSession,
         team_id: int,
     ) -> ActionExecutionResponse:
-        post = create_model(
+        deliverable = create_model(
             team_id=team_id,
             campaign_id=None,
-            model_class=Post,
+            model_class=Deliverable,
             create_vals=data,
         )
-        transaction.add(post)
+        transaction.add(deliverable)
         return ActionExecutionResponse(
             success=True,
-            message="Created post ",
-            results={"post_id": post.id},
+            message="Created deliverable ",
+            results={"deliverable_id": deliverable.id},
         )
