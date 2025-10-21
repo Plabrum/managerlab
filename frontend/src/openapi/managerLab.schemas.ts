@@ -44,6 +44,8 @@ export const ActionGroupType = {
   top_level_campaign_actions: 'top_level_campaign_actions',
   invoice_actions: 'invoice_actions',
   top_level_invoice_actions: 'top_level_invoice_actions',
+  roster_actions: 'roster_actions',
+  top_level_roster_actions: 'top_level_roster_actions',
   dashboard_actions: 'dashboard_actions',
 } as const;
 
@@ -289,6 +291,49 @@ export interface CreatePostAction {
   action: 'top_level_post_actions__top_level_post_create';
 }
 
+export interface CreateRosterAction {
+  data: RosterCreateSchema;
+  action: 'top_level_roster_actions__top_level_roster_create';
+}
+
+export type CreateTeamSchemaDescription = string | null;
+
+export interface CreateTeamSchema {
+  name: string;
+  description?: CreateTeamSchemaDescription;
+}
+
+export type CreateTeamTeamResponseBodyDescription = string | null;
+
+export type CreateTeamTeamResponseBodyDeletedAt = string | null;
+
+export interface CreateTeamTeamResponseBody {
+  name: string;
+  description?: CreateTeamTeamResponseBodyDescription;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: CreateTeamTeamResponseBodyDeletedAt;
+  id: string;
+}
+
+export interface CreateUserSchema {
+  name: string;
+  email: string;
+}
+
+export type CreateUserUserResponseBodyDeletedAt = string | null;
+
+export interface CreateUserUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: CreateUserUserResponseBodyDeletedAt;
+  state?: UserStates;
+  id: string;
+}
+
 /**
  * Dashboard ownership types.
  */
@@ -484,6 +529,19 @@ export interface GetCampaignCampaignResponseBody {
   id: string;
 }
 
+export type GetCurrentUserUserResponseBodyDeletedAt = string | null;
+
+export interface GetCurrentUserUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: GetCurrentUserUserResponseBodyDeletedAt;
+  state?: UserStates;
+  id: string;
+}
+
 export type GetDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
 
 export type GetDashboardDashboardResponseBodyUserId = number | null;
@@ -553,6 +611,19 @@ export interface GetPostPostResponseBody {
   state?: PostStates;
   team_id: number;
   campaign_id?: GetPostPostResponseBodyCampaignId;
+  id: string;
+}
+
+export type GetUserUserResponseBodyDeletedAt = string | null;
+
+export interface GetUserUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: GetUserUserResponseBodyDeletedAt;
+  state?: UserStates;
   id: string;
 }
 
@@ -687,6 +758,27 @@ export interface ListScopesResponse {
   campaigns: CampaignScopeSchema[];
   current_scope_type?: ListScopesResponseCurrentScopeType;
   current_scope_id?: ListScopesResponseCurrentScopeId;
+}
+
+export type ListTeamsResponseCurrentTeamId = number | null;
+
+export interface ListTeamsResponse {
+  teams: TeamListItemSchema[];
+  current_team_id?: ListTeamsResponseCurrentTeamId;
+  is_campaign_scoped: boolean;
+}
+
+export type ListUsersUserResponseBodyDeletedAt = string | null;
+
+export interface ListUsersUserResponseBody {
+  name: string;
+  email: string;
+  email_verified?: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: ListUsersUserResponseBodyDeletedAt;
+  state?: UserStates;
+  id: string;
 }
 
 /**
@@ -935,6 +1027,19 @@ export const RoleLevel = {
   viewer: 'viewer',
 } as const;
 
+export type RosterCreateSchemaEmail = string | null;
+
+export type RosterCreateSchemaPhone = string | null;
+
+export type RosterCreateSchemaInstagramHandle = string | null;
+
+export interface RosterCreateSchema {
+  name: string;
+  email?: RosterCreateSchemaEmail;
+  phone?: RosterCreateSchemaPhone;
+  instagram_handle?: RosterCreateSchemaInstagramHandle;
+}
+
 /**
  * Scope type for user access control.
 
@@ -988,6 +1093,16 @@ export interface StringFieldValue {
 export interface SwitchScopeRequest {
   scope_type: ScopeType;
   scope_id: number;
+}
+
+export interface SwitchTeamRequest {
+  team_id: number;
+}
+
+export interface TeamListItemSchema {
+  team_id: number;
+  team_name: string;
+  role_level: RoleLevel;
 }
 
 export interface TeamScopeSchema {
@@ -1265,6 +1380,16 @@ export interface UpdatePostPostResponseBody {
   id: string;
 }
 
+export type UserStates = typeof UserStates[keyof typeof UserStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UserStates = {
+  needs_team: 'needs_team',
+  active: 'active',
+  deleted: 'deleted',
+} as const;
+
 export type UserWaitlistFormSchemaCompany = string | null;
 
 export type UserWaitlistFormSchemaMessage = string | null;
@@ -1289,6 +1414,60 @@ export type UsersSignupAddUserToWaitlist400 = {
   status_code: number;
   detail: string;
   extra?: UsersSignupAddUserToWaitlist400Extra;
+};
+
+export type UsersCreateUser400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersCreateUser400Extra = null | UsersCreateUser400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersCreateUser400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersCreateUser400Extra;
+};
+
+export type UsersUserIdGetUser400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersUserIdGetUser400Extra = null | UsersUserIdGetUser400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersUserIdGetUser400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersUserIdGetUser400Extra;
+};
+
+export type UsersTeamsCreateTeam400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersTeamsCreateTeam400Extra = null | UsersTeamsCreateTeam400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersTeamsCreateTeam400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersTeamsCreateTeam400Extra;
+};
+
+export type UsersSwitchTeamSwitchTeam201 = { [key: string]: unknown };
+
+export type UsersSwitchTeamSwitchTeam400ExtraAnyOf = {[key: string]: unknown};
+
+export type UsersSwitchTeamSwitchTeam400Extra = null | UsersSwitchTeamSwitchTeam400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type UsersSwitchTeamSwitchTeam400 = {
+  status_code: number;
+  detail: string;
+  extra?: UsersSwitchTeamSwitchTeam400Extra;
 };
 
 export type AuthSwitchScopeSwitchScope201 = { [key: string]: unknown };
@@ -1381,7 +1560,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1409,7 +1588,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

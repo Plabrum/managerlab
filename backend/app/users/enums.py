@@ -23,3 +23,9 @@ class RosterStates(StrEnum):
     ACTIVE = auto()
     INACTIVE = auto()
     ARCHIVED = auto()
+
+
+class TopLevelRosterActions(StrEnum):
+    """Top-level Roster actions (no object context)."""
+
+    create = "top_level_roster.create"

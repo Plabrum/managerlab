@@ -1,5 +1,6 @@
 from sqlalchemy.orm import joinedload
 
+from app.actions.enums import ActionGroupType
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -22,6 +23,11 @@ from app.utils.sqids import sqid_encode
 class RosterObject(BaseObject):
     object_type = ObjectTypes.Roster
     model = Roster
+
+    @classmethod
+    def get_top_level_action_group(cls):
+        return ActionGroupType.TopLevelRosterActions
+
     column_definitions = [
         ColumnDefinitionDTO(
             key="name",

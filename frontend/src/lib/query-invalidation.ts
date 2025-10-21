@@ -22,6 +22,7 @@ export function actionGroupToObjectType(
     top_level_campaign_actions: 'campaigns',
     top_level_brand_actions: 'brands',
     top_level_invoice_actions: 'invoices',
+    top_level_roster_actions: 'roster',
   };
 
   return mapping[actionGroup] || null;

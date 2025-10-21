@@ -13,6 +13,8 @@ class ActionGroupType(StrEnum):
     TopLevelCampaignActions = "top_level_campaign_actions"
     InvoiceActions = "invoice_actions"
     TopLevelInvoiceActions = "top_level_invoice_actions"
+    RosterActions = "roster_actions"
+    TopLevelRosterActions = "top_level_roster_actions"
     DashboardActions = "dashboard_actions"
 
 
