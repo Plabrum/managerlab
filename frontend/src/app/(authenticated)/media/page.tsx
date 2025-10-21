@@ -18,15 +18,10 @@ import {
 } from '@/components/data-table/utils';
 import type {
   ColumnDefinitionDTO,
-  RegisterMediaSchema,
   ObjectListDTO,
 } from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
-import { CreateMediaForm } from '@/components/actions/create-media-form';
-import {
-  useActionExecutor,
-  type ActionFormRenderer,
-} from '@/hooks/use-action-executor';
+import { useActionExecutor } from '@/hooks/use-action-executor';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
@@ -85,39 +80,6 @@ export default function MediaPage() {
     objectId: selectedObjectId,
   });
 
-  // Custom form renderer for media actions
-  const renderMediaActionForm: ActionFormRenderer = useCallback((props) => {
-    const { action, onSubmit, onCancel, isSubmitting } = props;
-
-    // Handle create media action with file upload form
-    if (action.action === 'top_level_media_actions__top_level_media_create') {
-      return (
-        <CreateMediaForm
-          onSubmit={(uploadData) => {
-            // Build the properly typed media creation data
-            const mediaData: RegisterMediaSchema = {
-              file_key: uploadData.file_key,
-              file_name: uploadData.file_name,
-              file_size: uploadData.file_size,
-              mime_type: uploadData.mime_type,
-            };
-
-            // Pass to the action - backend will handle media creation
-            onSubmit({
-              action: 'top_level_media_actions__top_level_media_create',
-              data: mediaData,
-            });
-          }}
-          onCancel={onCancel}
-          isSubmitting={isSubmitting}
-        />
-      );
-    }
-
-    // Return null for actions that don't need custom forms
-    return null;
-  }, []);
-
   const handleBulkAction = (action: string, rows: typeof data.objects) => {
     console.log('Bulk action:', action, 'on rows:', rows);
     // TODO: Implement bulk action handling
@@ -155,7 +117,6 @@ export default function MediaPage() {
           <ActionsMenu
             actions={data.actions}
             actionGroup="top_level_media_actions"
-            renderActionForm={renderMediaActionForm}
             onActionComplete={() => {
               // Refresh the media list after action completion
               // Note: For media upload, the refresh happens via the register mutation

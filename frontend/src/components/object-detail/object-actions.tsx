@@ -14,10 +14,7 @@ import type {
   ActionExecutionResponse,
   ObjectDetailDTO,
 } from '@/openapi/managerLab.schemas';
-import {
-  useActionExecutor,
-  type ActionFormRenderer,
-} from '@/hooks/use-action-executor';
+import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { ActionFormDialog } from '@/components/actions/action-form-dialog';
@@ -30,24 +27,7 @@ interface ObjectActionsProps {
     action: ActionDTO,
     response: ActionExecutionResponse
   ) => void;
-  /**
-   * Object data to automatically extract default values for forms
-   * The registry's extractDefaultValues functions will use this
-   */
   objectData?: ObjectDetailDTO;
-  /**
-   * @deprecated Use the centralized action registry instead.
-   * This prop is kept for backward compatibility but will be removed in a future version.
-   */
-  renderActionForm?: ActionFormRenderer;
-  /**
-   * Optional custom function to override registry's default value extraction
-   * Only needed if you want to customize how defaults are extracted
-   */
-  getDefaultValues?: (
-    action: ActionDTO,
-    objectData?: ObjectDetailDTO
-  ) => Record<string, unknown> | undefined;
 }
 
 export function ObjectActions({
@@ -56,19 +36,9 @@ export function ObjectActions({
   objectId,
   onActionComplete,
   objectData,
-  renderActionForm,
-  getDefaultValues,
 }: ObjectActionsProps) {
-  // Use the centralized registry by default
-  // It will automatically use extractDefaultValues from registry if objectData is provided
-  const registryFormRenderer = useActionFormRenderer(
-    objectData,
-    getDefaultValues
-  );
-
-  // Use custom renderActionForm if provided (for backward compatibility)
-  // Otherwise use the registry
-  const formRenderer = renderActionForm || registryFormRenderer;
+  // Use the centralized registry
+  const formRenderer = useActionFormRenderer(objectData);
 
   const executor = useActionExecutor({
     actionGroup,

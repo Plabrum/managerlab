@@ -1,71 +1,45 @@
 import { useCallback } from 'react';
-import type { ActionDTO, ObjectDetailDTO } from '@/openapi/managerLab.schemas';
+import type { ObjectDetailDTO } from '@/openapi/managerLab.schemas';
 import type { ActionFormRenderer } from './use-action-executor';
-import {
-  getActionFormComponent,
-  getActionDefaultValuesExtractor,
-  type ActionType,
-} from '@/lib/actions/registry';
+import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
 
 /**
  * Hook that creates an ActionFormRenderer using the centralized action registry
  *
  * This eliminates the need for manual switch statements at each callsite.
- * The registry automatically looks up the correct form component for each action.
+ * The registry automatically looks up the correct render function for each action.
  *
- * @param objectData Optional object data to automatically extract default values from
- * @param customExtractor Optional custom function to override registry's default value extraction
+ * @param objectData Optional object data to pass to the action's render function
  * @returns An ActionFormRenderer that can be passed to useActionExecutor
  */
 export function useActionFormRenderer(
-  objectData?: ObjectDetailDTO,
-  customExtractor?: (
-    action: ActionDTO,
-    objectData?: ObjectDetailDTO
-  ) => Record<string, unknown> | undefined
+  objectData?: ObjectDetailDTO
 ): ActionFormRenderer {
   return useCallback<ActionFormRenderer>(
     ({ action, onSubmit, onCancel, isSubmitting }) => {
       const actionType = action.action as ActionType;
-      const FormComponent = getActionFormComponent(actionType);
+      const render = getActionRenderer(actionType);
 
-      // No form registered - action will be executed directly
-      if (!FormComponent) {
+      // No render function registered - action will be executed directly
+      if (!render) {
         return null;
       }
 
-      // Determine default values with priority:
-      // 1. Custom extractor (if provided)
-      // 2. Registry's extractor (if exists and objectData provided)
-      // 3. No defaults
-      let defaultValues: Record<string, unknown> | undefined;
-
-      if (customExtractor) {
-        // Custom extractor takes precedence
-        defaultValues = customExtractor(action, objectData);
-      } else if (objectData) {
-        // Use registry's extractor if objectData is available
-        const registryExtractor = getActionDefaultValuesExtractor(actionType);
-        defaultValues = registryExtractor?.(objectData);
-      }
-
-      // Render the form with the registry's standardized props
-      return (
-        <FormComponent
-          defaultValues={defaultValues}
-          onSubmit={(data) => {
-            // Transform the form data into the action body format
-            onSubmit({
-              action: actionType,
-              data,
-            } as Parameters<typeof onSubmit>[0]);
-          }}
-          onCancel={onCancel}
-          isSubmitting={isSubmitting}
-        />
-      );
+      // Call the render function with all parameters
+      return render({
+        objectData,
+        onSubmit: (data) => {
+          // Transform the form data into the action body format
+          onSubmit({
+            action: actionType,
+            data,
+          } as Parameters<typeof onSubmit>[0]);
+        },
+        onCancel,
+        isSubmitting,
+      });
     },
-    [objectData, customExtractor]
+    [objectData]
   );
 }
 
@@ -77,26 +51,14 @@ export function useActionFormRenderer(
  * @example
  * ```tsx
  * // Old way:
- * const renderForm = useActionFormRendererWithContext(data, extractor);
+ * const renderForm = useActionFormRendererWithContext(data);
  *
  * // New way:
- * const renderForm = useActionFormRenderer(data, extractor);
+ * const renderForm = useActionFormRenderer(data);
  * ```
  */
 export function useActionFormRendererWithContext(
-  context: ObjectDetailDTO,
-  defaultValuesExtractor?: (
-    action: ActionDTO,
-    context: ObjectDetailDTO
-  ) => Record<string, unknown> | undefined
+  context: ObjectDetailDTO
 ): ActionFormRenderer {
-  return useActionFormRenderer(
-    context,
-    defaultValuesExtractor as
-      | ((
-          action: ActionDTO,
-          objectData?: ObjectDetailDTO
-        ) => Record<string, unknown> | undefined)
-      | undefined
-  );
+  return useActionFormRenderer(context);
 }

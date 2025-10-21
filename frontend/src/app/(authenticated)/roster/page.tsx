@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useCallback } from 'react';
+import { useState, useTransition } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -18,8 +18,6 @@ import {
 } from '@/components/data-table/utils';
 import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
-import { CreateRosterForm } from '@/components/actions/create-roster-form';
-import type { ActionFormRenderer } from '@/hooks/use-action-executor';
 
 export default function RosterPage() {
   // Table state
@@ -72,31 +70,6 @@ export default function RosterPage() {
     // TODO: Implement bulk action handling
   };
 
-  // Custom form renderer for roster actions
-  const renderRosterActionForm: ActionFormRenderer = useCallback((props) => {
-    const { action, onSubmit, onCancel, isSubmitting } = props;
-
-    // Handle create roster action with custom form
-    if (action.action === 'top_level_roster_actions__top_level_roster_create') {
-      return (
-        <CreateRosterForm
-          onSubmit={(rosterData) => {
-            // Pass to action executor
-            onSubmit({
-              action: 'top_level_roster_actions__top_level_roster_create',
-              data: rosterData,
-            });
-          }}
-          onCancel={onCancel}
-          isSubmitting={isSubmitting}
-        />
-      );
-    }
-
-    // Return null for actions that don't need custom forms
-    return null;
-  }, []);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -114,7 +87,6 @@ export default function RosterPage() {
           <ActionsMenu
             actions={data.actions}
             actionGroup="top_level_roster_actions"
-            renderActionForm={renderRosterActionForm}
             onActionComplete={() => {
               // Refresh roster list after action completion
             }}

@@ -77,7 +77,6 @@ export function CreateDeliverableForm({
       platforms: platforms as SocialMediaPlatforms,
       posting_date: new Date(postingDate).toISOString(),
       content: content.trim() || undefined,
-      compensation_structure: compensationStructure || undefined,
       campaign_id: campaignId ? parseInt(campaignId, 10) : undefined,
       notes: parsedNotes,
     };

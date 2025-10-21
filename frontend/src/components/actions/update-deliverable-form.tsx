@@ -36,8 +36,6 @@ export function UpdateDeliverableForm({
       platforms: defaultValues?.platforms || undefined,
       posting_date: defaultValues?.posting_date || undefined,
       notes: defaultValues?.notes || undefined,
-      compensation_structure:
-        defaultValues?.compensation_structure || undefined,
       campaign_id: defaultValues?.campaign_id || undefined,
     });
   };
