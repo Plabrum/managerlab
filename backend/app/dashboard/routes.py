@@ -15,7 +15,7 @@ from app.dashboard.schemas import (
 )
 from app.users.models import Role
 from app.utils.sqids import Sqid, sqid_decode
-from app.auth.guards import requires_authenticated_user
+from app.auth.guards import requires_user_scope
 
 
 @get("/", return_dto=DashboardDTO)
@@ -24,18 +24,11 @@ async def list_dashboards(
 ) -> List[Dashboard]:
     """List all dashboards accessible to the current user (personal + team dashboards)."""
     user_id: int = request.user
-
-    # Get user's team IDs
-    team_query = select(Role.team_id).where(Role.user_id == user_id)
-    team_result = await transaction.execute(team_query)
-    team_ids = [row[0] for row in team_result.all()]
+    team_id: int | None = request.session.get("team_id")
 
     # Query for both user dashboards and team dashboards
     stmt = select(Dashboard).where(
-        or_(
-            Dashboard.user_id == user_id,
-            Dashboard.team_id.in_(team_ids) if team_ids else False,
-        )
+        or_(Dashboard.user_id == user_id, Dashboard.team_id == team_id)
     )
     result = await transaction.execute(stmt)
     dashboards = result.scalars().all()
@@ -153,7 +146,7 @@ async def update_dashboard(
 # Dashboard router
 dashboard_router = Router(
     path="/dashboards",
-    guards=[requires_authenticated_user],
+    guards=[requires_user_scope],
     route_handlers=[
         list_dashboards,
         get_dashboard,

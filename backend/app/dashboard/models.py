@@ -7,13 +7,14 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
 from app.base.models import BaseDBModel
+from app.base.scope_mixins import RLSMixin
 from app.dashboard.enums import DashboardOwnerType
 
 if TYPE_CHECKING:
     from app.users.models import User, Team
 
 
-class Dashboard(BaseDBModel):
+class Dashboard(RLSMixin(), BaseDBModel):
     """Dashboard configuration storage for users and teams."""
 
     __tablename__ = "dashboards"

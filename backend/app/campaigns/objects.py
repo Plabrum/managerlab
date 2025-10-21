@@ -16,6 +16,7 @@ from app.objects.schemas import (
 )
 from app.objects.services import get_filter_by_field_type
 from app.campaigns.models import Campaign
+from app.campaigns.enums import CampaignStates
 from app.utils.sqids import sqid_encode
 
 
@@ -86,6 +87,7 @@ class CampaignObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=False,
+            available_values=[state.value for state in CampaignStates],
         ),
     ]
 

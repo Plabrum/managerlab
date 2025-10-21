@@ -1,7 +1,7 @@
 """Add dashboards table
 
 Revision ID: 70595ac371c4
-Revises: fa9121fbce6b
+Revises: a5c6dd4e2369
 Create Date: 2025-10-17 13:08:26.667699
 
 """
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "70595ac371c4"
-down_revision: Union[str, Sequence[str], None] = "fa9121fbce6b"
+down_revision: Union[str, Sequence[str], None] = "a5c6dd4e2369"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

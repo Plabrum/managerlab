@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 class Media(
     RLSMixin(scope_with_campaign_id=True),
-    StateMachineMixin(states=MediaStates, initial_state=MediaStates.PENDING),
+    StateMachineMixin(state_enum=MediaStates, initial_state=MediaStates.PENDING),
     BaseDBModel,
 ):
     """Media object model for photos and videos."""

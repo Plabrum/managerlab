@@ -175,6 +175,17 @@ export interface CampaignScopeSchema {
   access_level: CampaignGuestAccessLevel;
 }
 
+export type CampaignStates = typeof CampaignStates[keyof typeof CampaignStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CampaignStates = {
+  draft: 'draft',
+  active: 'active',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
 export type CampaignUpdateSchemaName = string | null;
 
 export type CampaignUpdateSchemaDescription = string | null;
@@ -231,6 +242,8 @@ export type CreateDashboardDashboardResponseBodyConfig = {[key: string]: unknown
 
 export type CreateDashboardDashboardResponseBodyUserId = number | null;
 
+export type CreateDashboardDashboardResponseBodyDeletedAt = string | null;
+
 export type CreateDashboardDashboardResponseBodyTeamId = number | null;
 
 export interface CreateDashboardDashboardResponseBody {
@@ -238,10 +251,11 @@ export interface CreateDashboardDashboardResponseBody {
   config: CreateDashboardDashboardResponseBodyConfig;
   owner_type: DashboardOwnerType;
   user_id?: CreateDashboardDashboardResponseBodyUserId;
-  team_id?: CreateDashboardDashboardResponseBodyTeamId;
   is_default: boolean;
   created_at: string;
   updated_at: string;
+  deleted_at?: CreateDashboardDashboardResponseBodyDeletedAt;
+  team_id?: CreateDashboardDashboardResponseBodyTeamId;
   id: string;
 }
 
@@ -273,43 +287,6 @@ export interface CreateMediaAction {
 export interface CreatePostAction {
   data: PostCreateSchema;
   action: 'top_level_post_actions__top_level_post_create';
-}
-
-export type CreateTeamSchemaDescription = string | null;
-
-export interface CreateTeamSchema {
-  name: string;
-  description?: CreateTeamSchemaDescription;
-}
-
-export type CreateTeamTeamResponseBodyDescription = string | null;
-
-export type CreateTeamTeamResponseBodyDeletedAt = string | null;
-
-export interface CreateTeamTeamResponseBody {
-  name: string;
-  description?: CreateTeamTeamResponseBodyDescription;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: CreateTeamTeamResponseBodyDeletedAt;
-  id: string;
-}
-
-export interface CreateUserSchema {
-  name: string;
-  email: string;
-}
-
-export type CreateUserUserResponseBodyDeletedAt = string | null;
-
-export interface CreateUserUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: CreateUserUserResponseBodyDeletedAt;
-  id: string;
 }
 
 /**
@@ -502,25 +479,16 @@ export interface GetCampaignCampaignResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetCampaignCampaignResponseBodyDeletedAt;
+  state?: CampaignStates;
   team_id: number;
-  id: string;
-}
-
-export type GetCurrentUserUserResponseBodyDeletedAt = string | null;
-
-export interface GetCurrentUserUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetCurrentUserUserResponseBodyDeletedAt;
   id: string;
 }
 
 export type GetDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
 
 export type GetDashboardDashboardResponseBodyUserId = number | null;
+
+export type GetDashboardDashboardResponseBodyDeletedAt = string | null;
 
 export type GetDashboardDashboardResponseBodyTeamId = number | null;
 
@@ -529,10 +497,11 @@ export interface GetDashboardDashboardResponseBody {
   config: GetDashboardDashboardResponseBodyConfig;
   owner_type: DashboardOwnerType;
   user_id?: GetDashboardDashboardResponseBodyUserId;
-  team_id?: GetDashboardDashboardResponseBodyTeamId;
   is_default: boolean;
   created_at: string;
   updated_at: string;
+  deleted_at?: GetDashboardDashboardResponseBodyDeletedAt;
+  team_id?: GetDashboardDashboardResponseBodyTeamId;
   id: string;
 }
 
@@ -557,6 +526,7 @@ export interface GetInvoiceInvoiceResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetInvoiceInvoiceResponseBodyDeletedAt;
+  state?: InvoiceStates;
   team_id: number;
   campaign_id?: GetInvoiceInvoiceResponseBodyCampaignId;
   id: string;
@@ -580,20 +550,9 @@ export interface GetPostPostResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetPostPostResponseBodyDeletedAt;
+  state?: PostStates;
   team_id: number;
   campaign_id?: GetPostPostResponseBodyCampaignId;
-  id: string;
-}
-
-export type GetUserUserResponseBodyDeletedAt = string | null;
-
-export interface GetUserUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetUserUserResponseBodyDeletedAt;
   id: string;
 }
 
@@ -656,6 +615,15 @@ export interface InvoiceCreateSchema {
   campaign_id?: InvoiceCreateSchemaCampaignId;
 }
 
+export type InvoiceStates = typeof InvoiceStates[keyof typeof InvoiceStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const InvoiceStates = {
+  draft: 'draft',
+  posted: 'posted',
+} as const;
+
 export type InvoiceUpdateSchemaInvoiceNumber = number | null;
 
 export type InvoiceUpdateSchemaCustomerName = string | null;
@@ -689,6 +657,27 @@ export interface InvoiceUpdateSchema {
   campaign_id?: InvoiceUpdateSchemaCampaignId;
 }
 
+export type ListDashboardsDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type ListDashboardsDashboardResponseBodyUserId = number | null;
+
+export type ListDashboardsDashboardResponseBodyDeletedAt = string | null;
+
+export type ListDashboardsDashboardResponseBodyTeamId = number | null;
+
+export interface ListDashboardsDashboardResponseBody {
+  name: string;
+  config: ListDashboardsDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: ListDashboardsDashboardResponseBodyUserId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: ListDashboardsDashboardResponseBodyDeletedAt;
+  team_id?: ListDashboardsDashboardResponseBodyTeamId;
+  id: string;
+}
+
 export type ListScopesResponseCurrentScopeType = string | null;
 
 export type ListScopesResponseCurrentScopeId = number | null;
@@ -700,43 +689,19 @@ export interface ListScopesResponse {
   current_scope_id?: ListScopesResponseCurrentScopeId;
 }
 
-export type ListTeamsResponseCurrentTeamId = number | null;
+/**
+ * Media processing states.
+ */
+export type MediaStates = typeof MediaStates[keyof typeof MediaStates];
 
-export interface ListTeamsResponse {
-  teams: TeamListItemSchema[];
-  current_team_id?: ListTeamsResponseCurrentTeamId;
-  is_campaign_scoped: boolean;
-}
 
-export type ListUsersUserResponseBodyDeletedAt = string | null;
-
-export type ListDashboardsDashboardResponseBodyConfig = {[key: string]: unknown};
-
-export type ListDashboardsDashboardResponseBodyUserId = number | null;
-
-export type ListDashboardsDashboardResponseBodyTeamId = number | null;
-
-export interface ListDashboardsDashboardResponseBody {
-  name: string;
-  config: ListDashboardsDashboardResponseBodyConfig;
-  owner_type: DashboardOwnerType;
-  user_id?: ListDashboardsDashboardResponseBodyUserId;
-  team_id?: ListDashboardsDashboardResponseBodyTeamId;
-  is_default: boolean;
-  created_at: string;
-  updated_at: string;
-  id: string;
-}
-
-export interface ListUsersUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: ListUsersUserResponseBodyDeletedAt;
-  id: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MediaStates = {
+  pending: 'pending',
+  processing: 'processing',
+  ready: 'ready',
+  failed: 'failed',
+} as const;
 
 export type MediaUpdateSchemaFileName = string | null;
 
@@ -867,6 +832,17 @@ export interface PostCreateSchema {
   campaign_id?: PostCreateSchemaCampaignId;
 }
 
+export type PostStates = typeof PostStates[keyof typeof PostStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostStates = {
+  draft: 'draft',
+  in_review: 'in_review',
+  approved: 'approved',
+  posted: 'posted',
+} as const;
+
 export type PostUpdateSchemaTitle = string | null;
 
 export type PostUpdateSchemaContent = string | null;
@@ -932,6 +908,7 @@ export interface RegisterMediaMediaResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: RegisterMediaMediaResponseBodyDeletedAt;
+  state?: MediaStates;
   team_id: number;
   campaign_id?: RegisterMediaMediaResponseBodyCampaignId;
   id: string;
@@ -1011,16 +988,6 @@ export interface StringFieldValue {
 export interface SwitchScopeRequest {
   scope_type: ScopeType;
   scope_id: number;
-}
-
-export interface SwitchTeamRequest {
-  team_id: number;
-}
-
-export interface TeamListItemSchema {
-  team_id: number;
-  team_name: string;
-  role_level: RoleLevel;
 }
 
 export interface TeamScopeSchema {
@@ -1187,6 +1154,7 @@ export interface UpdateCampaignCampaignResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: UpdateCampaignCampaignResponseBodyDeletedAt;
+  state?: CampaignStates;
   team_id: number;
   id: string;
 }
@@ -1200,6 +1168,8 @@ export type UpdateDashboardDashboardResponseBodyConfig = {[key: string]: unknown
 
 export type UpdateDashboardDashboardResponseBodyUserId = number | null;
 
+export type UpdateDashboardDashboardResponseBodyDeletedAt = string | null;
+
 export type UpdateDashboardDashboardResponseBodyTeamId = number | null;
 
 export interface UpdateDashboardDashboardResponseBody {
@@ -1207,10 +1177,11 @@ export interface UpdateDashboardDashboardResponseBody {
   config: UpdateDashboardDashboardResponseBodyConfig;
   owner_type: DashboardOwnerType;
   user_id?: UpdateDashboardDashboardResponseBodyUserId;
-  team_id?: UpdateDashboardDashboardResponseBodyTeamId;
   is_default: boolean;
   created_at: string;
   updated_at: string;
+  deleted_at?: UpdateDashboardDashboardResponseBodyDeletedAt;
+  team_id?: UpdateDashboardDashboardResponseBodyTeamId;
   id: string;
 }
 
@@ -1254,6 +1225,7 @@ export interface UpdateInvoiceInvoiceResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: UpdateInvoiceInvoiceResponseBodyDeletedAt;
+  state?: InvoiceStates;
   team_id: number;
   campaign_id?: UpdateInvoiceInvoiceResponseBodyCampaignId;
   id: string;
@@ -1287,6 +1259,7 @@ export interface UpdatePostPostResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: UpdatePostPostResponseBodyDeletedAt;
+  state?: PostStates;
   team_id: number;
   campaign_id?: UpdatePostPostResponseBodyCampaignId;
   id: string;
@@ -1316,60 +1289,6 @@ export type UsersSignupAddUserToWaitlist400 = {
   status_code: number;
   detail: string;
   extra?: UsersSignupAddUserToWaitlist400Extra;
-};
-
-export type UsersCreateUser400ExtraAnyOf = {[key: string]: unknown};
-
-export type UsersCreateUser400Extra = null | UsersCreateUser400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersCreateUser400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersCreateUser400Extra;
-};
-
-export type UsersUserIdGetUser400ExtraAnyOf = {[key: string]: unknown};
-
-export type UsersUserIdGetUser400Extra = null | UsersUserIdGetUser400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersUserIdGetUser400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersUserIdGetUser400Extra;
-};
-
-export type UsersTeamsCreateTeam400ExtraAnyOf = {[key: string]: unknown};
-
-export type UsersTeamsCreateTeam400Extra = null | UsersTeamsCreateTeam400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersTeamsCreateTeam400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersTeamsCreateTeam400Extra;
-};
-
-export type UsersSwitchTeamSwitchTeam201 = { [key: string]: unknown };
-
-export type UsersSwitchTeamSwitchTeam400ExtraAnyOf = {[key: string]: unknown};
-
-export type UsersSwitchTeamSwitchTeam400Extra = null | UsersSwitchTeamSwitchTeam400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersSwitchTeamSwitchTeam400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersSwitchTeamSwitchTeam400Extra;
 };
 
 export type AuthSwitchScopeSwitchScope201 = { [key: string]: unknown };

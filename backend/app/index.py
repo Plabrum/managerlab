@@ -50,15 +50,13 @@ async def health_check() -> Response:
     return Response(content={"detail": "ok"}, status_code=200)
 
 
-session_auth = SessionAuth[
-    int, ServerSideSessionBackend
-](
+session_auth = SessionAuth[int, ServerSideSessionBackend](
     session_backend_config=ServerSideSessionConfig(
-        samesite="lax",  # Works for same-site (localhost in dev, *.managerlab.app in prod)
-        secure=config.ENV != "development",  # False for localhost, True for production
-        httponly=True,  # Security: prevent XSS access to cookies
-        max_age=ONE_DAY_IN_SECONDS * 14,  # 14 days
-        domain=config.SESSION_COOKIE_DOMAIN,  # Must be .managerlab.app in prod for subdomain access
+        samesite="lax",
+        secure=config.ENV != "development",
+        httponly=True,
+        max_age=ONE_DAY_IN_SECONDS * 14,
+        domain=config.SESSION_COOKIE_DOMAIN,
     ),
     retrieve_user_handler=lambda session, conn: session.get("user_id"),
     exclude=[
@@ -86,7 +84,6 @@ route_handlers: list[Any] = [
     media_router,
     invoice_router,
     dashboard_router,
-    # queue_router,  # Commented out - create app/queue/routes.py if needed
 ]
 
 # Only include local media router in development

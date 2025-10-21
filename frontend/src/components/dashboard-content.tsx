@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
 import { WidgetContainer } from './dashboard/widget-container';
@@ -43,7 +43,7 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
   const [newDashboardName, setNewDashboardName] = useState('');
   const [creating, setCreating] = useState(false);
 
-  const fetchDashboards = async () => {
+  const fetchDashboards = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -64,11 +64,11 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dashboardId]);
 
   useEffect(() => {
     fetchDashboards();
-  }, [dashboardId]);
+  }, [fetchDashboards]);
 
   const config: DashboardConfig =
     (dashboard?.config as unknown as DashboardConfig) || { widgets: [] };

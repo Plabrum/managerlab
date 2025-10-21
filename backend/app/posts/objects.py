@@ -19,6 +19,7 @@ from app.objects.schemas import (
 )
 from app.objects.services import get_filter_by_field_type
 from app.posts.models import Post
+from app.posts.enums import PostStates, SocialMediaPlatforms
 from app.utils.sqids import sqid_encode
 
 
@@ -73,6 +74,7 @@ class PostObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
+            available_values=[platform.value for platform in SocialMediaPlatforms],
         ),
         ColumnDefinitionDTO(
             key="state",
@@ -81,6 +83,7 @@ class PostObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
+            available_values=[state.value for state in PostStates],
         ),
         ColumnDefinitionDTO(
             key="posting_date",

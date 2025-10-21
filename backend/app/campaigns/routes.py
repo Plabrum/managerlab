@@ -34,7 +34,6 @@ async def update_campaign(
     return campaign
 
 
-# Campaign router
 campaign_router = Router(
     path="/campaigns",
     guards=[requires_user_id],

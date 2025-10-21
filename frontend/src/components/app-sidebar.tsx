@@ -1,18 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  LayoutDashboard,
-  Megaphone,
-  FileText,
-  Building2,
-  Users,
-  Settings2,
-  Image,
-  Newspaper,
-  GalleryVerticalEnd,
-  FolderKanban,
-} from 'lucide-react';
+import { LayoutDashboard, FolderKanban } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -32,7 +21,6 @@ import type { ListDashboardsDashboardResponseBody } from '@/openapi/managerLab.s
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
-  const user = useAuth();
   const [dashboards, setDashboards] = React.useState<
     ListDashboardsDashboardResponseBody[]
   >([]);

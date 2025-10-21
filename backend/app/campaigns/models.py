@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class Campaign(
     RLSMixin(),
     StateMachineMixin(
-        states=CampaignStates,
+        state_enum=CampaignStates,
         initial_state=CampaignStates.DRAFT,
     ),
     BaseDBModel,

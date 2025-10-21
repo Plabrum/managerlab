@@ -1,0 +1,5117 @@
+{
+    "info": {
+        "title": "ManagerLab",
+        "version": "0.0.1",
+        "description": "Private schema of ManagerLab with Scalar OpenAPI docs"
+    },
+    "openapi": "3.1.0",
+    "servers": [
+        {
+            "url": "/"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "system"
+                ],
+                "summary": "HealthCheck",
+                "operationId": "HealthHealthCheck",
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/users/signup": {
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "AddUserToWaitlist",
+                "operationId": "UsersSignupAddUserToWaitlist",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserWaitlistFormSchema"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddUserToWaitlistWaitlistEntryResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "LogoutUser",
+                "operationId": "AuthLogoutLogoutUser",
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {}
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/auth/list-scopes": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "ListScopes",
+                "operationId": "AuthListScopesListScopes",
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListScopesResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/auth/switch-scope": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "SwitchScope",
+                "operationId": "AuthSwitchScopeSwitchScope",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SwitchScopeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/auth/google/login": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "GoogleLogin",
+                "operationId": "AuthGoogleLoginGoogleLogin",
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/auth/google/callback": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "GoogleCallback",
+                "operationId": "AuthGoogleCallbackGoogleCallback",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        },
+                        "required": false,
+                        "deprecated": false,
+                        "allowEmptyValue": false,
+                        "allowReserved": false
+                    },
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        },
+                        "required": false,
+                        "deprecated": false,
+                        "allowEmptyValue": false,
+                        "allowReserved": false
+                    },
+                    {
+                        "name": "error",
+                        "in": "query",
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        },
+                        "required": false,
+                        "deprecated": false,
+                        "allowEmptyValue": false,
+                        "allowReserved": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/auth/google/me": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "GetCurrentUserGoogleInfo",
+                "operationId": "AuthGoogleMeGetCurrentUserGoogleInfo",
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GoogleUserInfoResponseSchema"
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/o/{object_type}/{id}": {
+            "get": {
+                "tags": [
+                    "objects"
+                ],
+                "summary": "GetObjectDetail",
+                "operationId": "OObjectTypeIdGetObjectDetail",
+                "parameters": [
+                    {
+                        "name": "object_type",
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/components/schemas/ObjectTypes"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ObjectDetailDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/o/{object_type}": {
+            "post": {
+                "tags": [
+                    "objects"
+                ],
+                "summary": "ListObjects",
+                "operationId": "list_objects",
+                "parameters": [
+                    {
+                        "name": "object_type",
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/components/schemas/ObjectTypes"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ObjectListRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ObjectListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/o/{object_type}/data": {
+            "post": {
+                "tags": [
+                    "objects"
+                ],
+                "summary": "GetTimeSeriesData",
+                "operationId": "get_time_series_data",
+                "parameters": [
+                    {
+                        "name": "object_type",
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/components/schemas/ObjectTypes"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TimeSeriesDataRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TimeSeriesDataResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/actions/{action_group}": {
+            "get": {
+                "tags": [
+                    "actions"
+                ],
+                "summary": "ListActions",
+                "operationId": "ActionsActionGroupListActions",
+                "parameters": [
+                    {
+                        "name": "action_group",
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/components/schemas/ActionGroupType"
+                        },
+                        "description": "Types of action groups.",
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActionListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "actions"
+                ],
+                "summary": "ExecuteAction",
+                "operationId": "ActionsActionGroupExecuteAction",
+                "parameters": [
+                    {
+                        "name": "action_group",
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/components/schemas/ActionGroupType"
+                        },
+                        "description": "Types of action groups.",
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/DeleteInvoiceAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateInvoiceAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeletePostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdatePostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/PublishPostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeleteDashboardAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateDashboardAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeleteCampaignAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateCampaignAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeleteMediaAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateMediaAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DownloadMediaAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreateInvoiceAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreatePostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreateCampaignAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreateMediaAction"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActionExecutionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/actions/{action_group}/{object_id}": {
+            "get": {
+                "tags": [
+                    "actions"
+                ],
+                "summary": "ListObjectActions",
+                "operationId": "ActionsActionGroupObjectIdListObjectActions",
+                "parameters": [
+                    {
+                        "name": "action_group",
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/components/schemas/ActionGroupType"
+                        },
+                        "description": "Types of action groups.",
+                        "required": true,
+                        "deprecated": false
+                    },
+                    {
+                        "name": "object_id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActionListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "actions"
+                ],
+                "summary": "ExecuteObjectAction",
+                "operationId": "ActionsActionGroupObjectIdExecuteObjectAction",
+                "parameters": [
+                    {
+                        "name": "action_group",
+                        "in": "path",
+                        "schema": {
+                            "$ref": "#/components/schemas/ActionGroupType"
+                        },
+                        "description": "Types of action groups.",
+                        "required": true,
+                        "deprecated": false
+                    },
+                    {
+                        "name": "object_id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/DeleteInvoiceAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateInvoiceAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeletePostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdatePostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/PublishPostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeleteDashboardAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateDashboardAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeleteCampaignAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateCampaignAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DeleteMediaAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/UpdateMediaAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/DownloadMediaAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreateInvoiceAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreatePostAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreateCampaignAction"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CreateMediaAction"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActionExecutionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/brands/{id}": {
+            "get": {
+                "tags": [
+                    "brands"
+                ],
+                "summary": "GetBrand",
+                "operationId": "BrandsIdGetBrand",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetBrandBrandResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "brands"
+                ],
+                "summary": "UpdateBrand",
+                "operationId": "BrandsIdUpdateBrand",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BrandUpdateSchema"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateBrandBrandResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/brands/contacts/{id}": {
+            "get": {
+                "tags": [
+                    "brands"
+                ],
+                "summary": "GetBrandContact",
+                "operationId": "BrandsContactsIdGetBrandContact",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetBrandContactBrandContactResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "brands"
+                ],
+                "summary": "UpdateBrandContact",
+                "operationId": "BrandsContactsIdUpdateBrandContact",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BrandContactUpdateSchema"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateBrandContactBrandContactResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/campaigns/{id}": {
+            "get": {
+                "tags": [
+                    "campaigns"
+                ],
+                "summary": "GetCampaign",
+                "operationId": "CampaignsIdGetCampaign",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetCampaignCampaignResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "campaigns"
+                ],
+                "summary": "UpdateCampaign",
+                "operationId": "CampaignsIdUpdateCampaign",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CampaignUpdateSchema"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateCampaignCampaignResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/dashboards": {
+            "get": {
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "ListDashboards",
+                "operationId": "DashboardsListDashboards",
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/ListDashboardsDashboardResponseBody"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "CreateDashboard",
+                "operationId": "DashboardsCreateDashboard",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateDashboardSchema"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateDashboardDashboardResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/dashboards/{id}": {
+            "get": {
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "GetDashboard",
+                "operationId": "DashboardsIdGetDashboard",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDashboardDashboardResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            },
+            "patch": {
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "UpdateDashboard",
+                "operationId": "DashboardsIdUpdateDashboard",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateDashboardSchema"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateDashboardDashboardResponseBody"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/local-upload/{key}": {
+            "put": {
+                "tags": [
+                    "media-local"
+                ],
+                "summary": "LocalUpload",
+                "operationId": "LocalUploadKeyLocalUpload",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/local-download/{key}": {
+            "get": {
+                "tags": [
+                    "media-local"
+                ],
+                "summary": "LocalDownload",
+                "operationId": "LocalDownloadKeyLocalDownload",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true,
+                        "deprecated": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "detail": {
+                                            "type": "string"
+                                        },
+                                        "extra": {
+                                            "additionalProperties": {},
+                                            "type": [
+                                                "null",
+                                                "object",
+                                                "array"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "detail",
+                                        "status_code"
+                                    ],
+                                    "description": "Validation Exception",
+                                    "examples": [
+                                        {
+                                            "status_code": 400,
+                                            "detail": "Bad Request",
+                                            "extra": {}
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ActionDTO": {
+                "properties": {
+                    "action": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "is_bulk_allowed": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "available": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "default": 100
+                    },
+                    "icon": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "confirmation_message": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "label"
+                ],
+                "title": "ActionDTO"
+            },
+            "ActionExecutionResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "results": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message",
+                    "success"
+                ],
+                "title": "ActionExecutionResponse"
+            },
+            "ActionGroupType": {
+                "type": "string",
+                "enum": [
+                    "media_actions",
+                    "top_level_media_actions",
+                    "post_actions",
+                    "top_level_post_actions",
+                    "brand_actions",
+                    "campaign_actions",
+                    "top_level_campaign_actions",
+                    "invoice_actions",
+                    "top_level_invoice_actions",
+                    "dashboard_actions"
+                ],
+                "title": "ActionGroupType",
+                "description": "Types of action groups."
+            },
+            "ActionListResponse": {
+                "properties": {
+                    "actions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ActionDTO"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "actions"
+                ],
+                "title": "ActionListResponse"
+            },
+            "AddUserToWaitlistWaitlistEntryResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "company": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "message": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "public_id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "email",
+                    "id",
+                    "name",
+                    "public_id",
+                    "updated_at"
+                ],
+                "title": "AddUserToWaitlistWaitlistEntryResponseBody"
+            },
+            "AggregationType": {
+                "type": "string",
+                "enum": [
+                    "sum",
+                    "avg",
+                    "max",
+                    "min",
+                    "count",
+                    "mode"
+                ],
+                "title": "AggregationType",
+                "description": "Aggregation types for time series data."
+            },
+            "BoolFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "bool"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "BoolFieldValue"
+            },
+            "BooleanFilterDefinition": {
+                "properties": {
+                    "column": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "boolean_filter"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "column",
+                    "type",
+                    "value"
+                ],
+                "title": "BooleanFilterDefinition"
+            },
+            "BrandContactUpdateSchema": {
+                "properties": {
+                    "first_name": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "last_name": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "email": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "BrandContactUpdateSchema"
+            },
+            "BrandUpdateSchema": {
+                "properties": {
+                    "name": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "tone_of_voice": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_values": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "target_audience": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "website": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "email": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "BrandUpdateSchema"
+            },
+            "CampaignCreateSchema": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "brand_id": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "brand_id",
+                    "name"
+                ],
+                "title": "CampaignCreateSchema"
+            },
+            "CampaignGuestAccessLevel": {
+                "type": "string",
+                "enum": [
+                    "viewer",
+                    "contributor"
+                ],
+                "title": "CampaignGuestAccessLevel",
+                "description": "Access levels for campaign guests."
+            },
+            "CampaignScopeSchema": {
+                "properties": {
+                    "campaign_id": {
+                        "type": "integer"
+                    },
+                    "campaign_name": {
+                        "type": "string"
+                    },
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "team_name": {
+                        "type": "string"
+                    },
+                    "access_level": {
+                        "$ref": "#/components/schemas/CampaignGuestAccessLevel"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "access_level",
+                    "campaign_id",
+                    "campaign_name",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "CampaignScopeSchema"
+            },
+            "CampaignStates": {
+                "type": "string",
+                "enum": [
+                    "draft",
+                    "active",
+                    "completed",
+                    "cancelled"
+                ],
+                "title": "CampaignStates"
+            },
+            "CampaignUpdateSchema": {
+                "properties": {
+                    "name": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "CampaignUpdateSchema"
+            },
+            "CategoricalDataPoint": {
+                "properties": {
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "breakdowns": {
+                        "additionalProperties": {
+                            "type": "integer"
+                        },
+                        "type": "object"
+                    },
+                    "total_count": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "breakdowns",
+                    "timestamp",
+                    "total_count"
+                ],
+                "title": "CategoricalDataPoint"
+            },
+            "CategoricalTimeSeriesData": {
+                "properties": {
+                    "data_points": {
+                        "items": {
+                            "$ref": "#/components/schemas/CategoricalDataPoint"
+                        },
+                        "type": "array"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "categorical"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "data_points",
+                    "type"
+                ],
+                "title": "CategoricalTimeSeriesData"
+            },
+            "ColumnDefinitionDTO": {
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/FieldType"
+                    },
+                    "filter_type": {
+                        "$ref": "#/components/schemas/FilterType"
+                    },
+                    "sortable": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "default_visible": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "available_values": {
+                        "oneOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "filter_type",
+                    "key",
+                    "label",
+                    "type"
+                ],
+                "title": "ColumnDefinitionDTO"
+            },
+            "CompensationStructure": {
+                "type": "string",
+                "enum": [
+                    "flat_fee",
+                    "per_deliverable",
+                    "performance_based"
+                ],
+                "title": "CompensationStructure"
+            },
+            "CreateCampaignAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/CampaignCreateSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "top_level_campaign_actions__campaign_create"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "CreateCampaignAction"
+            },
+            "CreateDashboardDashboardResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "owner_type": {
+                        "$ref": "#/components/schemas/DashboardOwnerType"
+                    },
+                    "user_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "config",
+                    "created_at",
+                    "id",
+                    "is_default",
+                    "name",
+                    "owner_type",
+                    "updated_at"
+                ],
+                "title": "CreateDashboardDashboardResponseBody"
+            },
+            "CreateDashboardSchema": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "owner_type": {
+                        "$ref": "#/components/schemas/DashboardOwnerType"
+                    },
+                    "user_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "is_default": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "config",
+                    "name",
+                    "owner_type"
+                ],
+                "title": "CreateDashboardSchema"
+            },
+            "CreateInvoiceAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/InvoiceCreateSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "top_level_invoice_actions__invoice_create"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "CreateInvoiceAction"
+            },
+            "CreateMediaAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/RegisterMediaSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "top_level_media_actions__top_level_media_create"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "CreateMediaAction"
+            },
+            "CreatePostAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/PostCreateSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "top_level_post_actions__top_level_post_create"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "CreatePostAction"
+            },
+            "DashboardOwnerType": {
+                "type": "string",
+                "enum": [
+                    "user",
+                    "team"
+                ],
+                "title": "DashboardOwnerType",
+                "description": "Dashboard ownership types."
+            },
+            "DateFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "date"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "DateFieldValue"
+            },
+            "DateFilterDefinition": {
+                "properties": {
+                    "column": {
+                        "type": "string"
+                    },
+                    "start": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "finish": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "date_filter"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "column",
+                    "type"
+                ],
+                "title": "DateFilterDefinition"
+            },
+            "DatetimeFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "datetime"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "DatetimeFieldValue"
+            },
+            "DeleteCampaignAction": {
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "const": "campaign_actions__campaign_delete"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action"
+                ],
+                "title": "DeleteCampaignAction"
+            },
+            "DeleteDashboardAction": {
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "const": "dashboard_actions__delete"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action"
+                ],
+                "title": "DeleteDashboardAction"
+            },
+            "DeleteInvoiceAction": {
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "const": "invoice_actions__invoice_delete"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action"
+                ],
+                "title": "DeleteInvoiceAction"
+            },
+            "DeleteMediaAction": {
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "const": "media_actions__media_delete"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action"
+                ],
+                "title": "DeleteMediaAction"
+            },
+            "DeletePostAction": {
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "const": "post_actions__post_delete"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action"
+                ],
+                "title": "DeletePostAction"
+            },
+            "DownloadMediaAction": {
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "const": "media_actions__media_download"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action"
+                ],
+                "title": "DownloadMediaAction"
+            },
+            "EmailFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "email"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "EmailFieldValue"
+            },
+            "EnumFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "enum"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "EnumFieldValue"
+            },
+            "EnumFilterDefinition": {
+                "properties": {
+                    "column": {
+                        "type": "string"
+                    },
+                    "values": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "enum_filter"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "column",
+                    "type",
+                    "values"
+                ],
+                "title": "EnumFilterDefinition"
+            },
+            "FieldType": {
+                "type": "string",
+                "enum": [
+                    "string",
+                    "int",
+                    "float",
+                    "enum",
+                    "bool",
+                    "date",
+                    "datetime",
+                    "usd",
+                    "email",
+                    "url",
+                    "text",
+                    "image"
+                ],
+                "title": "FieldType",
+                "description": "Field types for object fields."
+            },
+            "FilterType": {
+                "type": "string",
+                "enum": [
+                    "text_filter",
+                    "range_filter",
+                    "date_filter",
+                    "boolean_filter",
+                    "enum_filter",
+                    "null_filter"
+                ],
+                "title": "FilterType",
+                "description": "Available filter types for different field types."
+            },
+            "FloatFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "number"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "float"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "FloatFieldValue"
+            },
+            "GetBrandBrandResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "tone_of_voice": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_values": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "target_audience": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "website": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "email": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "id",
+                    "name",
+                    "team_id",
+                    "updated_at"
+                ],
+                "title": "GetBrandBrandResponseBody"
+            },
+            "GetBrandContactBrandContactResponseBody": {
+                "properties": {
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "brand_id",
+                    "created_at",
+                    "first_name",
+                    "id",
+                    "last_name",
+                    "team_id",
+                    "updated_at"
+                ],
+                "title": "GetBrandContactBrandContactResponseBody"
+            },
+            "GetCampaignCampaignResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "state": {
+                        "$ref": "#/components/schemas/CampaignStates"
+                    },
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "brand_id",
+                    "created_at",
+                    "id",
+                    "name",
+                    "team_id",
+                    "updated_at"
+                ],
+                "title": "GetCampaignCampaignResponseBody"
+            },
+            "GetDashboardDashboardResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "owner_type": {
+                        "$ref": "#/components/schemas/DashboardOwnerType"
+                    },
+                    "user_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "config",
+                    "created_at",
+                    "id",
+                    "is_default",
+                    "name",
+                    "owner_type",
+                    "updated_at"
+                ],
+                "title": "GetDashboardDashboardResponseBody"
+            },
+            "GoogleUserInfoResponseSchema": {
+                "properties": {
+                    "google_id": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "picture": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email",
+                    "google_id",
+                    "name",
+                    "user_id"
+                ],
+                "title": "GoogleUserInfoResponseSchema"
+            },
+            "Granularity": {
+                "type": "string",
+                "enum": [
+                    "automatic",
+                    "hour",
+                    "day",
+                    "week",
+                    "month",
+                    "quarter",
+                    "year"
+                ],
+                "title": "Granularity",
+                "description": "Time series granularity/bucketing options."
+            },
+            "ImageFieldValue": {
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "thumbnail_url": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "image"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "url"
+                ],
+                "title": "ImageFieldValue"
+            },
+            "IntFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "integer"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "int"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "IntFieldValue"
+            },
+            "InvoiceCreateSchema": {
+                "properties": {
+                    "invoice_number": {
+                        "type": "integer"
+                    },
+                    "customer_name": {
+                        "type": "string"
+                    },
+                    "customer_email": {
+                        "type": "string"
+                    },
+                    "posting_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "amount_due": {
+                        "type": "number"
+                    },
+                    "amount_paid": {
+                        "type": "number",
+                        "default": "0"
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "campaign_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "amount_due",
+                    "customer_email",
+                    "customer_name",
+                    "due_date",
+                    "invoice_number",
+                    "posting_date"
+                ],
+                "title": "InvoiceCreateSchema"
+            },
+            "InvoiceUpdateSchema": {
+                "properties": {
+                    "invoice_number": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "customer_name": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "customer_email": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "posting_date": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "due_date": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "amount_due": {
+                        "oneOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "amount_paid": {
+                        "oneOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "campaign_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "InvoiceUpdateSchema"
+            },
+            "ListDashboardsDashboardResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "owner_type": {
+                        "$ref": "#/components/schemas/DashboardOwnerType"
+                    },
+                    "user_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "config",
+                    "created_at",
+                    "id",
+                    "is_default",
+                    "name",
+                    "owner_type",
+                    "updated_at"
+                ],
+                "title": "ListDashboardsDashboardResponseBody"
+            },
+            "ListScopesResponse": {
+                "properties": {
+                    "teams": {
+                        "items": {
+                            "$ref": "#/components/schemas/TeamScopeSchema"
+                        },
+                        "type": "array"
+                    },
+                    "campaigns": {
+                        "items": {
+                            "$ref": "#/components/schemas/CampaignScopeSchema"
+                        },
+                        "type": "array"
+                    },
+                    "current_scope_type": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "current_scope_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "campaigns",
+                    "teams"
+                ],
+                "title": "ListScopesResponse"
+            },
+            "MediaUpdateSchema": {
+                "properties": {
+                    "file_name": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "MediaUpdateSchema"
+            },
+            "NumericalDataPoint": {
+                "properties": {
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "value": {
+                        "oneOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "count": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "count",
+                    "timestamp"
+                ],
+                "title": "NumericalDataPoint"
+            },
+            "NumericalTimeSeriesData": {
+                "properties": {
+                    "data_points": {
+                        "items": {
+                            "$ref": "#/components/schemas/NumericalDataPoint"
+                        },
+                        "type": "array"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "numerical"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "data_points",
+                    "type"
+                ],
+                "title": "NumericalTimeSeriesData"
+            },
+            "ObjectDetailDTO": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "object_type": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "fields": {
+                        "items": {
+                            "$ref": "#/components/schemas/ObjectFieldDTO"
+                        },
+                        "type": "array"
+                    },
+                    "actions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ActionDTO"
+                        },
+                        "type": "array"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "children": {
+                        "items": {
+                            "additionalProperties": {
+                                "$ref": "#/components/schemas/ObjectRelationDTO"
+                            },
+                            "type": "object"
+                        },
+                        "type": "array"
+                    },
+                    "parents": {
+                        "items": {
+                            "additionalProperties": {
+                                "$ref": "#/components/schemas/ObjectRelationDTO"
+                            },
+                            "type": "object"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "actions",
+                    "created_at",
+                    "fields",
+                    "id",
+                    "object_type",
+                    "state",
+                    "title",
+                    "updated_at"
+                ],
+                "title": "ObjectDetailDTO"
+            },
+            "ObjectFieldDTO": {
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/StringFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/FloatFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BoolFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/EnumFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DateFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DatetimeFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/USDFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/EmailFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/URLFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/TextFieldValue"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ImageFieldValue"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "label": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "editable": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "key"
+                ],
+                "title": "ObjectFieldDTO"
+            },
+            "ObjectListDTO": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "object_type": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "subtitle": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "actions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ActionDTO"
+                        },
+                        "type": "array"
+                    },
+                    "fields": {
+                        "items": {
+                            "$ref": "#/components/schemas/ObjectFieldDTO"
+                        },
+                        "type": "array"
+                    },
+                    "link": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "id",
+                    "object_type",
+                    "state",
+                    "title",
+                    "updated_at"
+                ],
+                "title": "ObjectListDTO"
+            },
+            "ObjectListRequest": {
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "default": 50
+                    },
+                    "offset": {
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "filters": {
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "$ref": "#/components/schemas/TextFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/RangeFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/DateFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/BooleanFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/EnumFilterDefinition"
+                                }
+                            ]
+                        },
+                        "type": "array"
+                    },
+                    "sorts": {
+                        "items": {
+                            "$ref": "#/components/schemas/SortDefinition"
+                        },
+                        "type": "array"
+                    },
+                    "search": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "column": {
+                        "oneOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "ObjectListRequest"
+            },
+            "ObjectListResponse": {
+                "properties": {
+                    "objects": {
+                        "items": {
+                            "$ref": "#/components/schemas/ObjectListDTO"
+                        },
+                        "type": "array"
+                    },
+                    "total": {
+                        "type": "integer"
+                    },
+                    "limit": {
+                        "type": "integer"
+                    },
+                    "offset": {
+                        "type": "integer"
+                    },
+                    "columns": {
+                        "items": {
+                            "$ref": "#/components/schemas/ColumnDefinitionDTO"
+                        },
+                        "type": "array"
+                    },
+                    "actions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ActionDTO"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "columns",
+                    "limit",
+                    "objects",
+                    "offset",
+                    "total"
+                ],
+                "title": "ObjectListResponse"
+            },
+            "ObjectRelationDTO": {
+                "properties": {
+                    "object_type": {
+                        "type": "string"
+                    },
+                    "sqid": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "object_type",
+                    "sqid",
+                    "title"
+                ],
+                "title": "ObjectRelationDTO"
+            },
+            "ObjectTypes": {
+                "type": "string",
+                "enum": [
+                    "users",
+                    "roster",
+                    "brands",
+                    "brandcontacts",
+                    "campaigns",
+                    "posts",
+                    "media",
+                    "invoices"
+                ],
+                "title": "ObjectTypes"
+            },
+            "PostCreateSchema": {
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "platforms": {
+                        "$ref": "#/components/schemas/SocialMediaPlatforms"
+                    },
+                    "posting_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "content": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "additionalProperties": {},
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "compensation_structure": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CompensationStructure"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "campaign_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "platforms",
+                    "posting_date",
+                    "title"
+                ],
+                "title": "PostCreateSchema"
+            },
+            "PostUpdateSchema": {
+                "properties": {
+                    "title": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "content": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "platforms": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/SocialMediaPlatforms"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "posting_date": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "additionalProperties": {},
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "compensation_structure": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CompensationStructure"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "campaign_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "PostUpdateSchema"
+            },
+            "PublishPostAction": {
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "const": "post_actions__post_publish"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action"
+                ],
+                "title": "PublishPostAction"
+            },
+            "RangeFilterDefinition": {
+                "properties": {
+                    "column": {
+                        "type": "string"
+                    },
+                    "start": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "finish": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "range_filter"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "column",
+                    "type"
+                ],
+                "title": "RangeFilterDefinition"
+            },
+            "RegisterMediaSchema": {
+                "properties": {
+                    "file_key": {
+                        "type": "string"
+                    },
+                    "file_name": {
+                        "type": "string"
+                    },
+                    "file_size": {
+                        "type": "integer"
+                    },
+                    "mime_type": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "file_key",
+                    "file_name",
+                    "file_size",
+                    "mime_type"
+                ],
+                "title": "RegisterMediaSchema"
+            },
+            "RoleLevel": {
+                "type": "string",
+                "enum": [
+                    "owner",
+                    "admin",
+                    "member",
+                    "viewer"
+                ],
+                "title": "RoleLevel",
+                "description": "Role levels for team membership."
+            },
+            "ScopeType": {
+                "type": "string",
+                "enum": [
+                    "team",
+                    "campaign"
+                ],
+                "title": "ScopeType",
+                "description": "Scope type for user access control.\n\nUsers can have either team scope OR campaign scope active at a time.\n- TEAM: Full access to all team resources\n- CAMPAIGN: Limited access to specific campaign resources\n"
+            },
+            "SocialMediaPlatforms": {
+                "type": "string",
+                "enum": [
+                    "instagram",
+                    "facebook",
+                    "tiktok",
+                    "youtube"
+                ],
+                "title": "SocialMediaPlatforms"
+            },
+            "SortDefinition": {
+                "properties": {
+                    "column": {
+                        "type": "string"
+                    },
+                    "direction": {
+                        "$ref": "#/components/schemas/SortDirection"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "column",
+                    "direction"
+                ],
+                "title": "SortDefinition"
+            },
+            "SortDirection": {
+                "type": "string",
+                "enum": [
+                    "sort_asc",
+                    "sort_desc"
+                ],
+                "title": "SortDirection",
+                "description": "Sort direction options."
+            },
+            "StringFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "StringFieldValue"
+            },
+            "SwitchScopeRequest": {
+                "properties": {
+                    "scope_type": {
+                        "$ref": "#/components/schemas/ScopeType"
+                    },
+                    "scope_id": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "scope_id",
+                    "scope_type"
+                ],
+                "title": "SwitchScopeRequest"
+            },
+            "TeamScopeSchema": {
+                "properties": {
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "team_name": {
+                        "type": "string"
+                    },
+                    "role_level": {
+                        "$ref": "#/components/schemas/RoleLevel"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "role_level",
+                    "team_id",
+                    "team_name"
+                ],
+                "title": "TeamScopeSchema"
+            },
+            "TextFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "text"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "TextFieldValue"
+            },
+            "TextFilterDefinition": {
+                "properties": {
+                    "column": {
+                        "type": "string"
+                    },
+                    "operation": {
+                        "type": "string",
+                        "enum": [
+                            "contains",
+                            "starts_with",
+                            "ends_with",
+                            "equals"
+                        ]
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "text_filter"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "column",
+                    "operation",
+                    "type",
+                    "value"
+                ],
+                "title": "TextFilterDefinition"
+            },
+            "TimeRange": {
+                "type": "string",
+                "enum": [
+                    "last_7_days",
+                    "last_30_days",
+                    "last_90_days",
+                    "last_6_months",
+                    "last_year",
+                    "year_to_date",
+                    "month_to_date",
+                    "all_time"
+                ],
+                "title": "TimeRange",
+                "description": "Relative time range options for time series queries."
+            },
+            "TimeSeriesDataRequest": {
+                "properties": {
+                    "field": {
+                        "type": "string"
+                    },
+                    "time_range": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/TimeRange"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "start_date": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "end_date": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "granularity": {
+                        "$ref": "#/components/schemas/Granularity"
+                    },
+                    "aggregation": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AggregationType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "filters": {
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "$ref": "#/components/schemas/TextFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/RangeFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/DateFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/BooleanFilterDefinition"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/EnumFilterDefinition"
+                                }
+                            ]
+                        },
+                        "type": "array"
+                    },
+                    "fill_missing": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "field"
+                ],
+                "title": "TimeSeriesDataRequest"
+            },
+            "TimeSeriesDataResponse": {
+                "properties": {
+                    "data": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/NumericalTimeSeriesData"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CategoricalTimeSeriesData"
+                            }
+                        ]
+                    },
+                    "field_name": {
+                        "type": "string"
+                    },
+                    "field_type": {
+                        "$ref": "#/components/schemas/FieldType"
+                    },
+                    "aggregation_type": {
+                        "$ref": "#/components/schemas/AggregationType"
+                    },
+                    "granularity_used": {
+                        "$ref": "#/components/schemas/Granularity"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "total_records": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "aggregation_type",
+                    "data",
+                    "end_date",
+                    "field_name",
+                    "field_type",
+                    "granularity_used",
+                    "start_date",
+                    "total_records"
+                ],
+                "title": "TimeSeriesDataResponse"
+            },
+            "URLFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "url"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "URLFieldValue"
+            },
+            "USDFieldValue": {
+                "properties": {
+                    "value": {
+                        "type": "number"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "usd"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "USDFieldValue"
+            },
+            "UpdateBrandBrandResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "tone_of_voice": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_values": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "target_audience": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "website": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "email": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "id",
+                    "name",
+                    "team_id",
+                    "updated_at"
+                ],
+                "title": "UpdateBrandBrandResponseBody"
+            },
+            "UpdateBrandContactBrandContactResponseBody": {
+                "properties": {
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "phone": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "notes": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "brand_id",
+                    "created_at",
+                    "first_name",
+                    "id",
+                    "last_name",
+                    "team_id",
+                    "updated_at"
+                ],
+                "title": "UpdateBrandContactBrandContactResponseBody"
+            },
+            "UpdateCampaignAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/CampaignUpdateSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "campaign_actions__campaign_update"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "UpdateCampaignAction"
+            },
+            "UpdateCampaignCampaignResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "brand_id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "state": {
+                        "$ref": "#/components/schemas/CampaignStates"
+                    },
+                    "team_id": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "brand_id",
+                    "created_at",
+                    "id",
+                    "name",
+                    "team_id",
+                    "updated_at"
+                ],
+                "title": "UpdateCampaignCampaignResponseBody"
+            },
+            "UpdateDashboardAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/UpdateDashboardSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "dashboard_actions__update"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "UpdateDashboardAction"
+            },
+            "UpdateDashboardDashboardResponseBody": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "owner_type": {
+                        "$ref": "#/components/schemas/DashboardOwnerType"
+                    },
+                    "user_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deleted_at": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "team_id": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "config",
+                    "created_at",
+                    "id",
+                    "is_default",
+                    "name",
+                    "owner_type",
+                    "updated_at"
+                ],
+                "title": "UpdateDashboardDashboardResponseBody"
+            },
+            "UpdateDashboardSchema": {
+                "properties": {
+                    "name": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "config": {
+                        "oneOf": [
+                            {
+                                "additionalProperties": {},
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "is_default": {
+                        "oneOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [],
+                "title": "UpdateDashboardSchema"
+            },
+            "UpdateInvoiceAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/InvoiceUpdateSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "invoice_actions__invoice_update"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "UpdateInvoiceAction"
+            },
+            "UpdateMediaAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/MediaUpdateSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "media_actions__media_update"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "UpdateMediaAction"
+            },
+            "UpdatePostAction": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/PostUpdateSchema"
+                    },
+                    "action": {
+                        "type": "string",
+                        "const": "post_actions__post_update"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "action",
+                    "data"
+                ],
+                "title": "UpdatePostAction"
+            },
+            "UserWaitlistFormSchema": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "company": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "message": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email",
+                    "name"
+                ],
+                "title": "UserWaitlistFormSchema"
+            }
+        },
+        "securitySchemes": {
+            "sessionCookie": {
+                "type": "apiKey",
+                "description": "Session cookie authentication.",
+                "name": "session",
+                "in": "cookie"
+            }
+        }
+    },
+    "security": [
+        {
+            "sessionCookie": []
+        }
+    ]
+}

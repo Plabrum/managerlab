@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class User(
-    StateMachineMixin(states=UserStates, initial_state=UserStates.NEEDS_TEAM),
+    StateMachineMixin(state_enum=UserStates, initial_state=UserStates.NEEDS_TEAM),
     BaseDBModel,
 ):
     """Platform user account - represents people who log into the system."""
@@ -90,7 +90,7 @@ class Role(BaseDBModel):
 class Roster(
     RLSMixin(),
     StateMachineMixin(
-        states=RosterStates,
+        state_enum=RosterStates,
         initial_state=RosterStates.PROSPECT,
     ),
     BaseDBModel,

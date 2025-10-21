@@ -62,8 +62,23 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def include_object(object, name, type_, reflected, compare_to):
+    """
+    Exclude SAQ tables from autogenerate migrations.
+
+    SAQ (Simple Async Queue) manages its own tables (saq_jobs, saq_stats, saq_versions).
+    """
+    if type_ == "table" and name.startswith("saq_"):
+        return False
+    return True
+
+
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_object=include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
