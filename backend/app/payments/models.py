@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class Invoice(
     RLSMixin(scope_with_campaign_id=True),
-    StateMachineMixin(states=InvoiceStates, initial_state=InvoiceStates.DRAFT),
+    StateMachineMixin(state_enum=InvoiceStates, initial_state=InvoiceStates.DRAFT),
     BaseDBModel,
 ):
     __tablename__ = "invoices"

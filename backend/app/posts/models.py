@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class Post(
     RLSMixin(scope_with_campaign_id=True),
-    StateMachineMixin(initial_state=PostStates.DRAFT, states=PostStates),
+    StateMachineMixin(initial_state=PostStates.DRAFT, state_enum=PostStates),
     BaseDBModel,
 ):
     """Post object model."""

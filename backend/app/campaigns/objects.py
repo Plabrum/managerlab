@@ -16,6 +16,7 @@ from app.objects.schemas import (
 )
 from app.objects.services import get_filter_by_field_type
 from app.campaigns.models import Campaign
+from app.campaigns.enums import CampaignStates
 from app.utils.sqids import sqid_encode
 
 
@@ -23,6 +24,30 @@ class CampaignObject(BaseObject):
     object_type = ObjectTypes.Campaigns
     model = Campaign
     column_definitions = [
+        ColumnDefinitionDTO(
+            key="id",
+            label="ID",
+            type=FieldType.Int,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Int),
+            default_visible=False,
+        ),
+        ColumnDefinitionDTO(
+            key="created_at",
+            label="Created At",
+            type=FieldType.Datetime,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
+            default_visible=False,
+        ),
+        ColumnDefinitionDTO(
+            key="updated_at",
+            label="Updated At",
+            type=FieldType.Datetime,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
+            default_visible=False,
+        ),
         ColumnDefinitionDTO(
             key="name",
             label="Name",
@@ -62,6 +87,7 @@ class CampaignObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=False,
+            available_values=[state.value for state in CampaignStates],
         ),
     ]
 

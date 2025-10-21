@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -21,6 +21,8 @@ import type {
   ObjectListDTO,
 } from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
+import { CreatePostForm } from '@/components/actions/create-post-form';
+import type { ActionFormRenderer } from '@/hooks/use-action-executor';
 
 export default function PostsPage() {
   // Table state
@@ -78,6 +80,31 @@ export default function PostsPage() {
     // TODO: Implement row action handling with dynamic objectId
   };
 
+  // Custom form renderer for post actions
+  const renderPostActionForm: ActionFormRenderer = useCallback((props) => {
+    const { action, onSubmit, onCancel, isSubmitting } = props;
+
+    // Handle create post action with custom form
+    if (action.action === 'top_level_post_actions__top_level_post_create') {
+      return (
+        <CreatePostForm
+          onSubmit={(postData) => {
+            // Pass to action executor
+            onSubmit({
+              action: 'top_level_post_actions__top_level_post_create',
+              data: postData,
+            });
+          }}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    }
+
+    // Return null for actions that don't need custom forms
+    return null;
+  }, []);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -95,6 +122,10 @@ export default function PostsPage() {
           <ActionsMenu
             actions={data.actions}
             actionGroup="top_level_post_actions"
+            renderActionForm={renderPostActionForm}
+            onActionComplete={() => {
+              // Refresh posts list after action completion
+            }}
           />
         )}
       </div>

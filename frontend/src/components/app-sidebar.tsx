@@ -1,16 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  LayoutDashboard,
-  Megaphone,
-  FileText,
-  Building2,
-  Users,
-  Settings2,
-  Image,
-  Newspaper,
-} from 'lucide-react';
+import { LayoutDashboard, FolderKanban } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -24,51 +15,74 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/components/providers/auth-provider';
+import { dashboardsListDashboards } from '@/openapi/dashboards/dashboards';
+import type { ListDashboardsDashboardResponseBody } from '@/openapi/managerLab.schemas';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
+  const [dashboards, setDashboards] = React.useState<
+    ListDashboardsDashboardResponseBody[]
+  >([]);
+
+  React.useEffect(() => {
+    const fetchDashboards = async () => {
+      try {
+        const data = await dashboardsListDashboards();
+        setDashboards(data);
+      } catch (error) {
+        console.error('Failed to fetch dashboards:', error);
+      }
+    };
+
+    fetchDashboards();
+  }, []);
+
+  const dashboardItems =
+    dashboards.length > 0
+      ? dashboards.map((dashboard) => ({
+          title: dashboard.name,
+          url: `/dashboard/${dashboard.id}`,
+        }))
+      : undefined;
 
   const navMain = [
     {
       title: 'Dashboard',
       url: '/dashboard',
       icon: LayoutDashboard,
+      items: dashboardItems,
     },
     {
-      title: 'Campaigns',
-      url: '/campaigns',
-      icon: Megaphone,
-    },
-    {
-      title: 'Brands',
-      url: '/brands',
-      icon: Building2,
-    },
-    {
-      title: 'Roster',
-      url: '/roster',
-      icon: Users,
-    },
-    {
-      title: 'Posts',
-      url: '/posts',
-      icon: Newspaper,
-    },
-    {
-      title: 'Media',
-      url: '/media',
-      icon: Image,
-    },
-    {
-      title: 'Invoices',
-      url: '/invoices',
-      icon: FileText,
-    },
-    {
-      title: 'Settings',
-      url: '/settings',
-      icon: Settings2,
+      title: 'Management',
+      url: '#',
+      icon: FolderKanban,
+      items: [
+        {
+          title: 'Campaigns',
+          url: '/campaigns',
+        },
+        {
+          title: 'Brands',
+          url: '/brands',
+        },
+        {
+          title: 'Roster',
+          url: '/roster',
+        },
+        {
+          title: 'Posts',
+          url: '/posts',
+        },
+        {
+          title: 'Media',
+          url: '/media',
+        },
+        {
+          title: 'Invoices',
+          url: '/invoices',
+        },
+      ],
     },
   ];
 

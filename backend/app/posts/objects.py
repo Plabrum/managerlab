@@ -19,13 +19,43 @@ from app.objects.schemas import (
 )
 from app.objects.services import get_filter_by_field_type
 from app.posts.models import Post
+from app.posts.enums import PostStates, SocialMediaPlatforms
 from app.utils.sqids import sqid_encode
 
 
 class PostObject(BaseObject):
     object_type = ObjectTypes.Posts
     model = Post
+
+    @classmethod
+    def get_top_level_action_group(cls):
+        return ActionGroupType.TopLevelPostActions
+
     column_definitions = [
+        ColumnDefinitionDTO(
+            key="id",
+            label="ID",
+            type=FieldType.Int,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Int),
+            default_visible=False,
+        ),
+        ColumnDefinitionDTO(
+            key="created_at",
+            label="Created At",
+            type=FieldType.Datetime,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
+            default_visible=False,
+        ),
+        ColumnDefinitionDTO(
+            key="updated_at",
+            label="Updated At",
+            type=FieldType.Datetime,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Datetime),
+            default_visible=False,
+        ),
         ColumnDefinitionDTO(
             key="title",
             label="Title",
@@ -49,6 +79,7 @@ class PostObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
+            available_values=[platform.value for platform in SocialMediaPlatforms],
         ),
         ColumnDefinitionDTO(
             key="state",
@@ -57,6 +88,7 @@ class PostObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
+            available_values=[state.value for state in PostStates],
         ),
         ColumnDefinitionDTO(
             key="posting_date",

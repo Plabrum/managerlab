@@ -1,12 +1,8 @@
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
-from msgspec import Struct
 
-from app.base.schemas import BaseSchema
+from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
 from app.users.models import User, WaitlistEntry, Team
 from app.users.enums import RoleLevel
-
-
-from app.base.schemas import SanitizedSQLAlchemyDTO
 
 
 class UserDTO(SanitizedSQLAlchemyDTO[User]):
@@ -46,7 +42,7 @@ class UserWaitlistFormSchema(BaseSchema):
     message: str | None = None
 
 
-class TeamListItemSchema(Struct):
+class TeamListItemSchema(BaseSchema):
     """Schema for a team in the list."""
 
     team_id: int
@@ -54,7 +50,7 @@ class TeamListItemSchema(Struct):
     role_level: RoleLevel
 
 
-class ListTeamsResponse(Struct):
+class ListTeamsResponse(BaseSchema):
     """Response for listing teams."""
 
     teams: list[TeamListItemSchema]
@@ -62,7 +58,16 @@ class ListTeamsResponse(Struct):
     is_campaign_scoped: bool
 
 
-class SwitchTeamRequest(Struct):
+class SwitchTeamRequest(BaseSchema):
     """Request to switch team."""
 
     team_id: int
+
+
+class RosterCreateSchema(BaseSchema):
+    """Schema for creating a new roster member."""
+
+    name: str
+    email: str | None = None
+    phone: str | None = None
+    instagram_handle: str | None = None

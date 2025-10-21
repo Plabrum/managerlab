@@ -1,11 +1,11 @@
-from abc import abstractmethod
 from enum import Enum
+from typing import Any
 
-import sqlalchemy as sa
+from sqlalchemy import types
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
-
 from app.base.models import BaseDBModel
+
 
 # TODO PAL: Add Log Table
 # class StateTransitionLog[E: Enum, M: BaseDBModel](BaseDBModel):
@@ -21,50 +21,55 @@ from app.base.models import BaseDBModel
 #
 
 
-class _StateMachineBase[E: Enum](BaseDBModel):
+class TextEnum[E: Enum](types.TypeDecorator[E]):
+    """Store enum as TEXT, converting between enum and string."""
+
+    impl = types.Text
+    cache_ok = True
+
+    def __init__(self, enum_class: type[E], *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.enum_class = enum_class
+
+    def process_bind_param(self, value: E | None, dialect: Any) -> str | None:
+        """Convert enum to string for database."""
+        if value is None:
+            return None
+        return value.name
+
+    def process_result_value(self, value: str | None, dialect: Any) -> E | None:
+        """Convert string from database to enum."""
+        if value is None:
+            return None
+        return self.enum_class[value]
+
+
+class _StateMachineMixinBase[E: Enum](BaseDBModel):
     __abstract__ = True
-
-    @classmethod
-    @abstractmethod
-    def __state_enum__(cls) -> type[E]: ...
-
-    @classmethod
-    @abstractmethod
-    def __initial_state__(cls) -> E: ...
-
-    @declared_attr
-    def _state_raw(cls) -> Mapped[str]:
-        init = cls.__initial_state__()
-        return mapped_column(
-            "state",
-            sa.Text,
-            index=True,
-            nullable=False,
-            default=init.name,
-            server_default=init.name,
-        )
-
-    @property
-    def state(self) -> E:
-        return self.__state_enum__()[self._state_raw]
-
-    @state.setter
-    def state(self, value: E) -> None:
-        self._state_raw = value.name
+    state: Mapped[E]
 
 
 def StateMachineMixin[E: Enum](
-    *, states: type[E], initial_state: E
-) -> type[_StateMachineBase[E]]:
-    class _StateMachineMixin(_StateMachineBase[E]):
+    *, state_enum: type[E], initial_state: E
+) -> type[_StateMachineMixinBase[E]]:
+    class _StateMachineMixin(_StateMachineMixinBase[E]):
         __abstract__ = True
 
-        @classmethod
-        def __state_enum__(cls) -> type[E]:
-            return states
+        @declared_attr
+        def state(cls) -> Mapped[E]:
+            return mapped_column(
+                TextEnum(state_enum),
+                index=True,
+                nullable=False,
+                default=initial_state,
+                server_default=initial_state.name,
+            )
 
-        @classmethod
-        def __initial_state__(cls) -> E:
-            return initial_state
+        def __init_subclass__(cls, **kwargs: Any) -> None:
+            super().__init_subclass__(**kwargs)
+            # Override the generic type annotation with the concrete enum type
+            # This allows DTO introspection tools (msgspec) to properly resolve the enum
+            if not cls.__dict__.get("__abstract__", False):
+                cls.__annotations__["state"] = Mapped[state_enum]
 
     return _StateMachineMixin

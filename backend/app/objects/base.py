@@ -168,3 +168,33 @@ class BaseObject(ABC):
                         query = query.order_by(column.desc())
 
         return query
+
+    @classmethod
+    def get_field_metadata(cls, field_name: str) -> ColumnDefinitionDTO | None:
+        """Get column definition metadata for a field.
+
+        Args:
+            field_name: Name of the field to look up
+
+        Returns:
+            ColumnDefinitionDTO if field exists, None otherwise
+        """
+        for col_def in cls.column_definitions:
+            if col_def.key == field_name:
+                return col_def
+        return None
+
+    @classmethod
+    def validate_field_exists(cls, field_name: str) -> None:
+        """Validate that a field exists in column definitions.
+
+        Args:
+            field_name: Name of the field to validate
+
+        Raises:
+            ValueError: If field does not exist
+        """
+        if cls.get_field_metadata(field_name) is None:
+            raise ValueError(
+                f"Field '{field_name}' not found in {cls.object_type} column definitions"
+            )

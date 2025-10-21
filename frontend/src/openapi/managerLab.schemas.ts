@@ -44,6 +44,9 @@ export const ActionGroupType = {
   top_level_campaign_actions: 'top_level_campaign_actions',
   invoice_actions: 'invoice_actions',
   top_level_invoice_actions: 'top_level_invoice_actions',
+  roster_actions: 'roster_actions',
+  top_level_roster_actions: 'top_level_roster_actions',
+  dashboard_actions: 'dashboard_actions',
 } as const;
 
 export interface ActionListResponse {
@@ -67,6 +70,22 @@ export interface AddUserToWaitlistWaitlistEntryResponseBody {
   deleted_at?: AddUserToWaitlistWaitlistEntryResponseBodyDeletedAt;
   public_id: string;
 }
+
+/**
+ * Aggregation types for time series data.
+ */
+export type AggregationType = typeof AggregationType[keyof typeof AggregationType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AggregationType = {
+  sum: 'sum',
+  avg: 'avg',
+  max: 'max',
+  min: 'min',
+  count: 'count',
+  mode: 'mode',
+} as const;
 
 export interface BoolFieldValue {
   value: boolean;
@@ -158,6 +177,17 @@ export interface CampaignScopeSchema {
   access_level: CampaignGuestAccessLevel;
 }
 
+export type CampaignStates = typeof CampaignStates[keyof typeof CampaignStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CampaignStates = {
+  draft: 'draft',
+  active: 'active',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
 export type CampaignUpdateSchemaName = string | null;
 
 export type CampaignUpdateSchemaDescription = string | null;
@@ -168,6 +198,19 @@ export interface CampaignUpdateSchema {
   name?: CampaignUpdateSchemaName;
   description?: CampaignUpdateSchemaDescription;
   brand_id?: CampaignUpdateSchemaBrandId;
+}
+
+export type CategoricalDataPointBreakdowns = {[key: string]: number};
+
+export interface CategoricalDataPoint {
+  timestamp: string;
+  breakdowns: CategoricalDataPointBreakdowns;
+  total_count: number;
+}
+
+export interface CategoricalTimeSeriesData {
+  data_points: CategoricalDataPoint[];
+  type: 'categorical';
 }
 
 export type ColumnDefinitionDTOAvailableValues = string[] | null;
@@ -197,6 +240,42 @@ export interface CreateCampaignAction {
   action: 'top_level_campaign_actions__campaign_create';
 }
 
+export type CreateDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type CreateDashboardDashboardResponseBodyUserId = number | null;
+
+export type CreateDashboardDashboardResponseBodyDeletedAt = string | null;
+
+export type CreateDashboardDashboardResponseBodyTeamId = number | null;
+
+export interface CreateDashboardDashboardResponseBody {
+  name: string;
+  config: CreateDashboardDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: CreateDashboardDashboardResponseBodyUserId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: CreateDashboardDashboardResponseBodyDeletedAt;
+  team_id?: CreateDashboardDashboardResponseBodyTeamId;
+  id: string;
+}
+
+export type CreateDashboardSchemaConfig = {[key: string]: unknown};
+
+export type CreateDashboardSchemaUserId = number | null;
+
+export type CreateDashboardSchemaTeamId = number | null;
+
+export interface CreateDashboardSchema {
+  name: string;
+  config: CreateDashboardSchemaConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: CreateDashboardSchemaUserId;
+  team_id?: CreateDashboardSchemaTeamId;
+  is_default?: boolean;
+}
+
 export interface CreateInvoiceAction {
   data: InvoiceCreateSchema;
   action: 'top_level_invoice_actions__invoice_create';
@@ -210,6 +289,11 @@ export interface CreateMediaAction {
 export interface CreatePostAction {
   data: PostCreateSchema;
   action: 'top_level_post_actions__top_level_post_create';
+}
+
+export interface CreateRosterAction {
+  data: RosterCreateSchema;
+  action: 'top_level_roster_actions__top_level_roster_create';
 }
 
 export type CreateTeamSchemaDescription = string | null;
@@ -246,8 +330,21 @@ export interface CreateUserUserResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: CreateUserUserResponseBodyDeletedAt;
+  state?: UserStates;
   id: string;
 }
+
+/**
+ * Dashboard ownership types.
+ */
+export type DashboardOwnerType = typeof DashboardOwnerType[keyof typeof DashboardOwnerType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DashboardOwnerType = {
+  user: 'user',
+  team: 'team',
+} as const;
 
 export interface DateFieldValue {
   value: string;
@@ -274,6 +371,11 @@ export const DeleteCampaignActionValue = {
   action: 'campaign_actions__campaign_delete',
 } as const;
 export type DeleteCampaignAction = typeof DeleteCampaignActionValue;
+
+export const DeleteDashboardActionValue = {
+  action: 'dashboard_actions__delete',
+} as const;
+export type DeleteDashboardAction = typeof DeleteDashboardActionValue;
 
 export const DeleteInvoiceActionValue = {
   action: 'invoice_actions__invoice_delete',
@@ -422,6 +524,7 @@ export interface GetCampaignCampaignResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetCampaignCampaignResponseBodyDeletedAt;
+  state?: CampaignStates;
   team_id: number;
   id: string;
 }
@@ -435,6 +538,28 @@ export interface GetCurrentUserUserResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetCurrentUserUserResponseBodyDeletedAt;
+  state?: UserStates;
+  id: string;
+}
+
+export type GetDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type GetDashboardDashboardResponseBodyUserId = number | null;
+
+export type GetDashboardDashboardResponseBodyDeletedAt = string | null;
+
+export type GetDashboardDashboardResponseBodyTeamId = number | null;
+
+export interface GetDashboardDashboardResponseBody {
+  name: string;
+  config: GetDashboardDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: GetDashboardDashboardResponseBodyUserId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: GetDashboardDashboardResponseBodyDeletedAt;
+  team_id?: GetDashboardDashboardResponseBodyTeamId;
   id: string;
 }
 
@@ -459,6 +584,7 @@ export interface GetInvoiceInvoiceResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetInvoiceInvoiceResponseBodyDeletedAt;
+  state?: InvoiceStates;
   team_id: number;
   campaign_id?: GetInvoiceInvoiceResponseBodyCampaignId;
   id: string;
@@ -482,6 +608,7 @@ export interface GetPostPostResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetPostPostResponseBodyDeletedAt;
+  state?: PostStates;
   team_id: number;
   campaign_id?: GetPostPostResponseBodyCampaignId;
   id: string;
@@ -496,6 +623,7 @@ export interface GetUserUserResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: GetUserUserResponseBodyDeletedAt;
+  state?: UserStates;
   id: string;
 }
 
@@ -508,6 +636,23 @@ export interface GoogleUserInfoResponseSchema {
   picture?: GoogleUserInfoResponseSchemaPicture;
   user_id: number;
 }
+
+/**
+ * Time series granularity/bucketing options.
+ */
+export type Granularity = typeof Granularity[keyof typeof Granularity];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const Granularity = {
+  automatic: 'automatic',
+  hour: 'hour',
+  day: 'day',
+  week: 'week',
+  month: 'month',
+  quarter: 'quarter',
+  year: 'year',
+} as const;
 
 export type ImageFieldValueThumbnailUrl = string | null;
 
@@ -540,6 +685,15 @@ export interface InvoiceCreateSchema {
   notes?: InvoiceCreateSchemaNotes;
   campaign_id?: InvoiceCreateSchemaCampaignId;
 }
+
+export type InvoiceStates = typeof InvoiceStates[keyof typeof InvoiceStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const InvoiceStates = {
+  draft: 'draft',
+  posted: 'posted',
+} as const;
 
 export type InvoiceUpdateSchemaInvoiceNumber = number | null;
 
@@ -574,6 +728,27 @@ export interface InvoiceUpdateSchema {
   campaign_id?: InvoiceUpdateSchemaCampaignId;
 }
 
+export type ListDashboardsDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type ListDashboardsDashboardResponseBodyUserId = number | null;
+
+export type ListDashboardsDashboardResponseBodyDeletedAt = string | null;
+
+export type ListDashboardsDashboardResponseBodyTeamId = number | null;
+
+export interface ListDashboardsDashboardResponseBody {
+  name: string;
+  config: ListDashboardsDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: ListDashboardsDashboardResponseBodyUserId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: ListDashboardsDashboardResponseBodyDeletedAt;
+  team_id?: ListDashboardsDashboardResponseBodyTeamId;
+  id: string;
+}
+
 export type ListScopesResponseCurrentScopeType = string | null;
 
 export type ListScopesResponseCurrentScopeId = number | null;
@@ -602,13 +777,41 @@ export interface ListUsersUserResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: ListUsersUserResponseBodyDeletedAt;
+  state?: UserStates;
   id: string;
 }
+
+/**
+ * Media processing states.
+ */
+export type MediaStates = typeof MediaStates[keyof typeof MediaStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MediaStates = {
+  pending: 'pending',
+  processing: 'processing',
+  ready: 'ready',
+  failed: 'failed',
+} as const;
 
 export type MediaUpdateSchemaFileName = string | null;
 
 export interface MediaUpdateSchema {
   file_name?: MediaUpdateSchemaFileName;
+}
+
+export type NumericalDataPointValue = number | number | null;
+
+export interface NumericalDataPoint {
+  timestamp: string;
+  value?: NumericalDataPointValue;
+  count: number;
+}
+
+export interface NumericalTimeSeriesData {
+  data_points: NumericalDataPoint[];
+  type: 'numerical';
 }
 
 export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
@@ -721,6 +924,17 @@ export interface PostCreateSchema {
   campaign_id?: PostCreateSchemaCampaignId;
 }
 
+export type PostStates = typeof PostStates[keyof typeof PostStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostStates = {
+  draft: 'draft',
+  in_review: 'in_review',
+  approved: 'approved',
+  posted: 'posted',
+} as const;
+
 export type PostUpdateSchemaTitle = string | null;
 
 export type PostUpdateSchemaContent = string | null;
@@ -786,6 +1000,7 @@ export interface RegisterMediaMediaResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: RegisterMediaMediaResponseBodyDeletedAt;
+  state?: MediaStates;
   team_id: number;
   campaign_id?: RegisterMediaMediaResponseBodyCampaignId;
   id: string;
@@ -811,6 +1026,19 @@ export const RoleLevel = {
   member: 'member',
   viewer: 'viewer',
 } as const;
+
+export type RosterCreateSchemaEmail = string | null;
+
+export type RosterCreateSchemaPhone = string | null;
+
+export type RosterCreateSchemaInstagramHandle = string | null;
+
+export interface RosterCreateSchema {
+  name: string;
+  email?: RosterCreateSchemaEmail;
+  phone?: RosterCreateSchemaPhone;
+  instagram_handle?: RosterCreateSchemaInstagramHandle;
+}
 
 /**
  * Scope type for user access control.
@@ -906,6 +1134,58 @@ export interface TextFilterDefinition {
   type: 'text_filter';
 }
 
+/**
+ * Relative time range options for time series queries.
+ */
+export type TimeRange = typeof TimeRange[keyof typeof TimeRange];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TimeRange = {
+  last_7_days: 'last_7_days',
+  last_30_days: 'last_30_days',
+  last_90_days: 'last_90_days',
+  last_6_months: 'last_6_months',
+  last_year: 'last_year',
+  year_to_date: 'year_to_date',
+  month_to_date: 'month_to_date',
+  all_time: 'all_time',
+} as const;
+
+export type TimeSeriesDataRequestTimeRange = TimeRange | null;
+
+export type TimeSeriesDataRequestStartDate = string | null;
+
+export type TimeSeriesDataRequestEndDate = string | null;
+
+export type TimeSeriesDataRequestAggregation = AggregationType | null;
+
+export type TimeSeriesDataRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition;
+
+export interface TimeSeriesDataRequest {
+  field: string;
+  time_range?: TimeSeriesDataRequestTimeRange;
+  start_date?: TimeSeriesDataRequestStartDate;
+  end_date?: TimeSeriesDataRequestEndDate;
+  granularity?: Granularity;
+  aggregation?: TimeSeriesDataRequestAggregation;
+  filters?: TimeSeriesDataRequestFiltersItem[];
+  fill_missing?: boolean;
+}
+
+export type TimeSeriesDataResponseData = NumericalTimeSeriesData | CategoricalTimeSeriesData;
+
+export interface TimeSeriesDataResponse {
+  data: TimeSeriesDataResponseData;
+  field_name: string;
+  field_type: FieldType;
+  aggregation_type: AggregationType;
+  granularity_used: Granularity;
+  start_date: string;
+  end_date: string;
+  total_records: number;
+}
+
 export interface URLFieldValue {
   value: string;
   type: 'url';
@@ -989,8 +1269,49 @@ export interface UpdateCampaignCampaignResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: UpdateCampaignCampaignResponseBodyDeletedAt;
+  state?: CampaignStates;
   team_id: number;
   id: string;
+}
+
+export interface UpdateDashboardAction {
+  data: UpdateDashboardSchema;
+  action: 'dashboard_actions__update';
+}
+
+export type UpdateDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
+
+export type UpdateDashboardDashboardResponseBodyUserId = number | null;
+
+export type UpdateDashboardDashboardResponseBodyDeletedAt = string | null;
+
+export type UpdateDashboardDashboardResponseBodyTeamId = number | null;
+
+export interface UpdateDashboardDashboardResponseBody {
+  name: string;
+  config: UpdateDashboardDashboardResponseBodyConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: UpdateDashboardDashboardResponseBodyUserId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: UpdateDashboardDashboardResponseBodyDeletedAt;
+  team_id?: UpdateDashboardDashboardResponseBodyTeamId;
+  id: string;
+}
+
+export type UpdateDashboardSchemaName = string | null;
+
+export type UpdateDashboardSchemaConfigOneOf = {[key: string]: unknown};
+
+export type UpdateDashboardSchemaConfig = UpdateDashboardSchemaConfigOneOf | null;
+
+export type UpdateDashboardSchemaIsDefault = boolean | null;
+
+export interface UpdateDashboardSchema {
+  name?: UpdateDashboardSchemaName;
+  config?: UpdateDashboardSchemaConfig;
+  is_default?: UpdateDashboardSchemaIsDefault;
 }
 
 export interface UpdateInvoiceAction {
@@ -1019,6 +1340,7 @@ export interface UpdateInvoiceInvoiceResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: UpdateInvoiceInvoiceResponseBodyDeletedAt;
+  state?: InvoiceStates;
   team_id: number;
   campaign_id?: UpdateInvoiceInvoiceResponseBodyCampaignId;
   id: string;
@@ -1052,10 +1374,21 @@ export interface UpdatePostPostResponseBody {
   created_at: string;
   updated_at: string;
   deleted_at?: UpdatePostPostResponseBodyDeletedAt;
+  state?: PostStates;
   team_id: number;
   campaign_id?: UpdatePostPostResponseBodyCampaignId;
   id: string;
 }
+
+export type UserStates = typeof UserStates[keyof typeof UserStates];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UserStates = {
+  needs_team: 'needs_team',
+  active: 'active',
+  deleted: 'deleted',
+} as const;
 
 export type UserWaitlistFormSchemaCompany = string | null;
 
@@ -1201,6 +1534,19 @@ export type ListObjects400 = {
   extra?: ListObjects400Extra;
 };
 
+export type GetTimeSeriesData400ExtraAnyOf = {[key: string]: unknown};
+
+export type GetTimeSeriesData400Extra = null | GetTimeSeriesData400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type GetTimeSeriesData400 = {
+  status_code: number;
+  detail: string;
+  extra?: GetTimeSeriesData400Extra;
+};
+
 export type ActionsActionGroupListActions400ExtraAnyOf = {[key: string]: unknown};
 
 export type ActionsActionGroupListActions400Extra = null | ActionsActionGroupListActions400ExtraAnyOf | unknown[];
@@ -1214,7 +1560,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1242,7 +1588,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeletePostAction | UpdatePostAction | PublishPostAction | DeleteDashboardAction | UpdateDashboardAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreatePostAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1426,6 +1772,45 @@ export type InvoicesIdUpdateInvoice400 = {
   status_code: number;
   detail: string;
   extra?: InvoicesIdUpdateInvoice400Extra;
+};
+
+export type DashboardsCreateDashboard400ExtraAnyOf = {[key: string]: unknown};
+
+export type DashboardsCreateDashboard400Extra = null | DashboardsCreateDashboard400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DashboardsCreateDashboard400 = {
+  status_code: number;
+  detail: string;
+  extra?: DashboardsCreateDashboard400Extra;
+};
+
+export type DashboardsIdGetDashboard400ExtraAnyOf = {[key: string]: unknown};
+
+export type DashboardsIdGetDashboard400Extra = null | DashboardsIdGetDashboard400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DashboardsIdGetDashboard400 = {
+  status_code: number;
+  detail: string;
+  extra?: DashboardsIdGetDashboard400Extra;
+};
+
+export type DashboardsIdUpdateDashboard400ExtraAnyOf = {[key: string]: unknown};
+
+export type DashboardsIdUpdateDashboard400Extra = null | DashboardsIdUpdateDashboard400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DashboardsIdUpdateDashboard400 = {
+  status_code: number;
+  detail: string;
+  extra?: DashboardsIdUpdateDashboard400Extra;
 };
 
 export type LocalUploadKeyLocalUpload200 = { [key: string]: unknown };

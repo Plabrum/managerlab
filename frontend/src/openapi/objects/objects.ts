@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.1
  */
 import {
+  useMutation,
   useQuery,
   useSuspenseQuery
 } from '@tanstack/react-query';
@@ -13,10 +14,13 @@ import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
   UseSuspenseQueryOptions,
@@ -24,12 +28,15 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetTimeSeriesData400,
   ListObjects400,
   OObjectTypeIdGetObjectDetail400,
   ObjectDetailDTO,
   ObjectListRequest,
   ObjectListResponse,
-  ObjectTypes
+  ObjectTypes,
+  TimeSeriesDataRequest,
+  TimeSeriesDataResponse
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -353,3 +360,69 @@ export function useListObjectsSuspense<TData = Awaited<ReturnType<typeof listObj
 
 
 
+/**
+ * @summary GetTimeSeriesData
+ */
+export const getTimeSeriesData = (
+    objectType: ObjectTypes,
+    timeSeriesDataRequest: TimeSeriesDataRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<TimeSeriesDataResponse>(
+      {url: `/o/${objectType}/data`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: timeSeriesDataRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getGetTimeSeriesDataMutationOptions = <TError = GetTimeSeriesData400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTimeSeriesData>>, TError,{objectType: ObjectTypes;data: TimeSeriesDataRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof getTimeSeriesData>>, TError,{objectType: ObjectTypes;data: TimeSeriesDataRequest}, TContext> => {
+
+const mutationKey = ['getTimeSeriesData'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getTimeSeriesData>>, {objectType: ObjectTypes;data: TimeSeriesDataRequest}> = (props) => {
+          const {objectType,data} = props ?? {};
+
+          return  getTimeSeriesData(objectType,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GetTimeSeriesDataMutationResult = NonNullable<Awaited<ReturnType<typeof getTimeSeriesData>>>
+    export type GetTimeSeriesDataMutationBody = TimeSeriesDataRequest
+    export type GetTimeSeriesDataMutationError = GetTimeSeriesData400
+
+    /**
+ * @summary GetTimeSeriesData
+ */
+export const useGetTimeSeriesData = <TError = GetTimeSeriesData400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTimeSeriesData>>, TError,{objectType: ObjectTypes;data: TimeSeriesDataRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof getTimeSeriesData>>,
+        TError,
+        {objectType: ObjectTypes;data: TimeSeriesDataRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getGetTimeSeriesDataMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    

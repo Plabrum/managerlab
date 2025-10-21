@@ -26,7 +26,8 @@ help:
 	@echo "  docker-test      - Test backend Docker image locally"
 	@echo "  docker-push      - Build and push backend Docker image to ECR"
 	@echo "  codegen          - Generate API client code"
-	@echo "  ecs-exec         - Connect to running ECS task via Session Manager"
+	@echo "  ecs-exec         - Connect to running ECS API task via Session Manager"
+	@echo "  ecs-exec-worker  - Connect to running ECS worker task via Session Manager"
 	@echo "  sqid             - Encode/decode sqid (usage: make sqid 9 or make sqid abc123)"
 	@echo "  clean            - Clean all dependencies and build artifacts"
 
@@ -154,21 +155,41 @@ docker-test:
 # AWS/ECS targets
 .PHONY: ecs-exec
 ecs-exec:
-	@echo "🔌 Connecting to ECS task via Session Manager..."
+	@echo "🔌 Connecting to ECS API task via Session Manager..."
 	@TASK_ARN=$$(aws ecs list-tasks \
-		--cluster manageros-dev-cluster \
-		--service-name manageros-dev-service \
+		--cluster manageros-production-cluster \
+		--service-name manageros-production-service \
 		--query 'taskArns[0]' \
 		--output text); \
 	if [ "$$TASK_ARN" = "None" ] || [ -z "$$TASK_ARN" ]; then \
-		echo "❌ No running tasks found for service manageros-dev-service"; \
+		echo "❌ No running tasks found for service manageros-production-service"; \
 		exit 1; \
 	fi; \
 	echo "📋 Connecting to task: $$TASK_ARN"; \
 	aws ecs execute-command \
-		--cluster manageros-dev-cluster \
+		--cluster manageros-production-cluster \
 		--task $$TASK_ARN \
 		--container app \
+		--interactive \
+		--command "/bin/bash"
+
+.PHONY: ecs-exec-worker
+ecs-exec-worker:
+	@echo "🔌 Connecting to ECS worker task via Session Manager..."
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster manageros-production-cluster \
+		--service-name manageros-production-worker-service \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" = "None" ] || [ -z "$$TASK_ARN" ]; then \
+		echo "❌ No running tasks found for service manageros-production-worker-service"; \
+		exit 1; \
+	fi; \
+	echo "📋 Connecting to task: $$TASK_ARN"; \
+	aws ecs execute-command \
+		--cluster manageros-production-cluster \
+		--task $$TASK_ARN \
+		--container worker \
 		--interactive \
 		--command "/bin/bash"
 

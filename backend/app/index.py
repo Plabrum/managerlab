@@ -33,6 +33,7 @@ from app.campaigns.routes import campaign_router
 from app.posts.routes import post_router
 from app.media.routes import media_router, local_media_router
 from app.payments.routes import invoice_router
+from app.dashboard.routes import dashboard_router
 
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
@@ -49,15 +50,13 @@ async def health_check() -> Response:
     return Response(content={"detail": "ok"}, status_code=200)
 
 
-session_auth = SessionAuth[
-    int, ServerSideSessionBackend
-](
+session_auth = SessionAuth[int, ServerSideSessionBackend](
     session_backend_config=ServerSideSessionConfig(
-        samesite="lax",  # Works for same-site (localhost in dev, *.managerlab.app in prod)
-        secure=config.ENV != "development",  # False for localhost, True for production
-        httponly=True,  # Security: prevent XSS access to cookies
-        max_age=ONE_DAY_IN_SECONDS * 14,  # 14 days
-        domain=config.SESSION_COOKIE_DOMAIN,  # Must be .managerlab.app in prod for subdomain access
+        samesite="lax",
+        secure=config.ENV != "development",
+        httponly=True,
+        max_age=ONE_DAY_IN_SECONDS * 14,
+        domain=config.SESSION_COOKIE_DOMAIN,
     ),
     retrieve_user_handler=lambda session, conn: session.get("user_id"),
     exclude=[
@@ -84,7 +83,7 @@ route_handlers: list[Any] = [
     post_router,
     media_router,
     invoice_router,
-    # queue_router,  # Commented out - create app/queue/routes.py if needed
+    dashboard_router,
 ]
 
 # Only include local media router in development
@@ -103,7 +102,7 @@ app = Litestar(
     cors_config=CORSConfig(
         allow_origins=[config.FRONTEND_ORIGIN],
         allow_credentials=True,  # Required for session cookies
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
     ),
     exception_handlers={
