@@ -1062,6 +1062,10 @@ resource "aws_ecs_task_definition" "main" {
           value = aws_rds_cluster.main.endpoint
         },
         {
+          name  = "DATABASE_URL"
+          value = "postgresql://${var.db_username}:${var.db_password}@${aws_rds_cluster.main.endpoint}:5432/${var.db_name}"
+        },
+        {
           name  = "AWS_REGION"
           value = var.aws_region
         },
@@ -1221,6 +1225,10 @@ resource "aws_ecs_task_definition" "worker" {
         {
           name  = "DB_ENDPOINT"
           value = aws_rds_cluster.main.endpoint
+        },
+        {
+          name  = "DATABASE_URL"
+          value = "postgresql://${var.db_username}:${var.db_password}@${aws_rds_cluster.main.endpoint}:5432/${var.db_name}"
         },
         {
           name  = "AWS_REGION"
