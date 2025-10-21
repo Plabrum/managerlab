@@ -4,7 +4,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
-from app.campaigns.enums import CampaignStates, CampaignGuestAccessLevel
+from app.campaigns.enums import (
+    CampaignStates,
+    CampaignGuestAccessLevel,
+    CompensationStructure,
+)
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
@@ -28,6 +32,10 @@ class Campaign(
     name: Mapped[str] = mapped_column(sa.Text, nullable=False)
     description: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
+    compensation_structure: Mapped[CompensationStructure] = mapped_column(
+        sa.Enum(CompensationStructure),
+        nullable=True,
+    )
     # Foreign keys - Campaign always has a Brand
     brand_id: Mapped[int] = mapped_column(sa.ForeignKey("brands.id"), nullable=False)
 

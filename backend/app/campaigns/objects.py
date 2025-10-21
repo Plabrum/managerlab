@@ -23,6 +23,7 @@ from app.utils.sqids import sqid_encode
 class CampaignObject(BaseObject):
     object_type = ObjectTypes.Campaigns
     model = Campaign
+
     column_definitions = [
         ColumnDefinitionDTO(
             key="id",
@@ -62,7 +63,7 @@ class CampaignObject(BaseObject):
             type=FieldType.Text,
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Text),
-            default_visible=True,
+            default_visible=False,
         ),
         ColumnDefinitionDTO(
             key="brand",
@@ -76,7 +77,7 @@ class CampaignObject(BaseObject):
             key="created_at",
             label="Created",
             type=FieldType.Datetime,
-            sortable=True,
+            sortable=False,
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
         ),
@@ -88,6 +89,14 @@ class CampaignObject(BaseObject):
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=False,
             available_values=[state.value for state in CampaignStates],
+        ),
+        ColumnDefinitionDTO(
+            key="compensation_structure",
+            label="Compensation",
+            type=FieldType.Enum,
+            sortable=True,
+            filter_type=get_filter_by_field_type(FieldType.Enum),
+            default_visible=True,
         ),
     ]
 
@@ -105,17 +114,29 @@ class CampaignObject(BaseObject):
                 label="Name",
                 editable=True,
             ),
-        ]
-
-        if campaign.description:
-            fields.append(
+            (
+                ObjectFieldDTO(
+                    key="compensation_structure",
+                    value=(
+                        StringFieldValue(value=campaign.compensation_structure.value)
+                    ),
+                    label="Compensation Structure",
+                    editable=True,
+                )
+                if campaign.compensation_structure
+                else None
+            ),
+            (
                 ObjectFieldDTO(
                     key="description",
                     value=TextFieldValue(value=campaign.description),
                     label="Description",
                     editable=True,
                 )
-            )
+                if campaign.description
+                else None
+            ),
+        ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
         actions = action_group.get_available_actions(obj=campaign)

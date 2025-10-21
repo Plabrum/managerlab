@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { mediaPresignedUploadRequestPresignedUpload } from '@/openapi/media/media';
 import { RegisterMediaSchema } from '@/openapi/managerLab.schemas';
+import { Image } from '@/components/ui/image';
 
 // interface MediaUploadData {
 //   file_key: string;
@@ -210,7 +211,7 @@ export function CreateMediaForm({
 
           {previewUrl && (
             <div className="mt-4">
-              <img
+              <Image
                 src={previewUrl}
                 alt={selectedFile.name}
                 className="max-h-64 w-full rounded-md object-contain"

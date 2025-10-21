@@ -1,4 +1,5 @@
 from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
+from app.campaigns.enums import CompensationStructure
 from app.campaigns.models import Campaign
 
 
@@ -14,6 +15,7 @@ class CampaignUpdateSchema(BaseSchema):
     name: str | None = None
     description: str | None = None
     brand_id: int | None = None
+    compensation_structure: CompensationStructure | None = None
 
 
 class CampaignCreateSchema(BaseSchema):
@@ -22,3 +24,4 @@ class CampaignCreateSchema(BaseSchema):
     name: str
     brand_id: int
     description: str | None = None
+    compensation_structure: CompensationStructure | None = None

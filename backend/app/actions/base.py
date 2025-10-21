@@ -56,6 +56,9 @@ class BaseAction(ABC):
     priority: ClassVar[int] = 100  # Display priority (lower = higher priority)
     icon: ClassVar[ActionIcon] = ActionIcon.default
     confirmation_message: ClassVar[str | None] = None  # Optional confirmation message
+    should_redirect_to_parent: ClassVar[bool] = (
+        False  # Whether to redirect to parent after execution
+    )
 
     # Model and load options for default get_object implementation
     model: ClassVar[Type[BaseDBModel] | None] = None
@@ -180,6 +183,7 @@ class ActionGroup:
                 priority=action_class.priority,
                 icon=action_class.icon.value if action_class.icon else None,
                 confirmation_message=action_class.confirmation_message,
+                should_redirect_to_parent=action_class.should_redirect_to_parent,
             )
             for action_key, action_class in available
         ]

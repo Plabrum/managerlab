@@ -22,6 +22,7 @@ class DeleteInvoice(BaseAction):
     priority = 0
     icon = ActionIcon.trash
     confirmation_message = "Are you sure you want to delete this invoice?"
+    should_redirect_to_parent = True
 
     @classmethod
     async def execute(
@@ -34,6 +35,7 @@ class DeleteInvoice(BaseAction):
             success=True,
             message="Deleted invoice",
             results={},
+            should_redirect_to_parent=True,
         )
 
 

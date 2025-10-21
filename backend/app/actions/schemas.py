@@ -31,6 +31,7 @@ class ActionDTO(BaseSchema):
     priority: int = 100
     icon: str | None = None
     confirmation_message: str | None = None
+    should_redirect_to_parent: bool = False
 
 
 class ActionExecutionRequest(BaseSchema):
@@ -42,6 +43,7 @@ class ActionExecutionResponse(BaseSchema):
     success: bool
     message: str
     results: dict[str, Any] = {}
+    should_redirect_to_parent: bool = False
 
 
 class ActionListResponse(BaseSchema):

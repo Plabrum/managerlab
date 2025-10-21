@@ -10,7 +10,6 @@ from sqlalchemy.ext.mutable import MutableDict
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 from app.deliverables.enums import (
-    CompensationStructure,
     DeliverableStates,
     SocialMediaPlatforms,
 )
@@ -43,10 +42,6 @@ class Deliverable(
         MutableDict.as_mutable(JSONB),
         nullable=False,
         server_default=sa.text("'{}'::jsonb"),
-    )
-    compensation_structure: Mapped[CompensationStructure] = mapped_column(
-        sa.Enum(CompensationStructure),
-        nullable=True,
     )
 
     # Relationships (campaign_id is from RLSMixin)

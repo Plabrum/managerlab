@@ -131,7 +131,7 @@ class URLFieldValue(BaseSchema, tag=FieldType.URL.value):
 class TextFieldValue(BaseSchema, tag=FieldType.Text.value):
     """Text field value (long-form text)."""
 
-    value: str
+    value: dict
 
 
 class ImageFieldValue(BaseSchema, tag=FieldType.Image.value):

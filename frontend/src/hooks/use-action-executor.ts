@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import type {
   ActionDTO,
@@ -58,6 +59,7 @@ export function useActionExecutor({
   onInvalidate,
 }: ActionExecutorOptions) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [state, setState] = useState<ActionExecutorState>({
     isExecuting: false,
     pendingAction: null,
@@ -126,6 +128,20 @@ export function useActionExecutor({
         // Call success callback
         onSuccess?.(action, response);
 
+        // Handle redirect to parent if needed
+        if (response.should_redirect_to_parent && objectId) {
+          // Extract the parent path from the current URL
+          // e.g., /deliverables/123 -> /deliverables
+          const currentPath = window.location.pathname;
+          const parentPath = currentPath.substring(
+            0,
+            currentPath.lastIndexOf('/')
+          );
+          if (parentPath) {
+            router.push(parentPath);
+          }
+        }
+
         // Reset state
         setState({
           isExecuting: false,
@@ -157,6 +173,7 @@ export function useActionExecutor({
       actionGroup,
       objectId,
       queryClient,
+      router,
       executeGroupActionMutation,
       executeObjectActionMutation,
       onInvalidate,

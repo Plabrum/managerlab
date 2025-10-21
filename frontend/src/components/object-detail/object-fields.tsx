@@ -3,6 +3,7 @@
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Image } from '@/components/ui/image';
 import type {
   ObjectFieldDTO,
   ObjectFieldDTOValue,
@@ -30,7 +31,7 @@ export function ObjectFields({ fields }: ObjectFieldsProps) {
           if (fieldValue.url) {
             return (
               <div className="flex items-center gap-2">
-                <img
+                <Image
                   src={fieldValue.thumbnail_url || fieldValue.url}
                   alt="Image"
                   className="h-24 w-24 rounded object-cover"

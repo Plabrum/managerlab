@@ -1,7 +1,6 @@
 'use client';
 
-import { use, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { use } from 'react';
 import {
   ObjectHeader,
   ObjectFields,
@@ -9,7 +8,7 @@ import {
   ObjectChildren,
 } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
-import { useBreadcrumb } from '@/components/breadcrumb-provider';
+import { DetailPageLayout } from '@/components/detail-page-layout';
 
 export default function UserDetailPage({
   params,
@@ -17,42 +16,34 @@ export default function UserDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const pathname = usePathname();
-  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('users', id);
 
-  // Set breadcrumb title after data loads
-  useEffect(() => {
-    setBreadcrumb(pathname, data?.title);
-    return () => {
-      clearBreadcrumb(pathname);
-    };
-  }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
-
   return (
-    <div className="container mx-auto py-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <ObjectHeader
-            title={data.title}
-            state={data.state}
-            createdAt={data.created_at}
-            updatedAt={data.updated_at}
-          />
-          {/* TODO: Add ObjectActions when user_actions ActionGroupType is added to backend */}
+    <DetailPageLayout objectTitle={data.title}>
+      <div className="container mx-auto py-6">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <ObjectHeader
+              title={data.title}
+              state={data.state}
+              createdAt={data.created_at}
+              updatedAt={data.updated_at}
+            />
+            {/* TODO: Add ObjectActions when user_actions ActionGroupType is added to backend */}
+          </div>
+
+          {/* Fields */}
+          <ObjectFields fields={data.fields} />
+
+          {/* Parents */}
+          <ObjectParents parents={data.parents || []} />
+
+          {/* Children */}
+          {data.children && <ObjectChildren items={data.children} />}
         </div>
-
-        {/* Fields */}
-        <ObjectFields fields={data.fields} />
-
-        {/* Parents */}
-        <ObjectParents parents={data.parents || []} />
-
-        {/* Children */}
-        {data.children && <ObjectChildren items={data.children} />}
       </div>
-    </div>
+    </DetailPageLayout>
   );
 }

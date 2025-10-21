@@ -98,14 +98,6 @@ class DeliverableObject(BaseObject):
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=True,
         ),
-        ColumnDefinitionDTO(
-            key="compensation_structure",
-            label="Compensation",
-            type=FieldType.String,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
-            default_visible=False,
-        ),
     ]
 
     @classmethod
@@ -117,51 +109,53 @@ class DeliverableObject(BaseObject):
                 label="Title",
                 editable=True,
             ),
-            ObjectFieldDTO(
-                key="content",
-                value=TextFieldValue(value=deliverable.content)
-                if deliverable.content
-                else None,
-                label="Content",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="content",
+                    value=(
+                        StringFieldValue(value=deliverable.content)
+                        if deliverable.content
+                        else None
+                    ),
+                    label="Content",
+                    editable=True,
+                )
             ),
-            ObjectFieldDTO(
-                key="platforms",
-                value=(
-                    StringFieldValue(value=deliverable.platforms.value)
-                    if deliverable.platforms
-                    else None
-                ),
-                label="Platform",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="platforms",
+                    value=(
+                        StringFieldValue(value=deliverable.platforms.value)
+                        if deliverable.platforms
+                        else None
+                    ),
+                    label="Platform",
+                    editable=True,
+                )
             ),
-            ObjectFieldDTO(
-                key="posting_date",
-                value=(
-                    DatetimeFieldValue(value=deliverable.posting_date)
-                    if deliverable.posting_date
-                    else None
-                ),
-                label="Posting Date",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="posting_date",
+                    value=(
+                        DatetimeFieldValue(value=deliverable.posting_date)
+                        if deliverable.posting_date
+                        else None
+                    ),
+                    label="Posting Date",
+                    editable=True,
+                )
             ),
-            ObjectFieldDTO(
-                key="compensation_structure",
-                value=(
-                    StringFieldValue(value=deliverable.compensation_structure.value)
-                    if deliverable.compensation_structure
-                    else None
-                ),
-                label="Compensation Structure",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="notes",
-                value=TextFieldValue(
-                    value=str(deliverable.notes) if deliverable.notes else "{}"
-                ),
-                label="Notes",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="notes",
+                    value=(
+                        TextFieldValue(value=deliverable.notes)
+                        if deliverable.notes
+                        else None
+                    ),
+                    label="Notes",
+                    editable=True,
+                )
             ),
         ]
 

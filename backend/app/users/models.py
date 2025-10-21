@@ -1,3 +1,4 @@
+from datetime import date
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 import sqlalchemy as sa
 from typing import TYPE_CHECKING
@@ -109,6 +110,16 @@ class Roster(
     name: Mapped[str] = mapped_column(sa.Text, nullable=False, index=True)
     email: Mapped[str | None] = mapped_column(sa.Text, nullable=True, index=True)
     phone: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
+    birthdate: Mapped[date | None] = mapped_column(sa.Date, nullable=True)
+
+    @property
+    def age(self) -> int | None:
+        if self.birthdate:
+            today = date.today()
+            return (today.year - self.birthdate.year) - (
+                (today.month, today.day) < (self.birthdate.month, self.birthdate.day)
+            )
+
     instagram_handle: Mapped[str | None] = mapped_column(
         sa.Text, nullable=True, index=True
     )
