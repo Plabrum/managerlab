@@ -11,6 +11,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { getChartColor } from '@/lib/utils';
 
 interface LineChartWidgetProps {
   query: WidgetQuery;
@@ -83,7 +84,7 @@ export function LineChartWidget({ query }: LineChartWidgetProps) {
   const chartConfig = {
     value: {
       label: data.field_name,
-      color: 'hsl(var(--chart-1))',
+      color: getChartColor(0),
     },
   } satisfies ChartConfig;
 

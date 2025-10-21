@@ -11,19 +11,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { getChartColor } from '@/lib/utils';
 
 interface PieChartWidgetProps {
   query: WidgetQuery;
 }
-
-// Default colors for pie chart segments
-const CHART_COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-];
 
 export function PieChartWidget({ query }: PieChartWidgetProps) {
   const [data, setData] = useState<TimeSeriesDataResponse | null>(null);
@@ -102,7 +94,7 @@ export function PieChartWidget({ query }: PieChartWidgetProps) {
   Object.keys(aggregatedData).forEach((category, index) => {
     chartConfig[category] = {
       label: category,
-      color: CHART_COLORS[index % CHART_COLORS.length],
+      color: getChartColor(index),
     };
   });
 
@@ -129,10 +121,7 @@ export function PieChartWidget({ query }: PieChartWidgetProps) {
             label
           >
             {chartData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={CHART_COLORS[index % CHART_COLORS.length]}
-              />
+              <Cell key={`cell-${index}`} fill={getChartColor(index)} />
             ))}
           </Pie>
           <Legend />
