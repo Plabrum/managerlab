@@ -57,29 +57,46 @@ export function ObjectActions({
     return null;
   }
 
+  // Sort by priority and extract primary action
+  const sortedActions = availableActions.sort(
+    (a, b) => (a.priority || 0) - (b.priority || 0)
+  );
+  const [primaryAction, ...remainingActions] = sortedActions;
+
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            <MoreHorizontal className="mr-2 h-4 w-4" />
-            Actions
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {availableActions
-            .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-            .map((action, index) => (
-              <DropdownMenuItem
-                key={`${action.action}-${index}`}
-                onClick={() => executor.initiateAction(action)}
-                className="cursor-pointer"
-              >
-                {action.label}
-              </DropdownMenuItem>
-            ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        {/* Primary action button */}
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => executor.initiateAction(primaryAction)}
+        >
+          {primaryAction.label}
+        </Button>
+
+        {/* Dropdown for remaining actions */}
+        {remainingActions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {remainingActions.map((action, index) => (
+                <DropdownMenuItem
+                  key={`${action.action}-${index}`}
+                  onClick={() => executor.initiateAction(action)}
+                  className="cursor-pointer"
+                >
+                  {action.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
 
       <ActionConfirmationDialog
         open={executor.showConfirmation}

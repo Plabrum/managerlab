@@ -1,11 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { createTypedForm } from '@/components/forms/base';
 import type { DeliverableUpdateSchema } from '@/openapi/managerLab.schemas';
-import { useState } from 'react';
+
+const { Form, FormString, FormText } =
+  createTypedForm<DeliverableUpdateSchema>();
 
 interface UpdateDeliverableFormProps {
   defaultValues?: Partial<DeliverableUpdateSchema>;
@@ -15,8 +15,7 @@ interface UpdateDeliverableFormProps {
 }
 
 /**
- * Example form for updating a deliverable
- * This demonstrates how to create action-specific forms
+ * Form for updating a deliverable
  */
 export function UpdateDeliverableForm({
   defaultValues,
@@ -24,47 +23,16 @@ export function UpdateDeliverableForm({
   onCancel,
   isSubmitting,
 }: UpdateDeliverableFormProps) {
-  const [title, setTitle] = useState(defaultValues?.title || '');
-  const [content, setContent] = useState(defaultValues?.content || '');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      title,
-      content: content || null,
-      // Include other optional fields from defaultValues
-      platforms: defaultValues?.platforms || undefined,
-      posting_date: defaultValues?.posting_date || undefined,
-      notes: defaultValues?.notes || undefined,
-      campaign_id: defaultValues?.campaign_id || undefined,
-    });
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Deliverable title"
-          disabled={isSubmitting}
-          required
-        />
-      </div>
+    <Form onSubmit={onSubmit} defaultValues={defaultValues}>
+      <FormString name="title" label="Title" placeholder="Deliverable title" />
 
-      <div>
-        <Label htmlFor="content">Content</Label>
-        <Textarea
-          id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Post content..."
-          rows={4}
-          disabled={isSubmitting}
-        />
-      </div>
+      <FormText
+        name="content"
+        label="Content"
+        placeholder="Post content..."
+        rows={4}
+      />
 
       <div className="flex gap-3 pt-4">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
@@ -80,6 +48,6 @@ export function UpdateDeliverableForm({
           Cancel
         </Button>
       </div>
-    </form>
+    </Form>
   );
 }

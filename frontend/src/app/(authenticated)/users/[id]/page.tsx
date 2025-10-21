@@ -2,7 +2,6 @@
 
 import { use } from 'react';
 import {
-  ObjectHeader,
   ObjectFields,
   ObjectParents,
   ObjectChildren,
@@ -20,20 +19,14 @@ export default function UserDetailPage({
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('users', id);
 
   return (
-    <DetailPageLayout objectTitle={data.title}>
+    <DetailPageLayout
+      title={data.title}
+      state={data.state}
+      createdAt={data.created_at}
+      updatedAt={data.updated_at}
+    >
       <div className="container mx-auto py-6">
         <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <ObjectHeader
-              title={data.title}
-              state={data.state}
-              createdAt={data.created_at}
-              updatedAt={data.updated_at}
-            />
-            {/* TODO: Add ObjectActions when user_actions ActionGroupType is added to backend */}
-          </div>
-
           {/* Fields */}
           <ObjectFields fields={data.fields} />
 

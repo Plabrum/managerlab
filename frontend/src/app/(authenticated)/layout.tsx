@@ -14,10 +14,13 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb';
 import { BreadcrumbProvider } from '@/components/breadcrumb-provider';
+import { DynamicPageHeader } from '@/components/dynamic-page-header';
+import { HeaderProvider } from '@/components/header-provider';
 import type {
   GetCurrentUserUserResponseBody,
   ListTeamsResponse,
 } from '@/openapi/managerLab.schemas';
+import { DynamicPageActions } from '@/components/dynamic-page-actions';
 
 async function fetchCurrentUser(
   session: string
@@ -103,26 +106,38 @@ export default async function AuthenticatedLayout({
   return (
     <AuthProvider user={user} initialTeams={teams}>
       <BreadcrumbProvider>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator
-                  orientation="vertical"
-                  className="mr-2 data-[orientation=vertical]:h-4"
-                />
-                <DynamicBreadcrumb />
-              </div>
-            </header>
-            <main className="flex-1 p-6">
-              <ErrorBoundary>
-                <SuspenseWrapper>{children}</SuspenseWrapper>
-              </ErrorBoundary>
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
+        <HeaderProvider>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
+                <div className="grid w-full grid-cols-3 items-center px-4">
+                  <div className="flex items-center justify-start gap-2">
+                    <SidebarTrigger className="-ml-1" />
+                    <Separator
+                      orientation="vertical"
+                      className="mr-2 data-[orientation=vertical]:h-4"
+                    />
+                    <DynamicBreadcrumb />
+                  </div>
+
+                  <div className="flex justify-center">
+                    <DynamicPageHeader />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <DynamicPageActions />
+                  </div>
+                </div>
+              </header>
+              <main className="flex-1 p-6">
+                <ErrorBoundary>
+                  <SuspenseWrapper>{children}</SuspenseWrapper>
+                </ErrorBoundary>
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
+        </HeaderProvider>
       </BreadcrumbProvider>
     </AuthProvider>
   );

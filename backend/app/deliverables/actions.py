@@ -24,7 +24,7 @@ class DeleteDeliverable(BaseAction):
     action_key = DeliverableActions.delete
     label = "Delete"
     is_bulk_allowed = True
-    priority = 0
+    priority = 100
     icon = ActionIcon.trash
     confirmation_message = "Are you sure you want to delete this deliverable?"
     should_redirect_to_parent = True
@@ -45,9 +45,9 @@ class DeleteDeliverable(BaseAction):
 
 
 @deliverable_actions
-class UpdateDeliverable(BaseAction):
+class EditDeliverable(BaseAction):
     action_key = DeliverableActions.update
-    label = "Update"
+    label = "Edit"
     is_bulk_allowed = True
     priority = 50
     icon = ActionIcon.edit
@@ -104,7 +104,7 @@ class AddMediaToDeliverable(BaseAction):
     action_key = DeliverableActions.add_media
     label = "Add Media"
     is_bulk_allowed = False
-    priority = 10
+    priority = 0
     icon = ActionIcon.add
 
     @classmethod

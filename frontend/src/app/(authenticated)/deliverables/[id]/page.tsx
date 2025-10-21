@@ -2,8 +2,6 @@
 
 import { use } from 'react';
 import {
-  ObjectHeader,
-  ObjectActions,
   ObjectFields,
   ObjectParents,
   ObjectChildren,
@@ -21,25 +19,18 @@ export default function DeliverableDetailPage({
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('deliverables', id);
 
   return (
-    <DetailPageLayout objectTitle={data.title}>
+    <DetailPageLayout
+      title={data.title}
+      state={data.state}
+      createdAt={data.created_at}
+      updatedAt={data.updated_at}
+      actions={data.actions}
+      actionGroup="deliverable_actions"
+      objectId={id}
+      objectData={data}
+    >
       <div className="container mx-auto py-6">
         <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <ObjectHeader
-              title={data.title}
-              state={data.state}
-              createdAt={data.created_at}
-              updatedAt={data.updated_at}
-            />
-            <ObjectActions
-              actions={data.actions}
-              actionGroup="deliverable_actions"
-              objectId={id}
-              objectData={data}
-            />
-          </div>
-
           {/* Two Column Grid */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Left Column - Fields */}

@@ -9,10 +9,18 @@ import {
   type SubmitHandler,
   type UseFormProps,
   type DefaultValues,
+  Controller,
 } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils'; // optional: your className helper
 import { Modal } from '../modal';
 import { Button } from '../ui/button';
@@ -236,6 +244,108 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     );
   }
 
+  // ---------- Select input ----------
+  function FormSelect<N extends Name<Path<TFieldValues>>>(
+    props: BaseFieldProps<TFieldValues, N> & {
+      options: Array<{ value: string; label: string }>;
+      placeholder?: string;
+    }
+  ) {
+    const {
+      name,
+      label,
+      placeholder,
+      required,
+      className,
+      description,
+      id,
+      options,
+    } = props;
+    const { control } = useFormContext<TFieldValues>();
+    const htmlId = id ?? String(name);
+
+    return (
+      <div className={className}>
+        {label && (
+          <Label htmlFor={htmlId} className="text-zinc-300">
+            {label} {required ? '*' : null}
+          </Label>
+        )}
+        <Controller
+          name={name}
+          control={control}
+          rules={{ required: RequiredMessage(required) }}
+          render={({ field }) => (
+            <Select
+              value={field.value as string}
+              onValueChange={field.onChange}
+            >
+              <SelectTrigger
+                id={htmlId}
+                className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+              >
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {description ? (
+          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+        ) : null}
+        <FieldError name={String(name)} />
+      </div>
+    );
+  }
+
+  // ---------- Datetime input ----------
+  function FormDatetime<N extends Name<Path<TFieldValues>>>(
+    props: BaseFieldProps<TFieldValues, N>
+  ) {
+    const {
+      name,
+      label,
+      placeholder,
+      required,
+      className,
+      rules,
+      description,
+      id,
+    } = props;
+    const { register } = useFormContext<TFieldValues>();
+    const htmlId = id ?? String(name);
+
+    return (
+      <div className={className}>
+        {label && (
+          <Label htmlFor={htmlId} className="text-zinc-300">
+            {label} {required ? '*' : null}
+          </Label>
+        )}
+        <Input
+          id={htmlId}
+          type="datetime-local"
+          {...register(name, {
+            required: RequiredMessage(required),
+            ...rules,
+          })}
+          className="mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
+          placeholder={placeholder}
+        />
+        {description ? (
+          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+        ) : null}
+        <FieldError name={String(name)} />
+      </div>
+    );
+  }
+
   function FormModal(props: {
     isOpen: boolean;
     onClose: () => void;
@@ -288,5 +398,13 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       </Modal>
     );
   }
-  return { Form, FormString, FormEmail, FormText, FormModal };
+  return {
+    Form,
+    FormString,
+    FormEmail,
+    FormText,
+    FormSelect,
+    FormDatetime,
+    FormModal,
+  };
 }
