@@ -75,15 +75,6 @@ def upgrade() -> None:
     op.create_index(
         op.f("ix_campaign_guests_user_id"), "campaign_guests", ["user_id"], unique=False
     )
-    op.drop_index(op.f("saq_stats_expire_at_idx"), table_name="saq_stats")
-    op.drop_index(op.f("saq_stats_queue_key_idx"), table_name="saq_stats")
-    op.drop_table("saq_stats")
-    op.drop_index(op.f("saq_jobs_status_queue_group_key_idx"), table_name="saq_jobs")
-    op.drop_index(
-        op.f("saq_jobs_status_queue_priority_scheduled_idx"), table_name="saq_jobs"
-    )
-    op.drop_table("saq_jobs")
-    op.drop_table("saq_versions")
     op.add_column("brand_contacts", sa.Column("team_id", sa.Integer(), nullable=False))
     op.add_column(
         "brand_contacts",
@@ -330,72 +321,6 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_brand_contacts_deleted_at"), table_name="brand_contacts")
     op.drop_column("brand_contacts", "deleted_at")
     op.drop_column("brand_contacts", "team_id")
-    op.create_table(
-        "saq_versions",
-        sa.Column("version", sa.INTEGER(), autoincrement=False, nullable=True),
-    )
-    op.create_table(
-        "saq_jobs",
-        sa.Column("key", sa.TEXT(), autoincrement=False, nullable=False),
-        sa.Column("lock_key", sa.INTEGER(), autoincrement=True, nullable=False),
-        sa.Column("job", postgresql.BYTEA(), autoincrement=False, nullable=False),
-        sa.Column("queue", sa.TEXT(), autoincrement=False, nullable=False),
-        sa.Column("status", sa.TEXT(), autoincrement=False, nullable=False),
-        sa.Column(
-            "priority",
-            sa.SMALLINT(),
-            server_default=sa.text("0"),
-            autoincrement=False,
-            nullable=False,
-        ),
-        sa.Column("group_key", sa.TEXT(), autoincrement=False, nullable=True),
-        sa.Column(
-            "scheduled",
-            sa.BIGINT(),
-            server_default=sa.text("EXTRACT(epoch FROM now())"),
-            autoincrement=False,
-            nullable=False,
-        ),
-        sa.Column("expire_at", sa.BIGINT(), autoincrement=False, nullable=True),
-        sa.PrimaryKeyConstraint("key", name=op.f("saq_jobs_pkey")),
-    )
-    op.create_index(
-        op.f("saq_jobs_status_queue_priority_scheduled_idx"),
-        "saq_jobs",
-        ["status", "queue", "priority", "scheduled"],
-        unique=False,
-    )
-    op.create_index(
-        op.f("saq_jobs_status_queue_group_key_idx"),
-        "saq_jobs",
-        ["status", "queue", "group_key"],
-        unique=False,
-    )
-    op.create_table(
-        "saq_stats",
-        sa.Column("worker_id", sa.TEXT(), autoincrement=False, nullable=False),
-        sa.Column(
-            "stats",
-            postgresql.JSONB(astext_type=sa.Text()),
-            autoincrement=False,
-            nullable=True,
-        ),
-        sa.Column("expire_at", sa.BIGINT(), autoincrement=False, nullable=True),
-        sa.Column(
-            "metadata",
-            postgresql.JSONB(astext_type=sa.Text()),
-            autoincrement=False,
-            nullable=True,
-        ),
-        sa.Column("queue_key", sa.TEXT(), autoincrement=False, nullable=True),
-        sa.PrimaryKeyConstraint("worker_id", name=op.f("saq_stats_pkey")),
-    )
-    op.create_index(
-        op.f("saq_stats_queue_key_idx"), "saq_stats", ["queue_key"], unique=False
-    )
-    op.create_index(
-        op.f("saq_stats_expire_at_idx"), "saq_stats", ["expire_at"], unique=False
-    )
     op.drop_index(op.f("ix_campaign_guests_user_id"), table_name="campaign_guests")
     op.drop_index(op.f("ix_campaign_guests_deleted_at"), table_name="campaign_guests")
     op.drop_index(op.f("ix_campaign_guests_campaign_id"), table_name="campaign_guests")
