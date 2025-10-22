@@ -169,8 +169,6 @@ class MediaObject(BaseObject):
             actions=actions,
             created_at=object.created_at,
             updated_at=object.updated_at,
-            children=[],
-            parents=[],
         )
 
     @classmethod

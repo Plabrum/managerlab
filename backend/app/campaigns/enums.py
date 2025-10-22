@@ -16,6 +16,12 @@ class CampaignActions(StrEnum):
     update = "campaign.update"
 
 
+class CompensationStructure(StrEnum):
+    FLAT_FEE = auto()
+    PER_DELIVERABLE = auto()
+    PERFORMANCE_BASED = auto()
+
+
 class CampaignGuestAccessLevel(StrEnum):
     """Access levels for campaign guests."""
 

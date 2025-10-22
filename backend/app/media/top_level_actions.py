@@ -4,7 +4,7 @@ from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.media.models import Media
-from app.media.enums import TopLevelMediaActions
+from app.media.enums import MediaStates, TopLevelMediaActions
 from app.media.schemas import RegisterMediaSchema
 
 
@@ -25,15 +25,19 @@ class CreateMedia(BaseAction):
         data: RegisterMediaSchema,
         transaction: AsyncSession,
         task_queues: TaskQueues,
+        team_id: int | None = None,
+        campaign_id: int | None = None,
     ) -> ActionExecutionResponse:
         file_type = "image" if data.mime_type.startswith("image/") else "video"
         media = Media(
+            team_id=team_id,
+            campaign_id=campaign_id,
             file_key=data.file_key,
             file_name=data.file_name,
             file_size=data.file_size,
             mime_type=data.mime_type,
             file_type=file_type,
-            status="pending",
+            state=MediaStates.PENDING,
         )
         transaction.add(media)
         await transaction.flush()

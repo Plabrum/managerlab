@@ -27,6 +27,7 @@ class DeleteDashboard(BaseAction):
     priority = 100
     icon = ActionIcon.trash
     confirmation_message = "Are you sure you want to delete this dashboard?"
+    should_redirect_to_parent = True
 
     @classmethod
     async def execute(
@@ -39,6 +40,7 @@ class DeleteDashboard(BaseAction):
             success=True,
             message="Dashboard deleted successfully",
             results={},
+            should_redirect_to_parent=True,
         )
 
 

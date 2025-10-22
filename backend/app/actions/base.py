@@ -56,6 +56,9 @@ class BaseAction(ABC):
     priority: ClassVar[int] = 100  # Display priority (lower = higher priority)
     icon: ClassVar[ActionIcon] = ActionIcon.default
     confirmation_message: ClassVar[str | None] = None  # Optional confirmation message
+    should_redirect_to_parent: ClassVar[bool] = (
+        False  # Whether to redirect to parent after execution
+    )
 
     # Model and load options for default get_object implementation
     model: ClassVar[Type[BaseDBModel] | None] = None
@@ -118,20 +121,20 @@ class ActionGroup:
             raise Exception("Unknown action type")
         return self.actions[action_key]
 
-    async def get_object(self, object_id: int | None) -> BaseDBModel | None:
-        if object_id and self.model_type:
-            transaction = self.action_registry.dependencies.get("transaction")
-            if transaction:
-                return await transaction.get(self.model_type, object_id)
-        return None
-
     async def trigger(
         self,
         data: Any,  # Discriminated union instance
         object_id: int | None = None,
     ) -> ActionExecutionResponse:
-        obj = await self.get_object(object_id=object_id)
-        action_class = self.action_registry._struct_to_action[type(data)]
+        action_class: BaseAction = self.action_registry._struct_to_action[type(data)]
+        obj = (
+            await action_class.get_object(
+                object_id=object_id,
+                transaction=self.action_registry.dependencies["transaction"],
+            )
+            if object_id
+            else None
+        )
 
         # Inspect the signature once
         sig = inspect.signature(action_class.execute)
@@ -180,6 +183,7 @@ class ActionGroup:
                 priority=action_class.priority,
                 icon=action_class.icon.value if action_class.icon else None,
                 confirmation_message=action_class.confirmation_message,
+                should_redirect_to_parent=action_class.should_redirect_to_parent,
             )
             for action_key, action_class in available
         ]

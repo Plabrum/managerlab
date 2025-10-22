@@ -12,11 +12,10 @@ import type {
   ActionDTO,
   ActionGroupType,
   ActionExecutionResponse,
+  ObjectDetailDTO,
 } from '@/openapi/managerLab.schemas';
-import {
-  useActionExecutor,
-  type ActionFormRenderer,
-} from '@/hooks/use-action-executor';
+import { useActionExecutor } from '@/hooks/use-action-executor';
+import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
@@ -28,7 +27,7 @@ interface ObjectActionsProps {
     action: ActionDTO,
     response: ActionExecutionResponse
   ) => void;
-  renderActionForm?: ActionFormRenderer;
+  objectData?: ObjectDetailDTO;
 }
 
 export function ObjectActions({
@@ -36,12 +35,15 @@ export function ObjectActions({
   actionGroup,
   objectId,
   onActionComplete,
-  renderActionForm,
+  objectData,
 }: ObjectActionsProps) {
+  // Use the centralized registry
+  const formRenderer = useActionFormRenderer(objectData);
+
   const executor = useActionExecutor({
     actionGroup,
     objectId,
-    renderActionForm,
+    renderActionForm: formRenderer,
     onSuccess: (action, response) => {
       onActionComplete?.(action, response);
     },
@@ -55,29 +57,46 @@ export function ObjectActions({
     return null;
   }
 
+  // Sort by priority and extract primary action
+  const sortedActions = availableActions.sort(
+    (a, b) => (a.priority || 0) - (b.priority || 0)
+  );
+  const [primaryAction, ...remainingActions] = sortedActions;
+
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            <MoreHorizontal className="mr-2 h-4 w-4" />
-            Actions
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {availableActions
-            .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-            .map((action, index) => (
-              <DropdownMenuItem
-                key={`${action.action}-${index}`}
-                onClick={() => executor.initiateAction(action)}
-                className="cursor-pointer"
-              >
-                {action.label}
-              </DropdownMenuItem>
-            ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        {/* Primary action button */}
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => executor.initiateAction(primaryAction)}
+        >
+          {primaryAction.label}
+        </Button>
+
+        {/* Dropdown for remaining actions */}
+        {remainingActions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {remainingActions.map((action, index) => (
+                <DropdownMenuItem
+                  key={`${action.action}-${index}`}
+                  onClick={() => executor.initiateAction(action)}
+                  className="cursor-pointer"
+                >
+                  {action.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
 
       <ActionConfirmationDialog
         open={executor.showConfirmation}

@@ -13,11 +13,13 @@ from app.objects.schemas import (
     StringFieldValue,
     EmailFieldValue,
     EnumFieldValue,
+    ImageFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.users.enums import RosterStates
 from app.users.models import Roster
 from app.utils.sqids import sqid_encode
+from app.client.s3_client import S3Client
 
 
 class RosterObject(BaseObject):
@@ -67,11 +69,33 @@ class RosterObject(BaseObject):
     @classmethod
     def get_load_options(cls):
         """Return load options for eager loading relationships."""
-        return [joinedload(Roster.user)]
+        return [joinedload(Roster.user), joinedload(Roster.profile_photo)]
 
     @classmethod
     def to_detail_dto(cls, roster_member: Roster) -> ObjectDetailDTO:
+        # Generate profile photo URLs if available
+        profile_photo_field = None
+        if roster_member.profile_photo:
+            s3_client: S3Client = cls.registry.dependencies["s3_client"]
+            photo_url = s3_client.generate_presigned_download_url(
+                key=roster_member.profile_photo.file_key, expires_in=3600
+            )
+            thumbnail_url = (
+                s3_client.generate_presigned_download_url(
+                    key=roster_member.profile_photo.thumbnail_key, expires_in=3600
+                )
+                if roster_member.profile_photo.thumbnail_key
+                else None
+            )
+            profile_photo_field = ObjectFieldDTO(
+                key="profile_photo",
+                value=ImageFieldValue(url=photo_url, thumbnail_url=thumbnail_url),
+                label="Profile Photo",
+                editable=True,
+            )
+
         fields = [
+            profile_photo_field,
             ObjectFieldDTO(
                 key="name",
                 value=StringFieldValue(value=roster_member.name),
@@ -110,6 +134,36 @@ class RosterObject(BaseObject):
             ),
             (
                 ObjectFieldDTO(
+                    key="facebook_handle",
+                    value=(StringFieldValue(value=roster_member.facebook_handle)),
+                    label="Facebook Handle",
+                    editable=True,
+                )
+                if roster_member.facebook_handle
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="tiktok_handle",
+                    value=(StringFieldValue(value=roster_member.tiktok_handle)),
+                    label="TikTok Handle",
+                    editable=True,
+                )
+                if roster_member.tiktok_handle
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="youtube_channel",
+                    value=(StringFieldValue(value=roster_member.youtube_channel)),
+                    label="YouTube Channel",
+                    editable=True,
+                )
+                if roster_member.youtube_channel
+                else None
+            ),
+            (
+                ObjectFieldDTO(
                     key="owner",
                     value=(StringFieldValue(value=roster_member.user.name)),
                     label="Owner",
@@ -126,19 +180,37 @@ class RosterObject(BaseObject):
             state=roster_member.state.name,
             title=roster_member.name,
             fields=[f for f in fields if f is not None],
-            actions=[
-                ActionDTO(action="edit", label="Edit"),
-                ActionDTO(action="archive", label="Archive"),
-            ],
+            actions=[],
             created_at=roster_member.created_at,
             updated_at=roster_member.updated_at,
-            children=[],
-            parents=[],
+            relations=[],
         )
 
     @classmethod
     def to_list_dto(cls, roster_member: Roster) -> ObjectListDTO:
+        # Generate profile photo URLs if available
+        profile_photo_field = None
+        if roster_member.profile_photo:
+            s3_client: S3Client = cls.registry.dependencies["s3_client"]
+            photo_url = s3_client.generate_presigned_download_url(
+                key=roster_member.profile_photo.file_key, expires_in=3600
+            )
+            thumbnail_url = (
+                s3_client.generate_presigned_download_url(
+                    key=roster_member.profile_photo.thumbnail_key, expires_in=3600
+                )
+                if roster_member.profile_photo.thumbnail_key
+                else None
+            )
+            profile_photo_field = ObjectFieldDTO(
+                key="profile_photo",
+                value=ImageFieldValue(url=photo_url, thumbnail_url=thumbnail_url),
+                label="Profile Photo",
+                editable=False,
+            )
+
         fields = [
+            profile_photo_field,
             ObjectFieldDTO(
                 key="name",
                 value=StringFieldValue(value=roster_member.name),
@@ -163,6 +235,36 @@ class RosterObject(BaseObject):
                     editable=False,
                 )
                 if roster_member.instagram_handle
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="facebook_handle",
+                    value=(StringFieldValue(value=roster_member.facebook_handle)),
+                    label="Facebook",
+                    editable=False,
+                )
+                if roster_member.facebook_handle
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="tiktok_handle",
+                    value=(StringFieldValue(value=roster_member.tiktok_handle)),
+                    label="TikTok",
+                    editable=False,
+                )
+                if roster_member.tiktok_handle
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="youtube_channel",
+                    value=(StringFieldValue(value=roster_member.youtube_channel)),
+                    label="YouTube",
+                    editable=False,
+                )
+                if roster_member.youtube_channel
                 else None
             ),
             ObjectFieldDTO(

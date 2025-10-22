@@ -31,6 +31,16 @@ repos:
       - id: ruff-format
         files: ^backend/.*\.py$
 
+  # basedpyright for backend type checking
+  - repo: local
+    hooks:
+      - id: basedpyright
+        name: basedpyright (local)
+        language: system
+        entry: bash -lc 'cd backend && uv run basedpyright'
+        files: ^backend/.*\.py$
+        pass_filenames: false
+
   # Terraform formatting and validation
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.96.1

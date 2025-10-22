@@ -103,33 +103,41 @@ class BrandObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="description",
-                value=TextFieldValue(value=brand.description)
-                if brand.description
-                else None,
+                value=(
+                    StringFieldValue(value=brand.description)
+                    if brand.description
+                    else None
+                ),
                 label="Description",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="tone_of_voice",
-                value=TextFieldValue(value=brand.tone_of_voice)
-                if brand.tone_of_voice
-                else None,
+                value=(
+                    StringFieldValue(value=brand.tone_of_voice)
+                    if brand.tone_of_voice
+                    else None
+                ),
                 label="Tone of Voice",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="brand_values",
-                value=TextFieldValue(value=brand.brand_values)
-                if brand.brand_values
-                else None,
+                value=(
+                    StringFieldValue(value=brand.brand_values)
+                    if brand.brand_values
+                    else None
+                ),
                 label="Brand Values",
                 editable=True,
             ),
             ObjectFieldDTO(
                 key="target_audience",
-                value=TextFieldValue(value=brand.target_audience)
-                if brand.target_audience
-                else None,
+                value=(
+                    StringFieldValue(value=brand.target_audience)
+                    if brand.target_audience
+                    else None
+                ),
                 label="Target Audience",
                 editable=True,
             ),
@@ -153,7 +161,7 @@ class BrandObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="notes",
-                value=TextFieldValue(value=brand.notes) if brand.notes else None,
+                value=StringFieldValue(value=brand.notes) if brand.notes else None,
                 label="Notes",
                 editable=True,
             ),
@@ -186,9 +194,11 @@ class BrandObject(BaseObject):
             ),
             ObjectFieldDTO(
                 key="description",
-                value=TextFieldValue(value=brand.description)
-                if brand.description
-                else None,
+                value=(
+                    TextFieldValue(value=brand.description)
+                    if brand.description
+                    else None
+                ),
                 label="Description",
                 editable=False,
             ),

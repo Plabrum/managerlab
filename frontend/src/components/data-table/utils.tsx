@@ -24,6 +24,7 @@ type DateFilterValue = {
   finish?: string;
 };
 import { Badge } from '@/components/ui/badge';
+import { Image } from '@/components/ui/image';
 
 /**
  * Convert React Table SortingState to API SortDefinition array
@@ -326,7 +327,7 @@ export function formatCellValue(
       if (value.url) {
         return (
           <div className="flex items-center gap-2">
-            <img
+            <Image
               src={value.thumbnail_url || value.url}
               alt="Image"
               className="h-16 w-16 rounded-md border object-cover transition-transform hover:scale-105"

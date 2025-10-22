@@ -1,23 +1,12 @@
 'use client';
 
-import { use, useEffect, useCallback } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-  ObjectHeader,
-  ObjectActions,
-  ObjectFields,
-  ObjectParents,
-  ObjectChildren,
-} from '@/components/object-detail';
+import { use } from 'react';
+import { useDeliverablesIdGetDeliverableSuspense } from '@/openapi/deliverables/deliverables';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
-import { useBreadcrumb } from '@/components/breadcrumb-provider';
-import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
-import type {
-  DeliverableUpdateSchema,
-  ActionDTO,
-  ActionExecutionResponse,
-} from '@/openapi/managerLab.schemas';
-import type { ActionFormRenderer } from '@/hooks/use-action-executor';
+import { DetailPageLayout } from '@/components/detail-page-layout';
+import { DeliverablePreview } from '@/components/deliverable-preview/deliverable-preview';
+import { MediaComments } from '@/components/media-comments';
+import { SimpleMediaGallery } from '@/components/deliverable-preview/media-gallery-simple';
 
 export default function DeliverableDetailPage({
   params,
@@ -25,99 +14,55 @@ export default function DeliverableDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const pathname = usePathname();
-  const router = useRouter();
-  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
-  const { data } = useOObjectTypeIdGetObjectDetailSuspense('deliverables', id);
+  // New endpoint: Type-safe deliverable with relations
+  const { data: deliverable } = useDeliverablesIdGetDeliverableSuspense(id);
 
-  // Set breadcrumb title after data loads
-  useEffect(() => {
-    setBreadcrumb(pathname, data?.title);
-    return () => {
-      clearBreadcrumb(pathname);
-    };
-  }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
-
-  // Handle action completion - redirect on delete
-  const handleActionComplete = useCallback(
-    (action: ActionDTO, response: ActionExecutionResponse) => {
-      const isDeleteAction = action.action.toLowerCase().includes('delete');
-
-      if (isDeleteAction && response.success) {
-        router.push('/deliverables');
-      }
-    },
-    [router]
-  );
-
-  // Custom form renderer for actions that require data
-  const renderDeliverableActionForm: ActionFormRenderer = useCallback(
-    (props) => {
-      const { action, onSubmit, onCancel, isSubmitting } = props;
-
-      // Handle update action with custom form
-      if (action.action === 'deliverable_actions__deliverable_update') {
-        // Extract deliverable data from fields for default values
-        const defaultValues: Partial<DeliverableUpdateSchema> = {
-          title: data.title,
-          // Add other fields as needed from data.fields
-        };
-
-        return (
-          <UpdateDeliverableForm
-            defaultValues={defaultValues}
-            onSubmit={(data) =>
-              onSubmit({
-                action: 'deliverable_actions__deliverable_update',
-                data,
-              })
-            }
-            onCancel={onCancel}
-            isSubmitting={isSubmitting}
-          />
-        );
-      }
-
-      // Return null for actions that don't need custom forms
-      // They will be executed automatically
-      return null;
-    },
-    [data]
+  // Old endpoint: ObjectDetailDTO for action system compatibility
+  // TODO: Remove once action system is migrated to use domain-specific schemas
+  const { data: objectDetail } = useOObjectTypeIdGetObjectDetailSuspense(
+    'deliverables',
+    id
   );
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <ObjectHeader
-            title={data.title}
-            state={data.state}
-            createdAt={data.created_at}
-            updatedAt={data.updated_at}
-          />
-          <ObjectActions
-            actions={data.actions}
-            actionGroup="deliverable_actions"
-            objectId={id}
-            renderActionForm={renderDeliverableActionForm}
-            onActionComplete={handleActionComplete}
-          />
+    <DetailPageLayout
+      title={deliverable.title}
+      state={deliverable.state}
+      createdAt={deliverable.created_at}
+      updatedAt={deliverable.updated_at}
+      actions={objectDetail.actions}
+      actionGroup="deliverable_actions"
+      objectId={id}
+      objectData={objectDetail}
+    >
+      <div className="container mx-auto py-6">
+        <div className="space-y-6">
+          {/* Two Column Grid - Preview left, Comments right */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 ">
+            {/* Left Column - Preview */}
+            <div className="flex justify-center">
+              <DeliverablePreview
+                deliverable={deliverable}
+                mediaAssociations={deliverable.deliverable_media_associations}
+                roster={deliverable.assigned_roster}
+              />
+            </div>
+
+            {/* Right Column - Comments */}
+            <MediaComments />
+          </div>
+
+          {/* Media Gallery - Full Width at Bottom */}
+          {deliverable.deliverable_media_associations.length > 0 && (
+            <SimpleMediaGallery
+              media={deliverable.deliverable_media_associations.map(
+                (dm) => dm.media
+              )}
+            />
+          )}
         </div>
-
-        {/* Two Column Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left Column - Fields */}
-          <ObjectFields fields={data.fields} />
-        </div>
-
-        {/* Parents */}
-        <ObjectParents parents={data.parents || []} />
-
-        {/* Children */}
-        {data.children && <ObjectChildren items={data.children} />}
       </div>
-    </div>
+    </DetailPageLayout>
   );
 }

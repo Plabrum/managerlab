@@ -73,6 +73,11 @@ jobs:
           cd backend
           uv sync --dev
 
+      - name: Run type checking
+        run: |
+          cd backend
+          uv run basedpyright
+
       - name: Run tests
         env:
           PGHOST: localhost

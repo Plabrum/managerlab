@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useCallback } from 'react';
+import { useState, useTransition } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -21,8 +21,6 @@ import type {
   ObjectListDTO,
 } from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
-import { CreateDeliverableForm } from '@/components/actions/create-deliverable-form';
-import type { ActionFormRenderer } from '@/hooks/use-action-executor';
 
 export default function DeliverablesPage() {
   // Table state
@@ -80,38 +78,6 @@ export default function DeliverablesPage() {
     // TODO: Implement row action handling with dynamic objectId
   };
 
-  // Custom form renderer for deliverable actions
-  const renderDeliverableActionForm: ActionFormRenderer = useCallback(
-    (props) => {
-      const { action, onSubmit, onCancel, isSubmitting } = props;
-
-      // Handle create deliverable action with custom form
-      if (
-        action.action ===
-        'top_level_deliverable_actions__top_level_deliverable_create'
-      ) {
-        return (
-          <CreateDeliverableForm
-            onSubmit={(deliverableData) => {
-              // Pass to action executor
-              onSubmit({
-                action:
-                  'top_level_deliverable_actions__top_level_deliverable_create',
-                data: deliverableData,
-              });
-            }}
-            onCancel={onCancel}
-            isSubmitting={isSubmitting}
-          />
-        );
-      }
-
-      // Return null for actions that don't need custom forms
-      return null;
-    },
-    []
-  );
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -129,7 +95,6 @@ export default function DeliverablesPage() {
           <ActionsMenu
             actions={data.actions}
             actionGroup="top_level_deliverable_actions"
-            renderActionForm={renderDeliverableActionForm}
             onActionComplete={() => {
               // Refresh deliverables list after action completion
             }}

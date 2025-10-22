@@ -25,6 +25,7 @@ class DeleteMedia(BaseAction):
     priority = 0
     icon = ActionIcon.trash
     confirmation_message = "Are you sure you want to delete this media?"
+    should_redirect_to_parent = True
 
     @classmethod
     async def execute(
@@ -37,6 +38,7 @@ class DeleteMedia(BaseAction):
             success=True,
             message="Deleted media",
             results={},
+            should_redirect_to_parent=True,
         )
 
 

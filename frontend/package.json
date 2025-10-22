@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "lint": "next lint",
+    "lint": "eslint .",
     "build": "next build",
     "start": "next start",
     "format:write": "prettier --write --cache .",
@@ -50,7 +50,7 @@
     "tailwind-variants": "^1.0.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@eslint/eslintrc": "^3.3.1",
     "@next/eslint-plugin-next": "^15.5.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

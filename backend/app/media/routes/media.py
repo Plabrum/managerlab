@@ -1,7 +1,8 @@
-from litestar import Router, post, delete
+from litestar import Request, Router, post, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
+from app.media.enums import MediaStates
 from app.media.models import Media
 from app.media.schemas import (
     MediaDTO,
@@ -45,19 +46,21 @@ async def register_media(
     data: RegisterMediaSchema,
     transaction: AsyncSession,
     task_queues: TaskQueues,
+    request: Request,
 ) -> Media:
     """Register an uploaded media file and trigger thumbnail generation."""
     # Determine file type from mime_type
     file_type = "image" if data.mime_type.startswith("image/") else "video"
-
     # Create media record
     media = Media(
+        team_id=request.session.get("team_id"),
+        campaign_id=request.session.get("campaign_id"),
         file_key=data.file_key,
         file_name=data.file_name,
         file_size=data.file_size,
         mime_type=data.mime_type,
         file_type=file_type,
-        status="pending",
+        state=MediaStates.PENDING,
     )
     transaction.add(media)
     await transaction.flush()

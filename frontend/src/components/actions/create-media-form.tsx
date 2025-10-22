@@ -12,24 +12,15 @@ import {
   UploadIcon,
   X,
 } from 'lucide-react';
-import { mediaPresignedUploadRequestPresignedUpload } from '@/openapi/media/media';
 import { RegisterMediaSchema } from '@/openapi/managerLab.schemas';
-
-// interface MediaUploadData {
-//   file_key: string;
-//   file_name: string;
-//   file_size: number;
-//   mime_type: string;
-//   file_type: string;
-// }
+import { Image } from '@/components/ui/image';
+import { useMediaUpload } from '@/hooks/useMediaUpload';
 
 interface CreateMediaFormProps {
   onSubmit: (data: RegisterMediaSchema) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 }
-
-type UploadStatus = 'idle' | 'uploading' | 'complete' | 'error';
 
 /**
  * Form for uploading media to S3
@@ -42,28 +33,35 @@ export function CreateMediaForm({
   isSubmitting,
 }: CreateMediaFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadStatus('idle');
-      setProgress(0);
-      setError(null);
+  // Use the upload hook (without auto-registration since the parent handles it)
+  const {
+    uploadFile,
+    status: uploadStatus,
+    progress,
+    error,
+    reset,
+  } = useMediaUpload();
 
-      // Create preview URL for images
-      if (file.type.startsWith('image/')) {
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
-      } else {
-        setPreviewUrl(null);
+  const handleDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        setSelectedFile(file);
+        reset();
+
+        // Create preview URL for images
+        if (file.type.startsWith('image/')) {
+          const url = URL.createObjectURL(file);
+          setPreviewUrl(url);
+        } else {
+          setPreviewUrl(null);
+        }
       }
-    }
-  }, []);
+    },
+    [reset]
+  );
 
   const removeFile = () => {
     // Clean up preview URL
@@ -71,9 +69,7 @@ export function CreateMediaForm({
       URL.revokeObjectURL(previewUrl);
     }
     setSelectedFile(null);
-    setUploadStatus('idle');
-    setProgress(0);
-    setError(null);
+    reset();
     setPreviewUrl(null);
   };
 
@@ -94,54 +90,20 @@ export function CreateMediaForm({
       return;
     }
 
-    try {
-      // Step 1: Request presigned URL from backend
-      setUploadStatus('uploading');
-      setProgress(10);
-
-      const presignedResponse =
-        await mediaPresignedUploadRequestPresignedUpload({
+    // Upload without auto-registration (autoRegister: false)
+    // The parent component will handle registration via onSubmit
+    await uploadFile(selectedFile, {
+      autoRegister: false,
+      onSuccess: (result) => {
+        // Call onSubmit with file_key and metadata
+        onSubmit({
+          file_key: result.fileKey,
           file_name: selectedFile.name,
-          content_type: selectedFile.type,
           file_size: selectedFile.size,
+          mime_type: selectedFile.type,
         });
-
-      setProgress(30);
-
-      // Step 2: Upload directly to S3 using presigned URL
-      const uploadResponse = await fetch(presignedResponse.upload_url, {
-        method: 'PUT',
-        body: selectedFile,
-        headers: {
-          'Content-Type': selectedFile.type,
-        },
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Upload to S3 failed');
-      }
-
-      setUploadStatus('complete');
-      setProgress(100);
-      toast.success('File uploaded to S3 successfully');
-
-      // Step 3: Call onSubmit with file_key and metadata
-      // The consumer will handle registration and query invalidation
-      console.log(`DEBUGGGIUNGGGG`, presignedResponse, uploadResponse);
-      onSubmit({
-        file_key: presignedResponse.file_key,
-        file_name: selectedFile.name,
-        file_size: selectedFile.size,
-        mime_type: selectedFile.type,
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to upload media';
-      setUploadStatus('error');
-      setError(errorMessage);
-      console.error('Upload error:', error);
-      toast.error(errorMessage);
-    }
+      },
+    });
   };
 
   const isProcessing = uploadStatus === 'uploading' || isSubmitting;
@@ -210,7 +172,7 @@ export function CreateMediaForm({
 
           {previewUrl && (
             <div className="mt-4">
-              <img
+              <Image
                 src={previewUrl}
                 alt={selectedFile.name}
                 className="max-h-64 w-full rounded-md object-contain"

@@ -1,10 +1,14 @@
+from app.campaigns.models import Campaign
+from app.media.objects import MediaObject
+from app.campaigns.objects import CampaignObject
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
-from app.objects.enums import ObjectTypes
+from app.objects.enums import ObjectTypes, RelationType, RelationCardinality
 from app.objects.schemas import (
     EnumFieldValue,
     ObjectDetailDTO,
@@ -16,9 +20,10 @@ from app.objects.schemas import (
     StringFieldValue,
     TextFieldValue,
     DatetimeFieldValue,
+    ObjectRelationGroup,
 )
 from app.objects.services import get_filter_by_field_type
-from app.deliverables.models import Deliverable
+from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.enums import DeliverableStates, SocialMediaPlatforms
 from app.utils.sqids import sqid_encode
 
@@ -30,6 +35,18 @@ class DeliverableObject(BaseObject):
     @classmethod
     def get_top_level_action_group(cls):
         return ActionGroupType.TopLevelDeliverableActions
+
+    @classmethod
+    def get_load_options(cls):
+        """Return load options for eager loading relationships."""
+        return [
+            joinedload(Deliverable.deliverable_media_associations).options(
+                selectinload(DeliverableMedia.media)
+            ),
+            joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
+            selectinload(Deliverable.media),
+            selectinload(Deliverable.assigned_roster),
+        ]
 
     column_definitions = [
         ColumnDefinitionDTO(
@@ -98,14 +115,6 @@ class DeliverableObject(BaseObject):
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=True,
         ),
-        ColumnDefinitionDTO(
-            key="compensation_structure",
-            label="Compensation",
-            type=FieldType.String,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
-            default_visible=False,
-        ),
     ]
 
     @classmethod
@@ -117,56 +126,82 @@ class DeliverableObject(BaseObject):
                 label="Title",
                 editable=True,
             ),
-            ObjectFieldDTO(
-                key="content",
-                value=TextFieldValue(value=deliverable.content)
-                if deliverable.content
-                else None,
-                label="Content",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="content",
+                    value=(
+                        StringFieldValue(value=deliverable.content)
+                        if deliverable.content
+                        else None
+                    ),
+                    label="Content",
+                    editable=True,
+                )
             ),
-            ObjectFieldDTO(
-                key="platforms",
-                value=(
-                    StringFieldValue(value=deliverable.platforms.value)
-                    if deliverable.platforms
-                    else None
-                ),
-                label="Platform",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="platforms",
+                    value=(
+                        StringFieldValue(value=deliverable.platforms.value)
+                        if deliverable.platforms
+                        else None
+                    ),
+                    label="Platform",
+                    editable=True,
+                )
             ),
-            ObjectFieldDTO(
-                key="posting_date",
-                value=(
-                    DatetimeFieldValue(value=deliverable.posting_date)
-                    if deliverable.posting_date
-                    else None
-                ),
-                label="Posting Date",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="posting_date",
+                    value=(
+                        DatetimeFieldValue(value=deliverable.posting_date)
+                        if deliverable.posting_date
+                        else None
+                    ),
+                    label="Posting Date",
+                    editable=True,
+                )
             ),
-            ObjectFieldDTO(
-                key="compensation_structure",
-                value=(
-                    StringFieldValue(value=deliverable.compensation_structure.value)
-                    if deliverable.compensation_structure
-                    else None
-                ),
-                label="Compensation Structure",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="notes",
-                value=TextFieldValue(
-                    value=str(deliverable.notes) if deliverable.notes else "{}"
-                ),
-                label="Notes",
-                editable=True,
+            (
+                ObjectFieldDTO(
+                    key="notes",
+                    value=(
+                        TextFieldValue(value=deliverable.notes)
+                        if deliverable.notes
+                        else None
+                    ),
+                    label="Notes",
+                    editable=True,
+                )
             ),
         ]
 
         action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
         actions = action_group.get_available_actions(obj=deliverable)
+
+        # Build new structured relations
+        relations = []
+
+        # Add campaign parent
+        if deliverable.campaign:
+            relations.append(
+                ObjectRelationGroup(
+                    relation_name="campaign",
+                    relation_label="Campaign",
+                    relation_type=RelationType.parent,
+                    cardinality=RelationCardinality.one,
+                    objects=[CampaignObject.to_list_dto(deliverable.campaign)],
+                )
+            )
+        relations.append(
+            ObjectRelationGroup(
+                relation_name="media",
+                relation_label="Media Files",
+                relation_type=RelationType.child,
+                cardinality=RelationCardinality.many,
+                objects=[MediaObject.to_list_dto(media) for media in deliverable.media],
+            )
+        )
 
         return ObjectDetailDTO(
             id=sqid_encode(deliverable.id),
@@ -177,8 +212,7 @@ class DeliverableObject(BaseObject):
             actions=actions,
             created_at=deliverable.created_at,
             updated_at=deliverable.updated_at,
-            children=[],
-            parents=[],
+            relations=relations,
         )
 
     @classmethod
@@ -199,13 +233,7 @@ class DeliverableObject(BaseObject):
             ObjectFieldDTO(
                 key="content",
                 value=(
-                    TextFieldValue(
-                        value=(
-                            deliverable.content[:100] + "..."
-                            if len(deliverable.content) > 100
-                            else deliverable.content
-                        )
-                    )
+                    StringFieldValue(value=(deliverable.content))
                     if deliverable.content
                     else None
                 ),

@@ -18,12 +18,12 @@ import {
 } from '@/components/data-table/utils';
 import type {
   ColumnDefinitionDTO,
-  RegisterMediaSchema,
   ObjectListDTO,
 } from '@/openapi/managerLab.schemas';
 import { ActionsMenu } from '@/components/actions-menu';
-import { CreateMediaForm } from '@/components/actions/create-media-form';
-import type { ActionFormRenderer } from '@/hooks/use-action-executor';
+import { useActionExecutor } from '@/hooks/use-action-executor';
+import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
+import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 export default function MediaPage() {
   // Table state
@@ -38,6 +38,9 @@ export default function MediaPage() {
     ColumnDefinitionDTO[] | undefined
   >(undefined);
   const [isPending, startTransition] = useTransition();
+  const [selectedObjectId, setSelectedObjectId] = useState<string | undefined>(
+    undefined
+  );
 
   // Wrap state updates in startTransition to prevent Suspense fallback
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
@@ -71,48 +74,31 @@ export default function MediaPage() {
     setColumnDefs(data.columns);
   }
 
+  // Action executor for row-level actions
+  const rowActionExecutor = useActionExecutor({
+    actionGroup: 'media_actions',
+    objectId: selectedObjectId,
+  });
+
   const handleBulkAction = (action: string, rows: typeof data.objects) => {
     console.log('Bulk action:', action, 'on rows:', rows);
     // TODO: Implement bulk action handling
   };
 
-  const handleRowActionClick = (actionName: string, row: ObjectListDTO) => {
-    console.log('Row action clicked:', actionName, 'on row:', row.id);
-    // TODO: Implement row action handling with dynamic objectId
-  };
+  const handleRowActionClick = useCallback(
+    (actionName: string, row: ObjectListDTO) => {
+      // Set the selected object ID
+      setSelectedObjectId(row.id);
 
-  // Custom form renderer for media actions
-  const renderMediaActionForm: ActionFormRenderer = useCallback((props) => {
-    const { action, onSubmit, onCancel, isSubmitting } = props;
-
-    // Handle create media action with file upload form
-    if (action.action === 'top_level_media_actions__top_level_media_create') {
-      return (
-        <CreateMediaForm
-          onSubmit={(uploadData) => {
-            // Build the properly typed media creation data
-            const mediaData: RegisterMediaSchema = {
-              file_key: uploadData.file_key,
-              file_name: uploadData.file_name,
-              file_size: uploadData.file_size,
-              mime_type: uploadData.mime_type,
-            };
-
-            // Pass to the action - backend will handle media creation
-            onSubmit({
-              action: 'top_level_media_actions__top_level_media_create',
-              data: mediaData,
-            });
-          }}
-          onCancel={onCancel}
-          isSubmitting={isSubmitting}
-        />
-      );
-    }
-
-    // Return null for actions that don't need custom forms
-    return null;
-  }, []);
+      // Find the action from the row's actions
+      const action = row.actions?.find((a) => a.action === actionName);
+      if (action) {
+        // Use the row action executor to initiate the action
+        rowActionExecutor.initiateAction(action);
+      }
+    },
+    [rowActionExecutor]
+  );
 
   return (
     <div className="space-y-4">
@@ -131,7 +117,6 @@ export default function MediaPage() {
           <ActionsMenu
             actions={data.actions}
             actionGroup="top_level_media_actions"
-            renderActionForm={renderMediaActionForm}
             onActionComplete={() => {
               // Refresh the media list after action completion
               // Note: For media upload, the refresh happens via the register mutation
@@ -164,6 +149,33 @@ export default function MediaPage() {
         onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
+
+      {/* Row action dialogs */}
+      <ActionConfirmationDialog
+        open={rowActionExecutor.showConfirmation}
+        action={rowActionExecutor.pendingAction}
+        isExecuting={rowActionExecutor.isExecuting}
+        onConfirm={rowActionExecutor.confirmAction}
+        onCancel={rowActionExecutor.cancelAction}
+      />
+
+      {rowActionExecutor.showForm &&
+        rowActionExecutor.pendingAction &&
+        rowActionExecutor.renderActionForm && (
+          <ActionFormDialog
+            open={rowActionExecutor.showForm}
+            action={rowActionExecutor.pendingAction}
+            isExecuting={rowActionExecutor.isExecuting}
+            onCancel={rowActionExecutor.cancelAction}
+          >
+            {rowActionExecutor.renderActionForm({
+              action: rowActionExecutor.pendingAction,
+              onSubmit: rowActionExecutor.executeWithData,
+              onCancel: rowActionExecutor.cancelAction,
+              isSubmitting: rowActionExecutor.isExecuting,
+            })}
+          </ActionFormDialog>
+        )}
     </div>
   );
 }

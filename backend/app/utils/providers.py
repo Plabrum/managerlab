@@ -8,6 +8,7 @@ from litestar_saq import TaskQueues
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
@@ -23,29 +24,29 @@ from app.client.s3_client import S3Dep
 async def provide_transaction(
     db_session: AsyncSession, request: Request
 ) -> AsyncGenerator[AsyncSession, None]:
-    """Provide a database transaction with RLS session variables and soft delete filtering.
+    """Provide a database transaction with RLS session variables and soft delete filtering."""
 
-    Sets PostgreSQL session variables for Row-Level Security based on session scope:
-    - app.team_id: Set when user has team scope
-    - app.campaign_id: Set when user has campaign scope
-    - Neither set for admin/system operations
+    def _raiseload_listener(execute_state):
+        execute_state.statement = execute_state.statement.options(raiseload("*"))
 
-    Also applies soft delete filtering via SQLAlchemy event listener.
-    """
-    # Attach soft delete filter listener to THIS session only
+    # --- Attach listeners to this specific session only ---
     event.listen(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+    event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
+
     try:
         async with db_session.begin():
-            # Set RLS session variables within the transaction
             await set_rls_variables(db_session, request)
             yield db_session
+
     except IntegrityError as exc:
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
+
     finally:
-        # Always remove the listener so it doesn't leak to other sessions
+        # --- Remove the same listener objects ---
         event.remove(
             db_session.sync_session, "do_orm_execute", apply_soft_delete_filter
         )
+        event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
 
 async def on_startup(app: Litestar) -> None:

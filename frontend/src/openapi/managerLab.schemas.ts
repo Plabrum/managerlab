@@ -17,6 +17,7 @@ export interface ActionDTO {
   priority?: number;
   icon?: ActionDTOIcon;
   confirmation_message?: ActionDTOConfirmationMessage;
+  should_redirect_to_parent?: boolean;
 }
 
 export type ActionExecutionResponseResults = {[key: string]: unknown};
@@ -25,6 +26,7 @@ export interface ActionExecutionResponse {
   success: boolean;
   message: string;
   results?: ActionExecutionResponseResults;
+  should_redirect_to_parent?: boolean;
 }
 
 /**
@@ -51,6 +53,15 @@ export const ActionGroupType = {
 
 export interface ActionListResponse {
   actions: ActionDTO[];
+}
+
+export interface AddMediaToDeliverableAction {
+  data: AddMediaToDeliverableSchema;
+  action: 'deliverable_actions__deliverable_add_media';
+}
+
+export interface AddMediaToDeliverableSchema {
+  media_ids: string[];
 }
 
 export type AddUserToWaitlistWaitlistEntryResponseBodyCompany = string | null;
@@ -151,10 +162,13 @@ export interface BrandUpdateSchema {
 
 export type CampaignCreateSchemaDescription = string | null;
 
+export type CampaignCreateSchemaCompensationStructure = CompensationStructure | null;
+
 export interface CampaignCreateSchema {
   name: string;
   brand_id: number;
   description?: CampaignCreateSchemaDescription;
+  compensation_structure?: CampaignCreateSchemaCompensationStructure;
 }
 
 /**
@@ -194,10 +208,13 @@ export type CampaignUpdateSchemaDescription = string | null;
 
 export type CampaignUpdateSchemaBrandId = number | null;
 
+export type CampaignUpdateSchemaCompensationStructure = CompensationStructure | null;
+
 export interface CampaignUpdateSchema {
   name?: CampaignUpdateSchemaName;
   description?: CampaignUpdateSchemaDescription;
   brand_id?: CampaignUpdateSchemaBrandId;
+  compensation_structure?: CampaignUpdateSchemaCompensationStructure;
 }
 
 export type CategoricalDataPointBreakdowns = {[key: string]: number};
@@ -398,8 +415,6 @@ export type DeliverableCreateSchemaNotesOneOf = {[key: string]: unknown};
 
 export type DeliverableCreateSchemaNotes = DeliverableCreateSchemaNotesOneOf | null;
 
-export type DeliverableCreateSchemaCompensationStructure = CompensationStructure | null;
-
 export type DeliverableCreateSchemaCampaignId = number | null;
 
 export interface DeliverableCreateSchema {
@@ -408,20 +423,41 @@ export interface DeliverableCreateSchema {
   posting_date: string;
   content?: DeliverableCreateSchemaContent;
   notes?: DeliverableCreateSchemaNotes;
-  compensation_structure?: DeliverableCreateSchemaCompensationStructure;
   campaign_id?: DeliverableCreateSchemaCampaignId;
 }
 
-export type DeliverableStates = typeof DeliverableStates[keyof typeof DeliverableStates];
+export type DeliverableMediaAssociationSchemaApprovedAt = string | null;
 
+export interface DeliverableMediaAssociationSchema {
+  approved_at?: DeliverableMediaAssociationSchemaApprovedAt;
+  is_featured: boolean;
+  media: MediaResponseSchema;
+  created_at: string;
+  updated_at: string;
+}
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DeliverableStates = {
-  draft: 'draft',
-  in_review: 'in_review',
-  approved: 'approved',
-  posted: 'posted',
-} as const;
+export type DeliverableResponseSchemaContent = string | null;
+
+export type DeliverableResponseSchemaNotes = {[key: string]: unknown};
+
+export type DeliverableResponseSchemaCampaignId = number | null;
+
+export type DeliverableResponseSchemaAssignedRoster = RosterInDeliverableSchema | null;
+
+export interface DeliverableResponseSchema {
+  id: string;
+  title: string;
+  content?: DeliverableResponseSchemaContent;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  notes: DeliverableResponseSchemaNotes;
+  state: string;
+  campaign_id?: DeliverableResponseSchemaCampaignId;
+  created_at: string;
+  updated_at: string;
+  deliverable_media_associations: DeliverableMediaAssociationSchema[];
+  assigned_roster?: DeliverableResponseSchemaAssignedRoster;
+}
 
 export type DeliverableUpdateSchemaTitle = string | null;
 
@@ -435,8 +471,6 @@ export type DeliverableUpdateSchemaNotesOneOf = {[key: string]: unknown};
 
 export type DeliverableUpdateSchemaNotes = DeliverableUpdateSchemaNotesOneOf | null;
 
-export type DeliverableUpdateSchemaCompensationStructure = CompensationStructure | null;
-
 export type DeliverableUpdateSchemaCampaignId = number | null;
 
 export interface DeliverableUpdateSchema {
@@ -445,7 +479,6 @@ export interface DeliverableUpdateSchema {
   platforms?: DeliverableUpdateSchemaPlatforms;
   posting_date?: DeliverableUpdateSchemaPostingDate;
   notes?: DeliverableUpdateSchemaNotes;
-  compensation_structure?: DeliverableUpdateSchemaCompensationStructure;
   campaign_id?: DeliverableUpdateSchemaCampaignId;
 }
 
@@ -453,6 +486,11 @@ export const DownloadMediaActionValue = {
   action: 'media_actions__media_download',
 } as const;
 export type DownloadMediaAction = typeof DownloadMediaActionValue;
+
+export interface EditDeliverableAction {
+  data: DeliverableUpdateSchema;
+  action: 'deliverable_actions__deliverable_update';
+}
 
 export interface EmailFieldValue {
   value: string;
@@ -572,11 +610,15 @@ export interface GetBrandContactBrandContactResponseBody {
 
 export type GetCampaignCampaignResponseBodyDescription = string | null;
 
+export type GetCampaignCampaignResponseBodyAssignedRosterId = number | null;
+
 export type GetCampaignCampaignResponseBodyDeletedAt = string | null;
 
 export interface GetCampaignCampaignResponseBody {
   name: string;
   description?: GetCampaignCampaignResponseBodyDescription;
+  compensation_structure?: CompensationStructure;
+  assigned_roster_id?: GetCampaignCampaignResponseBodyAssignedRosterId;
   brand_id: number;
   created_at: string;
   updated_at: string;
@@ -617,30 +659,6 @@ export interface GetDashboardDashboardResponseBody {
   updated_at: string;
   deleted_at?: GetDashboardDashboardResponseBodyDeletedAt;
   team_id?: GetDashboardDashboardResponseBodyTeamId;
-  id: string;
-}
-
-export type GetDeliverableDeliverableResponseBodyContent = string | null;
-
-export type GetDeliverableDeliverableResponseBodyNotes = {[key: string]: unknown};
-
-export type GetDeliverableDeliverableResponseBodyDeletedAt = string | null;
-
-export type GetDeliverableDeliverableResponseBodyCampaignId = number | null;
-
-export interface GetDeliverableDeliverableResponseBody {
-  title: string;
-  content?: GetDeliverableDeliverableResponseBodyContent;
-  platforms: SocialMediaPlatforms;
-  posting_date: string;
-  notes: GetDeliverableDeliverableResponseBodyNotes;
-  compensation_structure?: CompensationStructure;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetDeliverableDeliverableResponseBodyDeletedAt;
-  state?: DeliverableStates;
-  team_id: number;
-  campaign_id?: GetDeliverableDeliverableResponseBodyCampaignId;
   id: string;
 }
 
@@ -838,6 +856,21 @@ export interface ListUsersUserResponseBody {
   id: string;
 }
 
+export type MediaResponseSchemaThumbnailUrl = string | null;
+
+export interface MediaResponseSchema {
+  id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  view_url: string;
+  thumbnail_url?: MediaResponseSchemaThumbnailUrl;
+}
+
 /**
  * Media processing states.
  */
@@ -871,21 +904,16 @@ export interface NumericalTimeSeriesData {
   type: 'numerical';
 }
 
-export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
-
-export type ObjectDetailDTOParentsItem = {[key: string]: ObjectRelationDTO};
-
 export interface ObjectDetailDTO {
   id: string;
-  object_type: string;
+  object_type: ObjectTypes;
   state: string;
   title: string;
   fields: ObjectFieldDTO[];
   actions: ActionDTO[];
   created_at: string;
   updated_at: string;
-  children?: ObjectDetailDTOChildrenItem[];
-  parents?: ObjectDetailDTOParentsItem[];
+  relations?: ObjectRelationGroup[];
 }
 
 export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
@@ -905,7 +933,7 @@ export type ObjectListDTOLink = string | null;
 
 export interface ObjectListDTO {
   id: string;
-  object_type: string;
+  object_type: ObjectTypes;
   title: string;
   state: string;
   created_at: string;
@@ -940,10 +968,12 @@ export interface ObjectListResponse {
   actions?: ActionDTO[];
 }
 
-export interface ObjectRelationDTO {
-  object_type: string;
-  sqid: string;
-  title: string;
+export interface ObjectRelationGroup {
+  relation_name: string;
+  relation_label: string;
+  relation_type: RelationType;
+  cardinality: RelationCardinality;
+  objects: ObjectListDTO[];
 }
 
 export type ObjectTypes = typeof ObjectTypes[keyof typeof ObjectTypes];
@@ -997,6 +1027,7 @@ export interface RegisterMediaMediaResponseBody {
   file_type: string;
   file_size: number;
   mime_type: string;
+  deliverable_media_associations: RegisterMediaMedia0DeliverableMediaResponseBody[];
   created_at: string;
   updated_at: string;
   deleted_at?: RegisterMediaMediaResponseBodyDeletedAt;
@@ -1006,11 +1037,60 @@ export interface RegisterMediaMediaResponseBody {
   id: string;
 }
 
+export type RegisterMediaMedia0DeliverableMediaResponseBodyApprovedAt = string | null;
+
+export type RegisterMediaMedia0DeliverableMediaResponseBodyDeletedAt = string | null;
+
+export interface RegisterMediaMedia0DeliverableMediaResponseBody {
+  deliverable_id: number;
+  media_id: number;
+  approved_at?: RegisterMediaMedia0DeliverableMediaResponseBodyApprovedAt;
+  is_featured?: boolean;
+  id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: RegisterMediaMedia0DeliverableMediaResponseBodyDeletedAt;
+  public_id: string;
+}
+
 export interface RegisterMediaSchema {
   file_key: string;
   file_name: string;
   file_size: number;
   mime_type: string;
+}
+
+/**
+ * Cardinality of a relationship.
+ */
+export type RelationCardinality = typeof RelationCardinality[keyof typeof RelationCardinality];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RelationCardinality = {
+  one: 'one',
+  many: 'many',
+} as const;
+
+/**
+ * Type of relationship between objects.
+ */
+export type RelationType = typeof RelationType[keyof typeof RelationType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RelationType = {
+  parent: 'parent',
+  child: 'child',
+} as const;
+
+export interface RemoveMediaFromDeliverableAction {
+  data: RemoveMediaFromDeliverableSchema;
+  action: 'deliverable_actions__deliverable_remove_media';
+}
+
+export interface RemoveMediaFromDeliverableSchema {
+  media_ids: string[];
 }
 
 /**
@@ -1038,6 +1118,27 @@ export interface RosterCreateSchema {
   email?: RosterCreateSchemaEmail;
   phone?: RosterCreateSchemaPhone;
   instagram_handle?: RosterCreateSchemaInstagramHandle;
+}
+
+export type RosterInDeliverableSchemaEmail = string | null;
+
+export type RosterInDeliverableSchemaInstagramHandle = string | null;
+
+export type RosterInDeliverableSchemaFacebookHandle = string | null;
+
+export type RosterInDeliverableSchemaTiktokHandle = string | null;
+
+export type RosterInDeliverableSchemaYoutubeChannel = string | null;
+
+export interface RosterInDeliverableSchema {
+  id: string;
+  name: string;
+  email?: RosterInDeliverableSchemaEmail;
+  instagram_handle?: RosterInDeliverableSchemaInstagramHandle;
+  facebook_handle?: RosterInDeliverableSchemaFacebookHandle;
+  tiktok_handle?: RosterInDeliverableSchemaTiktokHandle;
+  youtube_channel?: RosterInDeliverableSchemaYoutubeChannel;
+  state: string;
 }
 
 /**
@@ -1111,8 +1212,10 @@ export interface TeamScopeSchema {
   role_level: RoleLevel;
 }
 
+export type TextFieldValueValue = { [key: string]: unknown };
+
 export interface TextFieldValue {
-  value: string;
+  value: TextFieldValueValue;
   type: 'text';
 }
 
@@ -1260,11 +1363,15 @@ export interface UpdateCampaignAction {
 
 export type UpdateCampaignCampaignResponseBodyDescription = string | null;
 
+export type UpdateCampaignCampaignResponseBodyAssignedRosterId = number | null;
+
 export type UpdateCampaignCampaignResponseBodyDeletedAt = string | null;
 
 export interface UpdateCampaignCampaignResponseBody {
   name: string;
   description?: UpdateCampaignCampaignResponseBodyDescription;
+  compensation_structure?: CompensationStructure;
+  assigned_roster_id?: UpdateCampaignCampaignResponseBodyAssignedRosterId;
   brand_id: number;
   created_at: string;
   updated_at: string;
@@ -1312,35 +1419,6 @@ export interface UpdateDashboardSchema {
   name?: UpdateDashboardSchemaName;
   config?: UpdateDashboardSchemaConfig;
   is_default?: UpdateDashboardSchemaIsDefault;
-}
-
-export interface UpdateDeliverableAction {
-  data: DeliverableUpdateSchema;
-  action: 'deliverable_actions__deliverable_update';
-}
-
-export type UpdateDeliverableDeliverableResponseBodyContent = string | null;
-
-export type UpdateDeliverableDeliverableResponseBodyNotes = {[key: string]: unknown};
-
-export type UpdateDeliverableDeliverableResponseBodyDeletedAt = string | null;
-
-export type UpdateDeliverableDeliverableResponseBodyCampaignId = number | null;
-
-export interface UpdateDeliverableDeliverableResponseBody {
-  title: string;
-  content?: UpdateDeliverableDeliverableResponseBodyContent;
-  platforms: SocialMediaPlatforms;
-  posting_date: string;
-  notes: UpdateDeliverableDeliverableResponseBodyNotes;
-  compensation_structure?: CompensationStructure;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdateDeliverableDeliverableResponseBodyDeletedAt;
-  state?: DeliverableStates;
-  team_id: number;
-  campaign_id?: UpdateDeliverableDeliverableResponseBodyCampaignId;
-  id: string;
 }
 
 export interface UpdateInvoiceAction {
@@ -1560,7 +1638,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | UpdateDeliverableAction | PublishDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1588,7 +1666,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | UpdateDeliverableAction | PublishDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

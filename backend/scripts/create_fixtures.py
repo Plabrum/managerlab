@@ -150,18 +150,18 @@ async def create_fixtures():
 
             await session.flush()
 
-            # Associate deliverables with media (many-to-many relationship) using direct SQL
+            # Associate deliverables with media (many-to-many relationship)
             print("🔗 Associating deliverables with media...")
-            from app.deliverables.models import deliverable_media
+            from app.deliverables.models import DeliverableMedia
 
             for deliverable in deliverables:
                 # Each deliverable gets 1-3 media assets
                 selected_media = random.sample(media_assets, min(3, len(media_assets)))
                 for media in selected_media:
-                    insert_stmt = deliverable_media.insert().values(
+                    assoc = DeliverableMedia(
                         deliverable_id=deliverable.id, media_id=media.id
                     )
-                    await session.execute(insert_stmt)
+                    session.add(assoc)
 
             await session.flush()
 

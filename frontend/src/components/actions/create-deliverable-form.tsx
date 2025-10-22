@@ -1,25 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import type {
-  DeliverableCreateSchema,
-  SocialMediaPlatforms,
-  CompensationStructure,
-} from '@/openapi/managerLab.schemas';
+import { createTypedForm } from '@/components/forms/base';
+import type { DeliverableCreateSchema } from '@/openapi/managerLab.schemas';
 import { SocialMediaPlatforms as SocialMediaPlatformsEnum } from '@/openapi/managerLab.schemas';
-import { CompensationStructure as CompensationStructureEnum } from '@/openapi/managerLab.schemas';
-import { useState } from 'react';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
+
+const { Form, FormString, FormText, FormSelect, FormDatetime } =
+  createTypedForm<DeliverableCreateSchema>();
 
 interface CreateDeliverableFormProps {
   onSubmit: (data: DeliverableCreateSchema) => void;
@@ -35,16 +23,6 @@ export function CreateDeliverableForm({
   onCancel,
   isSubmitting,
 }: CreateDeliverableFormProps) {
-  const [title, setTitle] = useState('');
-  const [platforms, setPlatforms] = useState<SocialMediaPlatforms | ''>('');
-  const [postingDate, setPostingDate] = useState('');
-  const [content, setContent] = useState('');
-  const [compensationStructure, setCompensationStructure] = useState<
-    CompensationStructure | ''
-  >('');
-  const [campaignId, setCampaignId] = useState<string>('');
-  const [notes, setNotes] = useState('');
-
   // Fetch campaigns for the dropdown
   const { data: campaignsData } = useListObjectsSuspense('campaigns', {
     offset: 0,
@@ -53,170 +31,68 @@ export function CreateDeliverableForm({
     filters: [],
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const platformOptions = [
+    { value: SocialMediaPlatformsEnum.instagram, label: 'Instagram' },
+    { value: SocialMediaPlatformsEnum.facebook, label: 'Facebook' },
+    { value: SocialMediaPlatformsEnum.tiktok, label: 'TikTok' },
+    { value: SocialMediaPlatformsEnum.youtube, label: 'YouTube' },
+  ];
 
-    // Validate required fields
-    if (!title.trim() || !platforms || !postingDate) {
-      return;
-    }
+  const campaignOptions =
+    campaignsData?.objects.map((campaign) => ({
+      value: campaign.id.toString(),
+      label: campaign.title,
+    })) || [];
 
-    // Parse notes JSON if provided
-    let parsedNotes: { [key: string]: unknown } | undefined;
-    if (notes.trim()) {
-      try {
-        parsedNotes = JSON.parse(notes);
-      } catch {
-        // If JSON parsing fails, wrap in object
-        parsedNotes = { text: notes };
-      }
-    }
-
-    const deliverableData: DeliverableCreateSchema = {
-      title: title.trim(),
-      platforms: platforms as SocialMediaPlatforms,
-      posting_date: new Date(postingDate).toISOString(),
-      content: content.trim() || undefined,
-      compensation_structure: compensationStructure || undefined,
-      campaign_id: campaignId ? parseInt(campaignId, 10) : undefined,
-      notes: parsedNotes,
+  const handleFormSubmit = (data: DeliverableCreateSchema) => {
+    // Convert datetime-local string to ISO format
+    const submissionData: DeliverableCreateSchema = {
+      ...data,
+      posting_date: new Date(data.posting_date).toISOString(),
+      // Convert campaign_id from string to number if provided
+      campaign_id: data.campaign_id
+        ? parseInt(data.campaign_id as unknown as string, 10)
+        : undefined,
     };
-
-    onSubmit(deliverableData);
+    onSubmit(submissionData);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="title">
-          Title <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Deliverable title"
-          disabled={isSubmitting}
-          required
-        />
-      </div>
+    <Form onSubmit={handleFormSubmit}>
+      <FormString
+        name="title"
+        label="Title"
+        placeholder="Deliverable title"
+        required="Title is required"
+      />
 
-      <div>
-        <Label htmlFor="platforms">
-          Platform <span className="text-destructive">*</span>
-        </Label>
-        <Select
-          value={platforms}
-          onValueChange={(value) => setPlatforms(value as SocialMediaPlatforms)}
-          disabled={isSubmitting}
-          required
-        >
-          <SelectTrigger id="platforms">
-            <SelectValue placeholder="Select platform" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={SocialMediaPlatformsEnum.instagram}>
-              Instagram
-            </SelectItem>
-            <SelectItem value={SocialMediaPlatformsEnum.facebook}>
-              Facebook
-            </SelectItem>
-            <SelectItem value={SocialMediaPlatformsEnum.tiktok}>
-              TikTok
-            </SelectItem>
-            <SelectItem value={SocialMediaPlatformsEnum.youtube}>
-              YouTube
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FormSelect
+        name="platforms"
+        label="Platform"
+        placeholder="Select platform"
+        options={platformOptions}
+        required="Platform is required"
+      />
 
-      <div>
-        <Label htmlFor="posting_date">
-          Posting Date <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="posting_date"
-          type="datetime-local"
-          value={postingDate}
-          onChange={(e) => setPostingDate(e.target.value)}
-          disabled={isSubmitting}
-          required
-        />
-      </div>
+      <FormDatetime
+        name="posting_date"
+        label="Posting Date"
+        required="Posting date is required"
+      />
 
-      <div>
-        <Label htmlFor="content">Content</Label>
-        <Textarea
-          id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Deliverable content..."
-          rows={4}
-          disabled={isSubmitting}
-        />
-      </div>
+      <FormText
+        name="content"
+        label="Content"
+        placeholder="Deliverable content..."
+        rows={4}
+      />
 
-      <div>
-        <Label htmlFor="compensation_structure">Compensation Structure</Label>
-        <Select
-          value={compensationStructure}
-          onValueChange={(value) =>
-            setCompensationStructure(value as CompensationStructure)
-          }
-          disabled={isSubmitting}
-        >
-          <SelectTrigger id="compensation_structure">
-            <SelectValue placeholder="Select compensation structure" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={CompensationStructureEnum.flat_fee}>
-              Flat Fee
-            </SelectItem>
-            <SelectItem value={CompensationStructureEnum.per_deliverable}>
-              Per Deliverable
-            </SelectItem>
-            <SelectItem value={CompensationStructureEnum.performance_based}>
-              Performance Based
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label htmlFor="campaign_id">Campaign</Label>
-        <Select
-          value={campaignId}
-          onValueChange={setCampaignId}
-          disabled={isSubmitting}
-        >
-          <SelectTrigger id="campaign_id">
-            <SelectValue placeholder="Select campaign (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            {campaignsData?.objects.map((campaign) => (
-              <SelectItem key={campaign.id} value={campaign.id.toString()}>
-                {campaign.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label htmlFor="notes">Notes (JSON format)</Label>
-        <Textarea
-          id="notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder='{"key": "value"}'
-          rows={3}
-          disabled={isSubmitting}
-        />
-        <p className="text-muted-foreground mt-1 text-xs">
-          Optional: Enter valid JSON or plain text
-        </p>
-      </div>
+      <FormSelect
+        name="campaign_id"
+        label="Campaign"
+        placeholder="Select campaign (optional)"
+        options={campaignOptions}
+      />
 
       <div className="flex gap-3 pt-4">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
@@ -232,6 +108,6 @@ export function CreateDeliverableForm({
           Cancel
         </Button>
       </div>
-    </form>
+    </Form>
   );
 }

@@ -33,15 +33,10 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["debugpy>=1.8.17", "mypy>=1.18.2", "watchdog>=6.0.0", "types-boto3>=1.0.2"]
+dev = ["debugpy>=1.8.17", "basedpyright>=1.23.0", "watchdog>=6.0.0", "types-boto3>=1.0.2"]
 
-[tool.mypy]
-# Allow actions to override execute() and is_available() with more specific signatures
-# This is intentional: base uses **kwargs for runtime inspection, subclasses are specific
-disable_error_code = [
-    "override",
-    "misc",  # Disable for StateMachineMixin dynamic base classes and ClassVar with Self
-    "typeddict-unknown-key",  # SAQ Context is extended dynamically
-    "typeddict-item",  # SAQ Context is extended dynamically
-    "attr-defined",  # Disable for sqids module exports and SQLAlchemyPlugin.get_session
-]
+[tool.basedpyright]
+typeCheckingMode = "basic"
+ignore = ["alembic/versions"]
+reportIncompatibleMethodOverride = "none"
+reportGeneralTypeIssues = "warning"

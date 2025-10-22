@@ -15,18 +15,14 @@ class SocialMediaPlatforms(StrEnum):
     YOUTUBE = auto()
 
 
-class CompensationStructure(StrEnum):
-    FLAT_FEE = auto()
-    PER_DELIVERABLE = auto()
-    PERFORMANCE_BASED = auto()
-
-
 class DeliverableActions(StrEnum):
     """Actions for Deliverable objects."""
 
     publish = "deliverable.publish"
     delete = "deliverable.delete"
     update = "deliverable.update"
+    add_media = "deliverable.add_media"
+    remove_media = "deliverable.remove_media"
 
 
 class TopLevelDeliverableActions(StrEnum):

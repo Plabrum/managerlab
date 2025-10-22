@@ -8,11 +8,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { ActionDTO, ActionGroupType } from '@/openapi/managerLab.schemas';
-import {
-  useActionExecutor,
-  type ActionFormRenderer,
-} from '@/hooks/use-action-executor';
+import type {
+  ActionDTO,
+  ActionGroupType,
+  ObjectDetailDTO,
+} from '@/openapi/managerLab.schemas';
+import { useActionExecutor } from '@/hooks/use-action-executor';
+import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
@@ -20,18 +22,25 @@ interface ActionsMenuProps {
   actions: ActionDTO[];
   actionGroup: ActionGroupType;
   onActionComplete?: () => void;
-  renderActionForm?: ActionFormRenderer;
+  /**
+   * Object data to automatically extract default values for forms
+   * The registry's render functions will use this
+   */
+  objectData?: ObjectDetailDTO;
 }
 
 export function ActionsMenu({
   actions,
   actionGroup,
   onActionComplete,
-  renderActionForm,
+  objectData,
 }: ActionsMenuProps) {
+  // Use the centralized registry
+  const formRenderer = useActionFormRenderer(objectData);
+
   const executor = useActionExecutor({
     actionGroup,
-    renderActionForm,
+    renderActionForm: formRenderer,
     onSuccess: () => {
       onActionComplete?.();
     },

@@ -1,21 +1,10 @@
 'use client';
 
-import { use, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-  ObjectHeader,
-  ObjectActions,
-  ObjectFields,
-  ObjectParents,
-  ObjectChildren,
-} from '@/components/object-detail';
+import { use } from 'react';
+import { ObjectFields, ObjectRelations } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
-import { useBreadcrumb } from '@/components/breadcrumb-provider';
-import {
-  ActionGroupType,
-  type ActionDTO,
-  type ActionExecutionResponse,
-} from '@/openapi/managerLab.schemas';
+import { DetailPageLayout } from '@/components/detail-page-layout';
+import { ActionGroupType } from '@/openapi/managerLab.schemas';
 
 export default function BrandDetailPage({
   params,
@@ -23,63 +12,32 @@ export default function BrandDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const pathname = usePathname();
-  const router = useRouter();
-  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
 
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('brands', id);
 
-  // Set breadcrumb title after data loads
-  useEffect(() => {
-    setBreadcrumb(pathname, data?.title);
-    return () => {
-      clearBreadcrumb(pathname);
-    };
-  }, [data?.title, pathname, setBreadcrumb, clearBreadcrumb]);
-
-  // Handle action completion - redirect on delete
-  const handleActionComplete = (
-    action: ActionDTO,
-    response: ActionExecutionResponse
-  ) => {
-    const isDeleteAction = action.action.toLowerCase().includes('delete');
-
-    if (isDeleteAction && response.success) {
-      router.push('/brands');
-    }
-  };
-
   return (
-    <div className="container mx-auto py-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <ObjectHeader
-            title={data.title}
-            state={data.state}
-            createdAt={data.created_at}
-            updatedAt={data.updated_at}
-          />
-          <ObjectActions
-            actions={data.actions}
-            actionGroup={ActionGroupType.brand_actions}
-            objectId={id}
-            onActionComplete={handleActionComplete}
-          />
+    <DetailPageLayout
+      title={data.title}
+      state={data.state}
+      createdAt={data.created_at}
+      updatedAt={data.updated_at}
+      actions={data.actions}
+      actionGroup={ActionGroupType.brand_actions}
+      objectId={id}
+      objectData={data}
+    >
+      <div className="container mx-auto py-6">
+        <div className="space-y-6">
+          {/* Two Column Grid */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Left Column - Fields */}
+            <ObjectFields fields={data.fields} />
+          </div>
+
+          {/* Relations */}
+          <ObjectRelations relations={data.relations || []} />
         </div>
-
-        {/* Two Column Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left Column - Fields */}
-          <ObjectFields fields={data.fields} />
-        </div>
-
-        {/* Parents */}
-        <ObjectParents parents={data.parents || []} />
-
-        {/* Children */}
-        {data.children && <ObjectChildren items={data.children} />}
       </div>
-    </div>
+    </DetailPageLayout>
   );
 }

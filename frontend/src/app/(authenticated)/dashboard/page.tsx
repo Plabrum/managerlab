@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { dashboardsListDashboards } from '@/openapi/dashboards/dashboards';
 import { DashboardContent } from '@/components/dashboard-content';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   // Fetch dashboards to find the first one to redirect to
   const dashboards = await dashboardsListDashboards();

@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Image } from '@/components/ui/image';
 
 interface MediaViewerProps {
   url: string;
@@ -26,7 +27,7 @@ export function MediaViewer({ url, alt }: MediaViewerProps) {
             className="bg-muted aspect-video w-full cursor-pointer overflow-hidden rounded-lg border"
             onClick={() => setIsFullscreen(true)}
           >
-            <img
+            <Image
               src={url}
               alt={alt || 'Media preview'}
               className="h-full w-full object-contain"
@@ -45,7 +46,7 @@ export function MediaViewer({ url, alt }: MediaViewerProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-auto">
-            <img
+            <Image
               src={url}
               alt={alt || 'Full size image'}
               className="h-auto w-full"

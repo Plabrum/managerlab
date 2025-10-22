@@ -71,8 +71,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: '/roster',
         },
         {
-          title: 'Posts',
-          url: '/posts',
+          title: 'Deliverables',
+          url: '/deliverables',
         },
         {
           title: 'Media',
