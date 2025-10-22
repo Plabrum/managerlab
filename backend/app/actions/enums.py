@@ -18,6 +18,7 @@ class ActionGroupType(StrEnum):
     TopLevelRosterActions = "top_level_roster_actions"
     DashboardActions = "dashboard_actions"
     TeamActions = "team_actions"
+    MessageActions = "message_actions"
 
 
 class ActionIcon(StrEnum):

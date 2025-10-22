@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 import aiohttp
 from litestar import Litestar, Request
 from litestar.datastructures import State
-from litestar.exceptions import ClientException
+from litestar.exceptions import ClientException, PermissionDeniedException
 from litestar.status_codes import HTTP_409_CONFLICT
 from litestar_saq import TaskQueues
 from sqlalchemy import event
@@ -105,3 +105,23 @@ def provide_action_registry(
 def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:
     """Provide the ObjectRegistry singleton with dependencies."""
     return ObjectRegistry(s3_client=s3_client, config=config)
+
+
+def provide_user_id(request: Request) -> int:
+    """Provide the authenticated user ID from the session."""
+    user_id: int | None = request.user
+    if not user_id:
+        raise PermissionDeniedException("User ID not found in session")
+    return user_id
+
+
+def provide_team_id(request: Request) -> int | None:
+    """Provide the team ID from the session."""
+    team_id = request.session.get("team_id")
+    return int(team_id) if team_id else None
+
+
+def provide_campaign_id(request: Request) -> int | None:
+    """Provide the optional campaign ID from the session."""
+    campaign_id = request.session.get("campaign_id")
+    return int(campaign_id) if campaign_id else None

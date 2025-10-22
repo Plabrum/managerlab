@@ -34,7 +34,7 @@ from app.deliverables.routes import deliverable_router
 from app.media.routes import media_router, local_media_router
 from app.payments.routes import invoice_router
 from app.dashboard.routes import dashboard_router
-
+from app.threads import thread_router, ThreadWebSocketHandler
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
 from app.utils.logging import logging_config
@@ -84,6 +84,8 @@ route_handlers: list[Any] = [
     media_router,
     invoice_router,
     dashboard_router,
+    thread_router,
+    ThreadWebSocketHandler,
 ]
 
 # Only include local media router in development
