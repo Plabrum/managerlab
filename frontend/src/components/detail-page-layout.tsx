@@ -17,7 +17,7 @@ interface DetailPageLayoutProps {
   createdAt: string;
   updatedAt: string;
   actions?: ActionDTO[];
-  actionGroup?: ActionGroupType | string;
+  actionGroup?: ActionGroupType;
   objectId?: string;
   objectData?: ObjectDetailDTO;
 }
