@@ -8,8 +8,8 @@ from app.deliverables.models import Deliverable
 from app.deliverables.enums import (
     DeliverableStates,
     SocialMediaPlatforms,
-    CompensationStructure,
 )
+from app.campaigns.enums import CompensationStructure
 from .base import BaseFactory
 
 

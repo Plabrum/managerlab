@@ -18,6 +18,7 @@ from app.state_machine.models import StateMachineMixin
 if TYPE_CHECKING:
     from app.media.models import Media
     from app.campaigns.models import Campaign
+    from app.users.models import Roster
 
 
 class Deliverable(
@@ -48,15 +49,59 @@ class Deliverable(
     campaign: Mapped["Campaign | None"] = relationship(
         "Campaign", back_populates="deliverables"
     )
+    assigned_roster: Mapped["Roster | None"] = relationship(
+        "Roster",
+        secondary="campaigns",
+        primaryjoin="Deliverable.campaign_id == Campaign.id",
+        secondaryjoin="Campaign.assigned_roster_id == Roster.id",
+        viewonly=True,
+        uselist=False,
+    )
     media: Mapped[list["Media"]] = relationship(
-        "Media", secondary="deliverable_media", back_populates="deliverables"
+        "Media",
+        secondary="deliverable_media",
+        back_populates="deliverables",
+        viewonly=True,
+    )
+    deliverable_media_associations: Mapped[list["DeliverableMedia"]] = relationship(
+        "DeliverableMedia",
+        back_populates="deliverable",
+        cascade="all, delete-orphan",
+        overlaps="media,deliverables",
     )
 
 
-# Association table for many-to-many relationship between deliverables and media
-deliverable_media = sa.Table(
-    "deliverable_media",
-    BaseDBModel.metadata,
-    sa.Column("deliverable_id", sa.ForeignKey("deliverables.id"), primary_key=True),
-    sa.Column("media_id", sa.ForeignKey("media.id"), primary_key=True),
-)
+class DeliverableMedia(BaseDBModel):
+    """Association model for deliverable-media relationship with approval status."""
+
+    __tablename__ = "deliverable_media"
+
+    deliverable_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("deliverables.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    media_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("media.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    # Approval status for this media in this deliverable
+    # If approved_at is not null, the media is approved
+    approved_at: Mapped[datetime | None] = mapped_column(sa.DateTime, nullable=True)
+
+    # Which media should be featured in the preview (only one per deliverable)
+    is_featured: Mapped[bool] = mapped_column(
+        sa.Boolean, default=False, nullable=False, server_default=sa.false()
+    )
+
+    # Relationships
+    deliverable: Mapped["Deliverable"] = relationship(
+        "Deliverable",
+        back_populates="deliverable_media_associations",
+        overlaps="media,deliverables",
+    )
+    media: Mapped["Media"] = relationship(
+        "Media",
+        back_populates="deliverable_media_associations",
+        overlaps="media,deliverables",
+    )

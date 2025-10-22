@@ -1,13 +1,12 @@
 'use client';
 
 import { use } from 'react';
-import { ObjectFields } from '@/components/object-detail';
-import { MediaGallery } from '@/components/object-detail/media-gallery';
+import { useDeliverablesIdGetDeliverableSuspense } from '@/openapi/deliverables/deliverables';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
 import { DetailPageLayout } from '@/components/detail-page-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { DeliverablePreview } from '@/components/deliverable-preview/deliverable-preview';
+import { MediaComments } from '@/components/media-comments';
+import { SimpleMediaGallery } from '@/components/deliverable-preview/media-gallery-simple';
 
 export default function DeliverableDetailPage({
   params,
@@ -16,69 +15,51 @@ export default function DeliverableDetailPage({
 }) {
   const { id } = use(params);
 
-  const { data } = useOObjectTypeIdGetObjectDetailSuspense('deliverables', id);
+  // New endpoint: Type-safe deliverable with relations
+  const { data: deliverable } = useDeliverablesIdGetDeliverableSuspense(id);
 
-  // Find media and campaign relations
-  const mediaRelation = data.relations?.find(
-    (rel) => rel.relation_name === 'media'
-  );
-  const campaignRelation = data.relations?.find(
-    (rel) => rel.relation_name === 'campaign'
+  // Old endpoint: ObjectDetailDTO for action system compatibility
+  // TODO: Remove once action system is migrated to use domain-specific schemas
+  const { data: objectDetail } = useOObjectTypeIdGetObjectDetailSuspense(
+    'deliverables',
+    id
   );
 
   return (
     <DetailPageLayout
-      title={data.title}
-      state={data.state}
-      createdAt={data.created_at}
-      updatedAt={data.updated_at}
-      actions={data.actions}
+      title={deliverable.title}
+      state={deliverable.state}
+      createdAt={deliverable.created_at}
+      updatedAt={deliverable.updated_at}
+      actions={objectDetail.actions}
       actionGroup="deliverable_actions"
       objectId={id}
-      objectData={data}
+      objectData={objectDetail}
     >
       <div className="container mx-auto py-6">
         <div className="space-y-6">
-          {/* Two Column Grid */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Left Column - Fields */}
-            <ObjectFields fields={data.fields} />
+          {/* Two Column Grid - Preview left, Comments right */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 ">
+            {/* Left Column - Preview */}
+            <div className="flex justify-center">
+              <DeliverablePreview
+                deliverable={deliverable}
+                mediaAssociations={deliverable.deliverable_media_associations}
+                roster={deliverable.assigned_roster}
+              />
+            </div>
 
-            {/* Right Column - Campaign (if exists) */}
-            {campaignRelation && campaignRelation.objects.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{campaignRelation.relation_label}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {campaignRelation.objects.map((campaign) => (
-                    <div
-                      key={campaign.id}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <div>
-                        <p className="font-medium">{campaign.title}</p>
-                        {campaign.subtitle && (
-                          <p className="text-muted-foreground text-sm">
-                            {campaign.subtitle}
-                          </p>
-                        )}
-                      </div>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/${campaign.object_type}/${campaign.id}`}>
-                          View
-                        </Link>
-                      </Button>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+            {/* Right Column - Comments */}
+            <MediaComments />
           </div>
 
           {/* Media Gallery - Full Width at Bottom */}
-          {mediaRelation && mediaRelation.objects.length > 0 && (
-            <MediaGallery items={mediaRelation.objects} />
+          {deliverable.deliverable_media_associations.length > 0 && (
+            <SimpleMediaGallery
+              media={deliverable.deliverable_media_associations.map(
+                (dm) => dm.media
+              )}
+            />
           )}
         </div>
       </div>

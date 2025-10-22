@@ -10,7 +10,7 @@ from app.media.enums import MediaStates
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
-    from app.deliverables.models import Deliverable
+    from app.deliverables.models import Deliverable, DeliverableMedia
 
 
 class Media(
@@ -37,5 +37,14 @@ class Media(
     # Relationships
     # The deliverable_media association table is defined in app.deliverables.models
     deliverables: Mapped[list["Deliverable"]] = relationship(
-        "Deliverable", secondary="deliverable_media", back_populates="media"
+        "Deliverable",
+        secondary="deliverable_media",
+        back_populates="media",
+        viewonly=True,
+    )
+    deliverable_media_associations: Mapped[list["DeliverableMedia"]] = relationship(
+        "DeliverableMedia",
+        back_populates="media",
+        cascade="all, delete-orphan",
+        overlaps="media,deliverables",
     )

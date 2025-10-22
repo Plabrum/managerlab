@@ -1,8 +1,9 @@
+from app.campaigns.models import Campaign
 from app.media.objects import MediaObject
 from app.campaigns.objects import CampaignObject
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
@@ -22,7 +23,7 @@ from app.objects.schemas import (
     ObjectRelationGroup,
 )
 from app.objects.services import get_filter_by_field_type
-from app.deliverables.models import Deliverable
+from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.enums import DeliverableStates, SocialMediaPlatforms
 from app.utils.sqids import sqid_encode
 
@@ -38,7 +39,14 @@ class DeliverableObject(BaseObject):
     @classmethod
     def get_load_options(cls):
         """Return load options for eager loading relationships."""
-        return [joinedload(Deliverable.campaign), joinedload(Deliverable.media)]
+        return [
+            joinedload(Deliverable.deliverable_media_associations).options(
+                selectinload(DeliverableMedia.media)
+            ),
+            joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
+            selectinload(Deliverable.media),
+            selectinload(Deliverable.assigned_roster),
+        ]
 
     column_definitions = [
         ColumnDefinitionDTO(
@@ -185,7 +193,6 @@ class DeliverableObject(BaseObject):
                     objects=[CampaignObject.to_list_dto(deliverable.campaign)],
                 )
             )
-
         relations.append(
             ObjectRelationGroup(
                 relation_name="media",

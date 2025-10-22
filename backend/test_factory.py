@@ -45,7 +45,7 @@ def test_basic_factory():
     """Test basic factory creation."""
     brand = BrandFactory.build()
     print(f"Brand: {brand.name}")
-    print(f"Description: {brand.description[:50]}...")
+    print(f"Description: {brand.description[:50] if brand.description else 'N/A'}...")
 
     contact = BrandContactFactory.build()
     print(f"Contact: {contact.first_name} {contact.last_name}")

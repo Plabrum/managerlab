@@ -3,16 +3,26 @@
 from litestar import Request
 from litestar.exceptions import NotFoundException
 from msgspec import structs
-from sqlalchemy import text
+from sqlalchemy import text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.enums import ScopeType
+from app.base.models import BaseDBModel
 from app.base.schemas import BaseSchema
 
 
-async def get_or_404[T](session: AsyncSession, model_class: type[T], id: int) -> T:
-    """Get an entity by ID or raise a 404 exception."""
-    entity = await session.get(model_class, id)
+async def get_or_404[T: BaseDBModel](
+    session: AsyncSession,
+    model_class: type[T],
+    id: int,
+    load_options: list | None = None,
+) -> T:
+    query = select(model_class).where(model_class.id == id)
+    if load_options:
+        query = query.options(*load_options)
+
+    result = await session.execute(query)
+    entity = result.unique().scalar_one_or_none()
     if not entity:
         raise NotFoundException(detail="Not found")
     return entity

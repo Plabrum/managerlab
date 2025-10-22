@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from app.brands.models.brands import Brand
     from app.brands.models.contacts import BrandContact
     from app.payments.models import Invoice
-    from app.users.models import User
+    from app.users.models import User, Roster
 
 
 class Campaign(
@@ -36,11 +36,21 @@ class Campaign(
         sa.Enum(CompensationStructure),
         nullable=True,
     )
+
     # Foreign keys - Campaign always has a Brand
+    assigned_roster_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("roster.id"), nullable=True
+    )
     brand_id: Mapped[int] = mapped_column(sa.ForeignKey("brands.id"), nullable=False)
 
     # Relationships
     brand: Mapped["Brand"] = relationship("Brand", back_populates="campaigns")
+    assigned_roster: Mapped["Roster | None"] = relationship(
+        "Roster",
+        back_populates="campaigns",
+        primaryjoin="Campaign.assigned_roster_id == Roster.id",
+        foreign_keys="Campaign.assigned_roster_id",
+    )
     deliverables: Mapped[list["Deliverable"]] = relationship(
         "Deliverable", back_populates="campaign"
     )

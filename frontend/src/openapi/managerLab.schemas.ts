@@ -426,16 +426,38 @@ export interface DeliverableCreateSchema {
   campaign_id?: DeliverableCreateSchemaCampaignId;
 }
 
-export type DeliverableStates = typeof DeliverableStates[keyof typeof DeliverableStates];
+export type DeliverableMediaAssociationSchemaApprovedAt = string | null;
 
+export interface DeliverableMediaAssociationSchema {
+  approved_at?: DeliverableMediaAssociationSchemaApprovedAt;
+  is_featured: boolean;
+  media: MediaResponseSchema;
+  created_at: string;
+  updated_at: string;
+}
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DeliverableStates = {
-  draft: 'draft',
-  in_review: 'in_review',
-  approved: 'approved',
-  posted: 'posted',
-} as const;
+export type DeliverableResponseSchemaContent = string | null;
+
+export type DeliverableResponseSchemaNotes = {[key: string]: unknown};
+
+export type DeliverableResponseSchemaCampaignId = number | null;
+
+export type DeliverableResponseSchemaAssignedRoster = RosterInDeliverableSchema | null;
+
+export interface DeliverableResponseSchema {
+  id: string;
+  title: string;
+  content?: DeliverableResponseSchemaContent;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  notes: DeliverableResponseSchemaNotes;
+  state: string;
+  campaign_id?: DeliverableResponseSchemaCampaignId;
+  created_at: string;
+  updated_at: string;
+  deliverable_media_associations: DeliverableMediaAssociationSchema[];
+  assigned_roster?: DeliverableResponseSchemaAssignedRoster;
+}
 
 export type DeliverableUpdateSchemaTitle = string | null;
 
@@ -588,12 +610,15 @@ export interface GetBrandContactBrandContactResponseBody {
 
 export type GetCampaignCampaignResponseBodyDescription = string | null;
 
+export type GetCampaignCampaignResponseBodyAssignedRosterId = number | null;
+
 export type GetCampaignCampaignResponseBodyDeletedAt = string | null;
 
 export interface GetCampaignCampaignResponseBody {
   name: string;
   description?: GetCampaignCampaignResponseBodyDescription;
   compensation_structure?: CompensationStructure;
+  assigned_roster_id?: GetCampaignCampaignResponseBodyAssignedRosterId;
   brand_id: number;
   created_at: string;
   updated_at: string;
@@ -634,29 +659,6 @@ export interface GetDashboardDashboardResponseBody {
   updated_at: string;
   deleted_at?: GetDashboardDashboardResponseBodyDeletedAt;
   team_id?: GetDashboardDashboardResponseBodyTeamId;
-  id: string;
-}
-
-export type GetDeliverableDeliverableResponseBodyContent = string | null;
-
-export type GetDeliverableDeliverableResponseBodyNotes = {[key: string]: unknown};
-
-export type GetDeliverableDeliverableResponseBodyDeletedAt = string | null;
-
-export type GetDeliverableDeliverableResponseBodyCampaignId = number | null;
-
-export interface GetDeliverableDeliverableResponseBody {
-  title: string;
-  content?: GetDeliverableDeliverableResponseBodyContent;
-  platforms: SocialMediaPlatforms;
-  posting_date: string;
-  notes: GetDeliverableDeliverableResponseBodyNotes;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetDeliverableDeliverableResponseBodyDeletedAt;
-  state?: DeliverableStates;
-  team_id: number;
-  campaign_id?: GetDeliverableDeliverableResponseBodyCampaignId;
   id: string;
 }
 
@@ -854,6 +856,21 @@ export interface ListUsersUserResponseBody {
   id: string;
 }
 
+export type MediaResponseSchemaThumbnailUrl = string | null;
+
+export interface MediaResponseSchema {
+  id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  view_url: string;
+  thumbnail_url?: MediaResponseSchemaThumbnailUrl;
+}
+
 /**
  * Media processing states.
  */
@@ -1010,6 +1027,7 @@ export interface RegisterMediaMediaResponseBody {
   file_type: string;
   file_size: number;
   mime_type: string;
+  deliverable_media_associations: RegisterMediaMedia0DeliverableMediaResponseBody[];
   created_at: string;
   updated_at: string;
   deleted_at?: RegisterMediaMediaResponseBodyDeletedAt;
@@ -1017,6 +1035,22 @@ export interface RegisterMediaMediaResponseBody {
   team_id: number;
   campaign_id?: RegisterMediaMediaResponseBodyCampaignId;
   id: string;
+}
+
+export type RegisterMediaMedia0DeliverableMediaResponseBodyApprovedAt = string | null;
+
+export type RegisterMediaMedia0DeliverableMediaResponseBodyDeletedAt = string | null;
+
+export interface RegisterMediaMedia0DeliverableMediaResponseBody {
+  deliverable_id: number;
+  media_id: number;
+  approved_at?: RegisterMediaMedia0DeliverableMediaResponseBodyApprovedAt;
+  is_featured?: boolean;
+  id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: RegisterMediaMedia0DeliverableMediaResponseBodyDeletedAt;
+  public_id: string;
 }
 
 export interface RegisterMediaSchema {
@@ -1084,6 +1118,27 @@ export interface RosterCreateSchema {
   email?: RosterCreateSchemaEmail;
   phone?: RosterCreateSchemaPhone;
   instagram_handle?: RosterCreateSchemaInstagramHandle;
+}
+
+export type RosterInDeliverableSchemaEmail = string | null;
+
+export type RosterInDeliverableSchemaInstagramHandle = string | null;
+
+export type RosterInDeliverableSchemaFacebookHandle = string | null;
+
+export type RosterInDeliverableSchemaTiktokHandle = string | null;
+
+export type RosterInDeliverableSchemaYoutubeChannel = string | null;
+
+export interface RosterInDeliverableSchema {
+  id: string;
+  name: string;
+  email?: RosterInDeliverableSchemaEmail;
+  instagram_handle?: RosterInDeliverableSchemaInstagramHandle;
+  facebook_handle?: RosterInDeliverableSchemaFacebookHandle;
+  tiktok_handle?: RosterInDeliverableSchemaTiktokHandle;
+  youtube_channel?: RosterInDeliverableSchemaYoutubeChannel;
+  state: string;
 }
 
 /**
@@ -1308,12 +1363,15 @@ export interface UpdateCampaignAction {
 
 export type UpdateCampaignCampaignResponseBodyDescription = string | null;
 
+export type UpdateCampaignCampaignResponseBodyAssignedRosterId = number | null;
+
 export type UpdateCampaignCampaignResponseBodyDeletedAt = string | null;
 
 export interface UpdateCampaignCampaignResponseBody {
   name: string;
   description?: UpdateCampaignCampaignResponseBodyDescription;
   compensation_structure?: CompensationStructure;
+  assigned_roster_id?: UpdateCampaignCampaignResponseBodyAssignedRosterId;
   brand_id: number;
   created_at: string;
   updated_at: string;
@@ -1361,29 +1419,6 @@ export interface UpdateDashboardSchema {
   name?: UpdateDashboardSchemaName;
   config?: UpdateDashboardSchemaConfig;
   is_default?: UpdateDashboardSchemaIsDefault;
-}
-
-export type UpdateDeliverableDeliverableResponseBodyContent = string | null;
-
-export type UpdateDeliverableDeliverableResponseBodyNotes = {[key: string]: unknown};
-
-export type UpdateDeliverableDeliverableResponseBodyDeletedAt = string | null;
-
-export type UpdateDeliverableDeliverableResponseBodyCampaignId = number | null;
-
-export interface UpdateDeliverableDeliverableResponseBody {
-  title: string;
-  content?: UpdateDeliverableDeliverableResponseBodyContent;
-  platforms: SocialMediaPlatforms;
-  posting_date: string;
-  notes: UpdateDeliverableDeliverableResponseBodyNotes;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdateDeliverableDeliverableResponseBodyDeletedAt;
-  state?: DeliverableStates;
-  team_id: number;
-  campaign_id?: UpdateDeliverableDeliverableResponseBodyCampaignId;
-  id: string;
 }
 
 export interface UpdateInvoiceAction {

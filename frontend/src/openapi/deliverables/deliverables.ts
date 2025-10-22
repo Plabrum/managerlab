@@ -28,11 +28,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  DeliverableResponseSchema,
   DeliverableUpdateSchema,
   DeliverablesIdGetDeliverable400,
-  DeliverablesIdUpdateDeliverable400,
-  GetDeliverableDeliverableResponseBody,
-  UpdateDeliverableDeliverableResponseBody
+  DeliverablesIdUpdateDeliverable400
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -49,7 +48,7 @@ export const deliverablesIdGetDeliverable = (
 ) => {
       
       
-      return customInstance<GetDeliverableDeliverableResponseBody>(
+      return customInstance<DeliverableResponseSchema>(
       {url: `/deliverables/${id}`, method: 'GET', signal
     },
       );
@@ -195,7 +194,7 @@ export const deliverablesIdUpdateDeliverable = (
 ) => {
       
       
-      return customInstance<UpdateDeliverableDeliverableResponseBody>(
+      return customInstance<DeliverableResponseSchema>(
       {url: `/deliverables/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: deliverableUpdateSchema, signal

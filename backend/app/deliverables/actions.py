@@ -6,7 +6,7 @@ from app.actions.base import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.deliverables.enums import DeliverableStates, DeliverableActions
-from app.deliverables.models import Deliverable
+from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.schemas import (
     AddMediaToDeliverableSchema,
     DeliverableUpdateSchema,
@@ -135,20 +135,27 @@ class AddMediaToDeliverable(BaseAction):
                 results={},
             )
 
-        # Add media to deliverable (only add if not already associated)
+        # Add media to deliverable via association table (only add if not already associated)
         # Use set-based comparison to avoid N+1 queries
         existing_media_ids = {media.id for media in obj.media}
-        new_media = [
-            media for media in media_objects if media.id not in existing_media_ids
+        new_media_ids = [
+            media.id for media in media_objects if media.id not in existing_media_ids
         ]
 
-        obj.media.extend(new_media)
-        # No need to add(obj) - it's already tracked by the session that loaded it
+        # Create DeliverableMedia association objects for new media
+        for media_id in new_media_ids:
+            association = DeliverableMedia(
+                deliverable_id=obj.id,
+                media_id=media_id,
+                approved_at=None,
+                is_featured=False,
+            )
+            transaction.add(association)
 
         return ActionExecutionResponse(
             success=True,
-            message="Added  media file(s) to deliverable",
-            results={"total_media": len(obj.media)},
+            message=f"Added {len(new_media_ids)} media file(s) to deliverable",
+            results={"added_count": len(new_media_ids)},
         )
 
 
@@ -178,15 +185,22 @@ class RemoveMediaFromDeliverable(BaseAction):
         existing_media_ids = {media.id for media in obj.media}
         media_ids_to_remove = set(requested_media_ids) & existing_media_ids
 
-        # Filter the relationship to keep only media that should remain
-        obj.media = [
-            media for media in obj.media if media.id not in media_ids_to_remove
-        ]
-        removed_count = len(media_ids_to_remove)
-        # No need to add(obj) - it's already tracked by the session that loaded it
+        # Delete DeliverableMedia association objects
+        result = await transaction.execute(
+            select(DeliverableMedia).where(
+                DeliverableMedia.deliverable_id == obj.id,
+                DeliverableMedia.media_id.in_(media_ids_to_remove),
+            )
+        )
+        associations = result.scalars().all()
+
+        for association in associations:
+            await transaction.delete(association)
+
+        removed_count = len(associations)
 
         return ActionExecutionResponse(
             success=True,
             message=f"Removed {removed_count} media file(s) from deliverable",
-            results={"removed_count": removed_count, "total_media": len(obj.media)},
+            results={"removed_count": removed_count},
         )

@@ -2,15 +2,119 @@ from datetime import datetime
 from typing import Any
 
 from app.utils.sqids import Sqid
-from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
+from app.base.schemas import BaseSchema
 from app.deliverables.enums import SocialMediaPlatforms
-from app.deliverables.models import Deliverable
+from app.deliverables.models import Deliverable, DeliverableMedia
+from app.media.schemas import MediaResponseSchema, media_to_response
+from app.users.models import Roster
 
 
-class DeliverableDTO(SanitizedSQLAlchemyDTO[Deliverable]):
-    """DTO for returning Deliverable data."""
+# Response Schemas
+class DeliverableMediaAssociationSchema(BaseSchema):
+    """Association between deliverable and media with approval status."""
 
-    pass
+    approved_at: datetime | None
+    is_featured: bool
+    media: MediaResponseSchema
+    created_at: datetime
+    updated_at: datetime
+
+
+class RosterInDeliverableSchema(BaseSchema):
+    """Roster/talent as it appears in a deliverable."""
+
+    id: Sqid
+    name: str
+    email: str | None
+    instagram_handle: str | None
+    facebook_handle: str | None
+    tiktok_handle: str | None
+    youtube_channel: str | None
+    state: str
+
+
+class DeliverableResponseSchema(BaseSchema):
+    """Full deliverable response with nested relationships."""
+
+    id: Sqid
+    title: str
+    content: str | None
+    platforms: SocialMediaPlatforms
+    posting_date: datetime
+    notes: dict[str, Any]
+    state: str
+    campaign_id: int | None
+    created_at: datetime
+    updated_at: datetime
+
+    # Nested relationships
+    deliverable_media_associations: list[DeliverableMediaAssociationSchema]
+    assigned_roster: RosterInDeliverableSchema | None
+
+
+# Transformer functions
+def deliverable_media_to_schema(
+    dm: DeliverableMedia, s3_client
+) -> DeliverableMediaAssociationSchema:
+    """Transform DeliverableMedia association to schema.
+
+    Args:
+        dm: DeliverableMedia association instance
+        s3_client: S3Client for generating presigned URLs
+    """
+    return DeliverableMediaAssociationSchema(
+        approved_at=dm.approved_at,
+        is_featured=dm.is_featured,
+        media=media_to_response(dm.media, s3_client),
+        created_at=dm.created_at,
+        updated_at=dm.updated_at,
+    )
+
+
+def roster_to_schema(roster: Roster) -> RosterInDeliverableSchema:
+    """Transform Roster model to schema."""
+    return RosterInDeliverableSchema(
+        id=roster.public_id,
+        name=roster.name,
+        email=roster.email,
+        instagram_handle=roster.instagram_handle,
+        facebook_handle=roster.facebook_handle,
+        tiktok_handle=roster.tiktok_handle,
+        youtube_channel=roster.youtube_channel,
+        state=roster.state,
+    )
+
+
+def deliverable_to_response(
+    deliverable: Deliverable, s3_client
+) -> DeliverableResponseSchema:
+    """Transform Deliverable model to response schema.
+
+    Args:
+        deliverable: Deliverable model instance
+        s3_client: S3Client for generating presigned URLs
+    """
+    return DeliverableResponseSchema(
+        id=deliverable.public_id,
+        title=deliverable.title,
+        content=deliverable.content,
+        platforms=deliverable.platforms,
+        posting_date=deliverable.posting_date,
+        notes=deliverable.notes,
+        state=deliverable.state,
+        campaign_id=deliverable.campaign_id,
+        created_at=deliverable.created_at,
+        updated_at=deliverable.updated_at,
+        deliverable_media_associations=[
+            deliverable_media_to_schema(dm, s3_client)
+            for dm in deliverable.deliverable_media_associations
+        ],
+        assigned_roster=(
+            roster_to_schema(deliverable.assigned_roster)
+            if deliverable.assigned_roster
+            else None
+        ),
+    )
 
 
 class DeliverableUpdateSchema(BaseSchema):

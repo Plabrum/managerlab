@@ -94,7 +94,7 @@ class AggregationType(StrEnum):
     avg = auto()
     max = auto()
     min = auto()
-    count = auto()
+    count_ = auto()  # Renamed to avoid shadowing str.count
 
     # Categorical aggregations
     mode = auto()  # most frequent value

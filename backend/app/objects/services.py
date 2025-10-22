@@ -323,11 +323,11 @@ def get_default_aggregation(field_type: FieldType) -> AggregationType:
             | FieldType.URL
             | FieldType.Text
         ):
-            return AggregationType.count
+            return AggregationType.count_
         case FieldType.Date | FieldType.Datetime:
-            return AggregationType.count
+            return AggregationType.count_
         case FieldType.Image:
-            return AggregationType.count
+            return AggregationType.count_
         case _:
             assert_never(field_type)
 
