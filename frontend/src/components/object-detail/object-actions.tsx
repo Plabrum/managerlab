@@ -8,35 +8,26 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
-import type {
-  ActionDTO,
-  ActionGroupType,
-  ActionExecutionResponse,
-  ObjectDetailDTO,
-} from '@/openapi/managerLab.schemas';
+import type { ActionData } from '@/components/header-provider';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 interface ObjectActionsProps {
-  actions: ActionDTO[];
-  actionGroup: ActionGroupType;
-  objectId: string;
-  onActionComplete?: (
-    action: ActionDTO,
-    response: ActionExecutionResponse
-  ) => void;
-  objectData?: ObjectDetailDTO;
+  actionsData: ActionData;
 }
 
-export function ObjectActions({
-  actions,
-  actionGroup,
-  objectId,
-  onActionComplete,
-  objectData,
-}: ObjectActionsProps) {
+export function ObjectActions({ actionsData }: ObjectActionsProps) {
+  const {
+    actions,
+    actionGroup,
+    objectId,
+    objectData,
+    onInvalidate,
+    onActionComplete,
+  } = actionsData;
+
   // Use the centralized registry
   const formRenderer = useActionFormRenderer(objectData);
 
@@ -44,6 +35,7 @@ export function ObjectActions({
     actionGroup,
     objectId,
     renderActionForm: formRenderer,
+    onInvalidate,
     onSuccess: (action, response) => {
       onActionComplete?.(action, response);
     },

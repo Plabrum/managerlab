@@ -94,7 +94,7 @@ export const AggregationType = {
   avg: 'avg',
   max: 'max',
   min: 'min',
-  count: 'count',
+  count_: 'count_',
   mode: 'mode',
 } as const;
 

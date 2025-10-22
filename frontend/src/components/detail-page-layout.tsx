@@ -3,35 +3,22 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useBreadcrumb } from '@/components/breadcrumb-provider';
-import { useHeader } from '@/components/header-provider';
-import type {
-  ActionDTO,
-  ActionGroupType,
-  ObjectDetailDTO,
-} from '@/openapi/managerLab.schemas';
+import { useHeader, type ActionData } from '@/components/header-provider';
 
 interface DetailPageLayoutProps {
   children: React.ReactNode;
   title: string;
   state: string;
-  createdAt: string;
-  updatedAt: string;
-  actions?: ActionDTO[];
-  actionGroup?: ActionGroupType;
-  objectId?: string;
-  objectData?: ObjectDetailDTO;
+  actionsData?: ActionData;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export function DetailPageLayout({
   children,
   title,
   state,
-  createdAt,
-  updatedAt,
-  actions,
-  actionGroup,
-  objectId,
-  objectData,
+  actionsData,
 }: DetailPageLayoutProps) {
   const pathname = usePathname();
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumb();
@@ -50,27 +37,12 @@ export function DetailPageLayout({
     setHeaderData({
       title,
       state,
-      createdAt,
-      updatedAt,
-      actions,
-      actionGroup,
-      objectId,
-      objectData,
+      actionsData,
     });
     return () => {
       setHeaderData(null);
     };
-  }, [
-    title,
-    state,
-    createdAt,
-    updatedAt,
-    actions,
-    actionGroup,
-    objectId,
-    objectData,
-    setHeaderData,
-  ]);
+  }, [title, state, actionsData, setHeaderData]);
 
   return <>{children}</>;
 }

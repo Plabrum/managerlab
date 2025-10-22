@@ -35,7 +35,7 @@ export function DeliverablePreview({
   }
 
   // Get image URL from media (now includes presigned URL!)
-  const imageUrl = featuredMedia.view_url;
+  const imageUrl = featuredMedia.media.view_url;
 
   // Platform-specific preview rendering
   switch (platform.toLowerCase()) {

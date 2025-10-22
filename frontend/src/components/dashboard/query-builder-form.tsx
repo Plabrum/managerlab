@@ -55,7 +55,7 @@ const GRANULARITIES: Array<{ value: Granularity; label: string }> = [
 ];
 
 const AGGREGATIONS: Array<{ value: AggregationType; label: string }> = [
-  { value: 'count', label: 'Count' },
+  { value: 'count_', label: 'Count' },
   { value: 'sum', label: 'Sum' },
   { value: 'avg', label: 'Average' },
   { value: 'max', label: 'Maximum' },

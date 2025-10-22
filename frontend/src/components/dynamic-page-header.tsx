@@ -9,12 +9,7 @@ export function DynamicPageHeader() {
     return null;
   }
 
-  const {
-    title,
-    state,
-    // createdAt,
-    // updatedAt,
-  } = headerData;
+  const { title, state } = headerData;
 
   return (
     <div className="flex items-center gap-2">

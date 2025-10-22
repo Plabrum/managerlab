@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import { useState } from 'react';
+import { Image } from '../ui/image';
 
 interface InstagramPostProps {
   image_url: string;
@@ -79,7 +80,7 @@ export function InstagramPost({
 
       {/* Image */}
       <div className="bg-muted relative aspect-square w-full">
-        <img
+        <Image
           src={image_url || '/placeholder.svg'}
           alt={title}
           className="h-full w-full object-cover"

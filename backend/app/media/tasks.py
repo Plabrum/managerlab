@@ -17,7 +17,6 @@ async def generate_thumbnail(ctx: Context, *, media_id: int) -> dict:
     # Get dependencies from SAQ context
     db_sessionmaker = ctx["db_sessionmaker"]
     s3_client = ctx["s3_client"]
-
     # Use session with automatic transaction management
     async with db_sessionmaker() as session:
         async with session.begin():

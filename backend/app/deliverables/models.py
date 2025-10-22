@@ -78,11 +78,11 @@ class DeliverableMedia(BaseDBModel):
 
     deliverable_id: Mapped[int] = mapped_column(
         sa.ForeignKey("deliverables.id", ondelete="CASCADE"),
-        primary_key=True,
+        nullable=False,
     )
     media_id: Mapped[int] = mapped_column(
         sa.ForeignKey("media.id", ondelete="CASCADE"),
-        primary_key=True,
+        nullable=False,
     )
 
     # Approval status for this media in this deliverable

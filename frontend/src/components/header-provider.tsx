@@ -1,21 +1,34 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback } from 'react';
+import type { QueryClient } from '@tanstack/react-query';
 import type {
   ActionDTO,
   ActionGroupType,
+  ActionExecutionResponse,
   ObjectDetailDTO,
 } from '@/openapi/managerLab.schemas';
 
-interface HeaderData {
+export interface ActionData {
+  actions: ActionDTO[];
+  actionGroup: ActionGroupType;
+  objectId: string;
+  objectData?: ObjectDetailDTO;
+  onInvalidate?: (
+    queryClient: QueryClient,
+    action: ActionDTO,
+    response: ActionExecutionResponse
+  ) => void;
+  onActionComplete?: (
+    action: ActionDTO,
+    response: ActionExecutionResponse
+  ) => void;
+}
+
+export interface HeaderData {
   title: string;
   state: string;
-  createdAt: string;
-  updatedAt: string;
-  actions?: ActionDTO[];
-  actionGroup?: ActionGroupType;
-  objectId?: string;
-  objectData?: ObjectDetailDTO;
+  actionsData?: ActionData;
 }
 
 interface HeaderContextValue {

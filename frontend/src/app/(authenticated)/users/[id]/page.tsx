@@ -15,12 +15,7 @@ export default function UserDetailPage({
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('users', id);
 
   return (
-    <DetailPageLayout
-      title={data.title}
-      state={data.state}
-      createdAt={data.created_at}
-      updatedAt={data.updated_at}
-    >
+    <DetailPageLayout title={data.title} state={data.state}>
       <div className="container mx-auto py-6">
         <div className="space-y-6">
           {/* Fields */}

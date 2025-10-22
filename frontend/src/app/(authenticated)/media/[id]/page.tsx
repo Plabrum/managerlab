@@ -1,15 +1,19 @@
 'use client';
 
-import { use } from 'react';
+import { use, useMemo } from 'react';
 import { ObjectFields, ObjectRelations } from '@/components/object-detail';
 import { MediaViewer } from '@/components/media-viewer';
-import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
+import {
+  useOObjectTypeIdGetObjectDetailSuspense,
+  getOObjectTypeIdGetObjectDetailQueryKey,
+} from '@/openapi/objects/objects';
 import { DetailPageLayout } from '@/components/detail-page-layout';
 import type {
   ObjectFieldDTO,
   ImageFieldValue,
 } from '@/openapi/managerLab.schemas';
 import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import type { ActionData } from '@/components/header-provider';
 
 // Type guard to check if a field value is an ImageFieldValue
 function isImageField(
@@ -38,16 +42,27 @@ export default function MediaDetailPage({
   // Get non-image fields
   const otherFields = data.fields.filter((field) => !isImageField(field));
 
+  const actionsData: ActionData | undefined = useMemo(() => {
+    if (!data.actions) return undefined;
+
+    return {
+      actions: data.actions,
+      actionGroup: ActionGroupType.media_actions,
+      objectId: id,
+      objectData: data,
+      onInvalidate: (queryClient) => {
+        queryClient.invalidateQueries({
+          queryKey: getOObjectTypeIdGetObjectDetailQueryKey('media', id),
+        });
+      },
+    };
+  }, [data, id]);
+
   return (
     <DetailPageLayout
       title={data.title}
       state={data.state}
-      createdAt={data.created_at}
-      updatedAt={data.updated_at}
-      actions={data.actions}
-      actionGroup={ActionGroupType.media_actions}
-      objectId={id}
-      objectData={data}
+      actionsData={actionsData}
     >
       <div className="container mx-auto py-6">
         <div className="space-y-6">

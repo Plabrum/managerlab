@@ -11,7 +11,14 @@ from app.utils.sqids import Sqid
 class MediaDTO(SanitizedSQLAlchemyDTO[Media]):
     """Data transfer object for Media model."""
 
-    config = SQLAlchemyDTOConfig(exclude={"file_key", "thumbnail_key", "deliverables"})
+    config = SQLAlchemyDTOConfig(
+        exclude={
+            "file_key",
+            "thumbnail_key",
+            "deliverables",
+            "deliverable_media_associations",
+        }
+    )
 
 
 class MediaResponseSchema(BaseSchema):
