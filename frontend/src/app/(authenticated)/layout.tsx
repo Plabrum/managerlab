@@ -1,7 +1,7 @@
-import { cookies, headers } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { unstable_cache } from 'next/cache';
-import { config } from '@/lib/config';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { SuspenseWrapper } from '@/components/suspense-wrapper';
@@ -16,80 +16,78 @@ import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb';
 import { BreadcrumbProvider } from '@/components/breadcrumb-provider';
 import { DynamicPageHeader } from '@/components/dynamic-page-header';
 import { HeaderProvider } from '@/components/header-provider';
-import type {
-  GetCurrentUserUserResponseBody,
-  ListTeamsResponse,
-} from '@/openapi/managerLab.schemas';
 import { DynamicPageActions } from '@/components/dynamic-page-actions';
+import {
+  useUsersCurrentUserGetCurrentUser,
+  useUsersTeamsListTeams,
+} from '@/openapi/users/users';
 
-async function fetchCurrentUser(
-  session: string
-): Promise<GetCurrentUserUserResponseBody> {
-  const res = await fetch(`${config.api.baseUrl}/users/current_user`, {
-    headers: {
-      Cookie: `session=${session}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    cache: 'no-store',
-  });
-
-  if (res.status === 401) redirect('/auth/expire');
-  if (!res.ok) redirect('/auth');
-  return res.json();
-}
-
-async function fetchTeams(session: string): Promise<ListTeamsResponse> {
-  const res = await fetch(`${config.api.baseUrl}/users/teams`, {
-    headers: {
-      Cookie: `session=${session}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    cache: 'no-store',
-  });
-
-  if (res.status === 401) redirect('/auth/expire');
-  if (!res.ok) redirect('/auth');
-  return res.json();
-}
-
-// Per-session cache only here (30s)
-const getCurrentUserCached = (session: string) =>
-  unstable_cache(() => fetchCurrentUser(session), ['me', session], {
-    revalidate: 30,
-  })();
-
-const getTeamsCached = (session: string) =>
-  unstable_cache(() => fetchTeams(session), ['teams', session], {
-    revalidate: 30,
-  })();
-
-export default async function AuthenticatedLayout({
+export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const store = await cookies();
-  const session = store.get('session')?.value;
-  if (!session) redirect('/auth');
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const [user, teams] = await Promise.all([
-    getCurrentUserCached(session),
-    getTeamsCached(session),
-  ]);
+  // Fetch user and teams data client-side
+  const {
+    data: user,
+    isLoading: userLoading,
+    error: userError,
+  } = useUsersCurrentUserGetCurrentUser({
+    query: {
+      retry: false,
+      staleTime: 30000, // 30s cache
+    },
+  });
 
-  // Get current pathname to check if we're on onboarding
-  const headersList = await headers();
-  const pathname = headersList.get('x-pathname') || '';
+  const {
+    data: teams,
+    isLoading: teamsLoading,
+    error: teamsError,
+  } = useUsersTeamsListTeams({
+    query: {
+      retry: false,
+      staleTime: 0, // No cache for teams to ensure immediate updates after onboarding
+    },
+  });
 
-  // If user has no teams and not on onboarding page, redirect to onboarding
-  const hasNoTeams = teams.teams.length === 0;
-  const isOnboardingPage = pathname.includes('/onboarding');
+  // Handle authentication errors
+  useEffect(() => {
+    if (userError || teamsError) {
+      const errorResponse = userError || teamsError;
+      if (
+        errorResponse &&
+        typeof errorResponse === 'object' &&
+        'status' in errorResponse &&
+        errorResponse.status === 401
+      ) {
+        router.push('/auth/expire');
+      } else {
+        router.push('/auth');
+      }
+    }
+  }, [userError, teamsError, router]);
 
-  if (hasNoTeams && !isOnboardingPage) {
-    redirect('/onboarding');
+  // Handle onboarding redirect
+  useEffect(() => {
+    if (!teamsLoading && teams && !userLoading && user) {
+      const hasNoTeams = teams.teams.length === 0;
+      const isOnboardingPage = pathname.includes('/onboarding');
+
+      if (hasNoTeams && !isOnboardingPage) {
+        router.push('/onboarding');
+      }
+    }
+  }, [teams, teamsLoading, user, userLoading, pathname, router]);
+
+  // Show loading state while fetching initial data
+  if (userLoading || teamsLoading || !user || !teams) {
+    return null; // Or a loading spinner
   }
+
+  const isOnboardingPage = pathname.includes('/onboarding');
 
   // If on onboarding page, render without sidebar
   if (isOnboardingPage) {
