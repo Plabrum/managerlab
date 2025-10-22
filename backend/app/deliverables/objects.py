@@ -1,10 +1,13 @@
+from app.media.objects import MediaObject
+from app.campaigns.objects import CampaignObject
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
-from app.objects.enums import ObjectTypes
+from app.objects.enums import ObjectTypes, RelationType, RelationCardinality
 from app.objects.schemas import (
     EnumFieldValue,
     ObjectDetailDTO,
@@ -16,6 +19,7 @@ from app.objects.schemas import (
     StringFieldValue,
     TextFieldValue,
     DatetimeFieldValue,
+    ObjectRelationGroup,
 )
 from app.objects.services import get_filter_by_field_type
 from app.deliverables.models import Deliverable
@@ -30,6 +34,11 @@ class DeliverableObject(BaseObject):
     @classmethod
     def get_top_level_action_group(cls):
         return ActionGroupType.TopLevelDeliverableActions
+
+    @classmethod
+    def get_load_options(cls):
+        """Return load options for eager loading relationships."""
+        return [joinedload(Deliverable.campaign), joinedload(Deliverable.media)]
 
     column_definitions = [
         ColumnDefinitionDTO(
@@ -162,6 +171,31 @@ class DeliverableObject(BaseObject):
         action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
         actions = action_group.get_available_actions(obj=deliverable)
 
+        # Build new structured relations
+        relations = []
+
+        # Add campaign parent
+        if deliverable.campaign:
+            relations.append(
+                ObjectRelationGroup(
+                    relation_name="campaign",
+                    relation_label="Campaign",
+                    relation_type=RelationType.parent,
+                    cardinality=RelationCardinality.one,
+                    objects=[CampaignObject.to_list_dto(deliverable.campaign)],
+                )
+            )
+
+        relations.append(
+            ObjectRelationGroup(
+                relation_name="media",
+                relation_label="Media Files",
+                relation_type=RelationType.child,
+                cardinality=RelationCardinality.many,
+                objects=[MediaObject.to_list_dto(media) for media in deliverable.media],
+            )
+        )
+
         return ObjectDetailDTO(
             id=sqid_encode(deliverable.id),
             object_type=ObjectTypes.Deliverables,
@@ -171,8 +205,7 @@ class DeliverableObject(BaseObject):
             actions=actions,
             created_at=deliverable.created_at,
             updated_at=deliverable.updated_at,
-            children=[],
-            parents=[],
+            relations=relations,
         )
 
     @classmethod
@@ -193,13 +226,7 @@ class DeliverableObject(BaseObject):
             ObjectFieldDTO(
                 key="content",
                 value=(
-                    TextFieldValue(
-                        value=(
-                            deliverable.content[:100] + "..."
-                            if len(deliverable.content) > 100
-                            else deliverable.content
-                        )
-                    )
+                    StringFieldValue(value=(deliverable.content))
                     if deliverable.content
                     else None
                 ),

@@ -35,6 +35,7 @@ export interface ActionExecutionResponse {
 export type ActionGroupType = typeof ActionGroupType[keyof typeof ActionGroupType];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ActionGroupType = {
   media_actions: 'media_actions',
   top_level_media_actions: 'top_level_media_actions',
@@ -60,7 +61,7 @@ export interface AddMediaToDeliverableAction {
 }
 
 export interface AddMediaToDeliverableSchema {
-  media_ids: number[];
+  media_ids: string[];
 }
 
 export type AddUserToWaitlistWaitlistEntryResponseBodyCompany = string | null;
@@ -87,6 +88,7 @@ export interface AddUserToWaitlistWaitlistEntryResponseBody {
 export type AggregationType = typeof AggregationType[keyof typeof AggregationType];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AggregationType = {
   sum: 'sum',
   avg: 'avg',
@@ -175,6 +177,7 @@ export interface CampaignCreateSchema {
 export type CampaignGuestAccessLevel = typeof CampaignGuestAccessLevel[keyof typeof CampaignGuestAccessLevel];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CampaignGuestAccessLevel = {
   viewer: 'viewer',
   contributor: 'contributor',
@@ -191,6 +194,7 @@ export interface CampaignScopeSchema {
 export type CampaignStates = typeof CampaignStates[keyof typeof CampaignStates];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CampaignStates = {
   draft: 'draft',
   active: 'active',
@@ -241,6 +245,7 @@ export interface ColumnDefinitionDTO {
 export type CompensationStructure = typeof CompensationStructure[keyof typeof CompensationStructure];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CompensationStructure = {
   flat_fee: 'flat_fee',
   per_deliverable: 'per_deliverable',
@@ -352,6 +357,7 @@ export interface CreateUserUserResponseBody {
 export type DashboardOwnerType = typeof DashboardOwnerType[keyof typeof DashboardOwnerType];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DashboardOwnerType = {
   user: 'user',
   team: 'team',
@@ -423,6 +429,7 @@ export interface DeliverableCreateSchema {
 export type DeliverableStates = typeof DeliverableStates[keyof typeof DeliverableStates];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeliverableStates = {
   draft: 'draft',
   in_review: 'in_review',
@@ -458,6 +465,11 @@ export const DownloadMediaActionValue = {
 } as const;
 export type DownloadMediaAction = typeof DownloadMediaActionValue;
 
+export interface EditDeliverableAction {
+  data: DeliverableUpdateSchema;
+  action: 'deliverable_actions__deliverable_update';
+}
+
 export interface EmailFieldValue {
   value: string;
   type: 'email';
@@ -480,6 +492,7 @@ export interface EnumFilterDefinition {
 export type FieldType = typeof FieldType[keyof typeof FieldType];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const FieldType = {
   string: 'string',
   int: 'int',
@@ -501,6 +514,7 @@ export const FieldType = {
 export type FilterType = typeof FilterType[keyof typeof FilterType];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const FilterType = {
   text_filter: 'text_filter',
   range_filter: 'range_filter',
@@ -702,6 +716,7 @@ export interface GoogleUserInfoResponseSchema {
 export type Granularity = typeof Granularity[keyof typeof Granularity];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const Granularity = {
   automatic: 'automatic',
   hour: 'hour',
@@ -747,6 +762,7 @@ export interface InvoiceCreateSchema {
 export type InvoiceStates = typeof InvoiceStates[keyof typeof InvoiceStates];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const InvoiceStates = {
   draft: 'draft',
   posted: 'posted',
@@ -844,6 +860,7 @@ export interface ListUsersUserResponseBody {
 export type MediaStates = typeof MediaStates[keyof typeof MediaStates];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MediaStates = {
   pending: 'pending',
   processing: 'processing',
@@ -870,21 +887,16 @@ export interface NumericalTimeSeriesData {
   type: 'numerical';
 }
 
-export type ObjectDetailDTOChildrenItem = {[key: string]: ObjectRelationDTO};
-
-export type ObjectDetailDTOParentsItem = {[key: string]: ObjectRelationDTO};
-
 export interface ObjectDetailDTO {
   id: string;
-  object_type: string;
+  object_type: ObjectTypes;
   state: string;
   title: string;
   fields: ObjectFieldDTO[];
   actions: ActionDTO[];
   created_at: string;
   updated_at: string;
-  children?: ObjectDetailDTOChildrenItem[];
-  parents?: ObjectDetailDTOParentsItem[];
+  relations?: ObjectRelationGroup[];
 }
 
 export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
@@ -904,7 +916,7 @@ export type ObjectListDTOLink = string | null;
 
 export interface ObjectListDTO {
   id: string;
-  object_type: string;
+  object_type: ObjectTypes;
   title: string;
   state: string;
   created_at: string;
@@ -939,15 +951,18 @@ export interface ObjectListResponse {
   actions?: ActionDTO[];
 }
 
-export interface ObjectRelationDTO {
-  object_type: string;
-  sqid: string;
-  title: string;
+export interface ObjectRelationGroup {
+  relation_name: string;
+  relation_label: string;
+  relation_type: RelationType;
+  cardinality: RelationCardinality;
+  objects: ObjectListDTO[];
 }
 
 export type ObjectTypes = typeof ObjectTypes[keyof typeof ObjectTypes];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ObjectTypes = {
   users: 'users',
   roster: 'roster',
@@ -1011,13 +1026,37 @@ export interface RegisterMediaSchema {
   mime_type: string;
 }
 
+/**
+ * Cardinality of a relationship.
+ */
+export type RelationCardinality = typeof RelationCardinality[keyof typeof RelationCardinality];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RelationCardinality = {
+  one: 'one',
+  many: 'many',
+} as const;
+
+/**
+ * Type of relationship between objects.
+ */
+export type RelationType = typeof RelationType[keyof typeof RelationType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RelationType = {
+  parent: 'parent',
+  child: 'child',
+} as const;
+
 export interface RemoveMediaFromDeliverableAction {
   data: RemoveMediaFromDeliverableSchema;
   action: 'deliverable_actions__deliverable_remove_media';
 }
 
 export interface RemoveMediaFromDeliverableSchema {
-  media_ids: number[];
+  media_ids: string[];
 }
 
 /**
@@ -1026,6 +1065,7 @@ export interface RemoveMediaFromDeliverableSchema {
 export type RoleLevel = typeof RoleLevel[keyof typeof RoleLevel];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RoleLevel = {
   owner: 'owner',
   admin: 'admin',
@@ -1057,6 +1097,7 @@ Users can have either team scope OR campaign scope active at a time.
 export type ScopeType = typeof ScopeType[keyof typeof ScopeType];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ScopeType = {
   team: 'team',
   campaign: 'campaign',
@@ -1065,6 +1106,7 @@ export const ScopeType = {
 export type SocialMediaPlatforms = typeof SocialMediaPlatforms[keyof typeof SocialMediaPlatforms];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SocialMediaPlatforms = {
   instagram: 'instagram',
   facebook: 'facebook',
@@ -1083,6 +1125,7 @@ export interface SortDefinition {
 export type SortDirection = typeof SortDirection[keyof typeof SortDirection];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SortDirection = {
   sort_asc: 'sort_asc',
   sort_desc: 'sort_desc',
@@ -1114,14 +1157,17 @@ export interface TeamScopeSchema {
   role_level: RoleLevel;
 }
 
+export type TextFieldValueValue = { [key: string]: unknown };
+
 export interface TextFieldValue {
-  value: string;
+  value: TextFieldValueValue;
   type: 'text';
 }
 
 export type TextFilterDefinitionOperation = typeof TextFilterDefinitionOperation[keyof typeof TextFilterDefinitionOperation];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TextFilterDefinitionOperation = {
   contains: 'contains',
   starts_with: 'starts_with',
@@ -1142,6 +1188,7 @@ export interface TextFilterDefinition {
 export type TimeRange = typeof TimeRange[keyof typeof TimeRange];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TimeRange = {
   last_7_days: 'last_7_days',
   last_30_days: 'last_30_days',
@@ -1316,11 +1363,6 @@ export interface UpdateDashboardSchema {
   is_default?: UpdateDashboardSchemaIsDefault;
 }
 
-export interface UpdateDeliverableAction {
-  data: DeliverableUpdateSchema;
-  action: 'deliverable_actions__deliverable_update';
-}
-
 export type UpdateDeliverableDeliverableResponseBodyContent = string | null;
 
 export type UpdateDeliverableDeliverableResponseBodyNotes = {[key: string]: unknown};
@@ -1384,6 +1426,7 @@ export interface UpdateMediaAction {
 export type UserStates = typeof UserStates[keyof typeof UserStates];
 
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UserStates = {
   needs_team: 'needs_team',
   active: 'active',
@@ -1560,7 +1603,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | UpdateDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1588,7 +1631,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | UpdateDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

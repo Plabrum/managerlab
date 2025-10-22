@@ -304,6 +304,30 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     );
   }
 
+  // ---------- Custom controlled field ----------
+  function FormCustom<N extends Name<Path<TFieldValues>>>(props: {
+    name: N;
+    children: (args: {
+      value: TFieldValues[N];
+      onChange: (value: TFieldValues[N]) => void;
+    }) => React.ReactNode;
+    rules?: RegisterOptions<TFieldValues, N>;
+  }) {
+    const { name, children, rules } = props;
+    const { control } = useFormContext<TFieldValues>();
+
+    return (
+      <Controller
+        name={name}
+        control={control}
+        rules={rules}
+        render={({ field: { value, onChange } }) => (
+          <>{children({ value, onChange })}</>
+        )}
+      />
+    );
+  }
+
   // ---------- Datetime input ----------
   function FormDatetime<N extends Name<Path<TFieldValues>>>(
     props: BaseFieldProps<TFieldValues, N>
@@ -405,6 +429,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     FormText,
     FormSelect,
     FormDatetime,
+    FormCustom,
     FormModal,
   };
 }

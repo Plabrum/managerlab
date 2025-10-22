@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 
+from app.utils.sqids import Sqid
 from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
 from app.deliverables.enums import SocialMediaPlatforms
 from app.deliverables.models import Deliverable
@@ -37,10 +38,10 @@ class DeliverableCreateSchema(BaseSchema):
 class AddMediaToDeliverableSchema(BaseSchema):
     """Schema for adding media to a Deliverable."""
 
-    media_ids: list[int]
+    media_ids: list[Sqid]
 
 
 class RemoveMediaFromDeliverableSchema(BaseSchema):
     """Schema for removing media from a Deliverable."""
 
-    media_ids: list[int]
+    media_ids: list[Sqid]

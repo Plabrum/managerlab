@@ -11,6 +11,9 @@ from app.objects.enums import (
     TimeRange,
     Granularity,
     AggregationType,
+    ObjectTypes,
+    RelationType,
+    RelationCardinality,
 )
 from app.actions.schemas import ActionDTO
 
@@ -182,34 +185,41 @@ class ColumnDefinitionDTO(BaseSchema):
     available_values: List[str] | None = None
 
 
-class ObjectRelationDTO(BaseSchema):
-    """DTO for object relationships (parents/children)."""
+class ObjectRelationGroup(BaseSchema):
+    """A group of related objects with metadata.
 
-    object_type: str
-    sqid: str
-    title: str
+    Groups related objects by relationship type (e.g., all media for a deliverable)
+    and provides rich data by reusing ObjectListDTO.
+    """
+
+    relation_name: str  # e.g., "campaign", "media", "brand"
+    relation_label: str  # Human-readable: "Campaign", "Media Files"
+    relation_type: RelationType
+    cardinality: RelationCardinality
+
+    # Reuse ObjectListDTO - includes title, subtitle, state, fields, actions, link
+    objects: List["ObjectListDTO"]
 
 
 class ObjectDetailDTO(BaseSchema):
     """Detailed object representation."""
 
     id: str
-    object_type: str
+    object_type: ObjectTypes
     state: str
     title: str
     fields: List[ObjectFieldDTO]
     actions: List[ActionDTO]
     created_at: datetime
     updated_at: datetime
-    children: List[Dict[str, ObjectRelationDTO]] = []
-    parents: List[Dict[str, ObjectRelationDTO]] = []
+    relations: List[ObjectRelationGroup] = []
 
 
 class ObjectListDTO(BaseSchema):
     """Lightweight object representation for lists/tables."""
 
     id: str
-    object_type: str
+    object_type: ObjectTypes
     title: str
     state: str
     created_at: datetime

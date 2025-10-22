@@ -122,7 +122,7 @@ class BaseObject(ABC):
         )
 
         result = await session.execute(query)
-        obj = result.scalar_one_or_none()
+        obj = result.unique().scalar_one_or_none()
         if not obj:
             raise ValueError(f"{cls.model.__name__} with id {object_id} not found")
         return obj
@@ -146,7 +146,7 @@ class BaseObject(ABC):
 
         # Execute query
         result = await session.execute(query)
-        objects = result.scalars().all()
+        objects = result.unique().scalars().all()
 
         return objects, total
 

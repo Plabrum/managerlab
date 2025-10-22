@@ -1,11 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import {
-  ObjectFields,
-  ObjectParents,
-  ObjectChildren,
-} from '@/components/object-detail';
+import { ObjectFields, ObjectRelations } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
 import { DetailPageLayout } from '@/components/detail-page-layout';
 
@@ -30,11 +26,8 @@ export default function UserDetailPage({
           {/* Fields */}
           <ObjectFields fields={data.fields} />
 
-          {/* Parents */}
-          <ObjectParents parents={data.parents || []} />
-
-          {/* Children */}
-          {data.children && <ObjectChildren items={data.children} />}
+          {/* Relations */}
+          <ObjectRelations relations={data.relations || []} />
         </div>
       </div>
     </DetailPageLayout>

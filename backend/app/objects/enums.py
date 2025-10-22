@@ -12,6 +12,20 @@ class ObjectTypes(StrEnum):
     Invoices = auto()
 
 
+class RelationType(StrEnum):
+    """Type of relationship between objects."""
+
+    parent = auto()
+    child = auto()
+
+
+class RelationCardinality(StrEnum):
+    """Cardinality of a relationship."""
+
+    one = auto()
+    many = auto()
+
+
 class FieldType(StrEnum):
     """Field types for object fields."""
 

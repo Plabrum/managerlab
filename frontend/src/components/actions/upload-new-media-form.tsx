@@ -3,39 +3,38 @@
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
+import { Image } from '@/components/ui/image';
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Loader2,
+  UploadIcon,
   CheckCircle2,
   AlertCircle,
-  UploadIcon,
   X,
 } from 'lucide-react';
-import { RegisterMediaSchema } from '@/openapi/managerLab.schemas';
-import { Image } from '@/components/ui/image';
+import { AddMediaToDeliverableSchema } from '@/openapi/managerLab.schemas';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
 
-interface CreateMediaFormProps {
-  onSubmit: (data: RegisterMediaSchema) => void;
+interface UploadNewMediaFormProps {
+  onSubmit: (data: AddMediaToDeliverableSchema) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 }
 
 /**
- * Form for uploading media to S3
- * Handles: file selection → presigned URL request → S3 upload
- * Calls onSubmit with file_key for the consumer to handle registration
+ * Form for uploading new media and adding it to a deliverable
+ * Handles file selection, upload, registration, and calls onSubmit when complete
  */
-export function CreateMediaForm({
+export function UploadNewMediaForm({
   onSubmit,
   onCancel,
   isSubmitting,
-}: CreateMediaFormProps) {
+}: UploadNewMediaFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Use the upload hook (without auto-registration since the parent handles it)
+  // Use upload hook with callback on success
   const {
     uploadFile,
     status: uploadStatus,
@@ -64,7 +63,6 @@ export function CreateMediaForm({
   );
 
   const removeFile = () => {
-    // Clean up preview URL
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -82,35 +80,29 @@ export function CreateMediaForm({
     };
   }, [previewUrl]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleUpload = async () => {
     if (!selectedFile) {
       toast.error('Please select a file');
       return;
     }
 
-    // Upload without auto-registration (autoRegister: false)
-    // The parent component will handle registration via onSubmit
+    // Upload with auto-registration and call onSubmit directly on success
     await uploadFile(selectedFile, {
-      autoRegister: false,
+      autoRegister: true,
       onSuccess: (result) => {
-        // Call onSubmit with file_key and metadata
-        onSubmit({
-          file_key: result.fileKey,
-          file_name: selectedFile.name,
-          file_size: selectedFile.size,
-          mime_type: selectedFile.type,
-        });
+        // Call onSubmit directly - no useEffect needed!
+        onSubmit({ media_ids: [result.mediaId] });
       },
     });
   };
 
-  const isProcessing = uploadStatus === 'uploading' || isSubmitting;
-  const isComplete = uploadStatus === 'complete';
+  const isProcessing =
+    uploadStatus === 'uploading' ||
+    uploadStatus === 'registering' ||
+    isSubmitting;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-4">
       {!selectedFile ? (
         <Dropzone
           onDrop={handleDrop}
@@ -149,7 +141,8 @@ export function CreateMediaForm({
             </div>
 
             <div className="flex items-center gap-2">
-              {uploadStatus === 'uploading' ? (
+              {uploadStatus === 'uploading' ||
+              uploadStatus === 'registering' ? (
                 <Loader2 className="text-primary h-4 w-4 animate-spin" />
               ) : uploadStatus === 'complete' ? (
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -180,11 +173,13 @@ export function CreateMediaForm({
             </div>
           )}
 
-          {uploadStatus === 'uploading' && (
+          {(uploadStatus === 'uploading' || uploadStatus === 'registering') && (
             <div className="mt-3">
               <Progress value={progress} className="h-2" />
               <p className="text-muted-foreground mt-1 text-xs">
-                Uploading to S3...
+                {uploadStatus === 'uploading'
+                  ? 'Uploading to S3...'
+                  : 'Registering media...'}
               </p>
             </div>
           )}
@@ -194,24 +189,32 @@ export function CreateMediaForm({
           )}
 
           {uploadStatus === 'complete' && (
-            <p className="mt-2 text-xs text-green-600">Upload complete!</p>
+            <p className="mt-2 text-xs text-green-600">
+              Upload complete! Adding to deliverable...
+            </p>
           )}
         </div>
       )}
 
       <div className="flex gap-3 pt-4">
         <Button
-          type="submit"
-          disabled={isProcessing || !selectedFile || isComplete}
+          type="button"
+          onClick={handleUpload}
+          disabled={isProcessing || !selectedFile}
           className="flex-1"
         >
-          {uploadStatus === 'uploading'
-            ? 'Uploading...'
-            : isSubmitting
-              ? 'Creating...'
-              : isComplete
-                ? 'Complete'
-                : 'Upload & Create'}
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {uploadStatus === 'uploading'
+                ? 'Uploading...'
+                : uploadStatus === 'registering'
+                  ? 'Registering...'
+                  : 'Adding...'}
+            </>
+          ) : (
+            'Upload & Add Media'
+          )}
         </Button>
         <Button
           type="button"
@@ -223,6 +226,6 @@ export function CreateMediaForm({
           Cancel
         </Button>
       </div>
-    </form>
+    </div>
   );
 }

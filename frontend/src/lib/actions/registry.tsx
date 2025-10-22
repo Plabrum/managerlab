@@ -6,6 +6,7 @@ import type {
 import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
 import { CreateDeliverableForm } from '@/components/actions/create-deliverable-form';
 import { CreateMediaForm } from '@/components/actions/create-media-form';
+import { AddMediaToDeliverableForm } from '@/components/actions/add-media-to-deliverable-form';
 import { CreateRosterForm } from '@/components/actions/create-roster-form';
 import React from 'react';
 
@@ -130,7 +131,15 @@ export const actionRegistry: ActionRegistry = {
     render: () => null,
   },
   deliverable_actions__deliverable_add_media: {
-    render: () => null, // TODO: Add form if needed
+    render: ({ onSubmit, onCancel, isSubmitting }) => {
+      return (
+        <AddMediaToDeliverableForm
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    },
   },
   deliverable_actions__deliverable_remove_media: {
     render: () => null, // TODO: Add form if needed

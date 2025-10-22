@@ -121,20 +121,20 @@ class ActionGroup:
             raise Exception("Unknown action type")
         return self.actions[action_key]
 
-    async def get_object(self, object_id: int | None) -> BaseDBModel | None:
-        if object_id and self.model_type:
-            transaction = self.action_registry.dependencies.get("transaction")
-            if transaction:
-                return await transaction.get(self.model_type, object_id)
-        return None
-
     async def trigger(
         self,
         data: Any,  # Discriminated union instance
         object_id: int | None = None,
     ) -> ActionExecutionResponse:
-        obj = await self.get_object(object_id=object_id)
-        action_class = self.action_registry._struct_to_action[type(data)]
+        action_class: BaseAction = self.action_registry._struct_to_action[type(data)]
+        obj = (
+            await action_class.get_object(
+                object_id=object_id,
+                transaction=self.action_registry.dependencies["transaction"],
+            )
+            if object_id
+            else None
+        )
 
         # Inspect the signature once
         sig = inspect.signature(action_class.execute)

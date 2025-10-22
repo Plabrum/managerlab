@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.actions.base import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
@@ -13,6 +14,7 @@ from app.deliverables.schemas import (
 )
 from app.media.models import Media
 from app.utils.db import update_model
+from app.utils.sqids import sqid_decode
 
 deliverable_actions = action_group_factory(
     ActionGroupType.DeliverableActions, model_type=Deliverable
@@ -60,7 +62,7 @@ class EditDeliverable(BaseAction):
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)
-        transaction.add(obj)
+        # No need to add(obj) - it's already tracked by the session that loaded it
 
         return ActionExecutionResponse(
             success=True,
@@ -106,6 +108,8 @@ class AddMediaToDeliverable(BaseAction):
     is_bulk_allowed = False
     priority = 0
     icon = ActionIcon.add
+    model = Deliverable
+    load_options = [selectinload(Deliverable.media)]
 
     @classmethod
     async def execute(
@@ -115,15 +119,16 @@ class AddMediaToDeliverable(BaseAction):
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         # Fetch media objects by IDs
+        requested_media_ids = [sqid_decode(media_id) for media_id in data.media_ids]
         result = await transaction.execute(
-            select(Media).where(Media.id.in_(data.media_ids))
+            select(Media).where(Media.id.in_(requested_media_ids))
         )
         media_objects = result.scalars().all()
 
         # Check if all requested media were found
         if len(media_objects) != len(data.media_ids):
             found_ids = {media.id for media in media_objects}
-            missing_ids = set(data.media_ids) - found_ids
+            missing_ids = set(requested_media_ids) - found_ids
             return ActionExecutionResponse(
                 success=False,
                 message=f"Media not found: {missing_ids}",
@@ -131,18 +136,19 @@ class AddMediaToDeliverable(BaseAction):
             )
 
         # Add media to deliverable (only add if not already associated)
-        added_count = 0
-        for media in media_objects:
-            if media not in obj.media:
-                obj.media.append(media)
-                added_count += 1
+        # Use set-based comparison to avoid N+1 queries
+        existing_media_ids = {media.id for media in obj.media}
+        new_media = [
+            media for media in media_objects if media.id not in existing_media_ids
+        ]
 
-        transaction.add(obj)
+        obj.media.extend(new_media)
+        # No need to add(obj) - it's already tracked by the session that loaded it
 
         return ActionExecutionResponse(
             success=True,
-            message=f"Added {added_count} media file(s) to deliverable",
-            results={"added_count": added_count, "total_media": len(obj.media)},
+            message="Added  media file(s) to deliverable",
+            results={"total_media": len(obj.media)},
         )
 
 
@@ -155,6 +161,8 @@ class RemoveMediaFromDeliverable(BaseAction):
     is_bulk_allowed = False
     priority = 11
     icon = ActionIcon.trash
+    model = Deliverable
+    load_options = [selectinload(Deliverable.media)]
 
     @classmethod
     async def execute(
@@ -163,20 +171,19 @@ class RemoveMediaFromDeliverable(BaseAction):
         data: RemoveMediaFromDeliverableSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
-        # Fetch media objects by IDs
-        result = await transaction.execute(
-            select(Media).where(Media.id.in_(data.media_ids))
-        )
-        media_objects = result.scalars().all()
+        # Decode SQID strings to integers
+        requested_media_ids = [sqid_decode(media_id) for media_id in data.media_ids]
 
-        # Remove media from deliverable
-        removed_count = 0
-        for media in media_objects:
-            if media in obj.media:
-                obj.media.remove(media)
-                removed_count += 1
+        # Remove media from deliverable using set-based comparison
+        existing_media_ids = {media.id for media in obj.media}
+        media_ids_to_remove = set(requested_media_ids) & existing_media_ids
 
-        transaction.add(obj)
+        # Filter the relationship to keep only media that should remain
+        obj.media = [
+            media for media in obj.media if media.id not in media_ids_to_remove
+        ]
+        removed_count = len(media_ids_to_remove)
+        # No need to add(obj) - it's already tracked by the session that loaded it
 
         return ActionExecutionResponse(
             success=True,
