@@ -154,13 +154,10 @@ class ActionGroup:
         sig = inspect.signature(action_class.execute)
         params = sig.parameters
 
-        request = self.action_registry.dependencies.get("request")
         # Prepare possible arguments
         candidate_args = {
             "obj": obj,
             "data": getattr(data, "data", data),
-            "team_id": request.session.get("team_id"),
-            "campaign_id": request.session.get("campaign_id"),
             **self.action_registry.dependencies,
         }
 
@@ -169,7 +166,6 @@ class ActionGroup:
             name: val for name, val in candidate_args.items() if name in params
         }
 
-        # Call execute() with only supported arguments
         return await action_class.execute(**filtered_kwargs)
 
     def get_available_actions(

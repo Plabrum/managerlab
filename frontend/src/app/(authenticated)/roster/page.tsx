@@ -81,9 +81,7 @@ export default function RosterPage() {
       objectId: '',
       onInvalidate: () => {
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey[0] === 'listObjects' &&
-            query.queryKey[1] === 'roster',
+          queryKey: ['/o/roster'],
         });
       },
     };

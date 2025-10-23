@@ -1,5 +1,6 @@
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 
+from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
 from app.users.models import User, WaitlistEntry, Team
 from app.users.enums import RoleLevel
@@ -49,6 +50,7 @@ class TeamListItemSchema(BaseSchema):
     public_id: str  # Sqid-encoded ID for use with actions API
     team_name: str
     role_level: RoleLevel
+    actions: list[ActionDTO] = []
 
 
 class ListTeamsResponse(BaseSchema):

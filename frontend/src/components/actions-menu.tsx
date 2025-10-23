@@ -21,6 +21,7 @@ import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 interface ActionsMenuProps {
   actions: ActionDTO[];
   actionGroup: ActionGroupType;
+  objectId?: string;
   onActionComplete?: () => void;
   /**
    * Object data to automatically extract default values for forms
@@ -32,6 +33,7 @@ interface ActionsMenuProps {
 export function ActionsMenu({
   actions,
   actionGroup,
+  objectId,
   onActionComplete,
   objectData,
 }: ActionsMenuProps) {
@@ -40,6 +42,7 @@ export function ActionsMenu({
 
   const executor = useActionExecutor({
     actionGroup,
+    objectId,
     renderActionForm: formRenderer,
     onSuccess: () => {
       onActionComplete?.();

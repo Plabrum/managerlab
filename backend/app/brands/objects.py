@@ -116,36 +116,6 @@ class BrandObject(BaseObject):
                 editable=True,
             ),
             ObjectFieldDTO(
-                key="tone_of_voice",
-                value=(
-                    StringFieldValue(value=brand.tone_of_voice)
-                    if brand.tone_of_voice
-                    else None
-                ),
-                label="Tone of Voice",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="brand_values",
-                value=(
-                    StringFieldValue(value=brand.brand_values)
-                    if brand.brand_values
-                    else None
-                ),
-                label="Brand Values",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="target_audience",
-                value=(
-                    StringFieldValue(value=brand.target_audience)
-                    if brand.target_audience
-                    else None
-                ),
-                label="Target Audience",
-                editable=True,
-            ),
-            ObjectFieldDTO(
                 key="website",
                 value=URLFieldValue(value=brand.website) if brand.website else None,
                 label="Website",

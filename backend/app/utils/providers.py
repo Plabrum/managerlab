@@ -92,6 +92,8 @@ def provide_action_registry(
     transaction: AsyncSession,
     task_queues: TaskQueues,
     request: Request,
+    team_id: int,
+    campaign_id: int | None,
 ) -> ActionRegistry:
     return ActionRegistry(
         s3_client=s3_client,
@@ -99,9 +101,23 @@ def provide_action_registry(
         transaction=transaction,
         task_queues=task_queues,
         request=request,
+        team_id=team_id,
+        campaign_id=campaign_id,
     )
 
 
 def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:
     """Provide the ObjectRegistry singleton with dependencies."""
     return ObjectRegistry(s3_client=s3_client, config=config)
+
+
+def provide_team_id(request: Request) -> int | None:
+    """Provide the team ID from the session."""
+    team_id = request.session.get("team_id")
+    return int(team_id) if team_id else None
+
+
+def provide_campaign_id(request: Request) -> int | None:
+    """Provide the optional campaign ID from the session."""
+    campaign_id = request.session.get("campaign_id")
+    return int(campaign_id) if campaign_id else None

@@ -84,9 +84,7 @@ export default function BrandsPage() {
       objectId: '',
       onInvalidate: () => {
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey[0] === 'listObjects' &&
-            query.queryKey[1] === 'brands',
+          queryKey: ['/o/brands'],
         });
       },
     };

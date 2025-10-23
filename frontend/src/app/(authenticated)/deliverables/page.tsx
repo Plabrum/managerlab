@@ -84,9 +84,7 @@ export default function DeliverablesPage() {
       objectId: '',
       onInvalidate: () => {
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey[0] === 'listObjects' &&
-            query.queryKey[1] === 'deliverables',
+          queryKey: ['/o/deliverables'],
         });
       },
     };
