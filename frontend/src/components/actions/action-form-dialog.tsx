@@ -35,14 +35,16 @@ export function ActionFormDialog({
       open={open}
       onOpenChange={(isOpen) => !isOpen && !isExecuting && onCancel()}
     >
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-6xl">
         <DialogHeader>
           <DialogTitle>{action.label}</DialogTitle>
           <DialogDescription>
             Fill out the form below to complete this action.
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4">{children}</div>
+        <div className="mt-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   );

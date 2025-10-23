@@ -21,11 +21,6 @@ class Brand(RLSMixin(), BaseDBModel):
     name: Mapped[str] = mapped_column(sa.Text, nullable=False)
     description: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
-    # Brand guidelines
-    tone_of_voice: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
-    brand_values: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
-    target_audience: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
-
     # Contact information
     website: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     email: Mapped[str | None] = mapped_column(sa.Text, nullable=True)

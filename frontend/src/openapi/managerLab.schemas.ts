@@ -134,12 +134,6 @@ export interface BrandContactUpdateSchema {
 
 export type BrandCreateSchemaDescription = string | null;
 
-export type BrandCreateSchemaToneOfVoice = string | null;
-
-export type BrandCreateSchemaBrandValues = string | null;
-
-export type BrandCreateSchemaTargetAudience = string | null;
-
 export type BrandCreateSchemaWebsite = string | null;
 
 export type BrandCreateSchemaEmail = string | null;
@@ -151,9 +145,6 @@ export type BrandCreateSchemaNotes = string | null;
 export interface BrandCreateSchema {
   name: string;
   description?: BrandCreateSchemaDescription;
-  tone_of_voice?: BrandCreateSchemaToneOfVoice;
-  brand_values?: BrandCreateSchemaBrandValues;
-  target_audience?: BrandCreateSchemaTargetAudience;
   website?: BrandCreateSchemaWebsite;
   email?: BrandCreateSchemaEmail;
   phone?: BrandCreateSchemaPhone;
@@ -163,12 +154,6 @@ export interface BrandCreateSchema {
 export type BrandUpdateSchemaName = string | null;
 
 export type BrandUpdateSchemaDescription = string | null;
-
-export type BrandUpdateSchemaToneOfVoice = string | null;
-
-export type BrandUpdateSchemaBrandValues = string | null;
-
-export type BrandUpdateSchemaTargetAudience = string | null;
 
 export type BrandUpdateSchemaWebsite = string | null;
 
@@ -181,9 +166,6 @@ export type BrandUpdateSchemaNotes = string | null;
 export interface BrandUpdateSchema {
   name?: BrandUpdateSchemaName;
   description?: BrandUpdateSchemaDescription;
-  tone_of_voice?: BrandUpdateSchemaToneOfVoice;
-  brand_values?: BrandUpdateSchemaBrandValues;
-  target_audience?: BrandUpdateSchemaTargetAudience;
   website?: BrandUpdateSchemaWebsite;
   email?: BrandUpdateSchemaEmail;
   phone?: BrandUpdateSchemaPhone;
@@ -593,12 +575,6 @@ export interface FloatFieldValue {
 
 export type GetBrandBrandResponseBodyDescription = string | null;
 
-export type GetBrandBrandResponseBodyToneOfVoice = string | null;
-
-export type GetBrandBrandResponseBodyBrandValues = string | null;
-
-export type GetBrandBrandResponseBodyTargetAudience = string | null;
-
 export type GetBrandBrandResponseBodyWebsite = string | null;
 
 export type GetBrandBrandResponseBodyEmail = string | null;
@@ -612,9 +588,6 @@ export type GetBrandBrandResponseBodyDeletedAt = string | null;
 export interface GetBrandBrandResponseBody {
   name: string;
   description?: GetBrandBrandResponseBodyDescription;
-  tone_of_voice?: GetBrandBrandResponseBodyToneOfVoice;
-  brand_values?: GetBrandBrandResponseBodyBrandValues;
-  target_audience?: GetBrandBrandResponseBodyTargetAudience;
   website?: GetBrandBrandResponseBodyWebsite;
   email?: GetBrandBrandResponseBodyEmail;
   phone?: GetBrandBrandResponseBodyPhone;
@@ -1326,12 +1299,6 @@ export interface USDFieldValue {
 
 export type UpdateBrandBrandResponseBodyDescription = string | null;
 
-export type UpdateBrandBrandResponseBodyToneOfVoice = string | null;
-
-export type UpdateBrandBrandResponseBodyBrandValues = string | null;
-
-export type UpdateBrandBrandResponseBodyTargetAudience = string | null;
-
 export type UpdateBrandBrandResponseBodyWebsite = string | null;
 
 export type UpdateBrandBrandResponseBodyEmail = string | null;
@@ -1345,9 +1312,6 @@ export type UpdateBrandBrandResponseBodyDeletedAt = string | null;
 export interface UpdateBrandBrandResponseBody {
   name: string;
   description?: UpdateBrandBrandResponseBodyDescription;
-  tone_of_voice?: UpdateBrandBrandResponseBodyToneOfVoice;
-  brand_values?: UpdateBrandBrandResponseBodyBrandValues;
-  target_audience?: UpdateBrandBrandResponseBodyTargetAudience;
   website?: UpdateBrandBrandResponseBodyWebsite;
   email?: UpdateBrandBrandResponseBodyEmail;
   phone?: UpdateBrandBrandResponseBodyPhone;

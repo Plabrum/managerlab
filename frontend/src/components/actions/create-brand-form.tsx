@@ -49,27 +49,6 @@ export function CreateBrandForm({
       <FormString name="phone" label="Phone" placeholder="+1 (555) 000-0000" />
 
       <FormText
-        name="tone_of_voice"
-        label="Tone of Voice"
-        placeholder="Describe the brand's communication style..."
-        rows={2}
-      />
-
-      <FormText
-        name="brand_values"
-        label="Brand Values"
-        placeholder="Core values and principles..."
-        rows={2}
-      />
-
-      <FormText
-        name="target_audience"
-        label="Target Audience"
-        placeholder="Describe the target audience..."
-        rows={2}
-      />
-
-      <FormText
         name="notes"
         label="Notes"
         placeholder="Additional notes..."

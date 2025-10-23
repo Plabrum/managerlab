@@ -14,9 +14,6 @@ class BrandUpdateSchema(BaseSchema):
 
     name: str | None = None
     description: str | None = None
-    tone_of_voice: str | None = None
-    brand_values: str | None = None
-    target_audience: str | None = None
     website: str | None = None
     email: str | None = None
     phone: str | None = None
@@ -28,9 +25,6 @@ class BrandCreateSchema(BaseSchema):
 
     name: str
     description: str | None = None
-    tone_of_voice: str | None = None
-    brand_values: str | None = None
-    target_audience: str | None = None
     website: str | None = None
     email: str | None = None
     phone: str | None = None
