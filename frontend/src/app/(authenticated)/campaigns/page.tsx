@@ -84,9 +84,7 @@ export default function CampaignsPage() {
       objectId: '', // No specific object for top-level actions
       onInvalidate: () => {
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey[0] === 'listObjects' &&
-            query.queryKey[1] === 'campaigns',
+          queryKey: ['/o/campaigns'],
         });
       },
     };

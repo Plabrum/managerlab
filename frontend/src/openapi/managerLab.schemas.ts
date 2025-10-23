@@ -51,6 +51,7 @@ export const ActionGroupType = {
   top_level_roster_actions: 'top_level_roster_actions',
   dashboard_actions: 'dashboard_actions',
   team_actions: 'team_actions',
+  message_actions: 'message_actions',
 } as const;
 
 export interface ActionListResponse {
@@ -99,6 +100,15 @@ export const AggregationType = {
   count_: 'count_',
   mode: 'mode',
 } as const;
+
+export interface BatchUnreadRequest {
+  object_ids: string[];
+}
+
+export interface BatchUnreadResponse {
+  threads: ThreadUnreadInfo[];
+  total_unread: number;
+}
 
 export interface BoolFieldValue {
   value: boolean;
@@ -425,6 +435,11 @@ export const DeleteMediaActionValue = {
   action: 'media_actions__media_delete',
 } as const;
 export type DeleteMediaAction = typeof DeleteMediaActionValue;
+
+export const DeleteMessageActionValue = {
+  action: 'message_actions__delete',
+} as const;
+export type DeleteMessageAction = typeof DeleteMessageActionValue;
 
 export const DeleteTeamActionValue = {
   action: 'team_actions__team_delete',
@@ -904,6 +919,30 @@ export interface MediaUpdateSchema {
   file_name?: MediaUpdateSchemaFileName;
 }
 
+export interface MessageCreateSchema {
+  content: string;
+}
+
+export interface MessageListResponse {
+  messages: MessageSchema[];
+  offset: number;
+  limit: number;
+}
+
+export interface MessageSchema {
+  id: string;
+  thread_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user: UserSchema;
+}
+
+export interface MessageUpdateSchema {
+  content: string;
+}
+
 export type NumericalDataPointValue = number | number | null;
 
 export interface NumericalDataPoint {
@@ -1202,6 +1241,7 @@ export interface TeamListItemSchema {
   public_id: string;
   team_name: string;
   role_level: RoleLevel;
+  actions?: ActionDTO[];
 }
 
 export interface TeamScopeSchema {
@@ -1233,6 +1273,11 @@ export interface TextFilterDefinition {
   operation: TextFilterDefinitionOperation;
   value: string;
   type: 'text_filter';
+}
+
+export interface ThreadUnreadInfo {
+  thread_id: string;
+  unread_count: number;
 }
 
 /**
@@ -1447,6 +1492,17 @@ export interface UpdateMediaAction {
   action: 'media_actions__media_update';
 }
 
+export interface UpdateMessageAction {
+  data: MessageUpdateSchema;
+  action: 'message_actions__update';
+}
+
+export interface UserSchema {
+  id: string;
+  email: string;
+  name: string;
+}
+
 export type UserStates = typeof UserStates[keyof typeof UserStates];
 
 
@@ -1627,7 +1683,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1655,7 +1711,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1878,6 +1934,81 @@ export type DashboardsIdUpdateDashboard400 = {
   status_code: number;
   detail: string;
   extra?: DashboardsIdUpdateDashboard400Extra;
+};
+
+export type ThreadsThreadableTypeThreadableIdMessagesListMessagesParams = {
+offset?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
+
+export type ThreadsThreadableTypeThreadableIdMessagesListMessages400ExtraAnyOf = {[key: string]: unknown};
+
+export type ThreadsThreadableTypeThreadableIdMessagesListMessages400Extra = null | ThreadsThreadableTypeThreadableIdMessagesListMessages400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ThreadsThreadableTypeThreadableIdMessagesListMessages400 = {
+  status_code: number;
+  detail: string;
+  extra?: ThreadsThreadableTypeThreadableIdMessagesListMessages400Extra;
+};
+
+export type ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams = {
+user_id: number;
+team_id: number;
+campaign_id?: number | null;
+};
+
+export type ThreadsThreadableTypeThreadableIdMessagesCreateMessage400ExtraAnyOf = {[key: string]: unknown};
+
+export type ThreadsThreadableTypeThreadableIdMessagesCreateMessage400Extra = null | ThreadsThreadableTypeThreadableIdMessagesCreateMessage400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ThreadsThreadableTypeThreadableIdMessagesCreateMessage400 = {
+  status_code: number;
+  detail: string;
+  extra?: ThreadsThreadableTypeThreadableIdMessagesCreateMessage400Extra;
+};
+
+export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams = {
+user_id: number;
+};
+
+export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400ExtraAnyOf = {[key: string]: unknown};
+
+export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400Extra = null | ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400 = {
+  status_code: number;
+  detail: string;
+  extra?: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400Extra;
+};
+
+export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams = {
+user_id: number;
+};
+
+export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400ExtraAnyOf = {[key: string]: unknown};
+
+export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400Extra = null | ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400 = {
+  status_code: number;
+  detail: string;
+  extra?: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400Extra;
 };
 
 export type LocalUploadKeyLocalUpload200 = { [key: string]: unknown };

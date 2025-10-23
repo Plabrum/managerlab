@@ -17,12 +17,14 @@ export function actionGroupToObjectType(
     user_actions: 'users',
     brand_contact_actions: 'brandcontacts',
     roster_actions: 'roster',
+    deliverable_actions: 'deliverables',
     top_level_media_actions: 'media',
     top_level_post_actions: 'posts',
     top_level_campaign_actions: 'campaigns',
     top_level_brand_actions: 'brands',
     top_level_invoice_actions: 'invoices',
     top_level_roster_actions: 'roster',
+    top_level_deliverable_actions: 'deliverables',
   };
 
   return mapping[actionGroup] || null;

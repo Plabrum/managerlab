@@ -52,7 +52,7 @@ function FieldError({ name }: { name: string }) {
   const err = errors?.[name] as { message?: string } | undefined;
   if (!err) return null;
   return (
-    <p className="mt-1 text-sm text-red-400">
+    <p className="text-destructive mt-1 text-sm">
       {String(err.message ?? 'Invalid value')}
     </p>
   );
@@ -125,7 +125,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     return (
       <div className={className}>
         {label && (
-          <Label htmlFor={htmlId} className="text-zinc-300">
+          <Label htmlFor={htmlId}>
             {label} {required ? '*' : null}
           </Label>
         )}
@@ -137,11 +137,11 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
             required: RequiredMessage(required),
             ...rules,
           })}
-          className="mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
+          className="mt-1"
           placeholder={placeholder}
         />
         {description ? (
-          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
         ) : null}
         <FieldError name={String(name)} />
       </div>
@@ -174,7 +174,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     return (
       <div className={className}>
         {label && (
-          <Label htmlFor={htmlId} className="text-zinc-300">
+          <Label htmlFor={htmlId}>
             {label} {required ? '*' : null}
           </Label>
         )}
@@ -186,11 +186,11 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
             pattern: rules?.pattern || defaultEmailPattern,
             ...rules,
           } as RegisterOptions<TFieldValues, N>)}
-          className="mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
+          className="mt-1"
           placeholder={placeholder}
         />
         {description ? (
-          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
         ) : null}
         <FieldError name={String(name)} />
       </div>
@@ -219,7 +219,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     return (
       <div className={className}>
         {label && (
-          <Label htmlFor={htmlId} className="text-zinc-300">
+          <Label htmlFor={htmlId}>
             {label} {required ? '*' : null}
           </Label>
         )}
@@ -229,15 +229,12 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
             required: RequiredMessage(required),
             ...rules,
           })}
-          className={cn(
-            'mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500',
-            !resize && 'resize-none'
-          )}
+          className={cn('mt-1', !resize && 'resize-none')}
           placeholder={placeholder}
           rows={rows}
         />
         {description ? (
-          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
         ) : null}
         <FieldError name={String(name)} />
       </div>
@@ -267,7 +264,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     return (
       <div className={className}>
         {label && (
-          <Label htmlFor={htmlId} className="text-zinc-300">
+          <Label htmlFor={htmlId}>
             {label} {required ? '*' : null}
           </Label>
         )}
@@ -280,10 +277,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
               value={field.value as string}
               onValueChange={field.onChange}
             >
-              <SelectTrigger
-                id={htmlId}
-                className="mt-1 border-zinc-700 bg-zinc-800 text-white"
-              >
+              <SelectTrigger id={htmlId} className="mt-1">
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
               <SelectContent>
@@ -297,7 +291,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
           )}
         />
         {description ? (
-          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
         ) : null}
         <FieldError name={String(name)} />
       </div>
@@ -348,7 +342,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     return (
       <div className={className}>
         {label && (
-          <Label htmlFor={htmlId} className="text-zinc-300">
+          <Label htmlFor={htmlId}>
             {label} {required ? '*' : null}
           </Label>
         )}
@@ -359,11 +353,11 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
             required: RequiredMessage(required),
             ...rules,
           })}
-          className="mt-1 border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
+          className="mt-1"
           placeholder={placeholder}
         />
         {description ? (
-          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
         ) : null}
         <FieldError name={String(name)} />
       </div>
@@ -402,18 +396,14 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
           {children}
 
           <div className="flex gap-3 pt-6">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 bg-white text-black hover:bg-zinc-200 disabled:opacity-50"
-            >
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
               {isSubmitting ? 'Please wait...' : submitText}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="flex-1"
             >
               Cancel
             </Button>

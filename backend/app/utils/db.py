@@ -42,14 +42,23 @@ def create_model[T](
     model_class: type[T],
     create_vals: BaseSchema,
 ) -> T:
-    """Create a new model instance from a DTO/struct."""
+    """Create a new model instance from a DTO/struct, merging rls and res fields."""
     data = {
         field: value
         for field, value in structs.asdict(create_vals).items()
         if value is not None
     }
-    rls_fields = {"team_id": team_id, "campaign_id": campaign_id}
-    return model_class(**data, **rls_fields)
+
+    # row-level security context
+    rls_fields = {}
+    if team_id is not None:
+        rls_fields["team_id"] = team_id
+    if campaign_id is not None:
+        rls_fields["campaign_id"] = campaign_id
+
+    # merge everything together, rightmost wins
+    merged = {**data, **rls_fields}
+    return model_class(**merged)
 
 
 async def set_rls_variables(session: AsyncSession, request: Request) -> None:

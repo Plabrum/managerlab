@@ -96,9 +96,7 @@ export default function MediaPage() {
       objectId: '',
       onInvalidate: () => {
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey[0] === 'listObjects' &&
-            query.queryKey[1] === 'media',
+          queryKey: ['/o/media'],
         });
       },
     };

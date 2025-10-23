@@ -123,6 +123,8 @@ app = Litestar(
         "object_registry": Provide(
             providers.provide_object_registry, sync_to_thread=False
         ),
+        "team_id": Provide(providers.provide_team_id, sync_to_thread=False),
+        "campaign_id": Provide(providers.provide_campaign_id, sync_to_thread=False),
     },
     plugins=[
         SQLAlchemyPlugin(

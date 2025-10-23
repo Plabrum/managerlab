@@ -84,9 +84,7 @@ export default function InvoicesPage() {
       objectId: '',
       onInvalidate: () => {
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey[0] === 'listObjects' &&
-            query.queryKey[1] === 'invoices',
+          queryKey: ['/o/invoices'],
         });
       },
     };

@@ -6,6 +6,8 @@ from litestar.status_codes import HTTP_400_BAD_REQUEST
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.users.models import User, WaitlistEntry, Team, Role
@@ -123,13 +125,18 @@ async def create_team(
 
 
 @get("/teams", guards=[requires_user_id])
-async def list_teams(request: Request, transaction: AsyncSession) -> ListTeamsResponse:
+async def list_teams(
+    request: Request, transaction: AsyncSession, action_registry: ActionRegistry
+) -> ListTeamsResponse:
     """List all teams for the current user.
 
     If user is in campaign scope, returns only the campaign's team (read-only).
     If user is in team scope or no scope, returns all teams they have access to.
     """
     user_id: int = request.user
+
+    # Get the team actions group for populating actions
+    team_action_group = action_registry.get_class(ActionGroupType.TeamActions)
 
     # Check if user is in campaign scope
     current_scope_type = request.session.get("scope_type")
@@ -160,12 +167,14 @@ async def list_teams(request: Request, transaction: AsyncSession) -> ListTeamsRe
             )
 
         campaign, team = row
+        team_actions = team_action_group.get_available_actions(team)
         teams = [
             TeamListItemSchema(
                 team_id=team.id,
                 public_id=sqid_encode(team.id),
                 team_name=team.name,
                 role_level=RoleLevel.VIEWER,  # Campaign guests are treated as viewers
+                actions=team_actions,
             )
         ]
         current_team_id = team.id
@@ -185,6 +194,7 @@ async def list_teams(request: Request, transaction: AsyncSession) -> ListTeamsRe
                 public_id=sqid_encode(role.team_id),
                 team_name=team.name,
                 role_level=role.role_level,
+                actions=team_action_group.get_available_actions(team),
             )
             for role, team in rows
         ]

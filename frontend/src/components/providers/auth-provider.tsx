@@ -57,30 +57,25 @@ export function AuthProvider({
     }
   }, []);
 
-  const switchTeam = useCallback(
-    async (teamId: number) => {
-      const res = await fetch(`${config.api.baseUrl}/users/switch-team`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ team_id: teamId }),
-      });
+  const switchTeam = useCallback(async (teamId: number) => {
+    const res = await fetch(`${config.api.baseUrl}/users/switch-team`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ team_id: teamId }),
+    });
 
-      if (res.ok) {
-        // Refetch teams to update current team
-        await refetchTeams();
-        // Optionally trigger a page refresh or refetch data
-        window.location.reload();
-      } else {
-        const error = await res.json();
-        throw new Error(error.detail || 'Failed to switch team');
-      }
-    },
-    [refetchTeams]
-  );
+    if (res.ok) {
+      // Reload the page to fetch fresh data with the new team context
+      window.location.reload();
+    } else {
+      const error = await res.json();
+      throw new Error(error.detail || 'Failed to switch team');
+    }
+  }, []);
 
   const contextValue: AuthContextValue = {
     user,

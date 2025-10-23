@@ -166,7 +166,6 @@ class ActionGroup:
             name: val for name, val in candidate_args.items() if name in params
         }
 
-        # Call execute() with only supported arguments
         return await action_class.execute(**filtered_kwargs)
 
     def get_available_actions(

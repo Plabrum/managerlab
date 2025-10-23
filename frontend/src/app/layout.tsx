@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: 'Arive - Next Generation Talent Management',
   description: 'Streamline your talent management operations with Arive',
   generator: 'v0.app',
+  other: {
+    'color-scheme': 'light dark',
+  },
 };
 
 export default function RootLayout({
