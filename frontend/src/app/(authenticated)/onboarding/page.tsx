@@ -21,8 +21,6 @@ export default function OnboardingPage() {
     setError(null);
     setIsCreating(true);
 
-    console.log('[Onboarding] Submitting form with data:', formData);
-
     try {
       const res = await fetch(`${config.api.baseUrl}/users/teams`, {
         method: 'POST',
@@ -34,19 +32,13 @@ export default function OnboardingPage() {
         body: JSON.stringify(formData),
       });
 
-      console.log('[Onboarding] Response status:', res.status);
-      console.log('[Onboarding] Response ok:', res.ok);
-
       if (res.ok) {
-        const teamData = await res.json();
-        console.log('[Onboarding] Team created:', teamData);
+        await res.json();
 
         // Redirect to dashboard with full page reload to refresh server-side data
-        console.log('[Onboarding] Redirecting to dashboard...');
         window.location.href = '/dashboard';
       } else {
         const errorData = await res.json();
-        console.log('[Onboarding] Error response:', errorData);
         setError(errorData.detail || 'Failed to create team');
         setIsCreating(false);
       }

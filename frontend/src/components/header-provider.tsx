@@ -5,7 +5,6 @@ import type { QueryClient } from '@tanstack/react-query';
 import type {
   ActionDTO,
   ActionGroupType,
-  ActionExecutionResponse,
   ObjectDetailDTO,
 } from '@/openapi/managerLab.schemas';
 
@@ -17,12 +16,9 @@ export interface ActionData {
   onInvalidate?: (
     queryClient: QueryClient,
     action: ActionDTO,
-    response: ActionExecutionResponse
+    response: ObjectDetailDTO
   ) => void;
-  onActionComplete?: (
-    action: ActionDTO,
-    response: ActionExecutionResponse
-  ) => void;
+  onActionComplete?: (action: ActionDTO, response: ObjectDetailDTO) => void;
 }
 
 export interface HeaderData {

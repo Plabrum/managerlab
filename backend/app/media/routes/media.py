@@ -10,7 +10,7 @@ from app.media.schemas import (
     PresignedUploadResponseSchema,
     RegisterMediaSchema,
 )
-from app.utils.sqids import Sqid, sqid_decode
+from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.client.s3_client import S3Dep
 from litestar_saq import TaskQueues
@@ -27,7 +27,7 @@ async def request_presigned_upload(
     # Validate file size
     if data.file_size > config.MAX_UPLOAD_SIZE:
         raise ValidationException(
-            f"File size {data.file_size / (1024*1024):.1f}MB exceeds maximum allowed size of {config.MAX_UPLOAD_SIZE / (1024*1024):.0f}MB"
+            f"File size {data.file_size / (1024 * 1024):.1f}MB exceeds maximum allowed size of {config.MAX_UPLOAD_SIZE / (1024 * 1024):.0f}MB"
         )
 
     # Generate unique file key
@@ -74,7 +74,8 @@ async def delete_media(
     id: Sqid, transaction: AsyncSession, s3_client: S3Dep
 ) -> dict[str, str]:
     """Delete a media item and its files from S3."""
-    media = await transaction.get(Media, sqid_decode(id))
+    # id is already decoded from SQID string to int by msgspec
+    media = await transaction.get(Media, id)
     if not media:
         raise ValueError(f"Media with id {id} not found")
 

@@ -14,7 +14,6 @@ from app.deliverables.schemas import (
 )
 from app.media.models import Media
 from app.utils.db import update_model
-from app.utils.sqids import sqid_decode
 
 deliverable_actions = action_group_factory(
     ActionGroupType.DeliverableActions, model_type=Deliverable
@@ -118,8 +117,8 @@ class AddMediaToDeliverable(BaseAction):
         data: AddMediaToDeliverableSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
-        # Fetch media objects by IDs
-        requested_media_ids = [sqid_decode(media_id) for media_id in data.media_ids]
+        # media_ids are already decoded from SQID strings to ints by msgspec
+        requested_media_ids = data.media_ids
         result = await transaction.execute(
             select(Media).where(Media.id.in_(requested_media_ids))
         )
@@ -128,7 +127,8 @@ class AddMediaToDeliverable(BaseAction):
         # Check if all requested media were found
         if len(media_objects) != len(data.media_ids):
             found_ids = {media.id for media in media_objects}
-            missing_ids = set(requested_media_ids) - found_ids
+            # Convert to int for set operations
+            missing_ids = set(int(mid) for mid in requested_media_ids) - found_ids
             return ActionExecutionResponse(
                 success=False,
                 message=f"Media not found: {missing_ids}",
@@ -178,8 +178,8 @@ class RemoveMediaFromDeliverable(BaseAction):
         data: RemoveMediaFromDeliverableSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
-        # Decode SQID strings to integers
-        requested_media_ids = [sqid_decode(media_id) for media_id in data.media_ids]
+        # media_ids are already decoded from SQID strings to ints by msgspec
+        requested_media_ids = data.media_ids
 
         # Remove media from deliverable using set-based comparison
         existing_media_ids = {media.id for media in obj.media}

@@ -11,11 +11,9 @@ class BaseSchema(Struct):
 class SanitizedSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
     config: ClassVar[SQLAlchemyDTOConfig] = SQLAlchemyDTOConfig(max_nested_depth=0)
 
-    _BASE_EXCLUDE: ClassVar[set[str]] = {"id"}  # hide raw PK
-    _BASE_RENAMES: ClassVar[dict[str, str]] = {
-        "public_id": "id"
-    }  # expose hashed id as "id"
-    _BASE_INCLUDE_IMPLICIT: ClassVar[bool | Literal["hybrid-only"]] = "hybrid-only"
+    _BASE_EXCLUDE: ClassVar[set[str]] = set()  # No exclusions needed
+    _BASE_RENAMES: ClassVar[dict[str, str]] = {}  # No renaming needed
+    _BASE_INCLUDE_IMPLICIT: ClassVar[bool | Literal["hybrid-only"]] = False
 
     def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
@@ -33,8 +31,8 @@ class SanitizedSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
         rename_fields = {**cls._BASE_RENAMES, **(base_cfg.rename_fields or {})}
 
         if have_include:
-            # Whitelist mode: never set exclude (pass empty), ensure public_id is present so rename -> "id" works
-            include = base_cfg.include | {"public_id"}
+            # Whitelist mode: use specified includes
+            include = base_cfg.include
             # If dotted paths are whitelisted and depth not set, allow one level
             if base_cfg.max_nested_depth is None and any(
                 "." in f for f in include if isinstance(f, str)
@@ -42,7 +40,7 @@ class SanitizedSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
                 max_depth = 1
             exclude: frozenset[str] = frozenset()  # empty AbstractSet
         else:
-            # Blacklist mode: don't set include; add raw id to exclude
+            # Blacklist mode: use specified excludes
             include = frozenset()  # empty AbstractSet
             exclude = frozenset(base_cfg.exclude) | cls._BASE_EXCLUDE
 
@@ -73,7 +71,6 @@ class UpdateSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
         "id",
         "created_at",
         "updated_at",
-        "public_id",
     }  # Exclude read-only fields
     _BASE_INCLUDE_IMPLICIT: ClassVar[bool | Literal["hybrid-only"]] = (
         False  # Don't include hybrid properties
@@ -104,7 +101,7 @@ class CreateSQLAlchemyDTO[T: BaseDBModel](SQLAlchemyDTO[T]):
         partial=False,  # All required fields must be present
     )
 
-    _BASE_EXCLUDE: ClassVar[set[str]] = {"id", "public_id", "created_at", "updated_at"}
+    _BASE_EXCLUDE: ClassVar[set[str]] = {"id", "created_at", "updated_at"}
     _BASE_INCLUDE_IMPLICIT: ClassVar[bool | Literal["hybrid-only"]] = False
 
     def __init_subclass__(cls, **kwargs) -> None:

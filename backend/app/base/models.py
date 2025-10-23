@@ -2,11 +2,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Set, Type, TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import func
 
-from app.utils.sqids import sqid_encode
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     pass
@@ -18,7 +17,7 @@ class BaseDBModel(DeclarativeBase):
     # Registry to track all model classes
     _model_registry: Set[Type["BaseDBModel"]] = set()
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[Sqid] = mapped_column(Integer, primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -54,10 +53,6 @@ class BaseDBModel(DeclarativeBase):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    @hybrid_property
-    def public_id(self) -> str:
-        return sqid_encode(self.id)
 
     def soft_delete(self) -> None:
         """Soft delete this record by setting deleted_at timestamp."""

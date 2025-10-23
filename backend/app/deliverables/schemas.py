@@ -74,7 +74,7 @@ def deliverable_media_to_schema(
 def roster_to_schema(roster: Roster) -> RosterInDeliverableSchema:
     """Transform Roster model to schema."""
     return RosterInDeliverableSchema(
-        id=roster.public_id,
+        id=roster.id,  # Already a Sqid from the model
         name=roster.name,
         email=roster.email,
         instagram_handle=roster.instagram_handle,
@@ -95,7 +95,7 @@ def deliverable_to_response(
         s3_client: S3Client for generating presigned URLs
     """
     return DeliverableResponseSchema(
-        id=deliverable.public_id,
+        id=deliverable.id,  # Already a Sqid from the model
         title=deliverable.title,
         content=deliverable.content,
         platforms=deliverable.platforms,

@@ -8,7 +8,7 @@ from app.deliverables.schemas import (
     DeliverableUpdateSchema,
     deliverable_to_response,
 )
-from app.utils.sqids import Sqid, sqid_decode
+from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 from app.client.s3_client import S3Dep
@@ -19,13 +19,13 @@ async def get_deliverable(
     id: Sqid, transaction: AsyncSession, s3_client: S3Dep
 ) -> DeliverableResponseSchema:
     """Get a deliverable by SQID with type-safe field access and relations."""
-    deliverable_id = sqid_decode(id)
+    # id is already decoded from SQID string to int by msgspec
 
     # Load deliverable with all relations eagerly
     deliverable = await get_or_404(
         transaction,
         Deliverable,
-        deliverable_id,
+        id,
         load_options=[
             joinedload(Deliverable.deliverable_media_associations).options(
                 selectinload(DeliverableMedia.media)
@@ -42,11 +42,11 @@ async def update_deliverable(
     id: Sqid, data: DeliverableUpdateSchema, transaction: AsyncSession, s3_client: S3Dep
 ) -> DeliverableResponseSchema:
     """Update a deliverable by SQID."""
-    deliverable_id = sqid_decode(id)
+    # id is already decoded from SQID string to int by msgspec
     deliverable = await get_or_404(
         transaction,
         Deliverable,
-        deliverable_id,
+        id,
         load_options=[
             joinedload(Deliverable.deliverable_media_associations).options(
                 selectinload(DeliverableMedia.media)

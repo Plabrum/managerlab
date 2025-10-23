@@ -64,8 +64,8 @@ export default function UsersPage() {
     setColumnDefs(data.columns);
   }
 
-  const handleBulkAction = (action: string, rows: typeof data.objects) => {
-    console.log('Bulk action:', action, 'on rows:', rows);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleBulkAction = (_action: string, _rows: typeof data.objects) => {
     // TODO: Implement bulk action handling
   };
 

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type {
   ActionDTO,
   ActionGroupType,
-  ActionExecutionResponse,
+  ObjectDetailDTO,
   ActionsActionGroupExecuteActionBody,
   ActionsActionGroupObjectIdExecuteObjectActionBody,
 } from '@/openapi/managerLab.schemas';
@@ -37,13 +37,13 @@ export type ActionFormRenderer = (props: {
 export type ActionExecutorOptions = {
   actionGroup: ActionGroupType;
   objectId?: string;
-  onSuccess?: (action: ActionDTO, response: ActionExecutionResponse) => void;
+  onSuccess?: (action: ActionDTO, response: ObjectDetailDTO) => void;
   onError?: (action: ActionDTO, error: Error) => void;
   renderActionForm?: ActionFormRenderer;
   onInvalidate?: (
     queryClient: ReturnType<typeof useQueryClient>,
     action: ActionDTO,
-    response: ActionExecutionResponse
+    response: ObjectDetailDTO
   ) => void;
 };
 
@@ -90,7 +90,7 @@ export function useActionExecutor({
         const requestBody =
           actionBody || ({ action: action.action, data: {} } as const);
 
-        let response: ActionExecutionResponse;
+        let response: ObjectDetailDTO;
 
         // Execute with proper typing based on whether we have an objectId
         if (objectId) {
@@ -106,10 +106,8 @@ export function useActionExecutor({
           });
         }
 
-        // Show success toast
-        toast.success(
-          response.message || `${action.label} completed successfully`
-        );
+        // Show success toast (ObjectDetailDTO doesn't have a message, use action label)
+        toast.success(`${action.label} completed successfully`);
 
         // Invalidate queries to refresh data
         if (onInvalidate) {
@@ -128,8 +126,8 @@ export function useActionExecutor({
         // Call success callback
         onSuccess?.(action, response);
 
-        // Handle redirect to parent if needed
-        if (response.should_redirect_to_parent && objectId) {
+        // Handle redirect to parent if needed (check action.should_redirect_to_parent)
+        if (action.should_redirect_to_parent && objectId) {
           // Extract the parent path from the current URL
           // e.g., /deliverables/123 -> /deliverables
           const currentPath = window.location.pathname;

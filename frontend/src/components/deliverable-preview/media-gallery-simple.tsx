@@ -18,11 +18,12 @@ export function SimpleMediaGallery({ media }: SimpleMediaGalleryProps) {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {media.map((item) => {
           const imageUrl = item.thumbnail_url || item.view_url;
+          const mediaId = item.id as string;
 
           return (
             <Link
-              key={item.id}
-              href={`/media/${item.id}`}
+              key={mediaId}
+              href={`/media/${mediaId}`}
               className="bg-muted hover:border-primary group relative aspect-square overflow-hidden rounded-lg border transition-all hover:shadow-md"
             >
               {imageUrl ? (

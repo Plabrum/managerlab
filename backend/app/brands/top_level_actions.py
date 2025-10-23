@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
-from app.actions.schemas import ActionExecutionResponse
 from app.brands.models.brands import Brand
 from app.brands.enums import BrandActions
 from app.brands.schemas import BrandCreateSchema
+from app.brands.objects import BrandObject
 from app.utils.db import create_model
 
 
@@ -15,6 +15,7 @@ from app.utils.db import create_model
 top_level_brand_actions = action_group_factory(
     ActionGroupType.TopLevelBrandActions,
     model_type=Brand,
+    object_service=BrandObject,
 )
 
 
@@ -32,7 +33,7 @@ class CreateBrand(BaseAction):
         data: BrandCreateSchema,
         transaction: AsyncSession,
         team_id: int,
-    ) -> ActionExecutionResponse:
+    ) -> Brand:
         new_brand = create_model(
             team_id=team_id,
             campaign_id=None,
@@ -40,8 +41,6 @@ class CreateBrand(BaseAction):
             create_vals=data,
         )
         transaction.add(new_brand)
-        return ActionExecutionResponse(
-            success=True,
-            message=f"Created brand '{new_brand.name}'",
-            results={"brand_id": new_brand.id},
-        )
+        # Flush to get the ID assigned by the database
+        await transaction.flush()
+        return new_brand

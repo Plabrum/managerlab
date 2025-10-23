@@ -80,7 +80,6 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       reValidateMode = 'onChange',
       resolver,
     } = props;
-    console.log('Rendering Form', defaultValues);
     const methods = useForm<TFieldValues>({
       defaultValues,
       mode,
@@ -274,7 +273,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
           rules={{ required: RequiredMessage(required) }}
           render={({ field }) => (
             <Select
-              value={field.value as string}
+              value={field.value as string | undefined}
               onValueChange={field.onChange}
             >
               <SelectTrigger id={htmlId} className="mt-1">

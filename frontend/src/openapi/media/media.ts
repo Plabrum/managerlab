@@ -163,7 +163,7 @@ export const useMediaRegisterRegisterMedia = <TError = MediaRegisterRegisterMedi
  * @summary DeleteMedia
  */
 export const mediaIdDeleteMedia = (
-    id: string,
+    id: unknown,
  ) => {
       
       
@@ -176,8 +176,8 @@ export const mediaIdDeleteMedia = (
 
 
 export const getMediaIdDeleteMediaMutationOptions = <TError = MediaIdDeleteMedia400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: unknown}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: unknown}, TContext> => {
 
 const mutationKey = ['mediaIdDeleteMedia'];
 const {mutation: mutationOptions} = options ?
@@ -189,7 +189,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, {id: unknown}> = (props) => {
           const {id} = props ?? {};
 
           return  mediaIdDeleteMedia(id,)
@@ -208,11 +208,11 @@ const {mutation: mutationOptions} = options ?
  * @summary DeleteMedia
  */
 export const useMediaIdDeleteMedia = <TError = MediaIdDeleteMedia400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: unknown}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof mediaIdDeleteMedia>>,
         TError,
-        {id: string},
+        {id: unknown},
         TContext
       > => {
 

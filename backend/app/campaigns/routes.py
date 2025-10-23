@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.campaigns.models import Campaign
 from app.campaigns.schemas import CampaignDTO, CampaignUpdateSchema
-from app.utils.sqids import Sqid, sqid_decode
+from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 
@@ -18,8 +18,8 @@ ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
 @get("/{id:str}", return_dto=CampaignDTO)
 async def get_campaign(id: Sqid, transaction: AsyncSession) -> Campaign:
     """Get a campaign by SQID."""
-    campaign_id = sqid_decode(id)
-    return await get_or_404(transaction, Campaign, campaign_id)
+    # id is already decoded from SQID string to int by msgspec
+    return await get_or_404(transaction, Campaign, id)
 
 
 @post("/{id:str}", return_dto=CampaignDTO)
@@ -27,8 +27,8 @@ async def update_campaign(
     id: Sqid, data: CampaignUpdateSchema, transaction: AsyncSession
 ) -> Campaign:
     """Update a campaign by SQID."""
-    campaign_id = sqid_decode(id)
-    campaign = await get_or_404(transaction, Campaign, campaign_id)
+    # id is already decoded from SQID string to int by msgspec
+    campaign = await get_or_404(transaction, Campaign, id)
     update_model(campaign, data)
     await transaction.flush()
     return campaign

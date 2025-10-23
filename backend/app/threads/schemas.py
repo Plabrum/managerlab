@@ -10,7 +10,7 @@ from app.utils.sqids import Sqid
 class UserSchema(BaseSchema):
     """User information embedded in messages."""
 
-    id: str  # public_id
+    id: Sqid
     email: str
     name: str
 
@@ -18,9 +18,9 @@ class UserSchema(BaseSchema):
 class MessageSchema(BaseSchema):
     """Message response schema with user details."""
 
-    id: str  # public_id
-    thread_id: str  # thread public_id (sqid)
-    user_id: str  # user public_id (sqid)
+    id: Sqid
+    thread_id: Sqid
+    user_id: Sqid
     content: str
     created_at: datetime
     updated_at: datetime

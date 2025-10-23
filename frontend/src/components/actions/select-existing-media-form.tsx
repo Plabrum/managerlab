@@ -46,21 +46,24 @@ export function SelectExistingMediaForm({
   return (
     <Form onSubmit={handleFormSubmit} defaultValues={{ media_ids: [] }}>
       <FormCustom name="media_ids">
-        {({ value, onChange }) => (
-          <MediaSelector
-            items={mediaItems}
-            selectedIds={value}
-            onToggle={(mediaId, checked) => {
-              const newValue = checked
-                ? [...value, mediaId]
-                : value.filter((id) => id !== mediaId);
-              onChange(newValue);
-            }}
-            isLoading={isLoading}
-            disabled={isSubmitting}
-            emptyMessage="No media available. Try uploading new media instead."
-          />
-        )}
+        {({ value, onChange }) => {
+          const mediaIds = value as string[];
+          return (
+            <MediaSelector
+              items={mediaItems}
+              selectedIds={mediaIds}
+              onToggle={(mediaId, checked) => {
+                const newValue = checked
+                  ? [...mediaIds, mediaId]
+                  : mediaIds.filter((id) => id !== mediaId);
+                onChange(newValue);
+              }}
+              isLoading={isLoading}
+              disabled={isSubmitting}
+              emptyMessage="No media available. Try uploading new media instead."
+            />
+          );
+        }}
       </FormCustom>
 
       <div className="flex gap-3 pt-4">

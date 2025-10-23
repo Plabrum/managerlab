@@ -1,6 +1,7 @@
 from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
 from app.campaigns.enums import CompensationStructure
 from app.campaigns.models import Campaign
+from app.utils.sqids import Sqid
 
 
 class CampaignDTO(SanitizedSQLAlchemyDTO[Campaign]):
@@ -22,6 +23,6 @@ class CampaignCreateSchema(BaseSchema):
     """Schema for creating a Campaign."""
 
     name: str
-    brand_id: int
+    brand_id: Sqid
     description: str | None = None
     compensation_structure: CompensationStructure | None = None

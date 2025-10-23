@@ -27,7 +27,7 @@ from app.threads.services import (
     mark_thread_as_read,
     notify_thread,
 )
-from app.utils.sqids import sqid_decode, sqid_encode
+from app.utils.sqids import Sqid
 
 logger = logging.getLogger(__name__)
 
@@ -103,14 +103,14 @@ async def create_message(
 
     # Construct response
     return MessageSchema(
-        id=message.public_id,
-        thread_id=thread.public_id,
-        user_id=message.user.public_id,
+        id=message.id,  # Already a Sqid
+        thread_id=thread.id,  # Already a Sqid
+        user_id=message.user.id,  # Already a Sqid
         content=message.content,
         created_at=message.created_at,
         updated_at=message.updated_at,
         user=UserSchema(
-            id=message.user.public_id,
+            id=message.user.id,  # Already a Sqid
             email=message.user.email,
             name=message.user.name,
         ),
@@ -174,14 +174,14 @@ async def list_messages(
     # Convert to schemas
     message_schemas = [
         MessageSchema(
-            id=message.public_id,
-            thread_id=thread.public_id,
-            user_id=message.user.public_id,
+            id=message.id,  # Already a Sqid
+            thread_id=thread.id,  # Already a Sqid
+            user_id=message.user.id,  # Already a Sqid
             content=message.content,
             created_at=message.created_at,
             updated_at=message.updated_at,
             user=UserSchema(
-                id=message.user.public_id,
+                id=message.user.id,  # Already a Sqid
                 email=message.user.email,
                 name=message.user.name,
             ),
@@ -221,10 +221,12 @@ async def get_batch_thread_unread(
         return BatchUnreadResponse(threads=[], total_unread=0)
 
     # Get unread counts for all requested threads
+    # object_ids are already decoded from SQID strings to ints by msgspec
+    # Cast Sqid to int for function that expects list[int]
     results = await get_batch_unread_counts(
         transaction,
         threadable_type,
-        [sqid_decode(o) for o in data.object_ids],
+        [int(oid) for oid in data.object_ids],
         user_id,
     )
 
@@ -235,7 +237,7 @@ async def get_batch_thread_unread(
     for thread_id, unread_count in results:
         thread_infos.append(
             ThreadUnreadInfo(
-                thread_id=sqid_encode(thread_id),
+                thread_id=Sqid(thread_id),  # Wrap int in Sqid type
                 unread_count=unread_count,
             )
         )

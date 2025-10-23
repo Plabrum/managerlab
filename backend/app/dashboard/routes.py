@@ -14,7 +14,7 @@ from app.dashboard.schemas import (
     UpdateDashboardSchema,
 )
 from app.users.models import Role
-from app.utils.sqids import Sqid, sqid_decode
+from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_scope
 
 
@@ -40,8 +40,8 @@ async def get_dashboard(
     id: Sqid, request: Request, transaction: AsyncSession
 ) -> Dashboard:
     """Get a specific dashboard by SQID."""
-    dashboard_id = sqid_decode(id)
-    dashboard = await transaction.get(Dashboard, dashboard_id)
+    # id is already decoded from SQID string to int by msgspec
+    dashboard = await transaction.get(Dashboard, id)
 
     if not dashboard:
         raise NotFoundException(f"Dashboard with id {id} not found")
@@ -112,8 +112,8 @@ async def update_dashboard(
     transaction: AsyncSession,
 ) -> Dashboard:
     """Update a dashboard's configuration."""
-    dashboard_id = sqid_decode(id)
-    dashboard = await transaction.get(Dashboard, dashboard_id)
+    # id is already decoded from SQID string to int by msgspec
+    dashboard = await transaction.get(Dashboard, id)
 
     if not dashboard:
         raise NotFoundException(f"Dashboard with id {id} not found")

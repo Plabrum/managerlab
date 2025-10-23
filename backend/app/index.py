@@ -39,6 +39,7 @@ from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
 from app.utils.logging import logging_config
 from app.client.s3_client import provide_s3_client
+from app.utils.sqids import Sqid, sqid_type_predicate, sqid_enc_hook, sqid_dec_hook
 
 
 logger = logging.getLogger(__name__)
@@ -161,6 +162,8 @@ app = Litestar(
         version="0.0.1",
         render_plugins=[ScalarRenderPlugin()],
     ),
+    type_encoders={Sqid: sqid_enc_hook},
+    type_decoders=[(sqid_type_predicate, sqid_dec_hook)],
 )
 
 logger.info(f"✅ ManageLab API initialized successfully Environment: {config.ENV}")

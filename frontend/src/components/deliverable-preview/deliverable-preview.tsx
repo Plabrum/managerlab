@@ -21,9 +21,6 @@ export function DeliverablePreview({
 }: DeliverablePreviewProps) {
   // Get featured media, or fallback to first media
   const featuredMedia = mediaAssociations.find((m) => m.approved_at !== null);
-  console.log('Featured media:', featuredMedia);
-  console.log('All media associations:', mediaAssociations);
-  console.log('Roster:', roster);
   // Get platform directly from deliverable (type-safe!)
   const platform = deliverable.platforms;
   const content = deliverable.content || deliverable.title;

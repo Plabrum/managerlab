@@ -103,14 +103,14 @@ export default function BrandsPage() {
     };
   }, [actionsData, setHeaderData]);
 
-  const handleBulkAction = (action: string, rows: typeof data.objects) => {
-    console.log('Bulk action:', action, 'on rows:', rows);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleBulkAction = (_action: string, _rows: typeof data.objects) => {
     // TODO: Implement bulk action handling
   };
 
   // Handle row action clicks from data table dropdown
-  const handleRowActionClick = (actionName: string, row: ObjectListDTO) => {
-    console.log('Row action clicked:', actionName, 'on row:', row.id);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleRowActionClick = (_actionName: string, _row: ObjectListDTO) => {
     // TODO: Implement row action handling with dynamic objectId
   };
 

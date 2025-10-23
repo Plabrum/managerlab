@@ -2,16 +2,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
-from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.models import Campaign
 from app.campaigns.enums import CampaignActions
 from app.campaigns.schemas import CampaignCreateSchema
+from app.campaigns.objects import CampaignObject
 from app.utils.db import create_model
 
 
 top_level_campaign_actions = action_group_factory(
     ActionGroupType.TopLevelCampaignActions,
     model_type=Campaign,
+    object_service=CampaignObject,
 )
 
 
@@ -26,7 +27,8 @@ class CreateCampaign(BaseAction):
     @classmethod
     async def execute(
         cls, data: CampaignCreateSchema, transaction: AsyncSession, team_id: int
-    ) -> ActionExecutionResponse:
+    ) -> Campaign:
+        # brand_id is already decoded from SQID string to int by msgspec
         new_campaign = create_model(
             team_id=team_id,
             campaign_id=None,
@@ -34,8 +36,6 @@ class CreateCampaign(BaseAction):
             create_vals=data,
         )
         transaction.add(new_campaign)
-        return ActionExecutionResponse(
-            success=True,
-            message=f"Created campaign '{new_campaign.name}'",
-            results={"campaign_id": new_campaign.id},
-        )
+        # Flush to get the ID assigned by the database
+        await transaction.flush()
+        return new_campaign

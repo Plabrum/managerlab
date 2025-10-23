@@ -44,7 +44,7 @@ import { customInstance } from '.././custom-instance';
  * @summary GetInvoice
  */
 export const invoicesIdGetInvoice = (
-    id: string,
+    id: unknown,
  signal?: AbortSignal
 ) => {
       
@@ -58,14 +58,14 @@ export const invoicesIdGetInvoice = (
 
 
 
-export const getInvoicesIdGetInvoiceQueryKey = (id?: string,) => {
+export const getInvoicesIdGetInvoiceQueryKey = (id?: unknown,) => {
     return [
     `/invoices/${id}`
     ] as const;
     }
 
     
-export const getInvoicesIdGetInvoiceQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+export const getInvoicesIdGetInvoiceQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -88,7 +88,7 @@ export type InvoicesIdGetInvoiceQueryError = InvoicesIdGetInvoice400
 
 
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
+ id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof invoicesIdGetInvoice>>,
           TError,
@@ -98,7 +98,7 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof invoicesIdGetInvoice>>,
           TError,
@@ -108,7 +108,7 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -116,7 +116,7 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
  */
 
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -131,7 +131,7 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
 
 
 
-export const getInvoicesIdGetInvoiceSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+export const getInvoicesIdGetInvoiceSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -154,15 +154,15 @@ export type InvoicesIdGetInvoiceSuspenseQueryError = InvoicesIdGetInvoice400
 
 
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -170,7 +170,7 @@ export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeo
  */
 
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -189,7 +189,7 @@ export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeo
  * @summary UpdateInvoice
  */
 export const invoicesIdUpdateInvoice = (
-    id: string,
+    id: unknown,
     invoiceUpdateSchema: InvoiceUpdateSchema,
  signal?: AbortSignal
 ) => {
@@ -206,8 +206,8 @@ export const invoicesIdUpdateInvoice = (
 
 
 export const getInvoicesIdUpdateInvoiceMutationOptions = <TError = InvoicesIdUpdateInvoice400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: InvoiceUpdateSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: InvoiceUpdateSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: unknown;data: InvoiceUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: unknown;data: InvoiceUpdateSchema}, TContext> => {
 
 const mutationKey = ['invoicesIdUpdateInvoice'];
 const {mutation: mutationOptions} = options ?
@@ -219,7 +219,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, {id: string;data: InvoiceUpdateSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, {id: unknown;data: InvoiceUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  invoicesIdUpdateInvoice(id,data,)
@@ -238,11 +238,11 @@ const {mutation: mutationOptions} = options ?
  * @summary UpdateInvoice
  */
 export const useInvoicesIdUpdateInvoice = <TError = InvoicesIdUpdateInvoice400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: string;data: InvoiceUpdateSchema}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>, TError,{id: unknown;data: InvoiceUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof invoicesIdUpdateInvoice>>,
         TError,
-        {id: string;data: InvoiceUpdateSchema},
+        {id: unknown;data: InvoiceUpdateSchema},
         TContext
       > => {
 

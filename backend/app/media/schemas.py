@@ -55,7 +55,7 @@ def media_to_response(media: Media, s3_client) -> MediaResponseSchema:
     )
 
     return MediaResponseSchema(
-        id=media.public_id,
+        id=media.id,  # Already a Sqid from the model
         file_name=media.file_name,
         file_type=media.file_type,
         file_size=media.file_size,

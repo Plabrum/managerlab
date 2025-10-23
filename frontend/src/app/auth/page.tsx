@@ -43,7 +43,6 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       // TODO: Implement magic link sending
-      console.log('Magic link requested for:', email);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setMagicLinkSent(true);
     } catch (error) {

@@ -7,7 +7,6 @@ async function checkValidSession(): Promise<boolean> {
 
   // Check for valid session cookie - treat 'null' as no session
   const sessionCookie = cookieStore.get('session');
-  console.log('Session cookie:', sessionCookie);
   // No cookie, or empty value, or explicit 'null' value = not authenticated
   if (
     !sessionCookie ||

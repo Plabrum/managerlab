@@ -23,7 +23,7 @@ from app.objects.services import (
 )
 from app.objects.enums import ObjectTypes
 from app.utils.logging import logger
-from app.utils.sqids import Sqid, sqid_decode
+from app.utils.sqids import Sqid
 
 
 @get("/{object_type:str}/{id:str}")
@@ -35,7 +35,8 @@ async def get_object_detail(
 ) -> ObjectDetailDTO:
     logger.info(f"data:{id}, object_type:{object_type}")
     object_service = object_registry.get_class(object_type)
-    obj: BaseDBModel = await object_service.get_by_id(transaction, sqid_decode(id))
+    # id is already decoded from SQID string to int by msgspec
+    obj: BaseDBModel = await object_service.get_by_id(transaction, id)
     return object_service.to_detail_dto(obj)
 
 

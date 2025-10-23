@@ -8,7 +8,7 @@ from sqlalchemy.sql.base import ExecutableOption
 
 from app.base.models import BaseDBModel
 from app.actions.enums import ActionIcon, ActionGroupType
-from app.actions.schemas import ActionExecutionResponse, ActionDTO
+from app.actions.schemas import ActionDTO
 
 
 def _filter_kwargs_by_signature(
@@ -89,7 +89,8 @@ class BaseAction(ABC):
         return True
 
     @classmethod
-    async def execute(cls, **kwargs: Any) -> ActionExecutionResponse:  # type: ignore[override]
+    async def execute(cls, **kwargs: Any) -> BaseDBModel:  # type: ignore[override]
+        """Execute the action and return the affected database model object."""
         raise NotImplementedError(f"{cls.__name__} must implement execute()")
 
 
@@ -99,11 +100,13 @@ class ActionGroup:
         group_type: ActionGroupType,
         action_registry: Any,  # ActionRegistry - forward ref to avoid circular import
         model_type: Type[BaseDBModel] | None,
+        object_service: Any | None = None,  # BaseObject - forward ref
     ) -> None:
         self.group_type = group_type
         self.actions: Dict[str, Type[BaseAction]] = {}
         self.action_registry = action_registry
         self.model_type = model_type
+        self.object_service = object_service
         self._execute_union: Type | None = None
 
     def __call__(self, action_class: Type[BaseAction]) -> Type[BaseAction]:
@@ -139,7 +142,7 @@ class ActionGroup:
         self,
         data: Any,  # Discriminated union instance
         object_id: int | None = None,
-    ) -> ActionExecutionResponse:
+    ) -> Any:  # Will be ObjectDetailDTO once imported
         action_class: BaseAction = self.action_registry._struct_to_action[type(data)]
         obj = (
             await action_class.get_object(
@@ -166,7 +169,15 @@ class ActionGroup:
             name: val for name, val in candidate_args.items() if name in params
         }
 
-        return await action_class.execute(**filtered_kwargs)
+        # Execute action and get the resulting object
+        result_object = await action_class.execute(**filtered_kwargs)
+
+        # Convert to ObjectDetailDTO if we have an object service
+        if self.object_service is not None:
+            return self.object_service.to_detail_dto(result_object)
+
+        # Fallback: return the object as-is (shouldn't happen in practice)
+        return result_object
 
     def get_available_actions(
         self,
@@ -202,12 +213,13 @@ class ActionGroup:
 def action_group_factory[T: BaseDBModel](
     group_type: ActionGroupType,
     model_type: Type[T] | None = None,
+    object_service: Any | None = None,
 ) -> ActionGroup:
     # Import here to avoid circular dependency
     from app.actions.registry import ActionRegistry
 
     registry = ActionRegistry()
-    action_group = ActionGroup(group_type, registry, model_type)
+    action_group = ActionGroup(group_type, registry, model_type, object_service)
     # Register the action group with the registry
     registry.register(group_type, action_group)
 

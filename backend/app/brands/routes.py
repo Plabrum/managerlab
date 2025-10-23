@@ -9,7 +9,7 @@ from app.brands.schemas import (
     BrandContactDTO,
     BrandContactUpdateSchema,
 )
-from app.utils.sqids import Sqid, sqid_decode
+from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 
@@ -25,8 +25,8 @@ ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 @get("/{id:str}", return_dto=BrandDTO)
 async def get_brand(id: Sqid, transaction: AsyncSession) -> Brand:
     """Get a brand by SQID."""
-    brand_id = sqid_decode(id)
-    return await get_or_404(transaction, Brand, brand_id)
+    # id is already decoded from SQID string to int by msgspec
+    return await get_or_404(transaction, Brand, id)
 
 
 @post("/{id:str}", return_dto=BrandDTO)
@@ -34,8 +34,8 @@ async def update_brand(
     id: Sqid, data: BrandUpdateSchema, transaction: AsyncSession
 ) -> Brand:
     """Update a brand by SQID."""
-    brand_id = sqid_decode(id)
-    brand = await get_or_404(transaction, Brand, brand_id)
+    # id is already decoded from SQID string to int by msgspec
+    brand = await get_or_404(transaction, Brand, id)
     update_model(brand, data)
     await transaction.flush()
     return brand
@@ -44,8 +44,8 @@ async def update_brand(
 @get("/contacts/{id:str}", return_dto=BrandContactDTO)
 async def get_brand_contact(id: Sqid, transaction: AsyncSession) -> BrandContact:
     """Get a brand contact by SQID."""
-    contact_id = sqid_decode(id)
-    return await get_or_404(transaction, BrandContact, contact_id)
+    # id is already decoded from SQID string to int by msgspec
+    return await get_or_404(transaction, BrandContact, id)
 
 
 @post("/contacts/{id:str}", return_dto=BrandContactDTO)
@@ -53,8 +53,8 @@ async def update_brand_contact(
     id: Sqid, data: BrandContactUpdateSchema, transaction: AsyncSession
 ) -> BrandContact:
     """Update a brand contact by SQID."""
-    contact_id = sqid_decode(id)
-    contact = await get_or_404(transaction, BrandContact, contact_id)
+    # id is already decoded from SQID string to int by msgspec
+    contact = await get_or_404(transaction, BrandContact, id)
     update_model(contact, data)
     await transaction.flush()
     return contact

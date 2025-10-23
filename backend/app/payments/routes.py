@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.payments.models import Invoice
 from app.payments.schemas import InvoiceDTO, InvoiceUpdateSchema
-from app.utils.sqids import Sqid, sqid_decode
+from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 
@@ -18,8 +18,8 @@ ObjectRegistry().register(ObjectTypes.Invoices, InvoiceObject)
 @get("/{id:str}", return_dto=InvoiceDTO)
 async def get_invoice(id: Sqid, transaction: AsyncSession) -> Invoice:
     """Get an invoice by SQID."""
-    invoice_id = sqid_decode(id)
-    return await get_or_404(transaction, Invoice, invoice_id)
+    # id is already decoded from SQID string to int by msgspec
+    return await get_or_404(transaction, Invoice, id)
 
 
 @post("/{id:str}", return_dto=InvoiceDTO)
@@ -27,8 +27,8 @@ async def update_invoice(
     id: Sqid, data: InvoiceUpdateSchema, transaction: AsyncSession
 ) -> Invoice:
     """Update an invoice by SQID."""
-    invoice_id = sqid_decode(id)
-    invoice = await get_or_404(transaction, Invoice, invoice_id)
+    # id is already decoded from SQID string to int by msgspec
+    invoice = await get_or_404(transaction, Invoice, id)
     update_model(invoice, data)
     await transaction.flush()
     return invoice

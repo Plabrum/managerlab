@@ -49,7 +49,7 @@ import { customInstance } from '.././custom-instance';
  */
 export const oObjectTypeIdGetObjectDetail = (
     objectType: ObjectTypes,
-    id: string,
+    id: unknown,
  signal?: AbortSignal
 ) => {
       
@@ -64,7 +64,7 @@ export const oObjectTypeIdGetObjectDetail = (
 
 
 export const getOObjectTypeIdGetObjectDetailQueryKey = (objectType?: ObjectTypes,
-    id?: string,) => {
+    id?: unknown,) => {
     return [
     `/o/${objectType}/${id}`
     ] as const;
@@ -72,7 +72,7 @@ export const getOObjectTypeIdGetObjectDetailQueryKey = (objectType?: ObjectTypes
 
     
 export const getOObjectTypeIdGetObjectDetailQueryOptions = <TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -96,7 +96,7 @@ export type OObjectTypeIdGetObjectDetailQueryError = OObjectTypeIdGetObjectDetai
 
 export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>> & Pick<
+    id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>,
           TError,
@@ -107,7 +107,7 @@ export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeo
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>> & Pick<
+    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>,
           TError,
@@ -118,7 +118,7 @@ export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeo
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -127,7 +127,7 @@ export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeo
 
 export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -143,7 +143,7 @@ export function useOObjectTypeIdGetObjectDetail<TData = Awaited<ReturnType<typeo
 
 
 export const getOObjectTypeIdGetObjectDetailSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -167,17 +167,17 @@ export type OObjectTypeIdGetObjectDetailSuspenseQueryError = OObjectTypeIdGetObj
 
 export function useOObjectTypeIdGetObjectDetailSuspense<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOObjectTypeIdGetObjectDetailSuspense<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOObjectTypeIdGetObjectDetailSuspense<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -186,7 +186,7 @@ export function useOObjectTypeIdGetObjectDetailSuspense<TData = Awaited<ReturnTy
 
 export function useOObjectTypeIdGetObjectDetailSuspense<TData = Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError = OObjectTypeIdGetObjectDetail400>(
  objectType: ObjectTypes,
-    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
+    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeIdGetObjectDetail>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
