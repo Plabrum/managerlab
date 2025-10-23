@@ -42,6 +42,7 @@ export const ActionGroupType = {
   deliverable_actions: 'deliverable_actions',
   top_level_deliverable_actions: 'top_level_deliverable_actions',
   brand_actions: 'brand_actions',
+  top_level_brand_actions: 'top_level_brand_actions',
   campaign_actions: 'campaign_actions',
   top_level_campaign_actions: 'top_level_campaign_actions',
   invoice_actions: 'invoice_actions',
@@ -49,6 +50,7 @@ export const ActionGroupType = {
   roster_actions: 'roster_actions',
   top_level_roster_actions: 'top_level_roster_actions',
   dashboard_actions: 'dashboard_actions',
+  team_actions: 'team_actions',
 } as const;
 
 export interface ActionListResponse {
@@ -128,6 +130,34 @@ export interface BrandContactUpdateSchema {
   phone?: BrandContactUpdateSchemaPhone;
   notes?: BrandContactUpdateSchemaNotes;
   brand_id?: BrandContactUpdateSchemaBrandId;
+}
+
+export type BrandCreateSchemaDescription = string | null;
+
+export type BrandCreateSchemaToneOfVoice = string | null;
+
+export type BrandCreateSchemaBrandValues = string | null;
+
+export type BrandCreateSchemaTargetAudience = string | null;
+
+export type BrandCreateSchemaWebsite = string | null;
+
+export type BrandCreateSchemaEmail = string | null;
+
+export type BrandCreateSchemaPhone = string | null;
+
+export type BrandCreateSchemaNotes = string | null;
+
+export interface BrandCreateSchema {
+  name: string;
+  description?: BrandCreateSchemaDescription;
+  tone_of_voice?: BrandCreateSchemaToneOfVoice;
+  brand_values?: BrandCreateSchemaBrandValues;
+  target_audience?: BrandCreateSchemaTargetAudience;
+  website?: BrandCreateSchemaWebsite;
+  email?: BrandCreateSchemaEmail;
+  phone?: BrandCreateSchemaPhone;
+  notes?: BrandCreateSchemaNotes;
 }
 
 export type BrandUpdateSchemaName = string | null;
@@ -251,6 +281,11 @@ export const CompensationStructure = {
   per_deliverable: 'per_deliverable',
   performance_based: 'performance_based',
 } as const;
+
+export interface CreateBrandAction {
+  data: BrandCreateSchema;
+  action: 'top_level_brand_actions__brand_create';
+}
 
 export interface CreateCampaignAction {
   data: CampaignCreateSchema;
@@ -408,6 +443,11 @@ export const DeleteMediaActionValue = {
   action: 'media_actions__media_delete',
 } as const;
 export type DeleteMediaAction = typeof DeleteMediaActionValue;
+
+export const DeleteTeamActionValue = {
+  action: 'team_actions__team_delete',
+} as const;
+export type DeleteTeamAction = typeof DeleteTeamActionValue;
 
 export type DeliverableCreateSchemaContent = string | null;
 
@@ -983,6 +1023,7 @@ export type ObjectTypes = typeof ObjectTypes[keyof typeof ObjectTypes];
 export const ObjectTypes = {
   users: 'users',
   roster: 'roster',
+  teams: 'teams',
   brands: 'brands',
   brandcontacts: 'brandcontacts',
   campaigns: 'campaigns',
@@ -1027,7 +1068,6 @@ export interface RegisterMediaMediaResponseBody {
   file_type: string;
   file_size: number;
   mime_type: string;
-  deliverable_media_associations: RegisterMediaMedia0DeliverableMediaResponseBody[];
   created_at: string;
   updated_at: string;
   deleted_at?: RegisterMediaMediaResponseBodyDeletedAt;
@@ -1035,22 +1075,6 @@ export interface RegisterMediaMediaResponseBody {
   team_id: number;
   campaign_id?: RegisterMediaMediaResponseBodyCampaignId;
   id: string;
-}
-
-export type RegisterMediaMedia0DeliverableMediaResponseBodyApprovedAt = string | null;
-
-export type RegisterMediaMedia0DeliverableMediaResponseBodyDeletedAt = string | null;
-
-export interface RegisterMediaMedia0DeliverableMediaResponseBody {
-  deliverable_id: number;
-  media_id: number;
-  approved_at?: RegisterMediaMedia0DeliverableMediaResponseBodyApprovedAt;
-  is_featured?: boolean;
-  id: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: RegisterMediaMedia0DeliverableMediaResponseBodyDeletedAt;
-  public_id: string;
 }
 
 export interface RegisterMediaSchema {
@@ -1202,6 +1226,7 @@ export interface SwitchTeamRequest {
 
 export interface TeamListItemSchema {
   team_id: number;
+  public_id: string;
   team_name: string;
   role_level: RoleLevel;
 }
@@ -1638,7 +1663,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1666,7 +1691,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

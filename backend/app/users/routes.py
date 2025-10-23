@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.users.models import User, WaitlistEntry, Team, Role
-from app.users.objects import RosterObject, UserObject
+from app.users.objects import RosterObject, TeamObject, UserObject
 from app.users.schemas import (
     CreateUserSchema,
     CreateTeamSchema,
@@ -25,10 +25,12 @@ from app.auth.guards import requires_user_id, requires_superuser
 from app.auth.enums import ScopeType
 from app.users.enums import RoleLevel, UserStates
 from app.campaigns.models import Campaign
+from app.utils.sqids import sqid_encode
 
 # Register objects (auto-registered via __init_subclass__, but explicit for clarity)
 ObjectRegistry().register(ObjectTypes.Users, UserObject)
 ObjectRegistry().register(ObjectTypes.Roster, RosterObject)
+ObjectRegistry().register(ObjectTypes.Teams, TeamObject)
 
 
 @get("/", dto=UserDTO, return_dto=UserDTO, guards=[requires_superuser])
@@ -146,7 +148,7 @@ async def list_teams(request: Request, transaction: AsyncSession) -> ListTeamsRe
         stmt = (
             select(Campaign, Team)
             .join(Team, Campaign.team_id == Team.id)
-            .where(Campaign.id == campaign_id)
+            .where(Campaign.id == campaign_id, Team.deleted_at.is_(None))
         )
         result = await transaction.execute(stmt)
         row = result.one_or_none()
@@ -161,6 +163,7 @@ async def list_teams(request: Request, transaction: AsyncSession) -> ListTeamsRe
         teams = [
             TeamListItemSchema(
                 team_id=team.id,
+                public_id=sqid_encode(team.id),
                 team_name=team.name,
                 role_level=RoleLevel.VIEWER,  # Campaign guests are treated as viewers
             )
@@ -171,14 +174,17 @@ async def list_teams(request: Request, transaction: AsyncSession) -> ListTeamsRe
         team_stmt = (
             select(Role, Team)
             .join(Team, Role.team_id == Team.id)
-            .where(Role.user_id == user_id)
+            .where(Role.user_id == user_id, Team.deleted_at.is_(None))
         )
         team_result = await transaction.execute(team_stmt)
         rows = team_result.all()
 
         teams = [
             TeamListItemSchema(
-                team_id=role.team_id, team_name=team.name, role_level=role.role_level
+                team_id=role.team_id,
+                public_id=sqid_encode(role.team_id),
+                team_name=team.name,
+                role_level=role.role_level,
             )
             for role, team in rows
         ]

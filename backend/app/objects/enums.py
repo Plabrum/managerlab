@@ -4,6 +4,7 @@ from enum import StrEnum, auto
 class ObjectTypes(StrEnum):
     Users = auto()
     Roster = auto()
+    Teams = auto()
     Brands = auto()
     BrandContacts = auto()
     Campaigns = auto()

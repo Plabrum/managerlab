@@ -14,7 +14,7 @@ export function DynamicPageHeader() {
   return (
     <div className="flex items-center gap-2">
       <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
-      <Badge>{state}</Badge>
+      {state && <Badge>{state}</Badge>}
     </div>
   );
 }

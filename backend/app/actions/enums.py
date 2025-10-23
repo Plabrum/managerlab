@@ -9,6 +9,7 @@ class ActionGroupType(StrEnum):
     DeliverableActions = "deliverable_actions"
     TopLevelDeliverableActions = "top_level_deliverable_actions"
     BrandActions = "brand_actions"
+    TopLevelBrandActions = "top_level_brand_actions"
     CampaignActions = "campaign_actions"
     TopLevelCampaignActions = "top_level_campaign_actions"
     InvoiceActions = "invoice_actions"
@@ -16,6 +17,7 @@ class ActionGroupType(StrEnum):
     RosterActions = "roster_actions"
     TopLevelRosterActions = "top_level_roster_actions"
     DashboardActions = "dashboard_actions"
+    TeamActions = "team_actions"
 
 
 class ActionIcon(StrEnum):

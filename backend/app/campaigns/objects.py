@@ -10,7 +10,6 @@ from app.objects.schemas import (
     FieldType,
     ColumnDefinitionDTO,
     StringFieldValue,
-    TextFieldValue,
     URLFieldValue,
     EnumFieldValue,
 )
@@ -101,6 +100,10 @@ class CampaignObject(BaseObject):
     ]
 
     @classmethod
+    def get_top_level_action_group(cls):
+        return ActionGroupType.TopLevelCampaignActions
+
+    @classmethod
     def get_load_options(cls):
         """Return load options for eager loading relationships."""
         return [joinedload(Campaign.brand)]
@@ -129,7 +132,7 @@ class CampaignObject(BaseObject):
             (
                 ObjectFieldDTO(
                     key="description",
-                    value=TextFieldValue(value=campaign.description),
+                    value=StringFieldValue(value=campaign.description),
                     label="Description",
                     editable=True,
                 )
@@ -150,8 +153,6 @@ class CampaignObject(BaseObject):
             actions=actions,
             created_at=campaign.created_at,
             updated_at=campaign.updated_at,
-            children=[],
-            parents=[],
         )
 
     @classmethod
@@ -169,7 +170,7 @@ class CampaignObject(BaseObject):
             fields.append(
                 ObjectFieldDTO(
                     key="description",
-                    value=TextFieldValue(value=campaign.description),
+                    value=StringFieldValue(value=campaign.description),
                     label="Description",
                     editable=False,
                 )

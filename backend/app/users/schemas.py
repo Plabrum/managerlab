@@ -46,6 +46,7 @@ class TeamListItemSchema(BaseSchema):
     """Schema for a team in the list."""
 
     team_id: int
+    public_id: str  # Sqid-encoded ID for use with actions API
     team_name: str
     role_level: RoleLevel
 

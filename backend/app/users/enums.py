@@ -29,3 +29,9 @@ class TopLevelRosterActions(StrEnum):
     """Top-level Roster actions (no object context)."""
 
     create = "top_level_roster.create"
+
+
+class TeamActions(StrEnum):
+    """Team actions."""
+
+    delete = "team.delete"

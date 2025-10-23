@@ -1,6 +1,12 @@
 'use client';
 
-import { useState, useTransition, useCallback } from 'react';
+import {
+  useState,
+  useTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -20,12 +26,18 @@ import type {
   ColumnDefinitionDTO,
   ObjectListDTO,
 } from '@/openapi/managerLab.schemas';
-import { ActionsMenu } from '@/components/actions-menu';
+import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import { useHeader } from '@/components/header-provider';
+import type { ActionData } from '@/components/header-provider';
+import { useQueryClient } from '@tanstack/react-query';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 export default function MediaPage() {
+  const queryClient = useQueryClient();
+  const { setHeaderData } = useHeader();
+
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
@@ -74,6 +86,37 @@ export default function MediaPage() {
     setColumnDefs(data.columns);
   }
 
+  // Create actions data for the header
+  const actionsData: ActionData | undefined = useMemo(() => {
+    if (!data.actions) return undefined;
+
+    return {
+      actions: data.actions,
+      actionGroup: ActionGroupType.top_level_media_actions,
+      objectId: '',
+      onInvalidate: () => {
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey[0] === 'listObjects' &&
+            query.queryKey[1] === 'media',
+        });
+      },
+    };
+  }, [data.actions, queryClient]);
+
+  // Set header data for top-level actions
+  useEffect(() => {
+    if (actionsData) {
+      setHeaderData({
+        title: 'Media',
+        actionsData,
+      });
+    }
+    return () => {
+      setHeaderData(null);
+    };
+  }, [actionsData, setHeaderData]);
+
   // Action executor for row-level actions
   const rowActionExecutor = useActionExecutor({
     actionGroup: 'media_actions',
@@ -113,16 +156,6 @@ export default function MediaPage() {
           }}
           placeholder="Search media"
         />
-        {data.actions && data.actions.length > 0 && (
-          <ActionsMenu
-            actions={data.actions}
-            actionGroup="top_level_media_actions"
-            onActionComplete={() => {
-              // Refresh the media list after action completion
-              // Note: For media upload, the refresh happens via the register mutation
-            }}
-          />
-        )}
       </div>
       {columnDefs && (
         <DataTableAppliedFilters

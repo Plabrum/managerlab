@@ -2,6 +2,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -12,7 +13,6 @@ from app.objects.schemas import (
     FieldType,
     ColumnDefinitionDTO,
     StringFieldValue,
-    TextFieldValue,
     URLFieldValue,
     EmailFieldValue,
 )
@@ -91,6 +91,10 @@ class BrandObject(BaseObject):
             default_visible=False,
         ),
     ]
+
+    @classmethod
+    def get_top_level_action_group(cls):
+        return ActionGroupType.TopLevelBrandActions
 
     @classmethod
     def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
@@ -179,8 +183,6 @@ class BrandObject(BaseObject):
             actions=actions,
             created_at=brand.created_at,
             updated_at=brand.updated_at,
-            children=[],
-            parents=[],
         )
 
     @classmethod
@@ -195,7 +197,7 @@ class BrandObject(BaseObject):
             ObjectFieldDTO(
                 key="description",
                 value=(
-                    TextFieldValue(value=brand.description)
+                    StringFieldValue(value=brand.description)
                     if brand.description
                     else None
                 ),
@@ -321,16 +323,6 @@ class BrandContactObject(BaseObject):
                 )
             )
 
-        if contact.notes:
-            fields.append(
-                ObjectFieldDTO(
-                    key="notes",
-                    value=TextFieldValue(value=contact.notes),
-                    label="Notes",
-                    editable=True,
-                )
-            )
-
         # TODO: Implement BrandContactActions when needed
         actions: list[Any] = []
 
@@ -343,8 +335,6 @@ class BrandContactObject(BaseObject):
             actions=actions,
             created_at=contact.created_at,
             updated_at=contact.updated_at,
-            children=[],
-            parents=[],
         )
 
     @classmethod

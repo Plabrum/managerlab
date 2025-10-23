@@ -8,6 +8,8 @@ import { CreateDeliverableForm } from '@/components/actions/create-deliverable-f
 import { CreateMediaForm } from '@/components/actions/create-media-form';
 import { AddMediaToDeliverableForm } from '@/components/actions/add-media-to-deliverable-form';
 import { CreateRosterForm } from '@/components/actions/create-roster-form';
+import { CreateCampaignForm } from '@/components/actions/create-campaign-form';
+import { CreateBrandForm } from '@/components/actions/create-brand-form';
 import React from 'react';
 
 /**
@@ -163,6 +165,32 @@ export const actionRegistry: ActionRegistry = {
     render: ({ onSubmit, onCancel, isSubmitting }) => {
       return (
         <CreateRosterForm
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    },
+  },
+
+  // Campaign actions
+  top_level_campaign_actions__campaign_create: {
+    render: ({ onSubmit, onCancel, isSubmitting }) => {
+      return (
+        <CreateCampaignForm
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    },
+  },
+
+  // Brand actions
+  top_level_brand_actions__brand_create: {
+    render: ({ onSubmit, onCancel, isSubmitting }) => {
+      return (
+        <CreateBrandForm
           onSubmit={onSubmit}
           onCancel={onCancel}
           isSubmitting={isSubmitting}

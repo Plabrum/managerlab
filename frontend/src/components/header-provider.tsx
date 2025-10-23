@@ -27,7 +27,7 @@ export interface ActionData {
 
 export interface HeaderData {
   title: string;
-  state: string;
+  state?: string;
   actionsData?: ActionData;
 }
 

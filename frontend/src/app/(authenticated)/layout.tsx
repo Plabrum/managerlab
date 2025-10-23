@@ -100,6 +100,7 @@ export default function AuthenticatedLayout({
     );
   }
 
+  console.log('Rendering AuthenticatedLayout for user:', user.email);
   // Normal layout with sidebar for users with teams
   return (
     <AuthProvider user={user} initialTeams={teams}>

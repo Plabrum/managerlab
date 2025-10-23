@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect, useMemo } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -20,9 +20,15 @@ import type {
   ColumnDefinitionDTO,
   ObjectListDTO,
 } from '@/openapi/managerLab.schemas';
-import { ActionsMenu } from '@/components/actions-menu';
+import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import { useHeader } from '@/components/header-provider';
+import type { ActionData } from '@/components/header-provider';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function DeliverablesPage() {
+  const queryClient = useQueryClient();
+  const { setHeaderData } = useHeader();
+
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
@@ -68,6 +74,37 @@ export default function DeliverablesPage() {
     setColumnDefs(data.columns);
   }
 
+  // Create actions data for the header
+  const actionsData: ActionData | undefined = useMemo(() => {
+    if (!data.actions) return undefined;
+
+    return {
+      actions: data.actions,
+      actionGroup: ActionGroupType.top_level_deliverable_actions,
+      objectId: '',
+      onInvalidate: () => {
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey[0] === 'listObjects' &&
+            query.queryKey[1] === 'deliverables',
+        });
+      },
+    };
+  }, [data.actions, queryClient]);
+
+  // Set header data for top-level actions
+  useEffect(() => {
+    if (actionsData) {
+      setHeaderData({
+        title: 'Deliverables',
+        actionsData,
+      });
+    }
+    return () => {
+      setHeaderData(null);
+    };
+  }, [actionsData, setHeaderData]);
+
   const handleBulkAction = (action: string, rows: typeof data.objects) => {
     console.log('Bulk action:', action, 'on rows:', rows);
     // TODO: Implement bulk action handling
@@ -91,15 +128,6 @@ export default function DeliverablesPage() {
           }}
           placeholder="Search deliverables"
         />
-        {data.actions && data.actions.length > 0 && (
-          <ActionsMenu
-            actions={data.actions}
-            actionGroup="top_level_deliverable_actions"
-            onActionComplete={() => {
-              // Refresh deliverables list after action completion
-            }}
-          />
-        )}
       </div>
       {columnDefs && (
         <DataTableAppliedFilters

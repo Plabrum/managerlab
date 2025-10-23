@@ -121,6 +121,20 @@ class ActionGroup:
             raise Exception("Unknown action type")
         return self.actions[action_key]
 
+    async def get_object(self, object_id: int) -> BaseDBModel | None:
+        """Get object by ID using the action group's model type."""
+        if self.model_type is None:
+            return None
+
+        transaction = self.action_registry.dependencies.get("transaction")
+        if transaction is None:
+            return None
+
+        result = await transaction.execute(
+            select(self.model_type).where(self.model_type.id == object_id)
+        )
+        return result.scalar_one_or_none()
+
     async def trigger(
         self,
         data: Any,  # Discriminated union instance
