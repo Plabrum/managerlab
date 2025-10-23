@@ -143,8 +143,8 @@
   /* Dark mode - lighter shadows for visibility */
   .dark [data-sonner-toast] {
     box-shadow:
-      0 10px 15px -3px rgb(255 255 255 / 0.2),
-      0 4px 6px -4px rgb(255 255 255 / 0.15),
-      0 0 0 1px rgb(255 255 255 / 0.1) !important;
+      0 10px 15px -3px rgb(255 255 255 / 0.08),
+      0 4px 6px -4px rgb(255 255 255 / 0.06),
+      0 0 0 1px rgb(255 255 255 / 0.05) !important;
   }
 }
