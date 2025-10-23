@@ -15,10 +15,10 @@ from app.users.objects import RosterObject, TeamObject, UserObject
 from app.users.schemas import (
     CreateUserSchema,
     CreateTeamSchema,
-    TeamDTO,
-    UserDTO,
+    TeamSchema,
+    UserSchema,
     UserWaitlistFormSchema,
-    WaitlistEntryDTO,
+    WaitlistEntrySchema,
     TeamListItemSchema,
     ListTeamsResponse,
     SwitchTeamRequest,
@@ -35,16 +35,27 @@ ObjectRegistry().register(ObjectTypes.Roster, RosterObject)
 ObjectRegistry().register(ObjectTypes.Teams, TeamObject)
 
 
-@get("/", dto=UserDTO, return_dto=UserDTO, guards=[requires_superuser])
-async def list_users(transaction: AsyncSession) -> List[User]:
+@get("/", guards=[requires_superuser])
+async def list_users(transaction: AsyncSession) -> List[UserSchema]:
     """List all users - requires superuser privileges."""
     result = await transaction.execute(select(User))
     users = result.scalars().all()
-    return list(users)
+    return [
+        UserSchema(
+            id=user.id,
+            name=user.name,
+            email=user.email,
+            email_verified=user.email_verified,
+            state=user.state,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+        )
+        for user in users
+    ]
 
 
-@get("/current_user", dto=UserDTO, return_dto=UserDTO)
-async def get_current_user(request: Request, transaction: AsyncSession) -> User:
+@get("/current_user")
+async def get_current_user(request: Request, transaction: AsyncSession) -> UserSchema:
     """Get current authenticated user information."""
     user_id: int = request.user
 
@@ -52,47 +63,81 @@ async def get_current_user(request: Request, transaction: AsyncSession) -> User:
     result = await transaction.execute(stmt)
     user = result.scalar_one()
 
-    return user
+    return UserSchema(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        email_verified=user.email_verified,
+        state=user.state,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+    )
 
 
-@get("/{user_id:int}", dto=UserDTO, return_dto=UserDTO)
-async def get_user(user_id: int, transaction: AsyncSession) -> User:
+@get("/{user_id:int}")
+async def get_user(user_id: int, transaction: AsyncSession) -> UserSchema:
     """Get a user by ID - requires authentication."""
     stmt = select(User).where(User.id == user_id)
     result = await transaction.execute(stmt)
     user = result.scalar_one()
-    return user
+    return UserSchema(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        email_verified=user.email_verified,
+        state=user.state,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+    )
 
 
-@post("/", return_dto=UserDTO, guards=[requires_superuser])
-async def create_user(data: CreateUserSchema, transaction: AsyncSession) -> User:
+@post("/", guards=[requires_superuser])
+async def create_user(data: CreateUserSchema, transaction: AsyncSession) -> UserSchema:
     """Create a new user - requires superuser privileges."""
     user = User(email=data.email, name=data.name)
     transaction.add(user)
-    return user
+    await transaction.flush()
+    return UserSchema(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        email_verified=user.email_verified,
+        state=user.state,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+    )
 
 
-@post("/signup", return_dto=WaitlistEntryDTO, guards=[])
+@post("/signup", guards=[])
 async def add_user_to_waitlist(
     data: UserWaitlistFormSchema,
     transaction: AsyncSession,
-) -> WaitlistEntry:
-    user = WaitlistEntry(
+) -> WaitlistEntrySchema:
+    entry = WaitlistEntry(
         email=data.email,
         name=data.name,
         company=data.company,
         message=data.message,
     )
-    transaction.add(user)
-    return user
+    transaction.add(entry)
+    await transaction.flush()
+    return WaitlistEntrySchema(
+        id=entry.id,
+        name=entry.name,
+        email=entry.email,
+        company=entry.company,
+        message=entry.message,
+        created_at=entry.created_at,
+        updated_at=entry.updated_at,
+    )
 
 
-@post("/teams", return_dto=TeamDTO, guards=[requires_user_id])
+@post("/teams", guards=[requires_user_id])
 async def create_team(
     request: Request,
     data: CreateTeamSchema,
     transaction: AsyncSession,
-) -> Team:
+) -> TeamSchema:
     """Create a new team and assign the current user as owner.
 
     This route requires authentication but NOT scope, as it's used during
@@ -121,7 +166,13 @@ async def create_team(
     request.session["scope_type"] = ScopeType.TEAM.value
     request.session["team_id"] = team.id
 
-    return team
+    return TeamSchema(
+        id=team.id,
+        name=team.name,
+        description=team.description,
+        created_at=team.created_at,
+        updated_at=team.updated_at,
+    )
 
 
 @get("/teams", guards=[requires_user_id])

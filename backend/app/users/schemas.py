@@ -1,27 +1,43 @@
-from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
+from datetime import datetime
 
 from app.actions.schemas import ActionDTO
-from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
-from app.users.models import User, WaitlistEntry, Team
+from app.base.schemas import BaseSchema
 from app.users.enums import RoleLevel
+from app.utils.sqids import Sqid
 
 
-class UserDTO(SanitizedSQLAlchemyDTO[User]):
-    """Data transfer object for User model."""
+class UserSchema(BaseSchema):
+    """Manual schema for User model."""
 
-    pass
+    id: Sqid
+    name: str
+    email: str
+    email_verified: bool
+    state: str
+    created_at: datetime
+    updated_at: datetime
 
 
-class WaitlistEntryDTO(SQLAlchemyDTO[WaitlistEntry]):
-    """Data transfer object for WaitlistEntry model."""
+class WaitlistEntrySchema(BaseSchema):
+    """Manual schema for WaitlistEntry model."""
 
-    pass
+    id: Sqid
+    name: str
+    email: str
+    company: str | None
+    message: str | None
+    created_at: datetime
+    updated_at: datetime
 
 
-class TeamDTO(SanitizedSQLAlchemyDTO[Team]):
-    """Data transfer object for Team model."""
+class TeamSchema(BaseSchema):
+    """Manual schema for Team model."""
 
-    pass
+    id: Sqid
+    name: str
+    description: str | None
+    created_at: datetime
+    updated_at: datetime
 
 
 class CreateUserSchema(BaseSchema):

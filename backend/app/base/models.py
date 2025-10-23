@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, Set, Type, TYPE_CHECKING
 
-from sqlalchemy import DateTime, Integer
+from sqlalchemy import DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import func
 
-from app.utils.sqids import Sqid
+from app.utils.sqids import Sqid, SqidType
 
 if TYPE_CHECKING:
     pass
@@ -17,7 +17,7 @@ class BaseDBModel(DeclarativeBase):
     # Registry to track all model classes
     _model_registry: Set[Type["BaseDBModel"]] = set()
 
-    id: Mapped[Sqid] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[Sqid] = mapped_column(SqidType, primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

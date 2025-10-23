@@ -1,14 +1,28 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
-from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
-from app.payments.models import Invoice
+from app.base.schemas import BaseSchema
+from app.utils.sqids import Sqid
 
 
-class InvoiceDTO(SanitizedSQLAlchemyDTO[Invoice]):
-    """DTO for returning Invoice data."""
+class InvoiceSchema(BaseSchema):
+    """Manual schema for Invoice model."""
 
-    pass
+    id: Sqid
+    invoice_number: int
+    customer_name: str
+    customer_email: str
+    posting_date: date
+    due_date: date
+    amount_due: Decimal
+    amount_paid: Decimal
+    description: str | None
+    notes: str | None
+    state: str
+    created_at: datetime
+    updated_at: datetime
+    campaign_id: int | None
+    team_id: int | None
 
 
 class InvoiceUpdateSchema(BaseSchema):

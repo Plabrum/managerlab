@@ -1,24 +1,22 @@
 from datetime import datetime
-from advanced_alchemy.extensions.litestar import SQLAlchemyDTOConfig
-from app.base.schemas import (
-    BaseSchema,
-    SanitizedSQLAlchemyDTO,
-)
-from app.media.models import Media
+from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
+from app.media.models import Media
 
 
-class MediaDTO(SanitizedSQLAlchemyDTO[Media]):
-    """Data transfer object for Media model."""
+class MediaSchema(BaseSchema):
+    """Manual schema for Media model."""
 
-    config = SQLAlchemyDTOConfig(
-        exclude={
-            "file_key",
-            "thumbnail_key",
-            "deliverables",
-            "deliverable_media_associations",
-        }
-    )
+    id: Sqid
+    file_name: str
+    file_type: str
+    file_size: int
+    mime_type: str
+    state: str
+    created_at: datetime
+    updated_at: datetime
+    team_id: int | None
+    campaign_id: int | None
 
 
 class MediaResponseSchema(BaseSchema):

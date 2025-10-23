@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
 from app.brands.schemas import (
-    BrandDTO,
+    BrandSchema,
     BrandUpdateSchema,
-    BrandContactDTO,
+    BrandContactSchema,
     BrandContactUpdateSchema,
 )
 from app.utils.sqids import Sqid
@@ -22,42 +22,84 @@ ObjectRegistry().register(ObjectTypes.Brands, BrandObject)
 ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 
 
-@get("/{id:str}", return_dto=BrandDTO)
-async def get_brand(id: Sqid, transaction: AsyncSession) -> Brand:
+@get("/{id:str}")
+async def get_brand(id: Sqid, transaction: AsyncSession) -> BrandSchema:
     """Get a brand by SQID."""
-    # id is already decoded from SQID string to int by msgspec
-    return await get_or_404(transaction, Brand, id)
+    brand = await get_or_404(transaction, Brand, id)
+    return BrandSchema(
+        id=brand.id,
+        name=brand.name,
+        description=brand.description,
+        website=brand.website,
+        email=brand.email,
+        phone=brand.phone,
+        notes=brand.notes,
+        created_at=brand.created_at,
+        updated_at=brand.updated_at,
+        team_id=brand.team_id,
+    )
 
 
-@post("/{id:str}", return_dto=BrandDTO)
+@post("/{id:str}")
 async def update_brand(
     id: Sqid, data: BrandUpdateSchema, transaction: AsyncSession
-) -> Brand:
+) -> BrandSchema:
     """Update a brand by SQID."""
-    # id is already decoded from SQID string to int by msgspec
     brand = await get_or_404(transaction, Brand, id)
     update_model(brand, data)
     await transaction.flush()
-    return brand
+    return BrandSchema(
+        id=brand.id,
+        name=brand.name,
+        description=brand.description,
+        website=brand.website,
+        email=brand.email,
+        phone=brand.phone,
+        notes=brand.notes,
+        created_at=brand.created_at,
+        updated_at=brand.updated_at,
+        team_id=brand.team_id,
+    )
 
 
-@get("/contacts/{id:str}", return_dto=BrandContactDTO)
-async def get_brand_contact(id: Sqid, transaction: AsyncSession) -> BrandContact:
+@get("/contacts/{id:str}")
+async def get_brand_contact(id: Sqid, transaction: AsyncSession) -> BrandContactSchema:
     """Get a brand contact by SQID."""
-    # id is already decoded from SQID string to int by msgspec
-    return await get_or_404(transaction, BrandContact, id)
+    contact = await get_or_404(transaction, BrandContact, id)
+    return BrandContactSchema(
+        id=contact.id,
+        first_name=contact.first_name,
+        last_name=contact.last_name,
+        email=contact.email,
+        phone=contact.phone,
+        notes=contact.notes,
+        brand_id=contact.brand_id,
+        created_at=contact.created_at,
+        updated_at=contact.updated_at,
+        team_id=contact.team_id,
+    )
 
 
-@post("/contacts/{id:str}", return_dto=BrandContactDTO)
+@post("/contacts/{id:str}")
 async def update_brand_contact(
     id: Sqid, data: BrandContactUpdateSchema, transaction: AsyncSession
-) -> BrandContact:
+) -> BrandContactSchema:
     """Update a brand contact by SQID."""
-    # id is already decoded from SQID string to int by msgspec
     contact = await get_or_404(transaction, BrandContact, id)
     update_model(contact, data)
     await transaction.flush()
-    return contact
+    return BrandContactSchema(
+        id=contact.id,
+        first_name=contact.first_name,
+        last_name=contact.last_name,
+        email=contact.email,
+        phone=contact.phone,
+        notes=contact.notes,
+        brand_id=contact.brand_id,
+        created_at=contact.created_at,
+        updated_at=contact.updated_at,
+        team_id=contact.team_id,
+    )
 
 
 # Brand router

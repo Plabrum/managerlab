@@ -5,7 +5,7 @@ import uuid
 from app.media.enums import MediaStates
 from app.media.models import Media
 from app.media.schemas import (
-    MediaDTO,
+    MediaSchema,
     PresignedUploadRequestSchema,
     PresignedUploadResponseSchema,
     RegisterMediaSchema,
@@ -41,13 +41,13 @@ async def request_presigned_upload(
     return PresignedUploadResponseSchema(upload_url=upload_url, file_key=file_key)
 
 
-@post("/register", return_dto=MediaDTO)
+@post("/register")
 async def register_media(
     data: RegisterMediaSchema,
     transaction: AsyncSession,
     task_queues: TaskQueues,
     request: Request,
-) -> Media:
+) -> MediaSchema:
     """Register an uploaded media file and trigger thumbnail generation."""
     # Determine file type from mime_type
     file_type = "image" if data.mime_type.startswith("image/") else "video"
@@ -66,7 +66,18 @@ async def register_media(
     await transaction.flush()
     queue = task_queues.get("default")
     await queue.enqueue("generate_thumbnail", media_id=int(media.id))
-    return media
+    return MediaSchema(
+        id=media.id,
+        file_name=media.file_name,
+        file_type=media.file_type,
+        file_size=media.file_size,
+        mime_type=media.mime_type,
+        state=media.state,
+        created_at=media.created_at,
+        updated_at=media.updated_at,
+        team_id=media.team_id,
+        campaign_id=media.campaign_id,
+    )
 
 
 @delete("/{id:str}", status_code=200)

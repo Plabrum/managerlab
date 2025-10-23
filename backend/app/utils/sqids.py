@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 import sqids as _sqids
+from sqlalchemy import TypeDecorator, Integer
 
 __all__ = [
     "sqid_decode",
     "sqid_encode",
     "Sqid",
+    "SqidType",
     "sqid_type_predicate",
     "sqid_enc_hook",
     "sqid_dec_hook",
@@ -38,6 +40,30 @@ class Sqid(int):
     """
 
     pass
+
+
+class SqidType(TypeDecorator):
+    """SQLAlchemy type that stores int in DB but returns Sqid instances in Python.
+
+    This ensures that when SQLAlchemy loads rows from the database, the id field
+    is automatically wrapped as a Sqid instance, which triggers proper encoding
+    when serialized by Litestar.
+    """
+
+    impl = Integer
+    cache_ok = True
+
+    def process_result_value(self, value: int | None, dialect) -> Sqid | None:
+        """Convert int from DB to Sqid instance."""
+        if value is not None:
+            return Sqid(value)
+        return value
+
+    def process_bind_param(self, value: Any, dialect) -> int | None:
+        """Convert Sqid to int for DB storage."""
+        if value is not None:
+            return int(value)
+        return value
 
 
 # Type predicate for Litestar's type_decoders

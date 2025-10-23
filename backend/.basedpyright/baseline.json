@@ -10,16 +10,6 @@
                 }
             }
         ],
-        "./app/base/schemas.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 22,
-                    "endColumn": 69,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./app/media/tasks.py": [
             {
                 "code": "reportGeneralTypeIssues",

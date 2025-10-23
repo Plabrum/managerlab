@@ -9,63 +9,68 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dashboard.models import Dashboard
 from app.dashboard.enums import DashboardOwnerType
 from app.dashboard.schemas import (
-    DashboardDTO,
+    DashboardSchema,
     CreateDashboardSchema,
     UpdateDashboardSchema,
 )
 from app.users.models import Role
+from app.utils.db import get_or_404
 from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_scope
 
 
-@get("/", return_dto=DashboardDTO)
+@get("/")
 async def list_dashboards(
-    request: Request, transaction: AsyncSession
-) -> List[Dashboard]:
+    transaction: AsyncSession,
+    request: Request,
+    team_id: int,
+) -> List[DashboardSchema]:
     """List all dashboards accessible to the current user (personal + team dashboards)."""
-    user_id: int = request.user
-    team_id: int | None = request.session.get("team_id")
 
     # Query for both user dashboards and team dashboards
     stmt = select(Dashboard).where(
-        or_(Dashboard.user_id == user_id, Dashboard.team_id == team_id)
+        or_(Dashboard.user_id == request.user, Dashboard.team_id == team_id)
     )
     result = await transaction.execute(stmt)
     dashboards = result.scalars().all()
-    return list(dashboards)
+
+    # Manually convert to DashboardSchema
+    return [
+        DashboardSchema(
+            id=dashboard.id,
+            name=dashboard.name,
+            config=dashboard.config,
+            owner_type=dashboard.owner_type,
+            user_id=dashboard.user_id,
+            team_id=dashboard.team_id,
+            is_default=dashboard.is_default,
+            created_at=dashboard.created_at,
+            updated_at=dashboard.updated_at,
+        )
+        for dashboard in dashboards
+    ]
 
 
-@get("/{id:str}", return_dto=DashboardDTO)
-async def get_dashboard(
-    id: Sqid, request: Request, transaction: AsyncSession
-) -> Dashboard:
-    """Get a specific dashboard by SQID."""
-    # id is already decoded from SQID string to int by msgspec
-    dashboard = await transaction.get(Dashboard, id)
-
-    if not dashboard:
-        raise NotFoundException(f"Dashboard with id {id} not found")
-
-    # Verify user has access to this dashboard
-    user_id: int = request.user
-    team_query = select(Role.team_id).where(Role.user_id == user_id)
-    team_result = await transaction.execute(team_query)
-    team_ids = [row[0] for row in team_result.all()]
-
-    has_access = dashboard.user_id == user_id or (
-        dashboard.team_id and dashboard.team_id in team_ids
+@get("/{id:str}")
+async def get_dashboard(id: Sqid, transaction: AsyncSession) -> DashboardSchema:
+    dashboard = await get_or_404(transaction, Dashboard, id)
+    return DashboardSchema(
+        id=dashboard.id,
+        name=dashboard.name,
+        config=dashboard.config,
+        owner_type=dashboard.owner_type,
+        user_id=dashboard.user_id,
+        team_id=dashboard.team_id,
+        is_default=dashboard.is_default,
+        created_at=dashboard.created_at,
+        updated_at=dashboard.updated_at,
     )
 
-    if not has_access:
-        raise PermissionDeniedException("You don't have access to this dashboard")
 
-    return dashboard
-
-
-@post("/", return_dto=DashboardDTO)
+@post("/")
 async def create_dashboard(
     data: CreateDashboardSchema, request: Request, transaction: AsyncSession
-) -> Dashboard:
+) -> DashboardSchema:
     """Create a new dashboard."""
     user_id: int = request.user
 
@@ -101,16 +106,26 @@ async def create_dashboard(
     )
     transaction.add(dashboard)
     await transaction.flush()
-    return dashboard
+    return DashboardSchema(
+        id=dashboard.id,
+        name=dashboard.name,
+        config=dashboard.config,
+        owner_type=dashboard.owner_type,
+        user_id=dashboard.user_id,
+        team_id=dashboard.team_id,
+        is_default=dashboard.is_default,
+        created_at=dashboard.created_at,
+        updated_at=dashboard.updated_at,
+    )
 
 
-@patch("/{id:str}", return_dto=DashboardDTO)
+@patch("/{id:str}")
 async def update_dashboard(
     id: Sqid,
     data: UpdateDashboardSchema,
     request: Request,
     transaction: AsyncSession,
-) -> Dashboard:
+) -> DashboardSchema:
     """Update a dashboard's configuration."""
     # id is already decoded from SQID string to int by msgspec
     dashboard = await transaction.get(Dashboard, id)
@@ -140,7 +155,17 @@ async def update_dashboard(
         dashboard.is_default = data.is_default
 
     await transaction.flush()
-    return dashboard
+    return DashboardSchema(
+        id=dashboard.id,
+        name=dashboard.name,
+        config=dashboard.config,
+        owner_type=dashboard.owner_type,
+        user_id=dashboard.user_id,
+        team_id=dashboard.team_id,
+        is_default=dashboard.is_default,
+        created_at=dashboard.created_at,
+        updated_at=dashboard.updated_at,
+    )
 
 
 # Dashboard router

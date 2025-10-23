@@ -1,13 +1,22 @@
-from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
+from datetime import datetime
+from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure
-from app.campaigns.models import Campaign
 from app.utils.sqids import Sqid
 
 
-class CampaignDTO(SanitizedSQLAlchemyDTO[Campaign]):
-    """DTO for returning Campaign data."""
+class CampaignSchema(BaseSchema):
+    """Manual schema for Campaign model."""
 
-    pass
+    id: Sqid
+    name: str
+    description: str | None
+    compensation_structure: CompensationStructure | None
+    assigned_roster_id: int | None
+    brand_id: int
+    state: str
+    created_at: datetime
+    updated_at: datetime
+    team_id: int | None
 
 
 class CampaignUpdateSchema(BaseSchema):

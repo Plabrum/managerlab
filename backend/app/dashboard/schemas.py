@@ -1,19 +1,25 @@
 """Dashboard schemas for request/response handling."""
 
 from typing import Any
-from advanced_alchemy.extensions.litestar import SQLAlchemyDTOConfig
+from datetime import datetime
 
-from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
-from app.dashboard.models import Dashboard
+from app.base.schemas import BaseSchema
 from app.dashboard.enums import DashboardOwnerType
+from app.utils.sqids import Sqid
 
 
-class DashboardDTO(SanitizedSQLAlchemyDTO[Dashboard]):
-    """Data transfer object for Dashboard model."""
+class DashboardSchema(BaseSchema):
+    """Manual schema for Dashboard responses with explicit Sqid type."""
 
-    config: SQLAlchemyDTOConfig = SQLAlchemyDTOConfig(
-        max_nested_depth=0,
-    )
+    id: Sqid
+    name: str
+    config: dict[str, Any]
+    owner_type: DashboardOwnerType
+    user_id: int | None
+    team_id: int | None
+    is_default: bool
+    created_at: datetime
+    updated_at: datetime
 
 
 class CreateDashboardSchema(BaseSchema):

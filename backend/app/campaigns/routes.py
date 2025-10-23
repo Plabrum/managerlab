@@ -2,7 +2,7 @@ from litestar import Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.campaigns.models import Campaign
-from app.campaigns.schemas import CampaignDTO, CampaignUpdateSchema
+from app.campaigns.schemas import CampaignSchema, CampaignUpdateSchema
 from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
@@ -15,23 +15,44 @@ from app.campaigns.objects import CampaignObject
 ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
 
 
-@get("/{id:str}", return_dto=CampaignDTO)
-async def get_campaign(id: Sqid, transaction: AsyncSession) -> Campaign:
+@get("/{id:str}")
+async def get_campaign(id: Sqid, transaction: AsyncSession) -> CampaignSchema:
     """Get a campaign by SQID."""
-    # id is already decoded from SQID string to int by msgspec
-    return await get_or_404(transaction, Campaign, id)
+    campaign = await get_or_404(transaction, Campaign, id)
+    return CampaignSchema(
+        id=campaign.id,
+        name=campaign.name,
+        description=campaign.description,
+        compensation_structure=campaign.compensation_structure,
+        assigned_roster_id=campaign.assigned_roster_id,
+        brand_id=campaign.brand_id,
+        state=campaign.state,
+        created_at=campaign.created_at,
+        updated_at=campaign.updated_at,
+        team_id=campaign.team_id,
+    )
 
 
-@post("/{id:str}", return_dto=CampaignDTO)
+@post("/{id:str}")
 async def update_campaign(
     id: Sqid, data: CampaignUpdateSchema, transaction: AsyncSession
-) -> Campaign:
+) -> CampaignSchema:
     """Update a campaign by SQID."""
-    # id is already decoded from SQID string to int by msgspec
     campaign = await get_or_404(transaction, Campaign, id)
     update_model(campaign, data)
     await transaction.flush()
-    return campaign
+    return CampaignSchema(
+        id=campaign.id,
+        name=campaign.name,
+        description=campaign.description,
+        compensation_structure=campaign.compensation_structure,
+        assigned_roster_id=campaign.assigned_roster_id,
+        brand_id=campaign.brand_id,
+        state=campaign.state,
+        created_at=campaign.created_at,
+        updated_at=campaign.updated_at,
+        team_id=campaign.team_id,
+    )
 
 
 campaign_router = Router(

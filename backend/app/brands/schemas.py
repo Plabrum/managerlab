@@ -1,12 +1,21 @@
-from app.base.schemas import BaseSchema, SanitizedSQLAlchemyDTO
-from app.brands.models.brands import Brand
-from app.brands.models.contacts import BrandContact
+from datetime import datetime
+from app.base.schemas import BaseSchema
+from app.utils.sqids import Sqid
 
 
-class BrandDTO(SanitizedSQLAlchemyDTO[Brand]):
-    """DTO for returning Brand data."""
+class BrandSchema(BaseSchema):
+    """Manual schema for Brand model."""
 
-    pass
+    id: Sqid
+    name: str
+    description: str | None
+    website: str | None
+    email: str | None
+    phone: str | None
+    notes: str | None
+    created_at: datetime
+    updated_at: datetime
+    team_id: int | None
 
 
 class BrandUpdateSchema(BaseSchema):
@@ -31,10 +40,19 @@ class BrandCreateSchema(BaseSchema):
     notes: str | None = None
 
 
-class BrandContactDTO(SanitizedSQLAlchemyDTO[BrandContact]):
-    """DTO for returning BrandContact data."""
+class BrandContactSchema(BaseSchema):
+    """Manual schema for BrandContact model."""
 
-    pass
+    id: Sqid
+    first_name: str
+    last_name: str
+    email: str | None
+    phone: str | None
+    notes: str | None
+    brand_id: int
+    created_at: datetime
+    updated_at: datetime
+    team_id: int | None
 
 
 class BrandContactUpdateSchema(BaseSchema):
