@@ -1,12 +1,9 @@
 'use client';
 
 import { use } from 'react';
-import {
-  ObjectFields,
-  ObjectRelations,
-  ObjectActions,
-} from '@/components/object-detail';
-import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
+import { ObjectActions } from '@/components/object-detail';
+import { BrandFields } from '@/components/brand-detail';
+import { useBrandsIdGetBrandSuspense } from '@/openapi/brands/brands';
 import { PageTopBar } from '@/components/page-topbar';
 import { ActionGroupType } from '@/openapi/managerLab.schemas';
 
@@ -17,15 +14,12 @@ export default function BrandDetailPage({
 }) {
   const { id } = use(params);
 
-  const { data, refetch } = useOObjectTypeIdGetObjectDetailSuspense(
-    'brands',
-    id
-  );
+  const { data, refetch } = useBrandsIdGetBrandSuspense(id);
 
   return (
     <PageTopBar
-      title={data.title}
-      state={data.state}
+      title={data.name}
+      state="active"
       actions={
         <ObjectActions
           data={data}
@@ -38,11 +32,8 @@ export default function BrandDetailPage({
         {/* Two Column Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Left Column - Fields */}
-          <ObjectFields fields={data.fields} />
+          <BrandFields brand={data} />
         </div>
-
-        {/* Relations */}
-        <ObjectRelations relations={data.relations || []} />
       </div>
     </PageTopBar>
   );

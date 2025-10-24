@@ -9,6 +9,8 @@ import type {
   ObjectDetailDTO,
   DeliverableResponseSchema,
   MediaResponseSchema,
+  CampaignSchema,
+  BrandSchema,
 } from '@/openapi/managerLab.schemas';
 
 /**
@@ -17,4 +19,6 @@ import type {
 export type DomainObject =
   | ObjectDetailDTO
   | DeliverableResponseSchema
-  | MediaResponseSchema;
+  | MediaResponseSchema
+  | CampaignSchema
+  | BrandSchema;

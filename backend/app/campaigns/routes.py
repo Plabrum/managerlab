@@ -40,6 +40,30 @@ async def get_campaign(
         updated_at=campaign.updated_at,
         team_id=campaign.team_id,
         actions=actions,
+        # Counterparty
+        counterparty_type=campaign.counterparty_type,
+        counterparty_name=campaign.counterparty_name,
+        counterparty_email=campaign.counterparty_email,
+        # Compensation
+        compensation_total_usd=campaign.compensation_total_usd,
+        payment_terms_days=campaign.payment_terms_days,
+        # Flight dates
+        flight_start_date=campaign.flight_start_date,  # type: ignore
+        flight_end_date=campaign.flight_end_date,  # type: ignore
+        # FTC & Usage
+        ftc_string=campaign.ftc_string,
+        usage_duration=campaign.usage_duration,
+        usage_territory=campaign.usage_territory,
+        usage_paid_media_option=campaign.usage_paid_media_option,
+        # Exclusivity
+        exclusivity_category=campaign.exclusivity_category,
+        exclusivity_days_before=campaign.exclusivity_days_before,
+        exclusivity_days_after=campaign.exclusivity_days_after,
+        # Ownership
+        ownership_mode=campaign.ownership_mode,
+        # Approval
+        approval_rounds=campaign.approval_rounds,
+        approval_sla_hours=campaign.approval_sla_hours,
     )
 
 
@@ -63,6 +87,30 @@ async def update_campaign(
         updated_at=campaign.updated_at,
         team_id=campaign.team_id,
         actions=[],  # Update endpoints don't compute actions
+        # Counterparty
+        counterparty_type=campaign.counterparty_type,
+        counterparty_name=campaign.counterparty_name,
+        counterparty_email=campaign.counterparty_email,
+        # Compensation
+        compensation_total_usd=campaign.compensation_total_usd,
+        payment_terms_days=campaign.payment_terms_days,
+        # Flight dates
+        flight_start_date=campaign.flight_start_date,  # type: ignore
+        flight_end_date=campaign.flight_end_date,  # type: ignore
+        # FTC & Usage
+        ftc_string=campaign.ftc_string,
+        usage_duration=campaign.usage_duration,
+        usage_territory=campaign.usage_territory,
+        usage_paid_media_option=campaign.usage_paid_media_option,
+        # Exclusivity
+        exclusivity_category=campaign.exclusivity_category,
+        exclusivity_days_before=campaign.exclusivity_days_before,
+        exclusivity_days_after=campaign.exclusivity_days_after,
+        # Ownership
+        ownership_mode=campaign.ownership_mode,
+        # Approval
+        approval_rounds=campaign.approval_rounds,
+        approval_sla_hours=campaign.approval_sla_hours,
     )
 
 

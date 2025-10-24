@@ -205,13 +205,13 @@ export interface BrandUpdateSchema {
 
 export type CampaignCreateSchemaDescription = string | null;
 
+export type CampaignCreateSchemaCompensationStructure = CompensationStructure | null;
+
 export type CampaignCreateSchemaCounterpartyType = CounterpartyType | null;
 
 export type CampaignCreateSchemaCounterpartyName = string | null;
 
 export type CampaignCreateSchemaCounterpartyEmail = string | null;
-
-export type CampaignCreateSchemaCompensationStructure = CompensationStructure | null;
 
 export type CampaignCreateSchemaCompensationTotalUsd = number | null;
 
@@ -245,10 +245,10 @@ export interface CampaignCreateSchema {
   name: string;
   brand_id: unknown;
   description?: CampaignCreateSchemaDescription;
+  compensation_structure?: CampaignCreateSchemaCompensationStructure;
   counterparty_type?: CampaignCreateSchemaCounterpartyType;
   counterparty_name?: CampaignCreateSchemaCounterpartyName;
   counterparty_email?: CampaignCreateSchemaCounterpartyEmail;
-  compensation_structure?: CampaignCreateSchemaCompensationStructure;
   compensation_total_usd?: CampaignCreateSchemaCompensationTotalUsd;
   payment_terms_days?: CampaignCreateSchemaPaymentTermsDays;
   flight_start_date?: CampaignCreateSchemaFlightStartDate;
@@ -279,13 +279,17 @@ export const CampaignGuestAccessLevel = {
 
 export type CampaignSchemaDescription = string | null;
 
+export type CampaignSchemaCompensationStructure = CompensationStructure | null;
+
+export type CampaignSchemaAssignedRosterId = number | null;
+
+export type CampaignSchemaTeamId = number | null;
+
 export type CampaignSchemaCounterpartyType = CounterpartyType | null;
 
 export type CampaignSchemaCounterpartyName = string | null;
 
 export type CampaignSchemaCounterpartyEmail = string | null;
-
-export type CampaignSchemaCompensationStructure = CompensationStructure | null;
 
 export type CampaignSchemaCompensationTotalUsd = number | null;
 
@@ -315,18 +319,21 @@ export type CampaignSchemaApprovalRounds = number | null;
 
 export type CampaignSchemaApprovalSlaHours = number | null;
 
-export type CampaignSchemaAssignedRosterId = number | null;
-
-export type CampaignSchemaTeamId = number | null;
-
 export interface CampaignSchema {
   id: unknown;
   name: string;
   description?: CampaignSchemaDescription;
+  compensation_structure?: CampaignSchemaCompensationStructure;
+  assigned_roster_id?: CampaignSchemaAssignedRosterId;
+  brand_id: number;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  team_id?: CampaignSchemaTeamId;
+  actions: ActionDTO[];
   counterparty_type?: CampaignSchemaCounterpartyType;
   counterparty_name?: CampaignSchemaCounterpartyName;
   counterparty_email?: CampaignSchemaCounterpartyEmail;
-  compensation_structure?: CampaignSchemaCompensationStructure;
   compensation_total_usd?: CampaignSchemaCompensationTotalUsd;
   payment_terms_days?: CampaignSchemaPaymentTermsDays;
   flight_start_date?: CampaignSchemaFlightStartDate;
@@ -341,13 +348,6 @@ export interface CampaignSchema {
   ownership_mode?: CampaignSchemaOwnershipMode;
   approval_rounds?: CampaignSchemaApprovalRounds;
   approval_sla_hours?: CampaignSchemaApprovalSlaHours;
-  assigned_roster_id?: CampaignSchemaAssignedRosterId;
-  brand_id: number;
-  state: string;
-  created_at: string;
-  updated_at: string;
-  team_id?: CampaignSchemaTeamId;
-  actions: ActionDTO[];
 }
 
 export interface CampaignScopeSchema {
@@ -364,13 +364,13 @@ export type CampaignUpdateSchemaDescription = string | null;
 
 export type CampaignUpdateSchemaBrandId = number | null;
 
+export type CampaignUpdateSchemaCompensationStructure = CompensationStructure | null;
+
 export type CampaignUpdateSchemaCounterpartyType = CounterpartyType | null;
 
 export type CampaignUpdateSchemaCounterpartyName = string | null;
 
 export type CampaignUpdateSchemaCounterpartyEmail = string | null;
-
-export type CampaignUpdateSchemaCompensationStructure = CompensationStructure | null;
 
 export type CampaignUpdateSchemaCompensationTotalUsd = number | null;
 
@@ -404,10 +404,10 @@ export interface CampaignUpdateSchema {
   name?: CampaignUpdateSchemaName;
   description?: CampaignUpdateSchemaDescription;
   brand_id?: CampaignUpdateSchemaBrandId;
+  compensation_structure?: CampaignUpdateSchemaCompensationStructure;
   counterparty_type?: CampaignUpdateSchemaCounterpartyType;
   counterparty_name?: CampaignUpdateSchemaCounterpartyName;
   counterparty_email?: CampaignUpdateSchemaCounterpartyEmail;
-  compensation_structure?: CampaignUpdateSchemaCompensationStructure;
   compensation_total_usd?: CampaignUpdateSchemaCompensationTotalUsd;
   payment_terms_days?: CampaignUpdateSchemaPaymentTermsDays;
   flight_start_date?: CampaignUpdateSchemaFlightStartDate;
@@ -1759,10 +1759,6 @@ export type ActionsActionGroupObjectIdExecuteObjectAction400 = {
   extra?: ActionsActionGroupObjectIdExecuteObjectAction400Extra;
 };
 
-export type BrandsIdGetBrandParams = {
-user_id: number;
-};
-
 export type BrandsIdGetBrand400ExtraAnyOf = {[key: string]: unknown};
 
 export type BrandsIdGetBrand400Extra = null | BrandsIdGetBrand400ExtraAnyOf | unknown[];
@@ -1815,10 +1811,6 @@ export type BrandsContactsIdUpdateBrandContact400 = {
   extra?: BrandsContactsIdUpdateBrandContact400Extra;
 };
 
-export type CampaignsIdGetCampaignParams = {
-user_id: number;
-};
-
 export type CampaignsIdGetCampaign400ExtraAnyOf = {[key: string]: unknown};
 
 export type CampaignsIdGetCampaign400Extra = null | CampaignsIdGetCampaign400ExtraAnyOf | unknown[];
@@ -1845,10 +1837,6 @@ export type CampaignsIdUpdateCampaign400 = {
   extra?: CampaignsIdUpdateCampaign400Extra;
 };
 
-export type DeliverablesIdGetDeliverableParams = {
-user_id: number;
-};
-
 export type DeliverablesIdGetDeliverable400ExtraAnyOf = {[key: string]: unknown};
 
 export type DeliverablesIdGetDeliverable400Extra = null | DeliverablesIdGetDeliverable400ExtraAnyOf | unknown[];
@@ -1860,10 +1848,6 @@ export type DeliverablesIdGetDeliverable400 = {
   status_code: number;
   detail: string;
   extra?: DeliverablesIdGetDeliverable400Extra;
-};
-
-export type DeliverablesIdUpdateDeliverableParams = {
-user_id: number;
 };
 
 export type DeliverablesIdUpdateDeliverable400ExtraAnyOf = {[key: string]: unknown};
@@ -1931,10 +1915,6 @@ export type MediaIdDeleteMedia400 = {
   status_code: number;
   detail: string;
   extra?: MediaIdDeleteMedia400Extra;
-};
-
-export type InvoicesIdGetInvoiceParams = {
-user_id: number;
 };
 
 export type InvoicesIdGetInvoice400ExtraAnyOf = {[key: string]: unknown};

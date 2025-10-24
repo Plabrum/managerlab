@@ -31,9 +31,7 @@ import type {
   DeliverableResponseSchema,
   DeliverableUpdateSchema,
   DeliverablesIdGetDeliverable400,
-  DeliverablesIdGetDeliverableParams,
-  DeliverablesIdUpdateDeliverable400,
-  DeliverablesIdUpdateDeliverableParams
+  DeliverablesIdUpdateDeliverable400
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -46,14 +44,12 @@ import { customInstance } from '.././custom-instance';
  */
 export const deliverablesIdGetDeliverable = (
     id: unknown,
-    params: DeliverablesIdGetDeliverableParams,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<DeliverableResponseSchema>(
-      {url: `/deliverables/${id}`, method: 'GET',
-        params, signal
+      {url: `/deliverables/${id}`, method: 'GET', signal
     },
       );
     }
@@ -61,25 +57,23 @@ export const deliverablesIdGetDeliverable = (
 
 
 
-export const getDeliverablesIdGetDeliverableQueryKey = (id?: unknown,
-    params?: DeliverablesIdGetDeliverableParams,) => {
+export const getDeliverablesIdGetDeliverableQueryKey = (id?: unknown,) => {
     return [
-    `/deliverables/${id}`, ...(params ? [params]: [])
+    `/deliverables/${id}`
     ] as const;
     }
 
     
-export const getDeliverablesIdGetDeliverableQueryOptions = <TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+export const getDeliverablesIdGetDeliverableQueryOptions = <TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getDeliverablesIdGetDeliverableQueryKey(id,params);
+  const queryKey =  queryOptions?.queryKey ?? getDeliverablesIdGetDeliverableQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>> = ({ signal }) => deliverablesIdGetDeliverable(id,params, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>> = ({ signal }) => deliverablesIdGetDeliverable(id, signal);
 
       
 
@@ -93,8 +87,7 @@ export type DeliverablesIdGetDeliverableQueryError = DeliverablesIdGetDeliverabl
 
 
 export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>> & Pick<
+ id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>,
           TError,
@@ -104,8 +97,7 @@ export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeo
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>> & Pick<
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>,
           TError,
@@ -115,8 +107,7 @@ export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeo
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -124,12 +115,11 @@ export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeo
  */
 
 export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getDeliverablesIdGetDeliverableQueryOptions(id,params,options)
+  const queryOptions = getDeliverablesIdGetDeliverableQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -140,17 +130,16 @@ export function useDeliverablesIdGetDeliverable<TData = Awaited<ReturnType<typeo
 
 
 
-export const getDeliverablesIdGetDeliverableSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+export const getDeliverablesIdGetDeliverableSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getDeliverablesIdGetDeliverableQueryKey(id,params);
+  const queryKey =  queryOptions?.queryKey ?? getDeliverablesIdGetDeliverableQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>> = ({ signal }) => deliverablesIdGetDeliverable(id,params, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>> = ({ signal }) => deliverablesIdGetDeliverable(id, signal);
 
       
 
@@ -164,18 +153,15 @@ export type DeliverablesIdGetDeliverableSuspenseQueryError = DeliverablesIdGetDe
 
 
 export function useDeliverablesIdGetDeliverableSuspense<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+ id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDeliverablesIdGetDeliverableSuspense<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDeliverablesIdGetDeliverableSuspense<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -183,12 +169,11 @@ export function useDeliverablesIdGetDeliverableSuspense<TData = Awaited<ReturnTy
  */
 
 export function useDeliverablesIdGetDeliverableSuspense<TData = Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError = DeliverablesIdGetDeliverable400>(
- id: unknown,
-    params: DeliverablesIdGetDeliverableParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof deliverablesIdGetDeliverable>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getDeliverablesIdGetDeliverableSuspenseQueryOptions(id,params,options)
+  const queryOptions = getDeliverablesIdGetDeliverableSuspenseQueryOptions(id,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -205,7 +190,6 @@ export function useDeliverablesIdGetDeliverableSuspense<TData = Awaited<ReturnTy
 export const deliverablesIdUpdateDeliverable = (
     id: unknown,
     deliverableUpdateSchema: DeliverableUpdateSchema,
-    params: DeliverablesIdUpdateDeliverableParams,
  signal?: AbortSignal
 ) => {
       
@@ -213,8 +197,7 @@ export const deliverablesIdUpdateDeliverable = (
       return customInstance<DeliverableResponseSchema>(
       {url: `/deliverables/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: deliverableUpdateSchema,
-        params, signal
+      data: deliverableUpdateSchema, signal
     },
       );
     }
@@ -222,8 +205,8 @@ export const deliverablesIdUpdateDeliverable = (
 
 
 export const getDeliverablesIdUpdateDeliverableMutationOptions = <TError = DeliverablesIdUpdateDeliverable400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema}, TContext> => {
 
 const mutationKey = ['deliverablesIdUpdateDeliverable'];
 const {mutation: mutationOptions} = options ?
@@ -235,10 +218,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, {id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}> = (props) => {
-          const {id,data,params} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, {id: unknown;data: DeliverableUpdateSchema}> = (props) => {
+          const {id,data} = props ?? {};
 
-          return  deliverablesIdUpdateDeliverable(id,data,params,)
+          return  deliverablesIdUpdateDeliverable(id,data,)
         }
 
         
@@ -254,11 +237,11 @@ const {mutation: mutationOptions} = options ?
  * @summary UpdateDeliverable
  */
 export const useDeliverablesIdUpdateDeliverable = <TError = DeliverablesIdUpdateDeliverable400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>,
         TError,
-        {id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams},
+        {id: unknown;data: DeliverableUpdateSchema},
         TContext
       > => {
 

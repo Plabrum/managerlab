@@ -31,7 +31,6 @@ import type {
   CampaignSchema,
   CampaignUpdateSchema,
   CampaignsIdGetCampaign400,
-  CampaignsIdGetCampaignParams,
   CampaignsIdUpdateCampaign400
 } from '../managerLab.schemas';
 
@@ -45,14 +44,12 @@ import { customInstance } from '.././custom-instance';
  */
 export const campaignsIdGetCampaign = (
     id: unknown,
-    params: CampaignsIdGetCampaignParams,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<CampaignSchema>(
-      {url: `/campaigns/${id}`, method: 'GET',
-        params, signal
+      {url: `/campaigns/${id}`, method: 'GET', signal
     },
       );
     }
@@ -60,25 +57,23 @@ export const campaignsIdGetCampaign = (
 
 
 
-export const getCampaignsIdGetCampaignQueryKey = (id?: unknown,
-    params?: CampaignsIdGetCampaignParams,) => {
+export const getCampaignsIdGetCampaignQueryKey = (id?: unknown,) => {
     return [
-    `/campaigns/${id}`, ...(params ? [params]: [])
+    `/campaigns/${id}`
     ] as const;
     }
 
     
-export const getCampaignsIdGetCampaignQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+export const getCampaignsIdGetCampaignQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getCampaignsIdGetCampaignQueryKey(id,params);
+  const queryKey =  queryOptions?.queryKey ?? getCampaignsIdGetCampaignQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof campaignsIdGetCampaign>>> = ({ signal }) => campaignsIdGetCampaign(id,params, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof campaignsIdGetCampaign>>> = ({ signal }) => campaignsIdGetCampaign(id, signal);
 
       
 
@@ -92,8 +87,7 @@ export type CampaignsIdGetCampaignQueryError = CampaignsIdGetCampaign400
 
 
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
+ id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof campaignsIdGetCampaign>>,
           TError,
@@ -103,8 +97,7 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof campaignsIdGetCampaign>>,
           TError,
@@ -114,8 +107,7 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -123,12 +115,11 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
  */
 
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getCampaignsIdGetCampaignQueryOptions(id,params,options)
+  const queryOptions = getCampaignsIdGetCampaignQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -139,17 +130,16 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
 
 
 
-export const getCampaignsIdGetCampaignSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+export const getCampaignsIdGetCampaignSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getCampaignsIdGetCampaignQueryKey(id,params);
+  const queryKey =  queryOptions?.queryKey ?? getCampaignsIdGetCampaignQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof campaignsIdGetCampaign>>> = ({ signal }) => campaignsIdGetCampaign(id,params, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof campaignsIdGetCampaign>>> = ({ signal }) => campaignsIdGetCampaign(id, signal);
 
       
 
@@ -163,18 +153,15 @@ export type CampaignsIdGetCampaignSuspenseQueryError = CampaignsIdGetCampaign400
 
 
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -182,12 +169,11 @@ export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typ
  */
 
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown,
-    params: CampaignsIdGetCampaignParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getCampaignsIdGetCampaignSuspenseQueryOptions(id,params,options)
+  const queryOptions = getCampaignsIdGetCampaignSuspenseQueryOptions(id,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
