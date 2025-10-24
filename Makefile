@@ -20,6 +20,8 @@ help:
 	@echo "  build-frontend   - Build frontend for production"
 	@echo "  start-frontend   - Start frontend production server"
 	@echo "  lint-frontend    - Run frontend linting"
+	@echo "  lint-backend     - Run backend linting with ruff"
+	@echo "  check-all        - Run all pre-release checks (backend lint, frontend lint, frontend build)"
 	@echo "  test             - Run backend tests"
 	@echo "  backend-check    - Run backend type checking with basedpyright"
 	@echo "  docker-build     - Build backend Docker image locally"
@@ -107,6 +109,26 @@ start-frontend:
 .PHONY: lint-frontend
 lint-frontend:
 	cd frontend && pnpm run lint
+
+.PHONY: lint-backend
+lint-backend:
+	@echo "🔍 Running backend linting..."
+	cd backend && uv run ruff check && uv run ruff format
+
+.PHONY: check-all
+check-all:
+	@echo "🚀 Running all pre-release checks..."
+	@echo ""
+	@echo "1️⃣  Running backend linting..."
+	@make lint-backend
+	@echo ""
+	@echo "2️⃣  Running frontend linting..."
+	@make lint-frontend
+	@echo ""
+	@echo "3️⃣  Building frontend for production..."
+	@make build-frontend
+	@echo ""
+	@echo "✅ All pre-release checks completed successfully!"
 
 .PHONY: codegen
 codegen:

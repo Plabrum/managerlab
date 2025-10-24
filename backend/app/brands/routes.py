@@ -12,6 +12,8 @@ from app.brands.schemas import (
 from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
+from app.actions.registry import ActionRegistry
+from app.actions.enums import ActionGroupType
 
 # Register BrandObject and BrandContactObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -23,9 +25,16 @@ ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 
 
 @get("/{id:str}")
-async def get_brand(id: Sqid, transaction: AsyncSession) -> BrandSchema:
+async def get_brand(
+    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry
+) -> BrandSchema:
     """Get a brand by SQID."""
     brand = await get_or_404(transaction, Brand, id)
+
+    # Compute actions for this brand
+    action_group = action_registry.get_class(ActionGroupType.BrandActions)
+    actions = action_group.get_available_actions(obj=brand)
+
     return BrandSchema(
         id=brand.id,
         name=brand.name,
@@ -37,6 +46,7 @@ async def get_brand(id: Sqid, transaction: AsyncSession) -> BrandSchema:
         created_at=brand.created_at,
         updated_at=brand.updated_at,
         team_id=brand.team_id,
+        actions=actions,
     )
 
 
@@ -59,6 +69,7 @@ async def update_brand(
         created_at=brand.created_at,
         updated_at=brand.updated_at,
         team_id=brand.team_id,
+        actions=[],  # Update endpoints don't compute actions
     )
 
 

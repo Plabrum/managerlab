@@ -149,7 +149,7 @@ class CampaignObject(BaseObject):
             object_type=ObjectTypes.Campaigns,
             state="active",
             title=campaign.name,
-            fields=fields,
+            fields=[f for f in fields if f is not None],
             actions=actions,
             created_at=campaign.created_at,
             updated_at=campaign.updated_at,

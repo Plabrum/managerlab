@@ -1,4 +1,4 @@
-from litestar import Request, Router, post, delete
+from litestar import Request, Router, post, delete, get
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
@@ -6,14 +6,19 @@ from app.media.enums import MediaStates
 from app.media.models import Media
 from app.media.schemas import (
     MediaSchema,
+    MediaResponseSchema,
     PresignedUploadRequestSchema,
     PresignedUploadResponseSchema,
     RegisterMediaSchema,
+    media_to_response,
 )
 from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
+from app.utils.db import get_or_404
 from app.client.s3_client import S3Dep
 from litestar_saq import TaskQueues
+from app.actions.registry import ActionRegistry
+from app.actions.enums import ActionGroupType
 
 
 @post("/presigned-upload")
@@ -80,6 +85,23 @@ async def register_media(
     )
 
 
+@get("/{id:str}")
+async def get_media(
+    id: Sqid,
+    transaction: AsyncSession,
+    s3_client: S3Dep,
+    action_registry: ActionRegistry,
+) -> MediaResponseSchema:
+    """Get a media item by SQID."""
+    media = await get_or_404(transaction, Media, id)
+
+    # Compute actions for this media
+    action_group = action_registry.get_class(ActionGroupType.MediaActions)
+    actions = action_group.get_available_actions(obj=media)
+
+    return media_to_response(media, s3_client, actions)
+
+
 @delete("/{id:str}", status_code=200)
 async def delete_media(
     id: Sqid, transaction: AsyncSession, s3_client: S3Dep
@@ -108,6 +130,7 @@ media_router = Router(
     route_handlers=[
         request_presigned_upload,
         register_media,
+        get_media,
         delete_media,
     ],
     tags=["media"],

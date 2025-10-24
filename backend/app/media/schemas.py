@@ -2,6 +2,7 @@ from datetime import datetime
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 from app.media.models import Media
+from app.actions.schemas import ActionDTO
 
 
 class MediaSchema(BaseSchema):
@@ -32,14 +33,18 @@ class MediaResponseSchema(BaseSchema):
     updated_at: datetime
     view_url: str
     thumbnail_url: str | None
+    actions: list[ActionDTO]
 
 
-def media_to_response(media: Media, s3_client) -> MediaResponseSchema:
+def media_to_response(
+    media: Media, s3_client, actions: list[ActionDTO]
+) -> MediaResponseSchema:
     """Transform Media model to response schema with presigned URLs.
 
     Args:
         media: Media model instance
         s3_client: S3Client for generating presigned URLs
+        actions: List of available actions for this media
     """
     view_url = s3_client.generate_presigned_download_url(
         key=media.file_key, expires_in=3600
@@ -63,6 +68,7 @@ def media_to_response(media: Media, s3_client) -> MediaResponseSchema:
         updated_at=media.updated_at,
         view_url=view_url,
         thumbnail_url=thumbnail_url,
+        actions=actions,
     )
 
 

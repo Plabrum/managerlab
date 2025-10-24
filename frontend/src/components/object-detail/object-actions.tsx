@@ -8,25 +8,34 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
-import type { ActionData } from '@/components/header-provider';
+import type { ObjectActionData, TopLevelActionData } from '@/types/actions';
+import type { ActionDTO } from '@/openapi/managerLab.schemas';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
-interface ObjectActionsProps {
-  actionsData: ActionData;
-}
+type ObjectActionsProps = ObjectActionData | TopLevelActionData;
 
-export function ObjectActions({ actionsData }: ObjectActionsProps) {
-  const {
-    actions,
-    actionGroup,
-    objectId,
-    objectData,
-    onInvalidate,
-    onActionComplete,
-  } = actionsData;
+export function ObjectActions(props: ObjectActionsProps) {
+  // Type narrow to determine if this is object-level or top-level actions
+  const isObjectAction = 'data' in props;
+
+  const actionGroup = props.actionGroup;
+  const onActionComplete = props.onActionComplete;
+
+  // Extract appropriate values based on action type
+  const objectId = isObjectAction ? String(props.data.id) : undefined;
+  const actions = isObjectAction ? props.data.actions : (props.actions ?? []);
+  const objectData = isObjectAction ? props.data : undefined;
+
+  // Determine invalidation callback
+  const onInvalidate =
+    isObjectAction && props.onRefetch
+      ? () => props.onRefetch?.()
+      : !isObjectAction && props.onInvalidate
+        ? props.onInvalidate
+        : undefined;
 
   // Use the centralized registry
   const formRenderer = useActionFormRenderer(objectData);
@@ -42,7 +51,7 @@ export function ObjectActions({ actionsData }: ObjectActionsProps) {
   });
 
   const availableActions = actions.filter(
-    (action) => action.available !== false
+    (action: ActionDTO) => action.available !== false
   );
 
   if (availableActions.length === 0) {
@@ -51,7 +60,7 @@ export function ObjectActions({ actionsData }: ObjectActionsProps) {
 
   // Sort by priority and extract primary action
   const sortedActions = availableActions.sort(
-    (a, b) => (a.priority || 0) - (b.priority || 0)
+    (a: ActionDTO, b: ActionDTO) => (a.priority || 0) - (b.priority || 0)
   );
   const [primaryAction, ...remainingActions] = sortedActions;
 
@@ -76,7 +85,7 @@ export function ObjectActions({ actionsData }: ObjectActionsProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {remainingActions.map((action, index) => (
+              {remainingActions.map((action: ActionDTO, index: number) => (
                 <DropdownMenuItem
                   key={`${action.action}-${index}`}
                   onClick={() => executor.initiateAction(action)}

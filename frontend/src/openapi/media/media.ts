@@ -6,23 +6,37 @@
  * OpenAPI spec version: 0.0.1
  */
 import {
-  useMutation
+  useMutation,
+  useQuery,
+  useSuspenseQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   MediaIdDeleteMedia200,
   MediaIdDeleteMedia400,
+  MediaIdGetMedia400,
   MediaPresignedUploadRequestPresignedUpload400,
   MediaRegisterRegisterMedia400,
+  MediaResponseSchema,
+  MediaSchema,
   PresignedUploadRequestSchema,
   PresignedUploadResponseSchema,
-  RegisterMediaMediaResponseBody,
   RegisterMediaSchema
 } from '../managerLab.schemas';
 
@@ -104,7 +118,7 @@ export const mediaRegisterRegisterMedia = (
 ) => {
       
       
-      return customInstance<RegisterMediaMediaResponseBody>(
+      return customInstance<MediaSchema>(
       {url: `/media/register`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: registerMediaSchema, signal
@@ -160,6 +174,151 @@ export const useMediaRegisterRegisterMedia = <TError = MediaRegisterRegisterMedi
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * @summary GetMedia
+ */
+export const mediaIdGetMedia = (
+    id: unknown,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<MediaResponseSchema>(
+      {url: `/media/${id}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getMediaIdGetMediaQueryKey = (id?: unknown,) => {
+    return [
+    `/media/${id}`
+    ] as const;
+    }
+
+    
+export const getMediaIdGetMediaQueryOptions = <TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMediaIdGetMediaQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mediaIdGetMedia>>> = ({ signal }) => mediaIdGetMedia(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MediaIdGetMediaQueryResult = NonNullable<Awaited<ReturnType<typeof mediaIdGetMedia>>>
+export type MediaIdGetMediaQueryError = MediaIdGetMedia400
+
+
+export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaIdGetMedia>>,
+          TError,
+          Awaited<ReturnType<typeof mediaIdGetMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaIdGetMedia>>,
+          TError,
+          Awaited<ReturnType<typeof mediaIdGetMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GetMedia
+ */
+
+export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMediaIdGetMediaQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getMediaIdGetMediaSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMediaIdGetMediaQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mediaIdGetMedia>>> = ({ signal }) => mediaIdGetMedia(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MediaIdGetMediaSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mediaIdGetMedia>>>
+export type MediaIdGetMediaSuspenseQueryError = MediaIdGetMedia400
+
+
+export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GetMedia
+ */
+
+export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
+ id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMediaIdGetMediaSuspenseQueryOptions(id,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
  * @summary DeleteMedia
  */
 export const mediaIdDeleteMedia = (

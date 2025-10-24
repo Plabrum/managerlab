@@ -6,17 +6,7 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { SuspenseWrapper } from '@/components/suspense-wrapper';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb';
-import { BreadcrumbProvider } from '@/components/breadcrumb-provider';
-import { DynamicPageHeader } from '@/components/dynamic-page-header';
-import { HeaderProvider } from '@/components/header-provider';
-import { DynamicPageActions } from '@/components/dynamic-page-actions';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import {
   useUsersCurrentUserGetCurrentUser,
   useUsersTeamsListTeams,
@@ -103,40 +93,16 @@ export default function AuthenticatedLayout({
   // Normal layout with sidebar for users with teams
   return (
     <AuthProvider user={user} initialTeams={teams}>
-      <BreadcrumbProvider>
-        <HeaderProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
-                <div className="grid w-full grid-cols-3 items-center px-4">
-                  <div className="flex items-center justify-start gap-2">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator
-                      orientation="vertical"
-                      className="mr-2 data-[orientation=vertical]:h-4"
-                    />
-                    <DynamicBreadcrumb />
-                  </div>
-
-                  <div className="flex justify-center">
-                    <DynamicPageHeader />
-                  </div>
-
-                  <div className="flex justify-end">
-                    <DynamicPageActions />
-                  </div>
-                </div>
-              </header>
-              <main className="flex-1 p-6">
-                <ErrorBoundary>
-                  <SuspenseWrapper>{children}</SuspenseWrapper>
-                </ErrorBoundary>
-              </main>
-            </SidebarInset>
-          </SidebarProvider>
-        </HeaderProvider>
-      </BreadcrumbProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <main className="flex flex-1 flex-col">
+            <ErrorBoundary>
+              <SuspenseWrapper>{children}</SuspenseWrapper>
+            </ErrorBoundary>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
     </AuthProvider>
   );
 }

@@ -31,9 +31,11 @@ import type {
   GetTimeSeriesData400,
   ListObjects400,
   OObjectTypeIdGetObjectDetail400,
+  OObjectTypeSchemaGetObjectSchema400,
   ObjectDetailDTO,
   ObjectListRequest,
   ObjectListResponse,
+  ObjectSchemaResponse,
   ObjectTypes,
   TimeSeriesDataRequest,
   TimeSeriesDataResponse
@@ -191,6 +193,151 @@ export function useOObjectTypeIdGetObjectDetailSuspense<TData = Awaited<ReturnTy
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOObjectTypeIdGetObjectDetailSuspenseQueryOptions(objectType,id,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary GetObjectSchema
+ */
+export const oObjectTypeSchemaGetObjectSchema = (
+    objectType: ObjectTypes,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ObjectSchemaResponse>(
+      {url: `/o/${objectType}/schema`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getOObjectTypeSchemaGetObjectSchemaQueryKey = (objectType?: ObjectTypes,) => {
+    return [
+    `/o/${objectType}/schema`
+    ] as const;
+    }
+
+    
+export const getOObjectTypeSchemaGetObjectSchemaQueryOptions = <TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(objectType: ObjectTypes, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOObjectTypeSchemaGetObjectSchemaQueryKey(objectType);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>> = ({ signal }) => oObjectTypeSchemaGetObjectSchema(objectType, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(objectType), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OObjectTypeSchemaGetObjectSchemaQueryResult = NonNullable<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>>
+export type OObjectTypeSchemaGetObjectSchemaQueryError = OObjectTypeSchemaGetObjectSchema400
+
+
+export function useOObjectTypeSchemaGetObjectSchema<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>,
+          TError,
+          Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOObjectTypeSchemaGetObjectSchema<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>,
+          TError,
+          Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOObjectTypeSchemaGetObjectSchema<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GetObjectSchema
+ */
+
+export function useOObjectTypeSchemaGetObjectSchema<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOObjectTypeSchemaGetObjectSchemaQueryOptions(objectType,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getOObjectTypeSchemaGetObjectSchemaSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(objectType: ObjectTypes, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOObjectTypeSchemaGetObjectSchemaQueryKey(objectType);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>> = ({ signal }) => oObjectTypeSchemaGetObjectSchema(objectType, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OObjectTypeSchemaGetObjectSchemaSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>>
+export type OObjectTypeSchemaGetObjectSchemaSuspenseQueryError = OObjectTypeSchemaGetObjectSchema400
+
+
+export function useOObjectTypeSchemaGetObjectSchemaSuspense<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOObjectTypeSchemaGetObjectSchemaSuspense<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOObjectTypeSchemaGetObjectSchemaSuspense<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary GetObjectSchema
+ */
+
+export function useOObjectTypeSchemaGetObjectSchemaSuspense<TData = Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError = OObjectTypeSchemaGetObjectSchema400>(
+ objectType: ObjectTypes, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof oObjectTypeSchemaGetObjectSchema>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOObjectTypeSchemaGetObjectSchemaSuspenseQueryOptions(objectType,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

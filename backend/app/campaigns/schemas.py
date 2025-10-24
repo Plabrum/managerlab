@@ -2,6 +2,7 @@ from datetime import datetime
 from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure
 from app.utils.sqids import Sqid
+from app.actions.schemas import ActionDTO
 
 
 class CampaignSchema(BaseSchema):
@@ -17,6 +18,7 @@ class CampaignSchema(BaseSchema):
     created_at: datetime
     updated_at: datetime
     team_id: int | None
+    actions: list[ActionDTO]
 
 
 class CampaignUpdateSchema(BaseSchema):

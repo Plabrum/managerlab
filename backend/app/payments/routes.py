@@ -6,6 +6,8 @@ from app.payments.schemas import InvoiceSchema, InvoiceUpdateSchema
 from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
+from app.actions.registry import ActionRegistry
+from app.actions.enums import ActionGroupType
 
 # Register InvoiceObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -16,9 +18,16 @@ ObjectRegistry().register(ObjectTypes.Invoices, InvoiceObject)
 
 
 @get("/{id:str}")
-async def get_invoice(id: Sqid, transaction: AsyncSession) -> InvoiceSchema:
+async def get_invoice(
+    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry
+) -> InvoiceSchema:
     """Get an invoice by SQID."""
     invoice = await get_or_404(transaction, Invoice, id)
+
+    # Compute actions for this invoice
+    action_group = action_registry.get_class(ActionGroupType.InvoiceActions)
+    actions = action_group.get_available_actions(obj=invoice)
+
     return InvoiceSchema(
         id=invoice.id,
         invoice_number=invoice.invoice_number,
@@ -35,6 +44,7 @@ async def get_invoice(id: Sqid, transaction: AsyncSession) -> InvoiceSchema:
         updated_at=invoice.updated_at,
         campaign_id=invoice.campaign_id,
         team_id=invoice.team_id,
+        actions=actions,
     )
 
 
@@ -62,6 +72,7 @@ async def update_invoice(
         updated_at=invoice.updated_at,
         campaign_id=invoice.campaign_id,
         team_id=invoice.team_id,
+        actions=[],  # Update endpoints don't compute actions
     )
 
 

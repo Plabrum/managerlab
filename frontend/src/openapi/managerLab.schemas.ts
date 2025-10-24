@@ -58,23 +58,6 @@ export interface AddMediaToDeliverableSchema {
   media_ids: unknown[];
 }
 
-export type AddUserToWaitlistWaitlistEntryResponseBodyCompany = string | null;
-
-export type AddUserToWaitlistWaitlistEntryResponseBodyMessage = string | null;
-
-export type AddUserToWaitlistWaitlistEntryResponseBodyDeletedAt = string | null;
-
-export interface AddUserToWaitlistWaitlistEntryResponseBody {
-  name: string;
-  email: string;
-  company?: AddUserToWaitlistWaitlistEntryResponseBodyCompany;
-  message?: AddUserToWaitlistWaitlistEntryResponseBodyMessage;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: AddUserToWaitlistWaitlistEntryResponseBodyDeletedAt;
-}
-
 /**
  * Aggregation types for time series data.
  */
@@ -109,6 +92,28 @@ export interface BooleanFilterDefinition {
   column: string;
   value: boolean;
   type: 'boolean_filter';
+}
+
+export type BrandContactSchemaEmail = string | null;
+
+export type BrandContactSchemaPhone = string | null;
+
+export type BrandContactSchemaNotes = string | null;
+
+export type BrandContactSchemaTeamId = number | null;
+
+export interface BrandContactSchema {
+  id: unknown;
+  first_name: string;
+  last_name: string;
+  email?: BrandContactSchemaEmail;
+  phone?: BrandContactSchemaPhone;
+  notes?: BrandContactSchemaNotes;
+  brand_id: number;
+  created_at: string;
+  updated_at: string;
+  team_id?: BrandContactSchemaTeamId;
+  actions?: ActionDTO[];
 }
 
 export type BrandContactUpdateSchemaFirstName = string | null;
@@ -149,6 +154,32 @@ export interface BrandCreateSchema {
   email?: BrandCreateSchemaEmail;
   phone?: BrandCreateSchemaPhone;
   notes?: BrandCreateSchemaNotes;
+}
+
+export type BrandSchemaDescription = string | null;
+
+export type BrandSchemaWebsite = string | null;
+
+export type BrandSchemaEmail = string | null;
+
+export type BrandSchemaPhone = string | null;
+
+export type BrandSchemaNotes = string | null;
+
+export type BrandSchemaTeamId = number | null;
+
+export interface BrandSchema {
+  id: unknown;
+  name: string;
+  description?: BrandSchemaDescription;
+  website?: BrandSchemaWebsite;
+  email?: BrandSchemaEmail;
+  phone?: BrandSchemaPhone;
+  notes?: BrandSchemaNotes;
+  created_at: string;
+  updated_at: string;
+  team_id?: BrandSchemaTeamId;
+  actions: ActionDTO[];
 }
 
 export type BrandUpdateSchemaName = string | null;
@@ -195,6 +226,28 @@ export const CampaignGuestAccessLevel = {
   contributor: 'contributor',
 } as const;
 
+export type CampaignSchemaDescription = string | null;
+
+export type CampaignSchemaCompensationStructure = CompensationStructure | null;
+
+export type CampaignSchemaAssignedRosterId = number | null;
+
+export type CampaignSchemaTeamId = number | null;
+
+export interface CampaignSchema {
+  id: unknown;
+  name: string;
+  description?: CampaignSchemaDescription;
+  compensation_structure?: CampaignSchemaCompensationStructure;
+  assigned_roster_id?: CampaignSchemaAssignedRosterId;
+  brand_id: number;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  team_id?: CampaignSchemaTeamId;
+  actions: ActionDTO[];
+}
+
 export interface CampaignScopeSchema {
   campaign_id: number;
   campaign_name: string;
@@ -202,17 +255,6 @@ export interface CampaignScopeSchema {
   team_name: string;
   access_level: CampaignGuestAccessLevel;
 }
-
-export type CampaignStates = typeof CampaignStates[keyof typeof CampaignStates];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const CampaignStates = {
-  draft: 'draft',
-  active: 'active',
-  completed: 'completed',
-  cancelled: 'cancelled',
-} as const;
 
 export type CampaignUpdateSchemaName = string | null;
 
@@ -274,27 +316,6 @@ export interface CreateCampaignAction {
   action: 'top_level_campaign_actions__campaign_create';
 }
 
-export type CreateDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
-
-export type CreateDashboardDashboardResponseBodyUserId = number | null;
-
-export type CreateDashboardDashboardResponseBodyDeletedAt = string | null;
-
-export type CreateDashboardDashboardResponseBodyTeamId = number | null;
-
-export interface CreateDashboardDashboardResponseBody {
-  name: string;
-  config: CreateDashboardDashboardResponseBodyConfig;
-  owner_type: DashboardOwnerType;
-  user_id?: CreateDashboardDashboardResponseBodyUserId;
-  is_default: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: CreateDashboardDashboardResponseBodyDeletedAt;
-  team_id?: CreateDashboardDashboardResponseBodyTeamId;
-}
-
 export type CreateDashboardSchemaConfig = {[key: string]: unknown};
 
 export type CreateDashboardSchemaUserId = number | null;
@@ -337,35 +358,9 @@ export interface CreateTeamSchema {
   description?: CreateTeamSchemaDescription;
 }
 
-export type CreateTeamTeamResponseBodyDescription = string | null;
-
-export type CreateTeamTeamResponseBodyDeletedAt = string | null;
-
-export interface CreateTeamTeamResponseBody {
-  name: string;
-  description?: CreateTeamTeamResponseBodyDescription;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: CreateTeamTeamResponseBodyDeletedAt;
-}
-
 export interface CreateUserSchema {
   name: string;
   email: string;
-}
-
-export type CreateUserUserResponseBodyDeletedAt = string | null;
-
-export interface CreateUserUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: CreateUserUserResponseBodyDeletedAt;
-  state?: UserStates;
 }
 
 /**
@@ -379,6 +374,24 @@ export const DashboardOwnerType = {
   user: 'user',
   team: 'team',
 } as const;
+
+export type DashboardSchemaConfig = {[key: string]: unknown};
+
+export type DashboardSchemaUserId = number | null;
+
+export type DashboardSchemaTeamId = number | null;
+
+export interface DashboardSchema {
+  id: unknown;
+  name: string;
+  config: DashboardSchemaConfig;
+  owner_type: DashboardOwnerType;
+  user_id?: DashboardSchemaUserId;
+  team_id?: DashboardSchemaTeamId;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface DateFieldValue {
   value: string;
@@ -484,6 +497,7 @@ export interface DeliverableResponseSchema {
   updated_at: string;
   deliverable_media_associations: DeliverableMediaAssociationSchema[];
   assigned_roster?: DeliverableResponseSchemaAssignedRoster;
+  actions: ActionDTO[];
 }
 
 export type DeliverableUpdateSchemaTitle = string | null;
@@ -578,148 +592,6 @@ export interface FloatFieldValue {
   type: 'float';
 }
 
-export type GetBrandBrandResponseBodyDescription = string | null;
-
-export type GetBrandBrandResponseBodyWebsite = string | null;
-
-export type GetBrandBrandResponseBodyEmail = string | null;
-
-export type GetBrandBrandResponseBodyPhone = string | null;
-
-export type GetBrandBrandResponseBodyNotes = string | null;
-
-export type GetBrandBrandResponseBodyDeletedAt = string | null;
-
-export interface GetBrandBrandResponseBody {
-  name: string;
-  description?: GetBrandBrandResponseBodyDescription;
-  website?: GetBrandBrandResponseBodyWebsite;
-  email?: GetBrandBrandResponseBodyEmail;
-  phone?: GetBrandBrandResponseBodyPhone;
-  notes?: GetBrandBrandResponseBodyNotes;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetBrandBrandResponseBodyDeletedAt;
-  team_id: number;
-}
-
-export type GetBrandContactBrandContactResponseBodyEmail = string | null;
-
-export type GetBrandContactBrandContactResponseBodyPhone = string | null;
-
-export type GetBrandContactBrandContactResponseBodyNotes = string | null;
-
-export type GetBrandContactBrandContactResponseBodyDeletedAt = string | null;
-
-export interface GetBrandContactBrandContactResponseBody {
-  first_name: string;
-  last_name: string;
-  email?: GetBrandContactBrandContactResponseBodyEmail;
-  phone?: GetBrandContactBrandContactResponseBodyPhone;
-  notes?: GetBrandContactBrandContactResponseBodyNotes;
-  brand_id: number;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetBrandContactBrandContactResponseBodyDeletedAt;
-  team_id: number;
-}
-
-export type GetCampaignCampaignResponseBodyDescription = string | null;
-
-export type GetCampaignCampaignResponseBodyAssignedRosterId = number | null;
-
-export type GetCampaignCampaignResponseBodyDeletedAt = string | null;
-
-export interface GetCampaignCampaignResponseBody {
-  name: string;
-  description?: GetCampaignCampaignResponseBodyDescription;
-  compensation_structure?: CompensationStructure;
-  assigned_roster_id?: GetCampaignCampaignResponseBodyAssignedRosterId;
-  brand_id: number;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetCampaignCampaignResponseBodyDeletedAt;
-  state?: CampaignStates;
-  team_id: number;
-}
-
-export type GetCurrentUserUserResponseBodyDeletedAt = string | null;
-
-export interface GetCurrentUserUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetCurrentUserUserResponseBodyDeletedAt;
-  state?: UserStates;
-}
-
-export type GetDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
-
-export type GetDashboardDashboardResponseBodyUserId = number | null;
-
-export type GetDashboardDashboardResponseBodyDeletedAt = string | null;
-
-export type GetDashboardDashboardResponseBodyTeamId = number | null;
-
-export interface GetDashboardDashboardResponseBody {
-  name: string;
-  config: GetDashboardDashboardResponseBodyConfig;
-  owner_type: DashboardOwnerType;
-  user_id?: GetDashboardDashboardResponseBodyUserId;
-  is_default: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetDashboardDashboardResponseBodyDeletedAt;
-  team_id?: GetDashboardDashboardResponseBodyTeamId;
-}
-
-export type GetInvoiceInvoiceResponseBodyDescription = string | null;
-
-export type GetInvoiceInvoiceResponseBodyNotes = string | null;
-
-export type GetInvoiceInvoiceResponseBodyDeletedAt = string | null;
-
-export type GetInvoiceInvoiceResponseBodyCampaignId = number | null;
-
-export interface GetInvoiceInvoiceResponseBody {
-  invoice_number: number;
-  customer_name: string;
-  customer_email: string;
-  posting_date: string;
-  due_date: string;
-  amount_due: number;
-  amount_paid?: number;
-  description?: GetInvoiceInvoiceResponseBodyDescription;
-  notes?: GetInvoiceInvoiceResponseBodyNotes;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetInvoiceInvoiceResponseBodyDeletedAt;
-  state?: InvoiceStates;
-  team_id: number;
-  campaign_id?: GetInvoiceInvoiceResponseBodyCampaignId;
-}
-
-export type GetUserUserResponseBodyDeletedAt = string | null;
-
-export interface GetUserUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: GetUserUserResponseBodyDeletedAt;
-  state?: UserStates;
-}
-
 export type GoogleUserInfoResponseSchemaPicture = string | null;
 
 export interface GoogleUserInfoResponseSchema {
@@ -779,14 +651,32 @@ export interface InvoiceCreateSchema {
   campaign_id?: InvoiceCreateSchemaCampaignId;
 }
 
-export type InvoiceStates = typeof InvoiceStates[keyof typeof InvoiceStates];
+export type InvoiceSchemaDescription = string | null;
 
+export type InvoiceSchemaNotes = string | null;
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const InvoiceStates = {
-  draft: 'draft',
-  posted: 'posted',
-} as const;
+export type InvoiceSchemaCampaignId = number | null;
+
+export type InvoiceSchemaTeamId = number | null;
+
+export interface InvoiceSchema {
+  id: unknown;
+  invoice_number: number;
+  customer_name: string;
+  customer_email: string;
+  posting_date: string;
+  due_date: string;
+  amount_due: number;
+  amount_paid: number;
+  description?: InvoiceSchemaDescription;
+  notes?: InvoiceSchemaNotes;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  campaign_id?: InvoiceSchemaCampaignId;
+  team_id?: InvoiceSchemaTeamId;
+  actions: ActionDTO[];
+}
 
 export type InvoiceUpdateSchemaInvoiceNumber = number | null;
 
@@ -821,27 +711,6 @@ export interface InvoiceUpdateSchema {
   campaign_id?: InvoiceUpdateSchemaCampaignId;
 }
 
-export type ListDashboardsDashboardResponseBodyConfig = {[key: string]: unknown};
-
-export type ListDashboardsDashboardResponseBodyUserId = number | null;
-
-export type ListDashboardsDashboardResponseBodyDeletedAt = string | null;
-
-export type ListDashboardsDashboardResponseBodyTeamId = number | null;
-
-export interface ListDashboardsDashboardResponseBody {
-  name: string;
-  config: ListDashboardsDashboardResponseBodyConfig;
-  owner_type: DashboardOwnerType;
-  user_id?: ListDashboardsDashboardResponseBodyUserId;
-  is_default: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: ListDashboardsDashboardResponseBodyDeletedAt;
-  team_id?: ListDashboardsDashboardResponseBodyTeamId;
-}
-
 export type ListScopesResponseCurrentScopeType = string | null;
 
 export type ListScopesResponseCurrentScopeId = number | null;
@@ -861,19 +730,6 @@ export interface ListTeamsResponse {
   is_campaign_scoped: boolean;
 }
 
-export type ListUsersUserResponseBodyDeletedAt = string | null;
-
-export interface ListUsersUserResponseBody {
-  name: string;
-  email: string;
-  email_verified?: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: ListUsersUserResponseBodyDeletedAt;
-  state?: UserStates;
-}
-
 export type MediaResponseSchemaThumbnailUrl = string | null;
 
 export interface MediaResponseSchema {
@@ -887,21 +743,25 @@ export interface MediaResponseSchema {
   updated_at: string;
   view_url: string;
   thumbnail_url?: MediaResponseSchemaThumbnailUrl;
+  actions: ActionDTO[];
 }
 
-/**
- * Media processing states.
- */
-export type MediaStates = typeof MediaStates[keyof typeof MediaStates];
+export type MediaSchemaTeamId = number | null;
 
+export type MediaSchemaCampaignId = number | null;
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MediaStates = {
-  pending: 'pending',
-  processing: 'processing',
-  ready: 'ready',
-  failed: 'failed',
-} as const;
+export interface MediaSchema {
+  id: unknown;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  team_id?: MediaSchemaTeamId;
+  campaign_id?: MediaSchemaCampaignId;
+}
 
 export type MediaUpdateSchemaFileName = string | null;
 
@@ -926,7 +786,7 @@ export interface MessageSchema {
   content: string;
   created_at: string;
   updated_at: string;
-  user: UserSchema;
+  user: ThreadsSchemasUserSchema;
 }
 
 export interface MessageUpdateSchema {
@@ -1018,6 +878,10 @@ export interface ObjectRelationGroup {
   objects: ObjectListDTO[];
 }
 
+export interface ObjectSchemaResponse {
+  columns: ColumnDefinitionDTO[];
+}
+
 export type ObjectTypes = typeof ObjectTypes[keyof typeof ObjectTypes];
 
 
@@ -1059,24 +923,6 @@ export interface RangeFilterDefinition {
   start?: RangeFilterDefinitionStart;
   finish?: RangeFilterDefinitionFinish;
   type: 'range_filter';
-}
-
-export type RegisterMediaMediaResponseBodyDeletedAt = string | null;
-
-export type RegisterMediaMediaResponseBodyCampaignId = number | null;
-
-export interface RegisterMediaMediaResponseBody {
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  mime_type: string;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: RegisterMediaMediaResponseBodyDeletedAt;
-  state?: MediaStates;
-  team_id: number;
-  campaign_id?: RegisterMediaMediaResponseBodyCampaignId;
 }
 
 export interface RegisterMediaSchema {
@@ -1234,6 +1080,16 @@ export interface TeamListItemSchema {
   actions?: ActionDTO[];
 }
 
+export type TeamSchemaDescription = string | null;
+
+export interface TeamSchema {
+  id: unknown;
+  name: string;
+  description?: TeamSchemaDescription;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TeamScopeSchema {
   team_id: number;
   team_name: string;
@@ -1332,103 +1188,14 @@ export interface USDFieldValue {
   type: 'usd';
 }
 
-export type UpdateBrandBrandResponseBodyDescription = string | null;
-
-export type UpdateBrandBrandResponseBodyWebsite = string | null;
-
-export type UpdateBrandBrandResponseBodyEmail = string | null;
-
-export type UpdateBrandBrandResponseBodyPhone = string | null;
-
-export type UpdateBrandBrandResponseBodyNotes = string | null;
-
-export type UpdateBrandBrandResponseBodyDeletedAt = string | null;
-
-export interface UpdateBrandBrandResponseBody {
-  name: string;
-  description?: UpdateBrandBrandResponseBodyDescription;
-  website?: UpdateBrandBrandResponseBodyWebsite;
-  email?: UpdateBrandBrandResponseBodyEmail;
-  phone?: UpdateBrandBrandResponseBodyPhone;
-  notes?: UpdateBrandBrandResponseBodyNotes;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdateBrandBrandResponseBodyDeletedAt;
-  team_id: number;
-}
-
-export type UpdateBrandContactBrandContactResponseBodyEmail = string | null;
-
-export type UpdateBrandContactBrandContactResponseBodyPhone = string | null;
-
-export type UpdateBrandContactBrandContactResponseBodyNotes = string | null;
-
-export type UpdateBrandContactBrandContactResponseBodyDeletedAt = string | null;
-
-export interface UpdateBrandContactBrandContactResponseBody {
-  first_name: string;
-  last_name: string;
-  email?: UpdateBrandContactBrandContactResponseBodyEmail;
-  phone?: UpdateBrandContactBrandContactResponseBodyPhone;
-  notes?: UpdateBrandContactBrandContactResponseBodyNotes;
-  brand_id: number;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdateBrandContactBrandContactResponseBodyDeletedAt;
-  team_id: number;
-}
-
 export interface UpdateCampaignAction {
   data: CampaignUpdateSchema;
   action: 'campaign_actions__campaign_update';
 }
 
-export type UpdateCampaignCampaignResponseBodyDescription = string | null;
-
-export type UpdateCampaignCampaignResponseBodyAssignedRosterId = number | null;
-
-export type UpdateCampaignCampaignResponseBodyDeletedAt = string | null;
-
-export interface UpdateCampaignCampaignResponseBody {
-  name: string;
-  description?: UpdateCampaignCampaignResponseBodyDescription;
-  compensation_structure?: CompensationStructure;
-  assigned_roster_id?: UpdateCampaignCampaignResponseBodyAssignedRosterId;
-  brand_id: number;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdateCampaignCampaignResponseBodyDeletedAt;
-  state?: CampaignStates;
-  team_id: number;
-}
-
 export interface UpdateDashboardAction {
   data: UpdateDashboardSchema;
   action: 'dashboard_actions__update';
-}
-
-export type UpdateDashboardDashboardResponseBodyConfig = {[key: string]: unknown};
-
-export type UpdateDashboardDashboardResponseBodyUserId = number | null;
-
-export type UpdateDashboardDashboardResponseBodyDeletedAt = string | null;
-
-export type UpdateDashboardDashboardResponseBodyTeamId = number | null;
-
-export interface UpdateDashboardDashboardResponseBody {
-  name: string;
-  config: UpdateDashboardDashboardResponseBodyConfig;
-  owner_type: DashboardOwnerType;
-  user_id?: UpdateDashboardDashboardResponseBodyUserId;
-  is_default: boolean;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdateDashboardDashboardResponseBodyDeletedAt;
-  team_id?: UpdateDashboardDashboardResponseBodyTeamId;
 }
 
 export type UpdateDashboardSchemaName = string | null;
@@ -1450,33 +1217,6 @@ export interface UpdateInvoiceAction {
   action: 'invoice_actions__invoice_update';
 }
 
-export type UpdateInvoiceInvoiceResponseBodyDescription = string | null;
-
-export type UpdateInvoiceInvoiceResponseBodyNotes = string | null;
-
-export type UpdateInvoiceInvoiceResponseBodyDeletedAt = string | null;
-
-export type UpdateInvoiceInvoiceResponseBodyCampaignId = number | null;
-
-export interface UpdateInvoiceInvoiceResponseBody {
-  invoice_number: number;
-  customer_name: string;
-  customer_email: string;
-  posting_date: string;
-  due_date: string;
-  amount_due: number;
-  amount_paid?: number;
-  description?: UpdateInvoiceInvoiceResponseBodyDescription;
-  notes?: UpdateInvoiceInvoiceResponseBodyNotes;
-  id: unknown;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: UpdateInvoiceInvoiceResponseBodyDeletedAt;
-  state?: InvoiceStates;
-  team_id: number;
-  campaign_id?: UpdateInvoiceInvoiceResponseBodyCampaignId;
-}
-
 export interface UpdateMediaAction {
   data: MediaUpdateSchema;
   action: 'media_actions__media_update';
@@ -1487,22 +1227,6 @@ export interface UpdateMessageAction {
   action: 'message_actions__update';
 }
 
-export interface UserSchema {
-  id: unknown;
-  email: string;
-  name: string;
-}
-
-export type UserStates = typeof UserStates[keyof typeof UserStates];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const UserStates = {
-  needs_team: 'needs_team',
-  active: 'active',
-  deleted: 'deleted',
-} as const;
-
 export type UserWaitlistFormSchemaCompany = string | null;
 
 export type UserWaitlistFormSchemaMessage = string | null;
@@ -1512,6 +1236,36 @@ export interface UserWaitlistFormSchema {
   email: string;
   company?: UserWaitlistFormSchemaCompany;
   message?: UserWaitlistFormSchemaMessage;
+}
+
+export type WaitlistEntrySchemaCompany = string | null;
+
+export type WaitlistEntrySchemaMessage = string | null;
+
+export interface WaitlistEntrySchema {
+  id: unknown;
+  name: string;
+  email: string;
+  company?: WaitlistEntrySchemaCompany;
+  message?: WaitlistEntrySchemaMessage;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ThreadsSchemasUserSchema {
+  id: unknown;
+  email: string;
+  name: string;
+}
+
+export interface UsersSchemasUserSchema {
+  id: unknown;
+  name: string;
+  email: string;
+  email_verified: boolean;
+  state: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type HealthHealthCheck200 = { [key: string]: unknown };
@@ -1632,6 +1386,19 @@ export type OObjectTypeIdGetObjectDetail400 = {
   status_code: number;
   detail: string;
   extra?: OObjectTypeIdGetObjectDetail400Extra;
+};
+
+export type OObjectTypeSchemaGetObjectSchema400ExtraAnyOf = {[key: string]: unknown};
+
+export type OObjectTypeSchemaGetObjectSchema400Extra = null | OObjectTypeSchemaGetObjectSchema400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type OObjectTypeSchemaGetObjectSchema400 = {
+  status_code: number;
+  detail: string;
+  extra?: OObjectTypeSchemaGetObjectSchema400Extra;
 };
 
 export type ListObjects400ExtraAnyOf = {[key: string]: unknown};
@@ -1844,6 +1611,19 @@ export type MediaRegisterRegisterMedia400 = {
   status_code: number;
   detail: string;
   extra?: MediaRegisterRegisterMedia400Extra;
+};
+
+export type MediaIdGetMedia400ExtraAnyOf = {[key: string]: unknown};
+
+export type MediaIdGetMedia400Extra = null | MediaIdGetMedia400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type MediaIdGetMedia400 = {
+  status_code: number;
+  detail: string;
+  extra?: MediaIdGetMedia400Extra;
 };
 
 export type MediaIdDeleteMedia200 = {[key: string]: string};

@@ -7,6 +7,9 @@ from app.deliverables.enums import SocialMediaPlatforms
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.media.schemas import MediaResponseSchema, media_to_response
 from app.users.models import Roster
+from app.actions.schemas import ActionDTO
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 
 
 # Response Schemas
@@ -51,6 +54,9 @@ class DeliverableResponseSchema(BaseSchema):
     deliverable_media_associations: list[DeliverableMediaAssociationSchema]
     assigned_roster: RosterInDeliverableSchema | None
 
+    # Actions
+    actions: list[ActionDTO]
+
 
 # Transformer functions
 def deliverable_media_to_schema(
@@ -62,10 +68,14 @@ def deliverable_media_to_schema(
         dm: DeliverableMedia association instance
         s3_client: S3Client for generating presigned URLs
     """
+    # Get media actions for nested media in deliverable context
+    action_group = ActionRegistry().get_class(ActionGroupType.MediaActions)
+    media_actions = action_group.get_available_actions(obj=dm.media)
+
     return DeliverableMediaAssociationSchema(
         approved_at=dm.approved_at,
         is_featured=dm.is_featured,
-        media=media_to_response(dm.media, s3_client),
+        media=media_to_response(dm.media, s3_client, media_actions),
         created_at=dm.created_at,
         updated_at=dm.updated_at,
     )
@@ -94,6 +104,10 @@ def deliverable_to_response(
         deliverable: Deliverable model instance
         s3_client: S3Client for generating presigned URLs
     """
+    # Compute available actions for this deliverable
+    action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
+    actions = action_group.get_available_actions(obj=deliverable)
+
     return DeliverableResponseSchema(
         id=deliverable.id,  # Already a Sqid from the model
         title=deliverable.title,
@@ -114,6 +128,7 @@ def deliverable_to_response(
             if deliverable.assigned_roster
             else None
         ),
+        actions=actions,
     )
 
 

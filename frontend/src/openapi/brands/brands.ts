@@ -28,16 +28,14 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  BrandContactSchema,
   BrandContactUpdateSchema,
+  BrandSchema,
   BrandUpdateSchema,
   BrandsContactsIdGetBrandContact400,
   BrandsContactsIdUpdateBrandContact400,
   BrandsIdGetBrand400,
-  BrandsIdUpdateBrand400,
-  GetBrandBrandResponseBody,
-  GetBrandContactBrandContactResponseBody,
-  UpdateBrandBrandResponseBody,
-  UpdateBrandContactBrandContactResponseBody
+  BrandsIdUpdateBrand400
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -54,7 +52,7 @@ export const brandsIdGetBrand = (
 ) => {
       
       
-      return customInstance<GetBrandBrandResponseBody>(
+      return customInstance<BrandSchema>(
       {url: `/brands/${id}`, method: 'GET', signal
     },
       );
@@ -200,7 +198,7 @@ export const brandsIdUpdateBrand = (
 ) => {
       
       
-      return customInstance<UpdateBrandBrandResponseBody>(
+      return customInstance<BrandSchema>(
       {url: `/brands/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: brandUpdateSchema, signal
@@ -264,7 +262,7 @@ export const brandsContactsIdGetBrandContact = (
 ) => {
       
       
-      return customInstance<GetBrandContactBrandContactResponseBody>(
+      return customInstance<BrandContactSchema>(
       {url: `/brands/contacts/${id}`, method: 'GET', signal
     },
       );
@@ -410,7 +408,7 @@ export const brandsContactsIdUpdateBrandContact = (
 ) => {
       
       
-      return customInstance<UpdateBrandContactBrandContactResponseBody>(
+      return customInstance<BrandContactSchema>(
       {url: `/brands/contacts/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: brandContactUpdateSchema, signal

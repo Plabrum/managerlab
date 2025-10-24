@@ -9,6 +9,7 @@ from app.objects.schemas import (
     ObjectDetailDTO,
     ObjectListRequest,
     ObjectListResponse,
+    ObjectSchemaResponse,
     TimeSeriesDataRequest,
     TimeSeriesDataResponse,
     NumericalDataPoint,
@@ -38,6 +39,16 @@ async def get_object_detail(
     # id is already decoded from SQID string to int by msgspec
     obj: BaseDBModel = await object_service.get_by_id(transaction, id)
     return object_service.to_detail_dto(obj)
+
+
+@get("/{object_type:str}/schema")
+async def get_object_schema(
+    object_type: ObjectTypes,
+    object_registry: ObjectRegistry,
+) -> ObjectSchemaResponse:
+    """Get schema metadata for an object type (column definitions)."""
+    object_service = object_registry.get_class(object_type)
+    return ObjectSchemaResponse(columns=object_service.column_definitions)
 
 
 @post("/{object_type:str}", operation_id="list_objects")
@@ -148,6 +159,7 @@ object_router = Router(
     path="/o",
     route_handlers=[
         get_object_detail,
+        get_object_schema,
         list_objects,
         get_time_series_data,
     ],
