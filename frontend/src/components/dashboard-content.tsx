@@ -26,7 +26,7 @@ import {
   dashboardsIdGetDashboard,
 } from '@/openapi/dashboards/dashboards';
 import type { DashboardConfig, WidgetConfig } from '@/types/dashboard';
-import type { ListDashboardsDashboardResponseBody } from '@/openapi/managerLab.schemas';
+import type { DashboardSchema } from '@/openapi/managerLab.schemas';
 import { toast } from 'sonner';
 import { PageTopBar } from '@/components/page-topbar';
 
@@ -35,8 +35,7 @@ interface DashboardContentProps {
 }
 
 export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
-  const [dashboard, setDashboard] =
-    useState<ListDashboardsDashboardResponseBody | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardSchema | null>(null);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingWidget, setEditingWidget] = useState<WidgetConfig | null>(null);
