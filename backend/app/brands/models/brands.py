@@ -6,13 +6,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.base.threadable_mixin import ThreadableMixin
 
 if TYPE_CHECKING:
     from app.campaigns.models import Campaign
     from app.brands.models.contacts import BrandContact
 
 
-class Brand(RLSMixin(), BaseDBModel):
+class Brand(ThreadableMixin, RLSMixin(), BaseDBModel):
     """Brand object model."""
 
     __tablename__ = "brands"

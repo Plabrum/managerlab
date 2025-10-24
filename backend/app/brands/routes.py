@@ -14,6 +14,7 @@ from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 from app.actions.registry import ActionRegistry
 from app.actions.enums import ActionGroupType
+from app.threads.models import Thread
 
 # Register BrandObject and BrandContactObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -26,14 +27,29 @@ ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 
 @get("/{id:str}")
 async def get_brand(
-    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry
+    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry, user_id: int
 ) -> BrandSchema:
     """Get a brand by SQID."""
-    brand = await get_or_404(transaction, Brand, id)
+    from sqlalchemy.orm import joinedload, selectinload
+
+    brand = await get_or_404(
+        transaction,
+        Brand,
+        id,
+        load_options=[
+            joinedload(Brand.thread).options(
+                selectinload(Thread.messages),
+                selectinload(Thread.read_statuses),
+            )
+        ],
+    )
 
     # Compute actions for this brand
     action_group = action_registry.get_class(ActionGroupType.BrandActions)
     actions = action_group.get_available_actions(obj=brand)
+
+    # Convert thread to unread info using the mixin method
+    thread_info = brand.get_thread_unread_info(user_id)
 
     return BrandSchema(
         id=brand.id,
@@ -47,6 +63,7 @@ async def get_brand(
         updated_at=brand.updated_at,
         team_id=brand.team_id,
         actions=actions,
+        thread=thread_info,
     )
 
 

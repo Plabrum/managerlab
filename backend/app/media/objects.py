@@ -169,6 +169,7 @@ class MediaObject(BaseObject):
             actions=actions,
             created_at=object.created_at,
             updated_at=object.updated_at,
+            thread_id=object.thread.id if object.thread else None,
         )
 
     @classmethod
@@ -240,4 +241,5 @@ class MediaObject(BaseObject):
             created_at=object.created_at,
             updated_at=object.updated_at,
             fields=fields,
+            thread_id=object.thread.id if object.thread else None,
         )

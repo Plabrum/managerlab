@@ -93,7 +93,11 @@ async def get_media(
     action_registry: ActionRegistry,
 ) -> MediaResponseSchema:
     """Get a media item by SQID."""
-    media = await get_or_404(transaction, Media, id)
+    from sqlalchemy.orm import joinedload
+
+    media = await get_or_404(
+        transaction, Media, id, load_options=[joinedload(Media.thread)]
+    )
 
     # Compute actions for this media
     action_group = action_registry.get_class(ActionGroupType.MediaActions)

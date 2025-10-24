@@ -16,6 +16,7 @@ from app.objects.enums import (
     RelationCardinality,
 )
 from app.actions.schemas import ActionDTO
+from app.utils.sqids import Sqid
 
 
 class TextFilterDefinition(BaseSchema, tag=FilterType.text_filter.value):
@@ -213,6 +214,7 @@ class ObjectDetailDTO(BaseSchema):
     created_at: datetime
     updated_at: datetime
     relations: List[ObjectRelationGroup] = []
+    thread_id: Sqid | None = None
 
 
 class ObjectListDTO(BaseSchema):
@@ -228,6 +230,7 @@ class ObjectListDTO(BaseSchema):
     actions: List[ActionDTO] = []
     fields: List[ObjectFieldDTO] = []
     link: Optional[str] = None
+    thread_id: Sqid | None = None
 
     def __post_init__(self) -> None:
         self.link = f"{self.object_type}/{self.id}"

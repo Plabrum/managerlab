@@ -168,6 +168,8 @@ export type BrandSchemaNotes = string | null;
 
 export type BrandSchemaTeamId = number | null;
 
+export type BrandSchemaThread = ThreadUnreadInfo | null;
+
 export interface BrandSchema {
   id: unknown;
   name: string;
@@ -180,6 +182,7 @@ export interface BrandSchema {
   updated_at: string;
   team_id?: BrandSchemaTeamId;
   actions: ActionDTO[];
+  thread?: BrandSchemaThread;
 }
 
 export type BrandUpdateSchemaName = string | null;
@@ -285,39 +288,7 @@ export type CampaignSchemaAssignedRosterId = number | null;
 
 export type CampaignSchemaTeamId = number | null;
 
-export type CampaignSchemaCounterpartyType = CounterpartyType | null;
-
-export type CampaignSchemaCounterpartyName = string | null;
-
-export type CampaignSchemaCounterpartyEmail = string | null;
-
-export type CampaignSchemaCompensationTotalUsd = number | null;
-
-export type CampaignSchemaPaymentTermsDays = number | null;
-
-export type CampaignSchemaFlightStartDate = string | null;
-
-export type CampaignSchemaFlightEndDate = string | null;
-
-export type CampaignSchemaFtcString = string | null;
-
-export type CampaignSchemaUsageDuration = string | null;
-
-export type CampaignSchemaUsageTerritory = string | null;
-
-export type CampaignSchemaUsagePaidMediaOption = boolean | null;
-
-export type CampaignSchemaExclusivityCategory = string | null;
-
-export type CampaignSchemaExclusivityDaysBefore = number | null;
-
-export type CampaignSchemaExclusivityDaysAfter = number | null;
-
-export type CampaignSchemaOwnershipMode = OwnershipMode | null;
-
-export type CampaignSchemaApprovalRounds = number | null;
-
-export type CampaignSchemaApprovalSlaHours = number | null;
+export type CampaignSchemaThread = ThreadUnreadInfo | null;
 
 export interface CampaignSchema {
   id: unknown;
@@ -348,6 +319,7 @@ export interface CampaignSchema {
   ownership_mode?: CampaignSchemaOwnershipMode;
   approval_rounds?: CampaignSchemaApprovalRounds;
   approval_sla_hours?: CampaignSchemaApprovalSlaHours;
+  thread?: CampaignSchemaThread;
 }
 
 export interface CampaignScopeSchema {
@@ -696,6 +668,8 @@ export type DeliverableResponseSchemaCampaignId = number | null;
 
 export type DeliverableResponseSchemaAssignedRoster = RosterInDeliverableSchema | null;
 
+export type DeliverableResponseSchemaThread = ThreadUnreadInfo | null;
+
 export interface DeliverableResponseSchema {
   id: unknown;
   title: string;
@@ -719,6 +693,7 @@ export interface DeliverableResponseSchema {
   deliverable_media_associations: DeliverableMediaAssociationSchema[];
   assigned_roster?: DeliverableResponseSchemaAssignedRoster;
   actions: ActionDTO[];
+  thread?: DeliverableResponseSchemaThread;
 }
 
 /**
@@ -932,6 +907,8 @@ export type InvoiceSchemaCampaignId = number | null;
 
 export type InvoiceSchemaTeamId = number | null;
 
+export type InvoiceSchemaThread = ThreadUnreadInfo | null;
+
 export interface InvoiceSchema {
   id: unknown;
   invoice_number: number;
@@ -949,6 +926,7 @@ export interface InvoiceSchema {
   campaign_id?: InvoiceSchemaCampaignId;
   team_id?: InvoiceSchemaTeamId;
   actions: ActionDTO[];
+  thread?: InvoiceSchemaThread;
 }
 
 export type InvoiceUpdateSchemaInvoiceNumber = number | null;
@@ -1005,6 +983,8 @@ export interface ListTeamsResponse {
 
 export type MediaResponseSchemaThumbnailUrl = string | null;
 
+export type MediaResponseSchemaThread = ThreadUnreadInfo | null;
+
 export interface MediaResponseSchema {
   id: unknown;
   file_name: string;
@@ -1017,6 +997,7 @@ export interface MediaResponseSchema {
   view_url: string;
   thumbnail_url?: MediaResponseSchemaThumbnailUrl;
   actions: ActionDTO[];
+  thread?: MediaResponseSchemaThread;
 }
 
 export type MediaSchemaTeamId = number | null;
@@ -1079,6 +1060,8 @@ export interface NumericalTimeSeriesData {
   type: 'numerical';
 }
 
+export type ObjectDetailDTOThreadId = unknown | null;
+
 export interface ObjectDetailDTO {
   id: string;
   object_type: ObjectTypes;
@@ -1089,6 +1072,7 @@ export interface ObjectDetailDTO {
   created_at: string;
   updated_at: string;
   relations?: ObjectRelationGroup[];
+  thread_id?: ObjectDetailDTOThreadId;
 }
 
 export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
@@ -1106,6 +1090,8 @@ export type ObjectListDTOSubtitle = string | null;
 
 export type ObjectListDTOLink = string | null;
 
+export type ObjectListDTOThreadId = unknown | null;
+
 export interface ObjectListDTO {
   id: string;
   object_type: ObjectTypes;
@@ -1117,6 +1103,7 @@ export interface ObjectListDTO {
   actions?: ActionDTO[];
   fields?: ObjectFieldDTO[];
   link?: ObjectListDTOLink;
+  thread_id?: ObjectListDTOThreadId;
 }
 
 export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition;

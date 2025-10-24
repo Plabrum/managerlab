@@ -2,6 +2,7 @@ from datetime import datetime
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 from app.actions.schemas import ActionDTO
+from app.threads.schemas import ThreadUnreadInfo
 
 
 class BrandSchema(BaseSchema):
@@ -18,6 +19,7 @@ class BrandSchema(BaseSchema):
     updated_at: datetime
     team_id: int | None
     actions: list[ActionDTO]
+    thread: ThreadUnreadInfo | None = None
 
 
 class BrandUpdateSchema(BaseSchema):

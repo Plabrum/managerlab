@@ -6,6 +6,9 @@ import { CampaignFields } from '@/components/campaign-detail';
 import { useCampaignsIdGetCampaignSuspense } from '@/openapi/campaigns/campaigns';
 import { PageTopBar } from '@/components/page-topbar';
 import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import { ChatButton } from '@/components/chat-button';
+import { ChatDrawer } from '@/components/chat-drawer';
+import { useAuth } from '@/components/providers/auth-provider';
 
 export default function CampaignDetailPage({
   params,
@@ -13,28 +16,54 @@ export default function CampaignDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { user } = useAuth();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const { data, refetch } = useCampaignsIdGetCampaignSuspense(id, {});
 
+  // Note: ObjectDetailDTO has thread_id but doesn't include unread count
+  // We'll show the chat button but without unread count for now
+  const unreadCount = 0; // TODO: Fetch unread count separately if needed
+
   return (
-    <PageTopBar
-      title={data.name}
-      state={data.state}
-      actions={
-        <ObjectActions
-          data={data}
-          actionGroup={ActionGroupType.campaign_actions}
-          onRefetch={refetch}
-        />
-      }
-    >
-      <div className="space-y-6">
-        {/* Two Column Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left Column - Fields */}
-          <CampaignFields campaign={data} />
+    <>
+      <PageTopBar
+        title={data.title}
+        state={data.state}
+        chatButton={
+          <ChatButton
+            unreadCount={unreadCount}
+            onClick={() => setIsChatOpen(true)}
+          />
+        }
+        actions={
+          <ObjectActions
+            data={data}
+            actionGroup={ActionGroupType.campaign_actions}
+            onRefetch={refetch}
+          />
+        }
+      >
+        <div className="space-y-6">
+          {/* Two Column Grid */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Left Column - Fields */}
+            <ObjectFields fields={data.fields} />
+          </div>
+
+          {/* Relations */}
+          <ObjectRelations relations={data.relations || []} />
         </div>
-      </div>
-    </PageTopBar>
+      </PageTopBar>
+
+      <ChatDrawer
+        open={isChatOpen}
+        onOpenChange={setIsChatOpen}
+        threadableType="campaigns"
+        threadableId={parseInt(id, 10)}
+        currentUserId={user.id as string}
+        title={`Chat - ${data.title}`}
+      />
+    </>
   );
 }

@@ -46,6 +46,7 @@ class DeliverableObject(BaseObject):
             joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
             selectinload(Deliverable.media),
             selectinload(Deliverable.assigned_roster),
+            joinedload(Deliverable.thread),
         ]
 
     column_definitions = [
@@ -213,6 +214,7 @@ class DeliverableObject(BaseObject):
             created_at=deliverable.created_at,
             updated_at=deliverable.updated_at,
             relations=relations,
+            thread_id=deliverable.thread.id if deliverable.thread else None,
         )
 
     @classmethod
@@ -275,6 +277,7 @@ class DeliverableObject(BaseObject):
             created_at=deliverable.created_at,
             updated_at=deliverable.updated_at,
             fields=fields,
+            thread_id=deliverable.thread.id if deliverable.thread else None,
         )
 
     @classmethod

@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure, CounterpartyType, OwnershipMode
+from app.threads.schemas import ThreadUnreadInfo
 from app.utils.sqids import Sqid
 from app.actions.schemas import ActionDTO
 
@@ -19,37 +20,38 @@ class CampaignSchema(BaseSchema):
     updated_at: datetime
     team_id: int | None
     actions: list[ActionDTO]
+    thread: ThreadUnreadInfo | None = None
 
     # Counterparty
-    counterparty_type: CounterpartyType | None
-    counterparty_name: str | None
-    counterparty_email: str | None
+    counterparty_type: CounterpartyType | None = None
+    counterparty_name: str | None = None
+    counterparty_email: str | None = None
 
     # Compensation
-    compensation_total_usd: float | None
-    payment_terms_days: int | None
+    compensation_total_usd: float | None = None
+    payment_terms_days: int | None = None
 
     # Flight dates
-    flight_start_date: date | None
-    flight_end_date: date | None
+    flight_start_date: date | None = None
+    flight_end_date: date | None = None
 
     # FTC & Usage
-    ftc_string: str | None
-    usage_duration: str | None
-    usage_territory: str | None
-    usage_paid_media_option: bool | None
+    ftc_string: str | None = None
+    usage_duration: str | None = None
+    usage_territory: str | None = None
+    usage_paid_media_option: bool | None = None
 
     # Exclusivity
-    exclusivity_category: str | None
-    exclusivity_days_before: int | None
-    exclusivity_days_after: int | None
+    exclusivity_category: str | None = None
+    exclusivity_days_before: int | None = None
+    exclusivity_days_after: int | None = None
 
     # Ownership
-    ownership_mode: OwnershipMode | None
+    ownership_mode: OwnershipMode | None = None
 
     # Approval
-    approval_rounds: int | None
-    approval_sla_hours: int | None
+    approval_rounds: int | None = None
+    approval_sla_hours: int | None = None
 
 
 class CampaignUpdateSchema(BaseSchema):

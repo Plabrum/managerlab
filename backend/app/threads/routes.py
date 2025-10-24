@@ -90,6 +90,7 @@ async def create_message(
             "type": "new_message",
             "thread_id": thread.id,
             "user_id": user_id,
+            "message_id": message.id,
         },
     )
 

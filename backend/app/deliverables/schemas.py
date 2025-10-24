@@ -10,6 +10,7 @@ from app.roster.models import Roster
 from app.actions.schemas import ActionDTO
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
+from app.threads.schemas import ThreadUnreadInfo
 
 
 # Response Schemas
@@ -71,6 +72,9 @@ class DeliverableResponseSchema(BaseSchema):
     # Actions
     actions: list[ActionDTO]
 
+    # Thread
+    thread: ThreadUnreadInfo | None = None
+
 
 # Transformer functions
 def deliverable_media_to_schema(
@@ -110,17 +114,21 @@ def roster_to_schema(roster: Roster) -> RosterInDeliverableSchema:
 
 
 def deliverable_to_response(
-    deliverable: Deliverable, s3_client
+    deliverable: Deliverable, s3_client, user_id: int
 ) -> DeliverableResponseSchema:
     """Transform Deliverable model to response schema.
 
     Args:
         deliverable: Deliverable model instance
         s3_client: S3Client for generating presigned URLs
+        user_id: User ID for calculating unread count
     """
     # Compute available actions for this deliverable
     action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
     actions = action_group.get_available_actions(obj=deliverable)
+
+    # Convert thread to unread info using the mixin method
+    thread_info = deliverable.get_thread_unread_info(user_id)
 
     return DeliverableResponseSchema(
         id=deliverable.id,  # Already a Sqid from the model
@@ -152,6 +160,7 @@ def deliverable_to_response(
             else None
         ),
         actions=actions,
+        thread=thread_info,
     )
 
 

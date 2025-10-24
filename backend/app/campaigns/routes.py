@@ -8,6 +8,7 @@ from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 from app.actions.registry import ActionRegistry
 from app.actions.enums import ActionGroupType
+from app.threads.models import Thread
 
 # Register CampaignObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -19,14 +20,29 @@ ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
 
 @get("/{id:str}")
 async def get_campaign(
-    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry
+    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry, user_id: int
 ) -> CampaignSchema:
     """Get a campaign by SQID."""
-    campaign = await get_or_404(transaction, Campaign, id)
+    from sqlalchemy.orm import joinedload, selectinload
+
+    campaign = await get_or_404(
+        transaction,
+        Campaign,
+        id,
+        load_options=[
+            joinedload(Campaign.thread).options(
+                selectinload(Thread.messages),
+                selectinload(Thread.read_statuses),
+            )
+        ],
+    )
 
     # Compute actions for this campaign
     action_group = action_registry.get_class(ActionGroupType.CampaignActions)
     actions = action_group.get_available_actions(obj=campaign)
+
+    # Convert thread to unread info using the mixin method
+    thread_info = campaign.get_thread_unread_info(user_id)
 
     return CampaignSchema(
         id=campaign.id,
@@ -64,6 +80,7 @@ async def get_campaign(
         # Approval
         approval_rounds=campaign.approval_rounds,
         approval_sla_hours=campaign.approval_sla_hours,
+        thread=thread_info,
     )
 
 

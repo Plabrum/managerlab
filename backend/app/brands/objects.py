@@ -159,6 +159,7 @@ class BrandObject(BaseObject):
             actions=actions,
             created_at=brand.created_at,
             updated_at=brand.updated_at,
+            thread_id=brand.thread.id if brand.thread else None,
         )
 
     @classmethod
@@ -214,6 +215,7 @@ class BrandObject(BaseObject):
             created_at=brand.created_at,
             updated_at=brand.updated_at,
             fields=fields,
+            thread_id=brand.thread.id if brand.thread else None,
         )
 
 

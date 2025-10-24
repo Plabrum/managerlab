@@ -4,6 +4,7 @@ from decimal import Decimal
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 from app.actions.schemas import ActionDTO
+from app.threads.schemas import ThreadUnreadInfo
 
 
 class InvoiceSchema(BaseSchema):
@@ -25,6 +26,7 @@ class InvoiceSchema(BaseSchema):
     campaign_id: int | None
     team_id: int | None
     actions: list[ActionDTO]
+    thread: ThreadUnreadInfo | None = None
 
 
 class InvoiceUpdateSchema(BaseSchema):

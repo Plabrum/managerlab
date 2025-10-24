@@ -67,3 +67,12 @@ class BatchUnreadResponse(BaseSchema):
 
     threads: list[ThreadUnreadInfo]
     total_unread: int
+
+
+# WebSocket event schemas
+class UserPresence(BaseSchema):
+    """User presence info for websocket events."""
+
+    user_id: Sqid
+    name: str
+    is_typing: bool

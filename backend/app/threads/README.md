@@ -7,7 +7,7 @@ The threads system provides real-time messaging for any object in the platform. 
 **Key Features:**
 - REST API for creating messages and listing threads
 - Actions framework for update/delete with automatic permission checking
-- WebSocket for real-time updates
+- WebSocket for real-time updates with typing indicators and viewer presence
 - Unread message tracking per user
 - Soft deletes for message history
 
@@ -240,14 +240,71 @@ The WebSocket connection provides real-time notifications when messages are crea
 3. **Server subscribes** to PostgreSQL notifications for this thread
 4. **Receive notifications** as JSON messages
 
-### Notification Types
+### Client → Server Messages
+
+**Ping (Keepalive):**
+```json
+{
+  "type": "ping",
+  "timestamp": 1234567890
+}
+```
+
+**Typing Indicator:**
+```json
+{
+  "type": "typing",
+  "is_typing": true
+}
+```
+
+Send `is_typing: true` when the user starts typing, and `is_typing: false` when they stop. Consider debouncing and automatically clearing after 3-5 seconds of inactivity.
+
+### Server → Client Notifications
+
+**User Joined:**
+```json
+{
+  "type": "user_joined",
+  "user_id": 42,
+  "viewers": [
+    {
+      "user_id": 42,
+      "name": "John Doe",
+      "is_typing": false
+    },
+    {
+      "user_id": 43,
+      "name": "Jane Smith",
+      "is_typing": true
+    }
+  ]
+}
+```
+
+**Typing Status Updated:**
+```json
+{
+  "type": "typing_update",
+  "user_id": 42,
+  "is_typing": true,
+  "viewers": [
+    {
+      "user_id": 42,
+      "name": "John Doe",
+      "is_typing": true
+    }
+  ]
+}
+```
 
 **New Message:**
 ```json
 {
   "type": "new_message",
   "thread_id": 1,
-  "user_id": 42
+  "user_id": 42,
+  "message_id": 123
 }
 ```
 
@@ -267,27 +324,30 @@ The WebSocket connection provides real-time notifications when messages are crea
 }
 ```
 
-**Note:** Notification payloads contain internal IDs for metadata purposes only. The frontend should not use these IDs directly - always re-fetch data via REST API after receiving a notification to get properly formatted responses with sqids.
-
-### Keepalive (Optional)
-
-Send ping messages to keep connection alive:
-
-**Send:**
-```json
-{
-  "type": "ping",
-  "timestamp": "2025-01-15T10:30:00Z"
-}
-```
-
-**Receive:**
+**Pong Response:**
 ```json
 {
   "type": "pong",
-  "timestamp": "2025-01-15T10:30:00Z"
+  "timestamp": 1234567890
 }
 ```
+
+**Note:** Notification payloads contain internal IDs for metadata purposes only. The frontend should not use these IDs directly - always re-fetch data via REST API after receiving a notification to get properly formatted responses with sqids.
+
+### Presence & Typing Features
+
+**Viewer Presence:**
+- When a user connects to a thread, all other connected users receive a `user_joined` event
+- The `viewers` array contains all currently connected users with their typing status
+- When a user disconnects, they are automatically removed from the viewers list
+- Frontend should display viewer avatars or "X people viewing" based on the viewers array
+
+**Typing Indicators:**
+- Send `{"type": "typing", "is_typing": true}` when user starts typing
+- Send `{"type": "typing", "is_typing": false}` when user stops typing
+- All other connected users receive a `typing_update` event with updated viewers list
+- Recommended: Debounce typing events and auto-clear after 3-5 seconds of inactivity
+- Filter `viewers` where `is_typing === true` to show "User is typing..." indicators
 
 ## Typical Workflow
 
@@ -346,11 +406,19 @@ Send ping messages to keep connection alive:
 ## Example: React Integration
 
 ```typescript
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+interface Viewer {
+  user_id: number;
+  name: string;
+  is_typing: boolean;
+}
 
 function ThreadView({ threadableType, threadableId }) {
   const [messages, setMessages] = useState([]);
-  const [ws, setWs] = useState(null);
+  const [viewers, setViewers] = useState<Viewer[]>([]);
+  const [ws, setWs] = useState<WebSocket | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Fetch initial messages
@@ -366,11 +434,16 @@ function ThreadView({ threadableType, threadableId }) {
     socket.onmessage = (event) => {
       const notification = JSON.parse(event.data);
 
+      // Handle message changes
       if (['new_message', 'message_updated', 'message_deleted'].includes(notification.type)) {
-        // Re-fetch messages for any change
         fetch(`/threads/${threadableType}/${threadableId}/messages`)
           .then(res => res.json())
           .then(data => setMessages(data.messages));
+      }
+
+      // Handle presence updates
+      if (notification.type === 'user_joined' || notification.type === 'typing_update') {
+        setViewers(notification.viewers || []);
       }
     };
 
@@ -379,16 +452,37 @@ function ThreadView({ threadableType, threadableId }) {
     return () => socket.close();
   }, [threadableType, threadableId]);
 
-  const sendMessage = async (content) => {
+  const sendMessage = async (content: string) => {
     await fetch(`/threads/${threadableType}/${threadableId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content })
     });
-    // WebSocket notification will trigger re-fetch
+    // Clear typing indicator after sending
+    setTypingStatus(false);
   };
 
-  const editMessage = async (messageId, newContent) => {
+  const setTypingStatus = (isTyping: boolean) => {
+    if (!ws) return;
+    ws.send(JSON.stringify({ type: 'typing', is_typing: isTyping }));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Start typing indicator
+    setTypingStatus(true);
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Auto-clear typing after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      setTypingStatus(false);
+    }, 3000);
+  };
+
+  const editMessage = async (messageId: string, newContent: string) => {
     await fetch(`/actions/message_actions/${messageId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -397,10 +491,9 @@ function ThreadView({ threadableType, threadableId }) {
         data: { content: newContent }
       })
     });
-    // WebSocket notification will trigger re-fetch
   };
 
-  const deleteMessage = async (messageId) => {
+  const deleteMessage = async (messageId: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this message?');
     if (!confirmed) return;
 
@@ -411,7 +504,6 @@ function ThreadView({ threadableType, threadableId }) {
         action: 'message_actions__delete'
       })
     });
-    // WebSocket notification will trigger re-fetch
   };
 
   const markAsRead = async () => {
@@ -420,12 +512,41 @@ function ThreadView({ threadableType, threadableId }) {
     });
   };
 
+  // Get users currently typing (excluding yourself)
+  const typingUsers = viewers.filter(v => v.is_typing);
+
   return (
     <div>
-      {/* Render messages with edit/delete buttons */}
+      {/* Viewer presence */}
+      <div className="viewers">
+        {viewers.length} {viewers.length === 1 ? 'person' : 'people'} viewing
+      </div>
+
+      {/* Typing indicator */}
+      {typingUsers.length > 0 && (
+        <div className="typing-indicator">
+          {typingUsers.map(u => u.name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+        </div>
+      )}
+
+      {/* Messages */}
+      <div className="messages">
+        {messages.map(msg => (
+          <div key={msg.id}>
+            <strong>{msg.user.name}:</strong> {msg.content}
+            <button onClick={() => editMessage(msg.id, 'Updated!')}>Edit</button>
+            <button onClick={() => deleteMessage(msg.id)}>Delete</button>
+          </div>
+        ))}
+      </div>
+
+      {/* Input */}
+      <input
+        type="text"
+        onChange={handleInputChange}
+        onBlur={() => setTypingStatus(false)}
+      />
       <button onClick={() => sendMessage('Hello!')}>Send</button>
-      <button onClick={() => editMessage('msg123', 'Updated!')}>Edit</button>
-      <button onClick={() => deleteMessage('msg123')}>Delete</button>
       <button onClick={markAsRead}>Mark as Read</button>
     </div>
   );
