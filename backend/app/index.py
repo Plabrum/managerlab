@@ -25,6 +25,7 @@ from sqlalchemy.pool import NullPool
 from app.queue.config import queue_config
 from app.utils.configure import config
 from app.users.routes import user_router, public_user_router
+from app.users.roster_routes import roster_router
 from app.auth.routes import auth_router
 from app.objects.routes import object_router
 from app.actions.routes import action_router
@@ -76,6 +77,7 @@ route_handlers: list[Any] = [
     health_check,
     public_user_router,
     user_router,
+    roster_router,
     auth_router,
     object_router,
     action_router,

@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -97,7 +98,13 @@ class BrandObject(BaseObject):
         return ActionGroupType.TopLevelBrandActions
 
     @classmethod
-    def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
+    def get_action_group(cls):
+        return ActionGroupType.BrandActions
+
+    @classmethod
+    def to_detail_dto(
+        cls, brand: Brand, action_registry: ActionRegistry | None = None
+    ) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -141,8 +148,11 @@ class BrandObject(BaseObject):
             ),
         ]
 
-        # TODO: Implement BrandActions when needed
+        # Get available actions for this brand
         actions: list[Any] = []
+        if action_registry:
+            action_group = action_registry.get_class(ActionGroupType.BrandActions)
+            actions = action_group.get_available_actions(obj=brand)
 
         return ObjectDetailDTO(
             id=sqid_encode(brand.id),
@@ -156,7 +166,9 @@ class BrandObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
+    def to_list_dto(
+        cls, brand: Brand, action_registry: ActionRegistry | None = None
+    ) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -194,8 +206,11 @@ class BrandObject(BaseObject):
             ),
         ]
 
-        # TODO: Implement BrandActions when needed
+        # Get available actions for this brand
         actions: list[Any] = []
+        if action_registry:
+            action_group = action_registry.get_class(ActionGroupType.BrandActions)
+            actions = action_group.get_available_actions(obj=brand)
 
         return ObjectListDTO(
             id=sqid_encode(brand.id),
@@ -293,7 +308,7 @@ class BrandContactObject(BaseObject):
                 )
             )
 
-        # TODO: Implement BrandContactActions when needed
+        # BrandContactActions not implemented yet
         actions: list[Any] = []
 
         return ObjectDetailDTO(
@@ -337,7 +352,7 @@ class BrandContactObject(BaseObject):
             ),
         ]
 
-        # TODO: Implement BrandContactActions when needed
+        # BrandContactActions not implemented yet
         actions: list[Any] = []
 
         return ObjectListDTO(

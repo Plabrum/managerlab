@@ -1289,6 +1289,69 @@ export interface RosterInDeliverableSchema {
   state: string;
 }
 
+export type RosterSchemaEmail = string | null;
+
+export type RosterSchemaPhone = string | null;
+
+export type RosterSchemaBirthdate = string | null;
+
+export type RosterSchemaInstagramHandle = string | null;
+
+export type RosterSchemaFacebookHandle = string | null;
+
+export type RosterSchemaTiktokHandle = string | null;
+
+export type RosterSchemaYoutubeChannel = string | null;
+
+export type RosterSchemaProfilePhotoId = number | null;
+
+export type RosterSchemaTeamId = number | null;
+
+export interface RosterSchema {
+  id: unknown;
+  name: string;
+  email?: RosterSchemaEmail;
+  phone?: RosterSchemaPhone;
+  birthdate?: RosterSchemaBirthdate;
+  instagram_handle?: RosterSchemaInstagramHandle;
+  facebook_handle?: RosterSchemaFacebookHandle;
+  tiktok_handle?: RosterSchemaTiktokHandle;
+  youtube_channel?: RosterSchemaYoutubeChannel;
+  profile_photo_id?: RosterSchemaProfilePhotoId;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  team_id?: RosterSchemaTeamId;
+  actions?: ActionDTO[];
+}
+
+export type RosterUpdateSchemaName = string | null;
+
+export type RosterUpdateSchemaEmail = string | null;
+
+export type RosterUpdateSchemaPhone = string | null;
+
+export type RosterUpdateSchemaBirthdate = string | null;
+
+export type RosterUpdateSchemaInstagramHandle = string | null;
+
+export type RosterUpdateSchemaFacebookHandle = string | null;
+
+export type RosterUpdateSchemaTiktokHandle = string | null;
+
+export type RosterUpdateSchemaYoutubeChannel = string | null;
+
+export interface RosterUpdateSchema {
+  name?: RosterUpdateSchemaName;
+  email?: RosterUpdateSchemaEmail;
+  phone?: RosterUpdateSchemaPhone;
+  birthdate?: RosterUpdateSchemaBirthdate;
+  instagram_handle?: RosterUpdateSchemaInstagramHandle;
+  facebook_handle?: RosterUpdateSchemaFacebookHandle;
+  tiktok_handle?: RosterUpdateSchemaTiktokHandle;
+  youtube_channel?: RosterUpdateSchemaYoutubeChannel;
+}
+
 /**
  * Scope type for user access control.
 
@@ -1611,6 +1674,32 @@ export type UsersSwitchTeamSwitchTeam400 = {
   status_code: number;
   detail: string;
   extra?: UsersSwitchTeamSwitchTeam400Extra;
+};
+
+export type RosterIdGetRoster400ExtraAnyOf = {[key: string]: unknown};
+
+export type RosterIdGetRoster400Extra = null | RosterIdGetRoster400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type RosterIdGetRoster400 = {
+  status_code: number;
+  detail: string;
+  extra?: RosterIdGetRoster400Extra;
+};
+
+export type RosterIdUpdateRoster400ExtraAnyOf = {[key: string]: unknown};
+
+export type RosterIdUpdateRoster400Extra = null | RosterIdUpdateRoster400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type RosterIdUpdateRoster400 = {
+  status_code: number;
+  detail: string;
+  extra?: RosterIdUpdateRoster400Extra;
 };
 
 export type AuthSwitchScopeSwitchScope201 = { [key: string]: unknown };
