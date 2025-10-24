@@ -12,7 +12,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select, func
 from app.utils.configure import config
 from app.campaigns.models import Campaign
-from app.users.models import Team, Role, Roster
+from app.users.models import Team, Role
+from app.roster.models import Roster
 from app.brands.models.brands import Brand
 
 

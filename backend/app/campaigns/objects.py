@@ -12,6 +12,10 @@ from app.objects.schemas import (
     StringFieldValue,
     URLFieldValue,
     EnumFieldValue,
+    DateFieldValue,
+    IntFieldValue,
+    FloatFieldValue,
+    BoolFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.campaigns.models import Campaign
@@ -119,10 +123,50 @@ class CampaignObject(BaseObject):
             ),
             (
                 ObjectFieldDTO(
+                    key="description",
+                    value=StringFieldValue(value=campaign.description),
+                    label="Description",
+                    editable=True,
+                )
+                if campaign.description
+                else None
+            ),
+            # Counterparty
+            (
+                ObjectFieldDTO(
+                    key="counterparty_type",
+                    value=EnumFieldValue(value=campaign.counterparty_type.value),
+                    label="Counterparty Type",
+                    editable=True,
+                )
+                if campaign.counterparty_type
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="counterparty_name",
+                    value=StringFieldValue(value=campaign.counterparty_name),
+                    label="Counterparty Name",
+                    editable=True,
+                )
+                if campaign.counterparty_name
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="counterparty_email",
+                    value=StringFieldValue(value=campaign.counterparty_email),
+                    label="Counterparty Email",
+                    editable=True,
+                )
+                if campaign.counterparty_email
+                else None
+            ),
+            # Compensation
+            (
+                ObjectFieldDTO(
                     key="compensation_structure",
-                    value=(
-                        StringFieldValue(value=campaign.compensation_structure.value)
-                    ),
+                    value=EnumFieldValue(value=campaign.compensation_structure.value),
                     label="Compensation Structure",
                     editable=True,
                 )
@@ -131,12 +175,147 @@ class CampaignObject(BaseObject):
             ),
             (
                 ObjectFieldDTO(
-                    key="description",
-                    value=StringFieldValue(value=campaign.description),
-                    label="Description",
+                    key="compensation_total_usd",
+                    value=FloatFieldValue(value=campaign.compensation_total_usd),
+                    label="Total Compensation (USD)",
                     editable=True,
                 )
-                if campaign.description
+                if campaign.compensation_total_usd
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="payment_terms_days",
+                    value=IntFieldValue(value=campaign.payment_terms_days),
+                    label="Payment Terms (Days)",
+                    editable=True,
+                )
+                if campaign.payment_terms_days
+                else None
+            ),
+            # Flight dates
+            (
+                ObjectFieldDTO(
+                    key="flight_start_date",
+                    value=DateFieldValue(value=campaign.flight_start_date),  # type: ignore
+                    label="Flight Start Date",
+                    editable=True,
+                )
+                if campaign.flight_start_date
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="flight_end_date",
+                    value=DateFieldValue(value=campaign.flight_end_date),  # type: ignore
+                    label="Flight End Date",
+                    editable=True,
+                )
+                if campaign.flight_end_date
+                else None
+            ),
+            # FTC & Usage
+            (
+                ObjectFieldDTO(
+                    key="ftc_string",
+                    value=StringFieldValue(value=campaign.ftc_string),
+                    label="FTC Disclosure",
+                    editable=True,
+                )
+                if campaign.ftc_string
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="usage_duration",
+                    value=StringFieldValue(value=campaign.usage_duration),
+                    label="Usage Duration",
+                    editable=True,
+                )
+                if campaign.usage_duration
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="usage_territory",
+                    value=StringFieldValue(value=campaign.usage_territory),
+                    label="Usage Territory",
+                    editable=True,
+                )
+                if campaign.usage_territory
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="usage_paid_media_option",
+                    value=BoolFieldValue(value=campaign.usage_paid_media_option),
+                    label="Paid Media Option",
+                    editable=True,
+                )
+                if campaign.usage_paid_media_option is not None
+                else None
+            ),
+            # Exclusivity
+            (
+                ObjectFieldDTO(
+                    key="exclusivity_category",
+                    value=StringFieldValue(value=campaign.exclusivity_category),
+                    label="Exclusivity Category",
+                    editable=True,
+                )
+                if campaign.exclusivity_category
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="exclusivity_days_before",
+                    value=IntFieldValue(value=campaign.exclusivity_days_before),
+                    label="Exclusivity Days Before",
+                    editable=True,
+                )
+                if campaign.exclusivity_days_before
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="exclusivity_days_after",
+                    value=IntFieldValue(value=campaign.exclusivity_days_after),
+                    label="Exclusivity Days After",
+                    editable=True,
+                )
+                if campaign.exclusivity_days_after
+                else None
+            ),
+            # Ownership
+            (
+                ObjectFieldDTO(
+                    key="ownership_mode",
+                    value=EnumFieldValue(value=campaign.ownership_mode.value),
+                    label="Ownership Mode",
+                    editable=True,
+                )
+                if campaign.ownership_mode
+                else None
+            ),
+            # Approval
+            (
+                ObjectFieldDTO(
+                    key="approval_rounds",
+                    value=IntFieldValue(value=campaign.approval_rounds),
+                    label="Approval Rounds",
+                    editable=True,
+                )
+                if campaign.approval_rounds
+                else None
+            ),
+            (
+                ObjectFieldDTO(
+                    key="approval_sla_hours",
+                    value=IntFieldValue(value=campaign.approval_sla_hours),
+                    label="Approval SLA (Hours)",
+                    editable=True,
+                )
+                if campaign.approval_sla_hours
                 else None
             ),
         ]

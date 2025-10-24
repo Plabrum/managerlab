@@ -81,12 +81,3 @@ class SwitchTeamRequest(BaseSchema):
     """Request to switch team."""
 
     team_id: int
-
-
-class RosterCreateSchema(BaseSchema):
-    """Schema for creating a new roster member."""
-
-    name: str
-    email: str | None = None
-    phone: str | None = None
-    instagram_handle: str | None = None

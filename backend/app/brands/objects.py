@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -97,6 +98,10 @@ class BrandObject(BaseObject):
         return ActionGroupType.TopLevelBrandActions
 
     @classmethod
+    def get_action_group(cls):
+        return ActionGroupType.BrandActions
+
+    @classmethod
     def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
@@ -141,8 +146,9 @@ class BrandObject(BaseObject):
             ),
         ]
 
-        # TODO: Implement BrandActions when needed
-        actions: list[Any] = []
+        # Get available actions for this brand
+        action_group = ActionRegistry().get_class(ActionGroupType.BrandActions)
+        actions = action_group.get_available_actions(obj=brand)
 
         return ObjectDetailDTO(
             id=sqid_encode(brand.id),
@@ -194,8 +200,9 @@ class BrandObject(BaseObject):
             ),
         ]
 
-        # TODO: Implement BrandActions when needed
-        actions: list[Any] = []
+        # Get available actions for this brand
+        action_group = ActionRegistry().get_class(ActionGroupType.BrandActions)
+        actions = action_group.get_available_actions(obj=brand)
 
         return ObjectListDTO(
             id=sqid_encode(brand.id),
@@ -293,7 +300,7 @@ class BrandContactObject(BaseObject):
                 )
             )
 
-        # TODO: Implement BrandContactActions when needed
+        # BrandContactActions not implemented yet
         actions: list[Any] = []
 
         return ObjectDetailDTO(
@@ -337,7 +344,7 @@ class BrandContactObject(BaseObject):
             ),
         ]
 
-        # TODO: Implement BrandContactActions when needed
+        # BrandContactActions not implemented yet
         actions: list[Any] = []
 
         return ObjectListDTO(

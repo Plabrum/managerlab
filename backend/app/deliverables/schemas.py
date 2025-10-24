@@ -1,12 +1,12 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from app.utils.sqids import Sqid
 from app.base.schemas import BaseSchema
-from app.deliverables.enums import SocialMediaPlatforms
+from app.deliverables.enums import DeliverableType, SocialMediaPlatforms
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.media.schemas import MediaResponseSchema, media_to_response
-from app.users.models import Roster
+from app.roster.models import Roster
 from app.actions.schemas import ActionDTO
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
@@ -43,7 +43,21 @@ class DeliverableResponseSchema(BaseSchema):
     title: str
     content: str | None
     platforms: SocialMediaPlatforms
+    deliverable_type: DeliverableType | None
+    count: int
     posting_date: datetime
+    posting_start_date: date | None
+    posting_end_date: date | None
+
+    # Caption requirements
+    handles: list[str] | None
+    hashtags: list[str] | None
+    disclosures: list[str] | None
+
+    # Approval
+    approval_required: bool
+    approval_rounds: int | None
+
     notes: dict[str, Any]
     state: str
     campaign_id: int | None
@@ -113,7 +127,16 @@ def deliverable_to_response(
         title=deliverable.title,
         content=deliverable.content,
         platforms=deliverable.platforms,
+        deliverable_type=deliverable.deliverable_type,
+        count=deliverable.count,
         posting_date=deliverable.posting_date,
+        posting_start_date=deliverable.posting_start_date,
+        posting_end_date=deliverable.posting_end_date,
+        handles=deliverable.handles,
+        hashtags=deliverable.hashtags,
+        disclosures=deliverable.disclosures,
+        approval_required=deliverable.approval_required,
+        approval_rounds=deliverable.approval_rounds,
         notes=deliverable.notes,
         state=deliverable.state,
         campaign_id=deliverable.campaign_id,
@@ -138,7 +161,21 @@ class DeliverableUpdateSchema(BaseSchema):
     title: str | None = None
     content: str | None = None
     platforms: SocialMediaPlatforms | None = None
+    deliverable_type: DeliverableType | None = None
+    count: int | None = None
     posting_date: datetime | None = None
+    posting_start_date: date | None = None
+    posting_end_date: date | None = None
+
+    # Caption requirements
+    handles: list[str] | None = None
+    hashtags: list[str] | None = None
+    disclosures: list[str] | None = None
+
+    # Approval
+    approval_required: bool | None = None
+    approval_rounds: int | None = None
+
     notes: dict[str, Any] | None = None
     campaign_id: int | None = None
 
@@ -149,6 +186,20 @@ class DeliverableCreateSchema(BaseSchema):
     title: str
     platforms: SocialMediaPlatforms
     posting_date: datetime
+    deliverable_type: DeliverableType | None = None
+    count: int = 1
+    posting_start_date: date | None = None
+    posting_end_date: date | None = None
+
+    # Caption requirements
+    handles: list[str] | None = None
+    hashtags: list[str] | None = None
+    disclosures: list[str] | None = None
+
+    # Approval
+    approval_required: bool = True
+    approval_rounds: int | None = None
+
     content: str | None = None
     notes: dict[str, Any] | None = None
     campaign_id: int | None = None

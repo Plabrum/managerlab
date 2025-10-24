@@ -1,9 +1,11 @@
 'use client';
 
 import { use } from 'react';
-import { ObjectFields, ObjectRelations } from '@/components/object-detail';
-import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
+import { ObjectActions } from '@/components/object-detail';
+import { RosterFields } from '@/components/roster-detail';
+import { useRosterIdGetRosterSuspense } from '@/openapi/roster/roster';
 import { PageTopBar } from '@/components/page-topbar';
+import { ActionGroupType } from '@/openapi/managerLab.schemas';
 
 export default function RosterDetailPage({
   params,
@@ -12,16 +14,26 @@ export default function RosterDetailPage({
 }) {
   const { id } = use(params);
 
-  const { data } = useOObjectTypeIdGetObjectDetailSuspense('roster', id);
+  const { data, refetch } = useRosterIdGetRosterSuspense(id);
 
   return (
-    <PageTopBar title={data.title} state={data.state}>
+    <PageTopBar
+      title={data.name}
+      state={data.state}
+      actions={
+        <ObjectActions
+          data={data}
+          actionGroup={ActionGroupType.roster_actions}
+          onRefetch={refetch}
+        />
+      }
+    >
       <div className="space-y-6">
-        {/* Fields */}
-        <ObjectFields fields={data.fields} />
-
-        {/* Relations */}
-        <ObjectRelations relations={data.relations || []} />
+        {/* Two Column Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Left Column - Fields */}
+          <RosterFields roster={data} />
+        </div>
       </div>
     </PageTopBar>
   );

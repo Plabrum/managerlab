@@ -8,10 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.objects.base import ObjectRegistry
-from app.objects.enums import ObjectTypes
 from app.users.models import User, WaitlistEntry, Team, Role
-from app.users.objects import RosterObject, TeamObject, UserObject
 from app.users.schemas import (
     CreateUserSchema,
     CreateTeamSchema,
@@ -28,11 +25,6 @@ from app.auth.enums import ScopeType
 from app.users.enums import RoleLevel, UserStates
 from app.campaigns.models import Campaign
 from app.utils.sqids import sqid_encode
-
-# Register objects (auto-registered via __init_subclass__, but explicit for clarity)
-ObjectRegistry().register(ObjectTypes.Users, UserObject)
-ObjectRegistry().register(ObjectTypes.Roster, RosterObject)
-ObjectRegistry().register(ObjectTypes.Teams, TeamObject)
 
 
 @get("/", guards=[requires_superuser])

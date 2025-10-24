@@ -8,8 +8,10 @@ import { CreateDeliverableForm } from '@/components/actions/create-deliverable-f
 import { CreateMediaForm } from '@/components/actions/create-media-form';
 import { AddMediaToDeliverableForm } from '@/components/actions/add-media-to-deliverable-form';
 import { CreateRosterForm } from '@/components/actions/create-roster-form';
+import { UpdateRosterForm } from '@/components/actions/update-roster-form';
 import { CreateCampaignForm } from '@/components/actions/create-campaign-form';
 import { CreateBrandForm } from '@/components/actions/create-brand-form';
+import { UpdateBrandForm } from '@/components/actions/update-brand-form';
 import React from 'react';
 
 /**
@@ -179,6 +181,33 @@ export const actionRegistry: ActionRegistry = {
       );
     },
   },
+  roster_actions__roster_update: {
+    render: ({ objectData, onSubmit, onCancel, isSubmitting }) => {
+      const defaultValues = objectData
+        ? ({
+            name: getFieldValue(objectData, 'name'),
+            email: getFieldValue(objectData, 'email'),
+            phone: getFieldValue(objectData, 'phone'),
+            instagram_handle: getFieldValue(objectData, 'instagram_handle'),
+            facebook_handle: getFieldValue(objectData, 'facebook_handle'),
+            tiktok_handle: getFieldValue(objectData, 'tiktok_handle'),
+            youtube_channel: getFieldValue(objectData, 'youtube_channel'),
+          } as Parameters<typeof onSubmit>[0])
+        : undefined;
+
+      return (
+        <UpdateRosterForm
+          defaultValues={defaultValues}
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    },
+  },
+  roster_actions__roster_delete: {
+    render: () => null,
+  },
 
   // Campaign actions
   top_level_campaign_actions__campaign_create: {
@@ -204,6 +233,31 @@ export const actionRegistry: ActionRegistry = {
         />
       );
     },
+  },
+  brand_actions__brand_update: {
+    render: ({ objectData, onSubmit, onCancel, isSubmitting }) => {
+      const defaultValues = objectData
+        ? ({
+            name: getFieldValue(objectData, 'name'),
+            description: getFieldValue(objectData, 'description'),
+            website: getFieldValue(objectData, 'website'),
+            email: getFieldValue(objectData, 'email'),
+            notes: getFieldValue(objectData, 'notes'),
+          } as Parameters<typeof onSubmit>[0])
+        : undefined;
+
+      return (
+        <UpdateBrandForm
+          defaultValues={defaultValues}
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    },
+  },
+  brand_actions__brand_delete: {
+    render: () => null,
   },
 
   // Other action groups can be added here as needed

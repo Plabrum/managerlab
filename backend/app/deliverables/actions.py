@@ -61,7 +61,6 @@ class EditDeliverable(BaseAction):
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)
-        # No need to add(obj) - it's already tracked by the session that loaded it
 
         return ActionExecutionResponse(
             success=True,

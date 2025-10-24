@@ -21,6 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils'; // optional: your className helper
 import { Modal } from '../modal';
 import { Button } from '../ui/button';
@@ -323,7 +331,9 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
 
   // ---------- Datetime input ----------
   function FormDatetime<N extends Name<Path<TFieldValues>>>(
-    props: BaseFieldProps<TFieldValues, N>
+    props: BaseFieldProps<TFieldValues, N> & {
+      showTime?: boolean;
+    }
   ) {
     const {
       name,
@@ -334,8 +344,9 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       rules,
       description,
       id,
+      showTime = false,
     } = props;
-    const { register } = useFormContext<TFieldValues>();
+    const { control } = useFormContext<TFieldValues>();
     const htmlId = id ?? String(name);
 
     return (
@@ -345,15 +356,84 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
             {label} {required ? '*' : null}
           </Label>
         )}
-        <Input
-          id={htmlId}
-          type="datetime-local"
-          {...register(name, {
-            required: RequiredMessage(required),
-            ...rules,
-          })}
-          className="mt-1"
-          placeholder={placeholder}
+        <Controller
+          name={name}
+          control={control}
+          rules={{ required: RequiredMessage(required), ...rules }}
+          render={({ field }) => {
+            const fieldValue = field.value as string | Date | undefined;
+            const dateValue = fieldValue
+              ? typeof fieldValue === 'string'
+                ? new Date(fieldValue)
+                : fieldValue
+              : undefined;
+
+            return (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id={htmlId}
+                    variant="outline"
+                    className={cn(
+                      'mt-1 w-full justify-start text-left font-normal',
+                      !dateValue && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateValue ? (
+                      showTime ? (
+                        format(dateValue, 'PPP p')
+                      ) : (
+                        format(dateValue, 'PPP')
+                      )
+                    ) : (
+                      <span>{placeholder || 'Pick a date'}</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateValue}
+                    onSelect={(date) => {
+                      if (date) {
+                        // If we have an existing time component and showTime is true, preserve it
+                        if (showTime && dateValue) {
+                          const hours = dateValue.getHours();
+                          const minutes = dateValue.getMinutes();
+                          date.setHours(hours, minutes);
+                        }
+                        field.onChange(date.toISOString());
+                      } else {
+                        field.onChange(undefined);
+                      }
+                    }}
+                    initialFocus
+                  />
+                  {showTime && (
+                    <div className="border-t p-3">
+                      <Label className="text-xs">Time</Label>
+                      <Input
+                        type="time"
+                        value={dateValue ? format(dateValue, 'HH:mm') : '00:00'}
+                        onChange={(e) => {
+                          const [hours, minutes] = e.target.value
+                            .split(':')
+                            .map(Number);
+                          const newDate = dateValue
+                            ? new Date(dateValue)
+                            : new Date();
+                          newDate.setHours(hours, minutes);
+                          field.onChange(newDate.toISOString());
+                        }}
+                        className="mt-1"
+                      />
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            );
+          }}
         />
         {description ? (
           <p className="text-muted-foreground mt-1 text-xs">{description}</p>

@@ -207,11 +207,62 @@ export type CampaignCreateSchemaDescription = string | null;
 
 export type CampaignCreateSchemaCompensationStructure = CompensationStructure | null;
 
+export type CampaignCreateSchemaCounterpartyType = CounterpartyType | null;
+
+export type CampaignCreateSchemaCounterpartyName = string | null;
+
+export type CampaignCreateSchemaCounterpartyEmail = string | null;
+
+export type CampaignCreateSchemaCompensationTotalUsd = number | null;
+
+export type CampaignCreateSchemaPaymentTermsDays = number | null;
+
+export type CampaignCreateSchemaFlightStartDate = string | null;
+
+export type CampaignCreateSchemaFlightEndDate = string | null;
+
+export type CampaignCreateSchemaFtcString = string | null;
+
+export type CampaignCreateSchemaUsageDuration = string | null;
+
+export type CampaignCreateSchemaUsageTerritory = string | null;
+
+export type CampaignCreateSchemaUsagePaidMediaOption = boolean | null;
+
+export type CampaignCreateSchemaExclusivityCategory = string | null;
+
+export type CampaignCreateSchemaExclusivityDaysBefore = number | null;
+
+export type CampaignCreateSchemaExclusivityDaysAfter = number | null;
+
+export type CampaignCreateSchemaOwnershipMode = OwnershipMode | null;
+
+export type CampaignCreateSchemaApprovalRounds = number | null;
+
+export type CampaignCreateSchemaApprovalSlaHours = number | null;
+
 export interface CampaignCreateSchema {
   name: string;
   brand_id: unknown;
   description?: CampaignCreateSchemaDescription;
   compensation_structure?: CampaignCreateSchemaCompensationStructure;
+  counterparty_type?: CampaignCreateSchemaCounterpartyType;
+  counterparty_name?: CampaignCreateSchemaCounterpartyName;
+  counterparty_email?: CampaignCreateSchemaCounterpartyEmail;
+  compensation_total_usd?: CampaignCreateSchemaCompensationTotalUsd;
+  payment_terms_days?: CampaignCreateSchemaPaymentTermsDays;
+  flight_start_date?: CampaignCreateSchemaFlightStartDate;
+  flight_end_date?: CampaignCreateSchemaFlightEndDate;
+  ftc_string?: CampaignCreateSchemaFtcString;
+  usage_duration?: CampaignCreateSchemaUsageDuration;
+  usage_territory?: CampaignCreateSchemaUsageTerritory;
+  usage_paid_media_option?: CampaignCreateSchemaUsagePaidMediaOption;
+  exclusivity_category?: CampaignCreateSchemaExclusivityCategory;
+  exclusivity_days_before?: CampaignCreateSchemaExclusivityDaysBefore;
+  exclusivity_days_after?: CampaignCreateSchemaExclusivityDaysAfter;
+  ownership_mode?: CampaignCreateSchemaOwnershipMode;
+  approval_rounds?: CampaignCreateSchemaApprovalRounds;
+  approval_sla_hours?: CampaignCreateSchemaApprovalSlaHours;
 }
 
 /**
@@ -234,6 +285,40 @@ export type CampaignSchemaAssignedRosterId = number | null;
 
 export type CampaignSchemaTeamId = number | null;
 
+export type CampaignSchemaCounterpartyType = CounterpartyType | null;
+
+export type CampaignSchemaCounterpartyName = string | null;
+
+export type CampaignSchemaCounterpartyEmail = string | null;
+
+export type CampaignSchemaCompensationTotalUsd = number | null;
+
+export type CampaignSchemaPaymentTermsDays = number | null;
+
+export type CampaignSchemaFlightStartDate = string | null;
+
+export type CampaignSchemaFlightEndDate = string | null;
+
+export type CampaignSchemaFtcString = string | null;
+
+export type CampaignSchemaUsageDuration = string | null;
+
+export type CampaignSchemaUsageTerritory = string | null;
+
+export type CampaignSchemaUsagePaidMediaOption = boolean | null;
+
+export type CampaignSchemaExclusivityCategory = string | null;
+
+export type CampaignSchemaExclusivityDaysBefore = number | null;
+
+export type CampaignSchemaExclusivityDaysAfter = number | null;
+
+export type CampaignSchemaOwnershipMode = OwnershipMode | null;
+
+export type CampaignSchemaApprovalRounds = number | null;
+
+export type CampaignSchemaApprovalSlaHours = number | null;
+
 export interface CampaignSchema {
   id: unknown;
   name: string;
@@ -246,6 +331,23 @@ export interface CampaignSchema {
   updated_at: string;
   team_id?: CampaignSchemaTeamId;
   actions: ActionDTO[];
+  counterparty_type?: CampaignSchemaCounterpartyType;
+  counterparty_name?: CampaignSchemaCounterpartyName;
+  counterparty_email?: CampaignSchemaCounterpartyEmail;
+  compensation_total_usd?: CampaignSchemaCompensationTotalUsd;
+  payment_terms_days?: CampaignSchemaPaymentTermsDays;
+  flight_start_date?: CampaignSchemaFlightStartDate;
+  flight_end_date?: CampaignSchemaFlightEndDate;
+  ftc_string?: CampaignSchemaFtcString;
+  usage_duration?: CampaignSchemaUsageDuration;
+  usage_territory?: CampaignSchemaUsageTerritory;
+  usage_paid_media_option?: CampaignSchemaUsagePaidMediaOption;
+  exclusivity_category?: CampaignSchemaExclusivityCategory;
+  exclusivity_days_before?: CampaignSchemaExclusivityDaysBefore;
+  exclusivity_days_after?: CampaignSchemaExclusivityDaysAfter;
+  ownership_mode?: CampaignSchemaOwnershipMode;
+  approval_rounds?: CampaignSchemaApprovalRounds;
+  approval_sla_hours?: CampaignSchemaApprovalSlaHours;
 }
 
 export interface CampaignScopeSchema {
@@ -264,11 +366,62 @@ export type CampaignUpdateSchemaBrandId = number | null;
 
 export type CampaignUpdateSchemaCompensationStructure = CompensationStructure | null;
 
+export type CampaignUpdateSchemaCounterpartyType = CounterpartyType | null;
+
+export type CampaignUpdateSchemaCounterpartyName = string | null;
+
+export type CampaignUpdateSchemaCounterpartyEmail = string | null;
+
+export type CampaignUpdateSchemaCompensationTotalUsd = number | null;
+
+export type CampaignUpdateSchemaPaymentTermsDays = number | null;
+
+export type CampaignUpdateSchemaFlightStartDate = string | null;
+
+export type CampaignUpdateSchemaFlightEndDate = string | null;
+
+export type CampaignUpdateSchemaFtcString = string | null;
+
+export type CampaignUpdateSchemaUsageDuration = string | null;
+
+export type CampaignUpdateSchemaUsageTerritory = string | null;
+
+export type CampaignUpdateSchemaUsagePaidMediaOption = boolean | null;
+
+export type CampaignUpdateSchemaExclusivityCategory = string | null;
+
+export type CampaignUpdateSchemaExclusivityDaysBefore = number | null;
+
+export type CampaignUpdateSchemaExclusivityDaysAfter = number | null;
+
+export type CampaignUpdateSchemaOwnershipMode = OwnershipMode | null;
+
+export type CampaignUpdateSchemaApprovalRounds = number | null;
+
+export type CampaignUpdateSchemaApprovalSlaHours = number | null;
+
 export interface CampaignUpdateSchema {
   name?: CampaignUpdateSchemaName;
   description?: CampaignUpdateSchemaDescription;
   brand_id?: CampaignUpdateSchemaBrandId;
   compensation_structure?: CampaignUpdateSchemaCompensationStructure;
+  counterparty_type?: CampaignUpdateSchemaCounterpartyType;
+  counterparty_name?: CampaignUpdateSchemaCounterpartyName;
+  counterparty_email?: CampaignUpdateSchemaCounterpartyEmail;
+  compensation_total_usd?: CampaignUpdateSchemaCompensationTotalUsd;
+  payment_terms_days?: CampaignUpdateSchemaPaymentTermsDays;
+  flight_start_date?: CampaignUpdateSchemaFlightStartDate;
+  flight_end_date?: CampaignUpdateSchemaFlightEndDate;
+  ftc_string?: CampaignUpdateSchemaFtcString;
+  usage_duration?: CampaignUpdateSchemaUsageDuration;
+  usage_territory?: CampaignUpdateSchemaUsageTerritory;
+  usage_paid_media_option?: CampaignUpdateSchemaUsagePaidMediaOption;
+  exclusivity_category?: CampaignUpdateSchemaExclusivityCategory;
+  exclusivity_days_before?: CampaignUpdateSchemaExclusivityDaysBefore;
+  exclusivity_days_after?: CampaignUpdateSchemaExclusivityDaysAfter;
+  ownership_mode?: CampaignUpdateSchemaOwnershipMode;
+  approval_rounds?: CampaignUpdateSchemaApprovalRounds;
+  approval_sla_hours?: CampaignUpdateSchemaApprovalSlaHours;
 }
 
 export type CategoricalDataPointBreakdowns = {[key: string]: number};
@@ -304,6 +457,18 @@ export const CompensationStructure = {
   flat_fee: 'flat_fee',
   per_deliverable: 'per_deliverable',
   performance_based: 'performance_based',
+} as const;
+
+/**
+ * Type of counterparty in a campaign deal.
+ */
+export type CounterpartyType = typeof CounterpartyType[keyof typeof CounterpartyType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CounterpartyType = {
+  agency: 'agency',
+  brand: 'brand',
 } as const;
 
 export interface CreateBrandAction {
@@ -414,6 +579,11 @@ export interface DatetimeFieldValue {
   type: 'datetime';
 }
 
+export const DeleteBrandActionValue = {
+  action: 'brand_actions__brand_delete',
+} as const;
+export type DeleteBrandAction = typeof DeleteBrandActionValue;
+
 export const DeleteCampaignActionValue = {
   action: 'campaign_actions__campaign_delete',
 } as const;
@@ -444,10 +614,29 @@ export const DeleteMessageActionValue = {
 } as const;
 export type DeleteMessageAction = typeof DeleteMessageActionValue;
 
+export const DeleteRosterActionValue = {
+  action: 'roster_actions__roster_delete',
+} as const;
+export type DeleteRosterAction = typeof DeleteRosterActionValue;
+
 export const DeleteTeamActionValue = {
   action: 'team_actions__team_delete',
 } as const;
 export type DeleteTeamAction = typeof DeleteTeamActionValue;
+
+export type DeliverableCreateSchemaDeliverableType = DeliverableType | null;
+
+export type DeliverableCreateSchemaPostingStartDate = string | null;
+
+export type DeliverableCreateSchemaPostingEndDate = string | null;
+
+export type DeliverableCreateSchemaHandles = string[] | null;
+
+export type DeliverableCreateSchemaHashtags = string[] | null;
+
+export type DeliverableCreateSchemaDisclosures = string[] | null;
+
+export type DeliverableCreateSchemaApprovalRounds = number | null;
 
 export type DeliverableCreateSchemaContent = string | null;
 
@@ -461,6 +650,15 @@ export interface DeliverableCreateSchema {
   title: string;
   platforms: SocialMediaPlatforms;
   posting_date: string;
+  deliverable_type?: DeliverableCreateSchemaDeliverableType;
+  count?: number;
+  posting_start_date?: DeliverableCreateSchemaPostingStartDate;
+  posting_end_date?: DeliverableCreateSchemaPostingEndDate;
+  handles?: DeliverableCreateSchemaHandles;
+  hashtags?: DeliverableCreateSchemaHashtags;
+  disclosures?: DeliverableCreateSchemaDisclosures;
+  approval_required?: boolean;
+  approval_rounds?: DeliverableCreateSchemaApprovalRounds;
   content?: DeliverableCreateSchemaContent;
   notes?: DeliverableCreateSchemaNotes;
   campaign_id?: DeliverableCreateSchemaCampaignId;
@@ -478,6 +676,20 @@ export interface DeliverableMediaAssociationSchema {
 
 export type DeliverableResponseSchemaContent = string | null;
 
+export type DeliverableResponseSchemaDeliverableType = DeliverableType | null;
+
+export type DeliverableResponseSchemaPostingStartDate = string | null;
+
+export type DeliverableResponseSchemaPostingEndDate = string | null;
+
+export type DeliverableResponseSchemaHandles = string[] | null;
+
+export type DeliverableResponseSchemaHashtags = string[] | null;
+
+export type DeliverableResponseSchemaDisclosures = string[] | null;
+
+export type DeliverableResponseSchemaApprovalRounds = number | null;
+
 export type DeliverableResponseSchemaNotes = {[key: string]: unknown};
 
 export type DeliverableResponseSchemaCampaignId = number | null;
@@ -489,7 +701,16 @@ export interface DeliverableResponseSchema {
   title: string;
   content?: DeliverableResponseSchemaContent;
   platforms: SocialMediaPlatforms;
+  deliverable_type?: DeliverableResponseSchemaDeliverableType;
+  count: number;
   posting_date: string;
+  posting_start_date?: DeliverableResponseSchemaPostingStartDate;
+  posting_end_date?: DeliverableResponseSchemaPostingEndDate;
+  handles?: DeliverableResponseSchemaHandles;
+  hashtags?: DeliverableResponseSchemaHashtags;
+  disclosures?: DeliverableResponseSchemaDisclosures;
+  approval_required: boolean;
+  approval_rounds?: DeliverableResponseSchemaApprovalRounds;
   notes: DeliverableResponseSchemaNotes;
   state: string;
   campaign_id?: DeliverableResponseSchemaCampaignId;
@@ -500,13 +721,56 @@ export interface DeliverableResponseSchema {
   actions: ActionDTO[];
 }
 
+/**
+ * Types of deliverables for various platforms.
+ */
+export type DeliverableType = typeof DeliverableType[keyof typeof DeliverableType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DeliverableType = {
+  instagram_feed_post: 'instagram_feed_post',
+  instagram_story_frame: 'instagram_story_frame',
+  instagram_reel: 'instagram_reel',
+  instagram_carousel: 'instagram_carousel',
+  tiktok_video: 'tiktok_video',
+  tiktok_photo_post: 'tiktok_photo_post',
+  youtube_video: 'youtube_video',
+  youtube_short: 'youtube_short',
+  youtube_community_post: 'youtube_community_post',
+  facebook_post: 'facebook_post',
+  facebook_story: 'facebook_story',
+  facebook_reel: 'facebook_reel',
+  blog_post: 'blog_post',
+  podcast_episode: 'podcast_episode',
+  email_newsletter: 'email_newsletter',
+} as const;
+
 export type DeliverableUpdateSchemaTitle = string | null;
 
 export type DeliverableUpdateSchemaContent = string | null;
 
 export type DeliverableUpdateSchemaPlatforms = SocialMediaPlatforms | null;
 
+export type DeliverableUpdateSchemaDeliverableType = DeliverableType | null;
+
+export type DeliverableUpdateSchemaCount = number | null;
+
 export type DeliverableUpdateSchemaPostingDate = string | null;
+
+export type DeliverableUpdateSchemaPostingStartDate = string | null;
+
+export type DeliverableUpdateSchemaPostingEndDate = string | null;
+
+export type DeliverableUpdateSchemaHandles = string[] | null;
+
+export type DeliverableUpdateSchemaHashtags = string[] | null;
+
+export type DeliverableUpdateSchemaDisclosures = string[] | null;
+
+export type DeliverableUpdateSchemaApprovalRequired = boolean | null;
+
+export type DeliverableUpdateSchemaApprovalRounds = number | null;
 
 export type DeliverableUpdateSchemaNotesOneOf = {[key: string]: unknown};
 
@@ -518,7 +782,16 @@ export interface DeliverableUpdateSchema {
   title?: DeliverableUpdateSchemaTitle;
   content?: DeliverableUpdateSchemaContent;
   platforms?: DeliverableUpdateSchemaPlatforms;
+  deliverable_type?: DeliverableUpdateSchemaDeliverableType;
+  count?: DeliverableUpdateSchemaCount;
   posting_date?: DeliverableUpdateSchemaPostingDate;
+  posting_start_date?: DeliverableUpdateSchemaPostingStartDate;
+  posting_end_date?: DeliverableUpdateSchemaPostingEndDate;
+  handles?: DeliverableUpdateSchemaHandles;
+  hashtags?: DeliverableUpdateSchemaHashtags;
+  disclosures?: DeliverableUpdateSchemaDisclosures;
+  approval_required?: DeliverableUpdateSchemaApprovalRequired;
+  approval_rounds?: DeliverableUpdateSchemaApprovalRounds;
   notes?: DeliverableUpdateSchemaNotes;
   campaign_id?: DeliverableUpdateSchemaCampaignId;
 }
@@ -898,6 +1171,19 @@ export const ObjectTypes = {
   invoices: 'invoices',
 } as const;
 
+/**
+ * Content ownership mode.
+ */
+export type OwnershipMode = typeof OwnershipMode[keyof typeof OwnershipMode];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OwnershipMode = {
+  brand_owned: 'brand_owned',
+  creator_owned: 'creator_owned',
+  shared: 'shared',
+} as const;
+
 export interface PresignedUploadRequestSchema {
   file_name: string;
   content_type: string;
@@ -1011,6 +1297,69 @@ export interface RosterInDeliverableSchema {
   tiktok_handle?: RosterInDeliverableSchemaTiktokHandle;
   youtube_channel?: RosterInDeliverableSchemaYoutubeChannel;
   state: string;
+}
+
+export type RosterSchemaEmail = string | null;
+
+export type RosterSchemaPhone = string | null;
+
+export type RosterSchemaBirthdate = string | null;
+
+export type RosterSchemaInstagramHandle = string | null;
+
+export type RosterSchemaFacebookHandle = string | null;
+
+export type RosterSchemaTiktokHandle = string | null;
+
+export type RosterSchemaYoutubeChannel = string | null;
+
+export type RosterSchemaProfilePhotoId = number | null;
+
+export type RosterSchemaTeamId = number | null;
+
+export interface RosterSchema {
+  id: unknown;
+  name: string;
+  email?: RosterSchemaEmail;
+  phone?: RosterSchemaPhone;
+  birthdate?: RosterSchemaBirthdate;
+  instagram_handle?: RosterSchemaInstagramHandle;
+  facebook_handle?: RosterSchemaFacebookHandle;
+  tiktok_handle?: RosterSchemaTiktokHandle;
+  youtube_channel?: RosterSchemaYoutubeChannel;
+  profile_photo_id?: RosterSchemaProfilePhotoId;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  team_id?: RosterSchemaTeamId;
+  actions: ActionDTO[];
+}
+
+export type RosterUpdateSchemaName = string | null;
+
+export type RosterUpdateSchemaEmail = string | null;
+
+export type RosterUpdateSchemaPhone = string | null;
+
+export type RosterUpdateSchemaBirthdate = string | null;
+
+export type RosterUpdateSchemaInstagramHandle = string | null;
+
+export type RosterUpdateSchemaFacebookHandle = string | null;
+
+export type RosterUpdateSchemaTiktokHandle = string | null;
+
+export type RosterUpdateSchemaYoutubeChannel = string | null;
+
+export interface RosterUpdateSchema {
+  name?: RosterUpdateSchemaName;
+  email?: RosterUpdateSchemaEmail;
+  phone?: RosterUpdateSchemaPhone;
+  birthdate?: RosterUpdateSchemaBirthdate;
+  instagram_handle?: RosterUpdateSchemaInstagramHandle;
+  facebook_handle?: RosterUpdateSchemaFacebookHandle;
+  tiktok_handle?: RosterUpdateSchemaTiktokHandle;
+  youtube_channel?: RosterUpdateSchemaYoutubeChannel;
 }
 
 /**
@@ -1188,6 +1537,11 @@ export interface USDFieldValue {
   type: 'usd';
 }
 
+export interface UpdateBrandAction {
+  data: BrandUpdateSchema;
+  action: 'brand_actions__brand_update';
+}
+
 export interface UpdateCampaignAction {
   data: CampaignUpdateSchema;
   action: 'campaign_actions__campaign_update';
@@ -1225,6 +1579,11 @@ export interface UpdateMediaAction {
 export interface UpdateMessageAction {
   data: MessageUpdateSchema;
   action: 'message_actions__update';
+}
+
+export interface UpdateRosterAction {
+  data: RosterUpdateSchema;
+  action: 'roster_actions__roster_update';
 }
 
 export type UserWaitlistFormSchemaCompany = string | null;
@@ -1337,6 +1696,32 @@ export type UsersSwitchTeamSwitchTeam400 = {
   extra?: UsersSwitchTeamSwitchTeam400Extra;
 };
 
+export type RosterIdGetRoster400ExtraAnyOf = {[key: string]: unknown};
+
+export type RosterIdGetRoster400Extra = null | RosterIdGetRoster400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type RosterIdGetRoster400 = {
+  status_code: number;
+  detail: string;
+  extra?: RosterIdGetRoster400Extra;
+};
+
+export type RosterIdUpdateRoster400ExtraAnyOf = {[key: string]: unknown};
+
+export type RosterIdUpdateRoster400Extra = null | RosterIdUpdateRoster400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type RosterIdUpdateRoster400 = {
+  status_code: number;
+  detail: string;
+  extra?: RosterIdUpdateRoster400Extra;
+};
+
 export type AuthSwitchScopeSwitchScope201 = { [key: string]: unknown };
 
 export type AuthSwitchScopeSwitchScope400ExtraAnyOf = {[key: string]: unknown};
@@ -1440,7 +1825,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1468,7 +1853,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateBrandAction | CreateDeliverableAction | CreateRosterAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
