@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  GetUserUserResponseBody,
+  UsersSchemasUserSchema,
   ListTeamsResponse,
   TeamListItemSchema,
 } from '@/openapi/managerLab.schemas';
@@ -9,7 +9,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import { config } from '@/lib/config';
 
 interface AuthContextValue {
-  user: GetUserUserResponseBody;
+  user: UsersSchemasUserSchema;
   teams: TeamListItemSchema[];
   currentTeamId: number | null;
   isCampaignScoped: boolean;
@@ -36,7 +36,7 @@ export function AuthProvider({
   initialTeams,
   children,
 }: {
-  user: GetUserUserResponseBody;
+  user: UsersSchemasUserSchema;
   initialTeams: ListTeamsResponse;
   children: React.ReactNode;
 }) {

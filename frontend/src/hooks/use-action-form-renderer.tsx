@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { ObjectDetailDTO } from '@/openapi/managerLab.schemas';
+import type { DomainObject } from '@/types/domain-objects';
 import type { ActionFormRenderer } from './use-action-executor';
 import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
 
@@ -13,7 +13,7 @@ import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
  * @returns An ActionFormRenderer that can be passed to useActionExecutor
  */
 export function useActionFormRenderer(
-  objectData?: ObjectDetailDTO
+  objectData?: DomainObject
 ): ActionFormRenderer {
   return useCallback<ActionFormRenderer>(
     ({ action, onSubmit, onCancel, isSubmitting }) => {
@@ -58,7 +58,7 @@ export function useActionFormRenderer(
  * ```
  */
 export function useActionFormRendererWithContext(
-  context: ObjectDetailDTO
+  context: DomainObject
 ): ActionFormRenderer {
   return useActionFormRenderer(context);
 }

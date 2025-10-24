@@ -6,6 +6,8 @@ from app.campaigns.schemas import CampaignSchema, CampaignUpdateSchema
 from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
+from app.actions.registry import ActionRegistry
+from app.actions.enums import ActionGroupType
 
 # Register CampaignObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -16,9 +18,16 @@ ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
 
 
 @get("/{id:str}")
-async def get_campaign(id: Sqid, transaction: AsyncSession) -> CampaignSchema:
+async def get_campaign(
+    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry
+) -> CampaignSchema:
     """Get a campaign by SQID."""
     campaign = await get_or_404(transaction, Campaign, id)
+
+    # Compute actions for this campaign
+    action_group = action_registry.get_class(ActionGroupType.CampaignActions)
+    actions = action_group.get_available_actions(obj=campaign)
+
     return CampaignSchema(
         id=campaign.id,
         name=campaign.name,
@@ -30,6 +39,7 @@ async def get_campaign(id: Sqid, transaction: AsyncSession) -> CampaignSchema:
         created_at=campaign.created_at,
         updated_at=campaign.updated_at,
         team_id=campaign.team_id,
+        actions=actions,
     )
 
 
@@ -52,6 +62,7 @@ async def update_campaign(
         created_at=campaign.created_at,
         updated_at=campaign.updated_at,
         team_id=campaign.team_id,
+        actions=[],  # Update endpoints don't compute actions
     )
 
 

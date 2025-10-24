@@ -28,11 +28,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  GetInvoiceInvoiceResponseBody,
+  InvoiceSchema,
   InvoiceUpdateSchema,
   InvoicesIdGetInvoice400,
-  InvoicesIdUpdateInvoice400,
-  UpdateInvoiceInvoiceResponseBody
+  InvoicesIdUpdateInvoice400
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -49,7 +48,7 @@ export const invoicesIdGetInvoice = (
 ) => {
       
       
-      return customInstance<GetInvoiceInvoiceResponseBody>(
+      return customInstance<InvoiceSchema>(
       {url: `/invoices/${id}`, method: 'GET', signal
     },
       );
@@ -195,7 +194,7 @@ export const invoicesIdUpdateInvoice = (
 ) => {
       
       
-      return customInstance<UpdateInvoiceInvoiceResponseBody>(
+      return customInstance<InvoiceSchema>(
       {url: `/invoices/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: invoiceUpdateSchema, signal

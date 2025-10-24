@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect, useMemo } from 'react';
+import { useState, useTransition } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -10,24 +10,23 @@ import type {
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableSearch } from '@/components/data-table/data-table-search';
 import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
-import { useListObjectsSuspense } from '@/openapi/objects/objects';
+import {
+  useListObjectsSuspense,
+  useOObjectTypeSchemaGetObjectSchemaSuspense,
+} from '@/openapi/objects/objects';
 import {
   sortingStateToSortDefinitions,
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type {
-  ColumnDefinitionDTO,
-  ObjectListDTO,
-} from '@/openapi/managerLab.schemas';
+import type { ObjectListDTO } from '@/openapi/managerLab.schemas';
 import { ActionGroupType } from '@/openapi/managerLab.schemas';
-import { useHeader } from '@/components/header-provider';
-import type { ActionData } from '@/components/header-provider';
 import { useQueryClient } from '@tanstack/react-query';
+import { PageTopBar } from '@/components/page-topbar';
+import { ObjectActions } from '@/components/object-detail';
 
 export default function CampaignsPage() {
   const queryClient = useQueryClient();
-  const { setHeaderData } = useHeader();
 
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
@@ -37,10 +36,11 @@ export default function CampaignsPage() {
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
-  const [columnDefs, setColumnDefs] = useState<
-    ColumnDefinitionDTO[] | undefined
-  >(undefined);
   const [isPending, startTransition] = useTransition();
+
+  // Fetch schema metadata (cacheable)
+  const { data: schema } =
+    useOObjectTypeSchemaGetObjectSchemaSuspense('campaigns');
 
   // Wrap state updates in startTransition to prevent Suspense fallback
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
@@ -61,47 +61,19 @@ export default function CampaignsPage() {
     offset,
     limit,
     sorts: sortingStateToSortDefinitions(sortingState),
-    filters: columnDefs
-      ? columnFiltersToRequestFilters(columnFilters, columnDefs)
-      : [],
+    filters: columnFiltersToRequestFilters(columnFilters, schema.columns),
     search: searchTerm && searchTerm.trim().length > 0 ? searchTerm : undefined,
   };
 
+  // Fetch data (without schema metadata)
   const { data } = useListObjectsSuspense('campaigns', request);
 
-  // Store column definitions after first fetch
-  if (data.columns && !columnDefs) {
-    setColumnDefs(data.columns);
-  }
-
-  // Create actions data for the header
-  const actionsData: ActionData | undefined = useMemo(() => {
-    if (!data.actions) return undefined;
-
-    return {
-      actions: data.actions,
-      actionGroup: ActionGroupType.top_level_campaign_actions,
-      objectId: '', // No specific object for top-level actions
-      onInvalidate: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['/o/campaigns'],
-        });
-      },
-    };
-  }, [data.actions, queryClient]);
-
-  // Set header data for top-level actions
-  useEffect(() => {
-    if (actionsData) {
-      setHeaderData({
-        title: 'Campaigns',
-        actionsData,
-      });
-    }
-    return () => {
-      setHeaderData(null);
-    };
-  }, [actionsData, setHeaderData]);
+  // Invalidation callback for top-level actions
+  const handleInvalidate = () => {
+    queryClient.invalidateQueries({
+      queryKey: ['/o/campaigns'],
+    });
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleBulkAction = (_action: string, _rows: typeof data.objects) => {
@@ -114,7 +86,16 @@ export default function CampaignsPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <PageTopBar
+      title="Campaigns"
+      actions={
+        <ObjectActions
+          actions={data.actions}
+          actionGroup={ActionGroupType.top_level_campaign_actions}
+          onInvalidate={handleInvalidate}
+        />
+      }
+    >
       <div className="flex items-center gap-4">
         <DataTableSearch
           value={searchTerm ?? ''}
@@ -127,16 +108,14 @@ export default function CampaignsPage() {
           placeholder="Search campaigns"
         />
       </div>
-      {columnDefs && (
-        <DataTableAppliedFilters
-          filters={columnFilters}
-          columnDefs={columnDefs}
-          onUpdate={handleFiltersChange}
-        />
-      )}
+      <DataTableAppliedFilters
+        filters={columnFilters}
+        columnDefs={schema.columns}
+        onUpdate={handleFiltersChange}
+      />
       <DataTable
         isLoading={isPending}
-        columns={data.columns}
+        columns={schema.columns}
         data={data.objects}
         totalCount={data.total}
         enableRowSelection={true}
@@ -152,6 +131,6 @@ export default function CampaignsPage() {
         onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
-    </div>
+    </PageTopBar>
   );
 }

@@ -28,23 +28,20 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  AddUserToWaitlistWaitlistEntryResponseBody,
   CreateTeamSchema,
-  CreateTeamTeamResponseBody,
   CreateUserSchema,
-  CreateUserUserResponseBody,
-  GetCurrentUserUserResponseBody,
-  GetUserUserResponseBody,
   ListTeamsResponse,
-  ListUsersUserResponseBody,
   SwitchTeamRequest,
+  TeamSchema,
   UserWaitlistFormSchema,
   UsersCreateUser400,
+  UsersSchemasUserSchema,
   UsersSignupAddUserToWaitlist400,
   UsersSwitchTeamSwitchTeam201,
   UsersSwitchTeamSwitchTeam400,
   UsersTeamsCreateTeam400,
-  UsersUserIdGetUser400
+  UsersUserIdGetUser400,
+  WaitlistEntrySchema
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -61,7 +58,7 @@ export const usersSignupAddUserToWaitlist = (
 ) => {
       
       
-      return customInstance<AddUserToWaitlistWaitlistEntryResponseBody>(
+      return customInstance<WaitlistEntrySchema>(
       {url: `/users/signup`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: userWaitlistFormSchema, signal
@@ -125,7 +122,7 @@ export const usersListUsers = (
 ) => {
       
       
-      return customInstance<ListUsersUserResponseBody[]>(
+      return customInstance<UsersSchemasUserSchema[]>(
       {url: `/users`, method: 'GET', signal
     },
       );
@@ -270,7 +267,7 @@ export const usersCreateUser = (
 ) => {
       
       
-      return customInstance<CreateUserUserResponseBody>(
+      return customInstance<UsersSchemasUserSchema>(
       {url: `/users`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createUserSchema, signal
@@ -334,7 +331,7 @@ export const usersUserIdGetUser = (
 ) => {
       
       
-      return customInstance<GetUserUserResponseBody>(
+      return customInstance<UsersSchemasUserSchema>(
       {url: `/users/${userId}`, method: 'GET', signal
     },
       );
@@ -624,7 +621,7 @@ export const usersTeamsCreateTeam = (
 ) => {
       
       
-      return customInstance<CreateTeamTeamResponseBody>(
+      return customInstance<TeamSchema>(
       {url: `/users/teams`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createTeamSchema, signal
@@ -688,7 +685,7 @@ export const usersCurrentUserGetCurrentUser = (
 ) => {
       
       
-      return customInstance<GetCurrentUserUserResponseBody>(
+      return customInstance<UsersSchemasUserSchema>(
       {url: `/users/current_user`, method: 'GET', signal
     },
       );

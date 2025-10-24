@@ -255,6 +255,12 @@ class ObjectListResponse(BaseSchema):
     actions: list[ActionDTO] = []
 
 
+class ObjectSchemaResponse(BaseSchema):
+    """Schema metadata for an object type."""
+
+    columns: List[ColumnDefinitionDTO]
+
+
 # ============================================================================
 # Time Series Schemas
 # ============================================================================

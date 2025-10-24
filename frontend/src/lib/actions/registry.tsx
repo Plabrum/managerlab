@@ -1,8 +1,8 @@
 import type {
   ActionsActionGroupExecuteActionBody,
   ActionsActionGroupObjectIdExecuteObjectActionBody,
-  ObjectDetailDTO,
 } from '@/openapi/managerLab.schemas';
+import type { DomainObject } from '@/types/domain-objects';
 import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
 import { CreateDeliverableForm } from '@/components/actions/create-deliverable-form';
 import { CreateMediaForm } from '@/components/actions/create-media-form';
@@ -26,7 +26,7 @@ export interface ActionRegistryEntry<TData = unknown> {
    * @param isSubmitting - Whether the action is currently submitting
    */
   render: (params: {
-    objectData?: ObjectDetailDTO;
+    objectData?: DomainObject;
     onSubmit: (data: TData) => void;
     onCancel: () => void;
     isSubmitting: boolean;
@@ -74,10 +74,17 @@ export type ActionRegistry = {
 
 /**
  * Helper to extract field value from object data
+ * Handles both ObjectDetailDTO (with fields array) and domain-specific schemas (with direct properties)
  */
-function getFieldValue(objectData: ObjectDetailDTO, key: string) {
-  const field = objectData.fields.find((f) => f.key === key);
-  return field?.value;
+function getFieldValue(objectData: DomainObject, key: string): unknown {
+  // Check if this is an ObjectDetailDTO with fields array
+  if ('fields' in objectData && Array.isArray(objectData.fields)) {
+    const field = objectData.fields.find((f) => f.key === key);
+    return field?.value;
+  }
+
+  // Otherwise treat as domain-specific schema with direct properties
+  return (objectData as unknown as Record<string, unknown>)[key];
 }
 
 /**
@@ -94,7 +101,7 @@ export const actionRegistry: ActionRegistry = {
       // Extract default values from objectData
       const defaultValues = objectData
         ? ({
-            title: objectData.title,
+            title: getFieldValue(objectData, 'title'),
             content: getFieldValue(objectData, 'content'),
             platforms: getFieldValue(objectData, 'platforms'),
             posting_date: getFieldValue(objectData, 'posting_date'),

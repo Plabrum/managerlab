@@ -3,14 +3,13 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Breadcrumb,
+  Breadcrumb as BreadcrumbUI,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { useBreadcrumb } from '@/components/breadcrumb-provider';
 
 const routeLabels: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -23,11 +22,15 @@ const routeLabels: Record<string, string> = {
   users: 'Users',
   brandcontacts: 'Brand Contacts',
   settings: 'Settings',
+  deliverables: 'Deliverables',
 };
 
-export function DynamicBreadcrumb() {
+interface BreadcrumbProps {
+  currentPageTitle?: string;
+}
+
+export function Breadcrumb({ currentPageTitle }: BreadcrumbProps) {
   const pathname = usePathname();
-  const { breadcrumbs } = useBreadcrumb();
 
   // Handle null pathname
   if (!pathname) {
@@ -36,17 +39,17 @@ export function DynamicBreadcrumb() {
 
   const segments = pathname.split('/').filter(Boolean);
 
-  // Remove empty segments and build breadcrumb items
+  // Build breadcrumb items
   const breadcrumbItems = segments.map((segment, index) => {
     const path = `/${segments.slice(0, index + 1).join('/')}`;
-
-    // Check if there's a custom breadcrumb override for this path
-    const customLabel = breadcrumbs.get(path);
-    const label =
-      customLabel ||
-      routeLabels[segment] ||
-      segment.charAt(0).toUpperCase() + segment.slice(1);
     const isLast = index === segments.length - 1;
+
+    // For the last segment, use currentPageTitle if provided, otherwise use route label or humanized segment
+    const label =
+      isLast && currentPageTitle
+        ? currentPageTitle
+        : routeLabels[segment] ||
+          segment.charAt(0).toUpperCase() + segment.slice(1);
 
     return { path, label, isLast };
   });
@@ -57,7 +60,7 @@ export function DynamicBreadcrumb() {
   }
 
   return (
-    <Breadcrumb>
+    <BreadcrumbUI>
       <BreadcrumbList>
         {breadcrumbItems.map((item, index) => (
           <span key={item.path} className="contents">
@@ -76,6 +79,6 @@ export function DynamicBreadcrumb() {
           </span>
         ))}
       </BreadcrumbList>
-    </Breadcrumb>
+    </BreadcrumbUI>
   );
 }

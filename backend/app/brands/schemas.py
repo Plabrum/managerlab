@@ -1,6 +1,7 @@
 from datetime import datetime
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
+from app.actions.schemas import ActionDTO
 
 
 class BrandSchema(BaseSchema):
@@ -16,6 +17,7 @@ class BrandSchema(BaseSchema):
     created_at: datetime
     updated_at: datetime
     team_id: int | None
+    actions: list[ActionDTO]
 
 
 class BrandUpdateSchema(BaseSchema):
@@ -53,6 +55,7 @@ class BrandContactSchema(BaseSchema):
     created_at: datetime
     updated_at: datetime
     team_id: int | None
+    actions: list[ActionDTO] = []  # TODO: Implement BrandContactActions when needed
 
 
 class BrandContactUpdateSchema(BaseSchema):

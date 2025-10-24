@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
+from app.actions.schemas import ActionDTO
 
 
 class InvoiceSchema(BaseSchema):
@@ -23,6 +24,7 @@ class InvoiceSchema(BaseSchema):
     updated_at: datetime
     campaign_id: int | None
     team_id: int | None
+    actions: list[ActionDTO]
 
 
 class InvoiceUpdateSchema(BaseSchema):

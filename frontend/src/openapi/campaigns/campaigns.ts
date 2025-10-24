@@ -28,11 +28,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CampaignSchema,
   CampaignUpdateSchema,
   CampaignsIdGetCampaign400,
-  CampaignsIdUpdateCampaign400,
-  GetCampaignCampaignResponseBody,
-  UpdateCampaignCampaignResponseBody
+  CampaignsIdUpdateCampaign400
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -49,7 +48,7 @@ export const campaignsIdGetCampaign = (
 ) => {
       
       
-      return customInstance<GetCampaignCampaignResponseBody>(
+      return customInstance<CampaignSchema>(
       {url: `/campaigns/${id}`, method: 'GET', signal
     },
       );
@@ -195,7 +194,7 @@ export const campaignsIdUpdateCampaign = (
 ) => {
       
       
-      return customInstance<UpdateCampaignCampaignResponseBody>(
+      return customInstance<CampaignSchema>(
       {url: `/campaigns/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: campaignUpdateSchema, signal

@@ -16,14 +16,12 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/components/providers/auth-provider';
 import { dashboardsListDashboards } from '@/openapi/dashboards/dashboards';
-import type { ListDashboardsDashboardResponseBody } from '@/openapi/managerLab.schemas';
+import type { DashboardSchema } from '@/openapi/managerLab.schemas';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
-  const [dashboards, setDashboards] = React.useState<
-    ListDashboardsDashboardResponseBody[]
-  >([]);
+  const [dashboards, setDashboards] = React.useState<DashboardSchema[]>([]);
 
   React.useEffect(() => {
     const fetchDashboards = async () => {

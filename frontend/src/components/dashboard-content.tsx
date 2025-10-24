@@ -26,16 +26,16 @@ import {
   dashboardsIdGetDashboard,
 } from '@/openapi/dashboards/dashboards';
 import type { DashboardConfig, WidgetConfig } from '@/types/dashboard';
-import type { ListDashboardsDashboardResponseBody } from '@/openapi/managerLab.schemas';
+import type { DashboardSchema } from '@/openapi/managerLab.schemas';
 import { toast } from 'sonner';
+import { PageTopBar } from '@/components/page-topbar';
 
 interface DashboardContentProps {
   dashboardId?: string;
 }
 
 export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
-  const [dashboard, setDashboard] =
-    useState<ListDashboardsDashboardResponseBody | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardSchema | null>(null);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingWidget, setEditingWidget] = useState<WidgetConfig | null>(null);
@@ -168,25 +168,121 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
 
   if (!dashboard) {
     return (
-      <div className="space-y-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Dashboard</h2>
+      <PageTopBar
+        title="Dashboard"
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <PlusIcon className="mr-2 h-4 w-4" />
             Create Dashboard
           </Button>
-        </div>
+        }
+      >
+        <div className="space-y-6">
+          <div className="rounded-lg border border-dashed p-12 text-center">
+            <h3 className="mb-2 text-lg font-semibold">No Dashboard Found</h3>
+            <p className="text-muted-foreground mb-4 text-sm">
+              Create a dashboard to get started
+            </p>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Dashboard
+            </Button>
+          </div>
 
-        <div className="rounded-lg border border-dashed p-12 text-center">
-          <h3 className="mb-2 text-lg font-semibold">No Dashboard Found</h3>
-          <p className="text-muted-foreground mb-4 text-sm">
-            Create a dashboard to get started
-          </p>
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          {/* Create Dashboard Dialog */}
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Dashboard</DialogTitle>
+                <DialogDescription>
+                  Create a new dashboard to visualize your data
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dashboard-name">Dashboard Name</Label>
+                  <Input
+                    id="dashboard-name"
+                    placeholder="My Dashboard"
+                    value={newDashboardName}
+                    onChange={(e) => setNewDashboardName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCreateDashboard();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCreateDialogOpen(false);
+                    setNewDashboardName('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateDashboard} disabled={creating}>
+                  {creating ? 'Creating...' : 'Create'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </PageTopBar>
+    );
+  }
+
+  return (
+    <PageTopBar
+      title={dashboard.name}
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
             <PlusIcon className="mr-2 h-4 w-4" />
-            Create Dashboard
+            New Dashboard
+          </Button>
+          <Button onClick={handleAddWidget}>
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Add Widget
           </Button>
         </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* Widgets Grid */}
+        {config.widgets.length === 0 ? (
+          <div className="rounded-lg border border-dashed p-12 text-center">
+            <h3 className="mb-2 text-lg font-semibold">No Widgets Yet</h3>
+            <p className="text-muted-foreground mb-4 text-sm">
+              Add your first widget to start visualizing your data
+            </p>
+            <Button onClick={handleAddWidget}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Add Widget
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {config.widgets.map((widget) => (
+              <div key={widget.id} className="min-h-[300px]">
+                <WidgetContainer widget={widget} onEdit={handleEditWidget}>
+                  {renderWidget(widget)}
+                </WidgetContainer>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Widget Editor Drawer */}
+        <WidgetEditorDrawer
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          widget={editingWidget}
+          onSave={handleSaveWidget}
+        />
 
         {/* Create Dashboard Dialog */}
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -230,106 +326,7 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
           </DialogContent>
         </Dialog>
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{dashboard.name}</h2>
-          <p className="text-muted-foreground text-sm">
-            Dashboard with {config.widgets.length} widget
-            {config.widgets.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            New Dashboard
-          </Button>
-          <Button onClick={handleAddWidget}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Add Widget
-          </Button>
-        </div>
-      </div>
-
-      {/* Widgets Grid */}
-      {config.widgets.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-12 text-center">
-          <h3 className="mb-2 text-lg font-semibold">No Widgets Yet</h3>
-          <p className="text-muted-foreground mb-4 text-sm">
-            Add your first widget to start visualizing your data
-          </p>
-          <Button onClick={handleAddWidget}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Add Widget
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {config.widgets.map((widget) => (
-            <div key={widget.id} className="min-h-[300px]">
-              <WidgetContainer widget={widget} onEdit={handleEditWidget}>
-                {renderWidget(widget)}
-              </WidgetContainer>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Widget Editor Drawer */}
-      <WidgetEditorDrawer
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        widget={editingWidget}
-        onSave={handleSaveWidget}
-      />
-
-      {/* Create Dashboard Dialog */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Dashboard</DialogTitle>
-            <DialogDescription>
-              Create a new dashboard to visualize your data
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="dashboard-name">Dashboard Name</Label>
-              <Input
-                id="dashboard-name"
-                placeholder="My Dashboard"
-                value={newDashboardName}
-                onChange={(e) => setNewDashboardName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleCreateDashboard();
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCreateDialogOpen(false);
-                setNewDashboardName('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleCreateDashboard} disabled={creating}>
-              {creating ? 'Creating...' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </PageTopBar>
   );
 }
 

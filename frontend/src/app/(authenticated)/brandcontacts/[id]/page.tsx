@@ -3,7 +3,7 @@
 import { use } from 'react';
 import { ObjectFields, ObjectRelations } from '@/components/object-detail';
 import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
-import { DetailPageLayout } from '@/components/detail-page-layout';
+import { PageTopBar } from '@/components/page-topbar';
 
 export default function BrandContactDetailPage({
   params,
@@ -15,16 +15,14 @@ export default function BrandContactDetailPage({
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('brandcontacts', id);
 
   return (
-    <DetailPageLayout title={data.title} state={data.state}>
-      <div className="container mx-auto py-6">
-        <div className="space-y-6">
-          {/* Fields */}
-          <ObjectFields fields={data.fields} />
+    <PageTopBar title={data.title} state={data.state}>
+      <div className="space-y-6">
+        {/* Fields */}
+        <ObjectFields fields={data.fields} />
 
-          {/* Relations */}
-          <ObjectRelations relations={data.relations || []} />
-        </div>
+        {/* Relations */}
+        <ObjectRelations relations={data.relations || []} />
       </div>
-    </DetailPageLayout>
+    </PageTopBar>
   );
 }

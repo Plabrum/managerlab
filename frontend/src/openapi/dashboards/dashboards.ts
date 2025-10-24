@@ -28,14 +28,11 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  CreateDashboardDashboardResponseBody,
   CreateDashboardSchema,
+  DashboardSchema,
   DashboardsCreateDashboard400,
   DashboardsIdGetDashboard400,
   DashboardsIdUpdateDashboard400,
-  GetDashboardDashboardResponseBody,
-  ListDashboardsDashboardResponseBody,
-  UpdateDashboardDashboardResponseBody,
   UpdateDashboardSchema
 } from '../managerLab.schemas';
 
@@ -53,7 +50,7 @@ export const dashboardsListDashboards = (
 ) => {
       
       
-      return customInstance<ListDashboardsDashboardResponseBody[]>(
+      return customInstance<DashboardSchema[]>(
       {url: `/dashboards`, method: 'GET', signal
     },
       );
@@ -198,7 +195,7 @@ export const dashboardsCreateDashboard = (
 ) => {
       
       
-      return customInstance<CreateDashboardDashboardResponseBody>(
+      return customInstance<DashboardSchema>(
       {url: `/dashboards`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createDashboardSchema, signal
@@ -262,7 +259,7 @@ export const dashboardsIdGetDashboard = (
 ) => {
       
       
-      return customInstance<GetDashboardDashboardResponseBody>(
+      return customInstance<DashboardSchema>(
       {url: `/dashboards/${id}`, method: 'GET', signal
     },
       );
@@ -407,7 +404,7 @@ export const dashboardsIdUpdateDashboard = (
  ) => {
       
       
-      return customInstance<UpdateDashboardDashboardResponseBody>(
+      return customInstance<DashboardSchema>(
       {url: `/dashboards/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateDashboardSchema
