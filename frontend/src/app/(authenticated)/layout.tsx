@@ -27,7 +27,6 @@ export default function AuthenticatedLayout({
     error: userError,
   } = useUsersCurrentUserGetCurrentUser({
     query: {
-      retry: false,
       staleTime: 30000, // 30s cache
     },
   });
@@ -38,7 +37,6 @@ export default function AuthenticatedLayout({
     error: teamsError,
   } = useUsersTeamsListTeams({
     query: {
-      retry: false,
       staleTime: 0, // No cache for teams to ensure immediate updates after onboarding
     },
   });
