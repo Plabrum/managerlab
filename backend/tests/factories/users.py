@@ -4,8 +4,10 @@ from datetime import datetime, timezone
 
 from polyfactory import Use
 
-from app.users.models import User, WaitlistEntry, Team, Role, Roster
-from app.users.enums import UserStates, RoleLevel, RosterStates
+from app.users.models import User, WaitlistEntry, Team, Role
+from app.users.enums import UserStates, RoleLevel
+from app.roster.models import Roster
+from app.roster.enums import RosterStates
 from .base import BaseFactory
 
 

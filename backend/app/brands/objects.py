@@ -102,9 +102,7 @@ class BrandObject(BaseObject):
         return ActionGroupType.BrandActions
 
     @classmethod
-    def to_detail_dto(
-        cls, brand: Brand, action_registry: ActionRegistry | None = None
-    ) -> ObjectDetailDTO:
+    def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -149,10 +147,8 @@ class BrandObject(BaseObject):
         ]
 
         # Get available actions for this brand
-        actions: list[Any] = []
-        if action_registry:
-            action_group = action_registry.get_class(ActionGroupType.BrandActions)
-            actions = action_group.get_available_actions(obj=brand)
+        action_group = ActionRegistry().get_class(ActionGroupType.BrandActions)
+        actions = action_group.get_available_actions(obj=brand)
 
         return ObjectDetailDTO(
             id=sqid_encode(brand.id),
@@ -166,9 +162,7 @@ class BrandObject(BaseObject):
         )
 
     @classmethod
-    def to_list_dto(
-        cls, brand: Brand, action_registry: ActionRegistry | None = None
-    ) -> ObjectListDTO:
+    def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
         fields = [
             ObjectFieldDTO(
                 key="name",
@@ -207,10 +201,8 @@ class BrandObject(BaseObject):
         ]
 
         # Get available actions for this brand
-        actions: list[Any] = []
-        if action_registry:
-            action_group = action_registry.get_class(ActionGroupType.BrandActions)
-            actions = action_group.get_available_actions(obj=brand)
+        action_group = ActionRegistry().get_class(ActionGroupType.BrandActions)
+        actions = action_group.get_available_actions(obj=brand)
 
         return ObjectListDTO(
             id=sqid_encode(brand.id),

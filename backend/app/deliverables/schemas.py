@@ -6,7 +6,7 @@ from app.base.schemas import BaseSchema
 from app.deliverables.enums import DeliverableType, SocialMediaPlatforms
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.media.schemas import MediaResponseSchema, media_to_response
-from app.users.models import Roster
+from app.roster.models import Roster
 from app.actions.schemas import ActionDTO
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry

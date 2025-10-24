@@ -3,48 +3,48 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.actions import action_group_factory, ActionGroupType, BaseAction
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.brands.models.brands import Brand
-from app.brands.enums import BrandActions
-from app.brands.schemas import BrandUpdateSchema
+from app.roster.models import Roster
+from app.roster.enums import RosterActions
+from app.roster.schemas import RosterUpdateSchema
 from app.utils.db import update_model
 
 
-# Create brand action group
-brand_actions = action_group_factory(
-    ActionGroupType.BrandActions,
-    model_type=Brand,
+# Create roster action group
+roster_actions = action_group_factory(
+    ActionGroupType.RosterActions,
+    model_type=Roster,
 )
 
 
-@brand_actions
-class DeleteBrand(BaseAction):
-    action_key = BrandActions.delete
+@roster_actions
+class DeleteRoster(BaseAction):
+    action_key = RosterActions.delete
     label = "Delete"
     is_bulk_allowed = True
     priority = 0
     icon = ActionIcon.trash
-    confirmation_message = "Are you sure you want to delete this brand?"
+    confirmation_message = "Are you sure you want to delete this roster member?"
     should_redirect_to_parent = True
 
     @classmethod
     async def execute(
         cls,
-        obj: Brand,
+        obj: Roster,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             success=True,
-            message="Deleted brand",
+            message="Deleted roster member",
             results={},
             should_redirect_to_parent=True,
         )
 
 
-@brand_actions
-class UpdateBrand(BaseAction):
-    action_key = BrandActions.update
-    label = "Update"
+@roster_actions
+class UpdateRoster(BaseAction):
+    action_key = RosterActions.update
+    label = "Edit"
     is_bulk_allowed = True
     priority = 50
     icon = ActionIcon.edit
@@ -52,14 +52,14 @@ class UpdateBrand(BaseAction):
     @classmethod
     async def execute(
         cls,
-        obj: Brand,
-        data: BrandUpdateSchema,
+        obj: Roster,
+        data: RosterUpdateSchema,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         update_model(obj, data)
 
         return ActionExecutionResponse(
             success=True,
-            message="Updated brand",
+            message="Updated roster member",
             results={},
         )

@@ -19,7 +19,8 @@ if TYPE_CHECKING:
     from app.brands.models.brands import Brand
     from app.brands.models.contacts import BrandContact
     from app.payments.models import Invoice
-    from app.users.models import User, Roster
+    from app.users.models import User
+    from app.roster.models import Roster
 
 
 class Campaign(

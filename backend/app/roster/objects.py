@@ -1,6 +1,7 @@
 from sqlalchemy.orm import joinedload
 
 from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -16,8 +17,8 @@ from app.objects.schemas import (
     ImageFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
-from app.users.enums import RosterStates
-from app.users.models import Roster
+from app.roster.enums import RosterStates
+from app.roster.models import Roster
 from app.utils.sqids import sqid_encode
 from app.client.s3_client import S3Client
 
@@ -174,13 +175,17 @@ class RosterObject(BaseObject):
             ),
         ]
 
+        # Get available actions for this roster member
+        action_group = ActionRegistry().get_class(ActionGroupType.RosterActions)
+        actions = action_group.get_available_actions(obj=roster_member)
+
         return ObjectDetailDTO(
             id=sqid_encode(roster_member.id),
             object_type=ObjectTypes.Roster,
             state=roster_member.state.name,
             title=roster_member.name,
             fields=[f for f in fields if f is not None],
-            actions=[],
+            actions=actions,
             created_at=roster_member.created_at,
             updated_at=roster_member.updated_at,
             relations=[],

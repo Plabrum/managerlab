@@ -19,7 +19,7 @@ from app.state_machine.models import StateMachineMixin
 if TYPE_CHECKING:
     from app.media.models import Media
     from app.campaigns.models import Campaign
-    from app.users.models import Roster
+    from app.roster.models import Roster
 
 
 class Deliverable(
