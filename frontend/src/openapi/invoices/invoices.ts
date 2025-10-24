@@ -31,6 +31,7 @@ import type {
   InvoiceSchema,
   InvoiceUpdateSchema,
   InvoicesIdGetInvoice400,
+  InvoicesIdGetInvoiceParams,
   InvoicesIdUpdateInvoice400
 } from '../managerLab.schemas';
 
@@ -44,12 +45,14 @@ import { customInstance } from '.././custom-instance';
  */
 export const invoicesIdGetInvoice = (
     id: unknown,
+    params: InvoicesIdGetInvoiceParams,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<InvoiceSchema>(
-      {url: `/invoices/${id}`, method: 'GET', signal
+      {url: `/invoices/${id}`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -57,23 +60,25 @@ export const invoicesIdGetInvoice = (
 
 
 
-export const getInvoicesIdGetInvoiceQueryKey = (id?: unknown,) => {
+export const getInvoicesIdGetInvoiceQueryKey = (id?: unknown,
+    params?: InvoicesIdGetInvoiceParams,) => {
     return [
-    `/invoices/${id}`
+    `/invoices/${id}`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getInvoicesIdGetInvoiceQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+export const getInvoicesIdGetInvoiceQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getInvoicesIdGetInvoiceQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getInvoicesIdGetInvoiceQueryKey(id,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoicesIdGetInvoice>>> = ({ signal }) => invoicesIdGetInvoice(id, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoicesIdGetInvoice>>> = ({ signal }) => invoicesIdGetInvoice(id,params, signal);
 
       
 
@@ -87,7 +92,8 @@ export type InvoicesIdGetInvoiceQueryError = InvoicesIdGetInvoice400
 
 
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof invoicesIdGetInvoice>>,
           TError,
@@ -97,7 +103,8 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof invoicesIdGetInvoice>>,
           TError,
@@ -107,7 +114,8 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -115,11 +123,12 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
  */
 
 export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getInvoicesIdGetInvoiceQueryOptions(id,options)
+  const queryOptions = getInvoicesIdGetInvoiceQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -130,16 +139,17 @@ export function useInvoicesIdGetInvoice<TData = Awaited<ReturnType<typeof invoic
 
 
 
-export const getInvoicesIdGetInvoiceSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+export const getInvoicesIdGetInvoiceSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getInvoicesIdGetInvoiceQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getInvoicesIdGetInvoiceQueryKey(id,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoicesIdGetInvoice>>> = ({ signal }) => invoicesIdGetInvoice(id, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoicesIdGetInvoice>>> = ({ signal }) => invoicesIdGetInvoice(id,params, signal);
 
       
 
@@ -153,15 +163,18 @@ export type InvoicesIdGetInvoiceSuspenseQueryError = InvoicesIdGetInvoice400
 
 
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -169,11 +182,12 @@ export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeo
  */
 
 export function useInvoicesIdGetInvoiceSuspense<TData = Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError = InvoicesIdGetInvoice400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
+ id: unknown,
+    params: InvoicesIdGetInvoiceParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invoicesIdGetInvoice>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getInvoicesIdGetInvoiceSuspenseQueryOptions(id,options)
+  const queryOptions = getInvoicesIdGetInvoiceSuspenseQueryOptions(id,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

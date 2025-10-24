@@ -27,3 +27,18 @@ class CampaignGuestAccessLevel(StrEnum):
 
     VIEWER = auto()  # Can view campaign data
     CONTRIBUTOR = auto()  # Can view and edit campaign data
+
+
+class CounterpartyType(StrEnum):
+    """Type of counterparty in a campaign deal."""
+
+    AGENCY = auto()
+    BRAND = auto()
+
+
+class OwnershipMode(StrEnum):
+    """Content ownership mode."""
+
+    BRAND_OWNED = auto()
+    CREATOR_OWNED = auto()
+    SHARED = auto()

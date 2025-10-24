@@ -1,9 +1,9 @@
 """Deliverable object model."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, TYPE_CHECKING
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.mutable import MutableDict
 
@@ -11,6 +11,7 @@ from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 from app.deliverables.enums import (
     DeliverableStates,
+    DeliverableType,
     SocialMediaPlatforms,
 )
 from app.state_machine.models import StateMachineMixin
@@ -35,10 +36,41 @@ class Deliverable(
     # Deliverable-specific fields
     title: Mapped[str] = mapped_column(sa.Text, nullable=False)
     content: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
+
+    # Platform and type
     platforms: Mapped[SocialMediaPlatforms] = mapped_column(
         sa.Enum(SocialMediaPlatforms), nullable=False
     )
+    deliverable_type: Mapped[DeliverableType | None] = mapped_column(
+        sa.Enum(DeliverableType), nullable=True
+    )
+    count: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
+
+    # Posting dates - keep datetime for backward compatibility, add date range
     posting_date: Mapped[datetime] = mapped_column(sa.DateTime, nullable=False)
+    posting_start_date: Mapped[date | None] = mapped_column(sa.Date, nullable=True)
+    posting_end_date: Mapped[date | None] = mapped_column(sa.Date, nullable=True)
+
+    # Caption requirements (stored as JSON arrays)
+    handles: Mapped[list[str] | None] = mapped_column(
+        ARRAY(sa.String), nullable=True, default=[]
+    )
+    hashtags: Mapped[list[str] | None] = mapped_column(
+        ARRAY(sa.String), nullable=True, default=[]
+    )
+    disclosures: Mapped[list[str] | None] = mapped_column(
+        ARRAY(sa.String), nullable=True, default=[]
+    )
+
+    # Approval settings
+    approval_required: Mapped[bool] = mapped_column(
+        sa.Boolean, nullable=False, default=True
+    )
+    approval_rounds: Mapped[int | None] = mapped_column(
+        sa.Integer, nullable=True, default=1
+    )
+
+    # General notes (JSONB for flexibility)
     notes: Mapped[dict[str, Any]] = mapped_column(
         MutableDict.as_mutable(JSONB),
         nullable=False,

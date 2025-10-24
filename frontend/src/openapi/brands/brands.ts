@@ -35,6 +35,7 @@ import type {
   BrandsContactsIdGetBrandContact400,
   BrandsContactsIdUpdateBrandContact400,
   BrandsIdGetBrand400,
+  BrandsIdGetBrandParams,
   BrandsIdUpdateBrand400
 } from '../managerLab.schemas';
 
@@ -48,12 +49,14 @@ import { customInstance } from '.././custom-instance';
  */
 export const brandsIdGetBrand = (
     id: unknown,
+    params: BrandsIdGetBrandParams,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<BrandSchema>(
-      {url: `/brands/${id}`, method: 'GET', signal
+      {url: `/brands/${id}`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -61,23 +64,25 @@ export const brandsIdGetBrand = (
 
 
 
-export const getBrandsIdGetBrandQueryKey = (id?: unknown,) => {
+export const getBrandsIdGetBrandQueryKey = (id?: unknown,
+    params?: BrandsIdGetBrandParams,) => {
     return [
-    `/brands/${id}`
+    `/brands/${id}`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getBrandsIdGetBrandQueryOptions = <TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+export const getBrandsIdGetBrandQueryOptions = <TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getBrandsIdGetBrandQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getBrandsIdGetBrandQueryKey(id,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandsIdGetBrand>>> = ({ signal }) => brandsIdGetBrand(id, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandsIdGetBrand>>> = ({ signal }) => brandsIdGetBrand(id,params, signal);
 
       
 
@@ -91,7 +96,8 @@ export type BrandsIdGetBrandQueryError = BrandsIdGetBrand400
 
 
 export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>> & Pick<
+ id: unknown,
+    params: BrandsIdGetBrandParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof brandsIdGetBrand>>,
           TError,
@@ -101,7 +107,8 @@ export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGe
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>> & Pick<
+ id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof brandsIdGetBrand>>,
           TError,
@@ -111,7 +118,8 @@ export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGe
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+ id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -119,11 +127,12 @@ export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGe
  */
 
 export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+ id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getBrandsIdGetBrandQueryOptions(id,options)
+  const queryOptions = getBrandsIdGetBrandQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -134,16 +143,17 @@ export function useBrandsIdGetBrand<TData = Awaited<ReturnType<typeof brandsIdGe
 
 
 
-export const getBrandsIdGetBrandSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+export const getBrandsIdGetBrandSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getBrandsIdGetBrandQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getBrandsIdGetBrandQueryKey(id,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandsIdGetBrand>>> = ({ signal }) => brandsIdGetBrand(id, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandsIdGetBrand>>> = ({ signal }) => brandsIdGetBrand(id,params, signal);
 
       
 
@@ -157,15 +167,18 @@ export type BrandsIdGetBrandSuspenseQueryError = BrandsIdGetBrand400
 
 
 export function useBrandsIdGetBrandSuspense<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+ id: unknown,
+    params: BrandsIdGetBrandParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useBrandsIdGetBrandSuspense<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+ id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useBrandsIdGetBrandSuspense<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+ id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -173,11 +186,12 @@ export function useBrandsIdGetBrandSuspense<TData = Awaited<ReturnType<typeof br
  */
 
 export function useBrandsIdGetBrandSuspense<TData = Awaited<ReturnType<typeof brandsIdGetBrand>>, TError = BrandsIdGetBrand400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
+ id: unknown,
+    params: BrandsIdGetBrandParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof brandsIdGetBrand>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getBrandsIdGetBrandSuspenseQueryOptions(id,options)
+  const queryOptions = getBrandsIdGetBrandSuspenseQueryOptions(id,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
