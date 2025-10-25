@@ -48,7 +48,6 @@ logger = logging.getLogger(__name__)
 
 @get("/health", tags=["system"], guards=[])
 async def health_check() -> Response:
-    logger.info("Health check endpoint called")
     return Response(content={"detail": "ok"}, status_code=200)
 
 

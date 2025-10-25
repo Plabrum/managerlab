@@ -6,6 +6,7 @@ into HTTP exceptions.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from advanced_alchemy.exceptions import IntegrityError
@@ -21,6 +22,8 @@ from litestar.exceptions.responses import (
 )
 from litestar.repository.exceptions import ConflictError, NotFoundError, RepositoryError
 from litestar.status_codes import HTTP_409_CONFLICT
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from typing import Any
@@ -105,6 +108,21 @@ def exception_to_http_response(
         http_exc = PermissionDeniedException
     else:
         http_exc = InternalServerException
+
+    # Log the exception with full stack trace and request context
+    # This ensures all exceptions are logged in production for debugging
+    logger.exception(
+        "Exception in %s %s",
+        request.method,
+        request.url.path,
+        extra={
+            "exception_type": exc.__class__.__name__,
+            "status_code": http_exc.status_code
+            if hasattr(http_exc, "status_code")
+            else 500,
+        },
+    )
+
     if request.app.debug and http_exc not in (
         PermissionDeniedException,
         NotFoundError,
