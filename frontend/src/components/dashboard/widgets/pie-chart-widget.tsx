@@ -108,7 +108,10 @@ export function PieChartWidget({ query }: PieChartWidgetProps) {
 
   return (
     <div className="h-full w-full">
-      <ChartContainer config={chartConfig} className="h-full w-full">
+      <ChartContainer
+        config={chartConfig}
+        className="aspect-auto h-full w-full"
+      >
         <PieChart>
           <ChartTooltip content={<ChartTooltipContent />} />
           <Pie
@@ -117,11 +120,12 @@ export function PieChartWidget({ query }: PieChartWidgetProps) {
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius={80}
+            outerRadius="80%"
+            innerRadius="0%"
             label
           >
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getChartColor(index)} />
+              <Cell key={`cell-${entry.name}`} fill={getChartColor(index)} />
             ))}
           </Pie>
           <Legend />

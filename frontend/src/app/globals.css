@@ -39,16 +39,6 @@
   --color-popover: hsl(0 0% 100%);
   --color-popover-foreground: hsl(240 10% 3.9%);
 
-  /* optional charts + radius */
-  --color-chart-1: hsl(12 76% 61%);
-  --color-chart-2: hsl(173 58% 39%);
-  --color-chart-3: hsl(197 37% 24%);
-  --color-chart-4: hsl(43 74% 66%);
-  --color-chart-5: hsl(27 87% 67%);
-  --color-chart-6: hsl(330 60% 50%);
-  --color-chart-7: hsl(150 60% 45%);
-  --color-chart-8: hsl(280 55% 58%);
-
   --color-sidebar: hsl(0 0% 98%);
   --color-sidebar-foreground: hsl(240 5.3% 26.1%);
   --color-sidebar-primary: hsl(224.3 76.3% 48%);
@@ -91,15 +81,6 @@
   --color-popover: hsl(240 10% 3.9%);
   --color-popover-foreground: hsl(0 0% 98%);
 
-  --color-chart-1: hsl(220 70% 50%);
-  --color-chart-2: hsl(160 60% 45%);
-  --color-chart-3: hsl(30 80% 55%);
-  --color-chart-4: hsl(280 65% 60%);
-  --color-chart-5: hsl(340 75% 55%);
-  --color-chart-6: hsl(330 60% 50%);
-  --color-chart-7: hsl(150 60% 45%);
-  --color-chart-8: hsl(280 55% 58%);
-
   --color-sidebar: hsl(240 5.9% 10%);
   --color-sidebar-foreground: hsl(240 4.8% 95.9%);
   --color-sidebar-primary: hsl(224.3 76.3% 48%);
@@ -114,6 +95,30 @@
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+
+  :root {
+    /* Chart colors for light mode */
+    --color-chart-1: hsl(12 76% 61%);
+    --color-chart-2: hsl(173 58% 39%);
+    --color-chart-3: hsl(197 37% 24%);
+    --color-chart-4: hsl(43 74% 66%);
+    --color-chart-5: hsl(27 87% 67%);
+    --color-chart-6: hsl(330 60% 50%);
+    --color-chart-7: hsl(150 60% 45%);
+    --color-chart-8: hsl(280 55% 58%);
+  }
+
+  .dark {
+    /* Chart colors for dark mode */
+    --color-chart-1: hsl(220 70% 50%);
+    --color-chart-2: hsl(160 60% 45%);
+    --color-chart-3: hsl(30 80% 55%);
+    --color-chart-4: hsl(280 65% 60%);
+    --color-chart-5: hsl(340 75% 55%);
+    --color-chart-6: hsl(330 60% 50%);
+    --color-chart-7: hsl(150 60% 45%);
+    --color-chart-8: hsl(280 55% 58%);
   }
 
   html {
