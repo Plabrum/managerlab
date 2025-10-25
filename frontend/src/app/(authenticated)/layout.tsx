@@ -53,7 +53,7 @@ export default function AuthenticatedLayout({
       ) {
         router.push('/auth/expire');
       } else {
-        router.push('/auth');
+        router.push('/error');
       }
     }
   }, [userError, teamsError, router]);
@@ -71,8 +71,18 @@ export default function AuthenticatedLayout({
   }, [teams, teamsLoading, user, userLoading, pathname, router]);
 
   // Show loading state while fetching initial data
-  if (userLoading || teamsLoading || !user || !teams) {
+  // Don't show loading if there's an error (redirect will happen)
+  if (
+    (userLoading || teamsLoading || !user || !teams) &&
+    !userError &&
+    !teamsError
+  ) {
     return null; // Or a loading spinner
+  }
+
+  // If there's an error, show nothing while redirecting
+  if (userError || teamsError) {
+    return null;
   }
 
   const isOnboardingPage = pathname.includes('/onboarding');
