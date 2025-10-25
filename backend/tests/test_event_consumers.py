@@ -119,7 +119,7 @@ class TestBuildUpdateMessageContent:
     """Test cases for build_update_message_content function."""
 
     def test_build_with_name_and_single_change(self):
-        """Test building message with object name and single field change."""
+        """Test building message with single field change."""
         obj = MockObject(id=1, name="Test Campaign")
         event_data = UpdatedEventData(
             changes={"status": FieldChange(old="draft", new="active")}
@@ -141,12 +141,6 @@ class TestBuildUpdateMessageContent:
         # Verify nodes
         nodes = content["content"][0]["content"]
         assert any(node.get("text") == "updated " for node in nodes)
-        assert any(
-            node.get("text") == "Campaign: Test Campaign"
-            and node.get("marks")
-            and node["marks"][0]["type"] == "bold"
-            for node in nodes
-        )
         assert any(node.get("text") == ": " for node in nodes)
         assert any(
             node.get("text") == "Status"
@@ -180,13 +174,12 @@ class TestBuildUpdateMessageContent:
 
         # Verify all changes are present
         assert "updated " in all_text
-        assert "Brand: Test Brand" in all_text
         assert "Old Name → New Name" in all_text
         assert "draft → active" in all_text
         assert "1000 → 2000" in all_text
 
     def test_build_without_name_falls_back_to_id(self):
-        """Test that objects without name attributes use sqid fallback."""
+        """Test that objects without name attributes still build valid messages."""
         obj = MockObject(id=123)  # No name or title
         event_data = UpdatedEventData(
             changes={"status": FieldChange(old="draft", new="active")}
@@ -202,13 +195,13 @@ class TestBuildUpdateMessageContent:
         nodes = content["content"][0]["content"]
         all_text = "".join(node.get("text", "") for node in nodes)
 
-        # Should contain "Roster <sqid>"
+        # Should contain update message with field changes
         assert "updated " in all_text
-        assert "Roster" in all_text
-        # Note: We can't test exact sqid without importing sqid_encode
+        assert "Status" in all_text
+        assert "draft → active" in all_text
 
     def test_build_with_title_attribute(self):
-        """Test that title attribute is used when name is not available."""
+        """Test building message with title attribute."""
         obj = MockObject(id=456, title="Test Title")
         event_data = UpdatedEventData(
             changes={"status": FieldChange(old="draft", new="active")}
@@ -222,12 +215,12 @@ class TestBuildUpdateMessageContent:
         )
 
         nodes = content["content"][0]["content"]
-        assert any(
-            node.get("text") == "Campaign: Test Title"
-            and node.get("marks")
-            and node["marks"][0]["type"] == "bold"
-            for node in nodes
-        )
+        all_text = "".join(node.get("text", "") for node in nodes)
+
+        # Should contain update message with field changes
+        assert "updated " in all_text
+        assert "Status" in all_text
+        assert "draft → active" in all_text
 
     def test_build_without_event_data(self):
         """Test building message when no event data is provided."""
@@ -245,9 +238,8 @@ class TestBuildUpdateMessageContent:
 
         # Should only contain base message
         assert "updated " in all_text
-        assert "Campaign: Test Object" in all_text
-        # Should not contain field changes
-        assert ":" not in all_text.replace("Campaign: Test Object", "")
+        # Should not contain field changes separator
+        assert all_text == "updated "
 
     def test_build_with_null_values(self):
         """Test building message with None values in field changes."""
@@ -298,7 +290,7 @@ class TestBuildUpdateMessageContent:
         assert "End Date" in all_text
 
     def test_build_with_underscore_object_type(self):
-        """Test that underscore object types are converted to title case."""
+        """Test building message with underscore in object type."""
         obj = MockObject(id=222, name="Test Object")
         event_data = UpdatedEventData(
             changes={"status": FieldChange(old="draft", new="active")}
@@ -312,12 +304,12 @@ class TestBuildUpdateMessageContent:
         )
 
         nodes = content["content"][0]["content"]
-        assert any(
-            node.get("text") == "Campaign Draft: Test Object"
-            and node.get("marks")
-            and node["marks"][0]["type"] == "bold"
-            for node in nodes
-        )
+        all_text = "".join(node.get("text", "") for node in nodes)
+
+        # Should contain update message with field changes
+        assert "updated " in all_text
+        assert "Status" in all_text
+        assert "draft → active" in all_text
 
     def test_build_preserves_order_of_changes(self):
         """Test that multiple changes are displayed in order."""
@@ -380,7 +372,6 @@ class TestIntegration:
         all_text = "".join(node.get("text", "") for node in nodes)
 
         assert "updated " in all_text
-        assert "Campaign: New Campaign" in all_text
         assert "Old Campaign → New Campaign" in all_text
         assert "draft → active" in all_text
 
@@ -405,4 +396,4 @@ class TestIntegration:
         all_text = "".join(node.get("text", "") for node in nodes)
 
         assert "updated " in all_text
-        assert "Campaign: Test Object" in all_text
+        assert all_text == "updated "

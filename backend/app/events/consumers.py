@@ -131,24 +131,7 @@ def build_update_message_content(
     object_type: str,
     object_id: int,
 ) -> dict[str, Any]:
-    # # Format object reference
-    # object_type_display = object_type.replace("_", " ").title()
-    # object_ref = None
-    #
-    # # Try common name attributes
-    # for attr in ["name", "title", "display_name"]:
-    #     if hasattr(obj, attr):
-    #         value = getattr(obj, attr)
-    #         if value:
-    #             object_ref = f"{object_type_display}: {value}"
-    #             break
-    #
-    # # Fallback to ID if no name found
-    # if object_ref is None:
-    #     object_ref = f"{object_type_display} {sqid_encode(object_id)}"
-    #
     # Build base nodes
-    # nodes = [text("updated "), bold(object_ref)]
     nodes = [text("updated ")]
 
     # Add field changes if available
