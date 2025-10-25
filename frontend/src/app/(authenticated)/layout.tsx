@@ -85,6 +85,12 @@ export default function AuthenticatedLayout({
     return null;
   }
 
+  // At this point, TypeScript knows user and teams are defined
+  // but we need to help it with an explicit check
+  if (!user || !teams) {
+    return null;
+  }
+
   const isOnboardingPage = pathname.includes('/onboarding');
 
   // If on onboarding page, render without sidebar
