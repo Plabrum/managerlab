@@ -1,8 +1,10 @@
 from datetime import datetime
+from msgspec import UNSET, UnsetType
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 from app.media.models import Media
 from app.actions.schemas import ActionDTO
+from app.threads.schemas import ThreadUnreadInfo
 
 
 class MediaSchema(BaseSchema):
@@ -34,10 +36,11 @@ class MediaResponseSchema(BaseSchema):
     view_url: str
     thumbnail_url: str | None
     actions: list[ActionDTO]
+    thread: ThreadUnreadInfo | None = None
 
 
 def media_to_response(
-    media: Media, s3_client, actions: list[ActionDTO]
+    media: Media, s3_client, actions: list[ActionDTO], thread=None
 ) -> MediaResponseSchema:
     """Transform Media model to response schema with presigned URLs.
 
@@ -69,11 +72,12 @@ def media_to_response(
         view_url=view_url,
         thumbnail_url=thumbnail_url,
         actions=actions,
+        thread=thread if thread is not None else media.thread,
     )
 
 
 class MediaUpdateSchema(BaseSchema):
-    file_name: str | None = None
+    file_name: str | None | UnsetType = UNSET
 
 
 class MediaWithUrlsSchema(BaseSchema):

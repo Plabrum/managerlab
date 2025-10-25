@@ -16,6 +16,7 @@ from app.objects.enums import (
     RelationCardinality,
 )
 from app.actions.schemas import ActionDTO
+from app.utils.sqids import Sqid
 
 
 class TextFilterDefinition(BaseSchema, tag=FilterType.text_filter.value):
@@ -213,6 +214,7 @@ class ObjectDetailDTO(BaseSchema):
     created_at: datetime
     updated_at: datetime
     relations: List[ObjectRelationGroup] = []
+    thread_id: Sqid | None = None
 
 
 class ObjectListDTO(BaseSchema):

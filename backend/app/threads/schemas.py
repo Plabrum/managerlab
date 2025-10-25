@@ -1,6 +1,7 @@
 """Thread schemas for request/response models."""
 
 from datetime import datetime
+from typing import Any
 
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
@@ -21,7 +22,7 @@ class MessageSchema(BaseSchema):
     id: Sqid
     thread_id: Sqid
     user_id: Sqid
-    content: str
+    content: dict[str, Any]
     created_at: datetime
     updated_at: datetime
     user: UserSchema
@@ -31,13 +32,13 @@ class MessageSchema(BaseSchema):
 class MessageCreateSchema(BaseSchema):
     """Schema for creating a message."""
 
-    content: str
+    content: dict[str, Any]
 
 
 class MessageUpdateSchema(BaseSchema):
     """Schema for updating a message."""
 
-    content: str
+    content: dict[str, Any]
 
 
 # Additional response schemas
@@ -67,3 +68,12 @@ class BatchUnreadResponse(BaseSchema):
 
     threads: list[ThreadUnreadInfo]
     total_unread: int
+
+
+# WebSocket event schemas
+class UserPresence(BaseSchema):
+    """User presence info for websocket events."""
+
+    user_id: Sqid
+    name: str
+    is_typing: bool

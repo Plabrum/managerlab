@@ -2,13 +2,19 @@
 
 import { Image } from '@/components/ui/image';
 import type { MediaResponseSchema } from '@/openapi/managerLab.schemas';
-import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface SimpleMediaGalleryProps {
   media: MediaResponseSchema[];
+  selectedIndex?: number;
+  onMediaSelect?: (index: number) => void;
 }
 
-export function SimpleMediaGallery({ media }: SimpleMediaGalleryProps) {
+export function SimpleMediaGallery({
+  media,
+  selectedIndex,
+  onMediaSelect,
+}: SimpleMediaGalleryProps) {
   if (!media || media.length === 0) {
     return null;
   }
@@ -16,15 +22,21 @@ export function SimpleMediaGallery({ media }: SimpleMediaGalleryProps) {
   return (
     <div className="w-full">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-        {media.map((item) => {
+        {media.map((item, index) => {
           const imageUrl = item.thumbnail_url || item.view_url;
           const mediaId = item.id as string;
+          const isSelected = selectedIndex === index;
 
           return (
-            <Link
+            <button
               key={mediaId}
-              href={`/media/${mediaId}`}
-              className="bg-muted hover:border-primary group relative aspect-square overflow-hidden rounded-lg border transition-all hover:shadow-md"
+              type="button"
+              onClick={() => onMediaSelect?.(index)}
+              className={cn(
+                'bg-muted hover:border-primary group relative aspect-square overflow-hidden rounded-lg border transition-all hover:shadow-md',
+                isSelected &&
+                  'ring-primary border-primary shadow-lg ring-2 ring-offset-2'
+              )}
             >
               {imageUrl ? (
                 <Image
@@ -42,7 +54,7 @@ export function SimpleMediaGallery({ media }: SimpleMediaGalleryProps) {
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
                 <p className="truncate text-xs text-white">{item.file_name}</p>
               </div>
-            </Link>
+            </button>
           );
         })}
       </div>

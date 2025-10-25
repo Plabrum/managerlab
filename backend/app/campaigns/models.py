@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.base.threadable_mixin import ThreadableMixin
 from app.campaigns.enums import (
     CampaignStates,
     CampaignGuestAccessLevel,
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
 
 
 class Campaign(
+    ThreadableMixin,
     RLSMixin(),
     StateMachineMixin(
         state_enum=CampaignStates,

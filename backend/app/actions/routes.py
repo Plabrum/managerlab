@@ -10,7 +10,9 @@ from app.objects.schemas import ObjectDetailDTO
 from app.utils.sqids import Sqid
 from app.utils.discovery import discover_and_import
 
-discover_and_import(["actions.py", "top_level_actions.py"], base_path="app")
+discover_and_import(
+    ["actions.py", "actions/**/*.py", "top_level_actions.py"], base_path="app"
+)
 
 
 # ----------------------------

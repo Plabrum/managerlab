@@ -33,14 +33,14 @@ class CreateBrand(BaseAction):
         data: BrandCreateSchema,
         transaction: AsyncSession,
         team_id: int,
+        user: int,
     ) -> Brand:
-        new_brand = create_model(
+        new_brand = await create_model(
+            session=transaction,
             team_id=team_id,
             campaign_id=None,
             model_class=Brand,
             create_vals=data,
+            user_id=user,
         )
-        transaction.add(new_brand)
-        # Flush to get the ID assigned by the database
-        await transaction.flush()
         return new_brand

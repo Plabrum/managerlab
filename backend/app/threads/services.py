@@ -14,11 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 async def get_or_create_thread(
-    session: AsyncSession,
+    transaction: AsyncSession,
     threadable_type: str,
     threadable_id: int,
     team_id: int,
-    campaign_id: int | None = None,
 ) -> Thread:
     """Get existing thread or create a new one for the given object.
 
@@ -37,7 +36,7 @@ async def get_or_create_thread(
         Thread.threadable_type == threadable_type,
         Thread.threadable_id == threadable_id,
     )
-    result = await session.execute(stmt)
+    result = await transaction.execute(stmt)
     thread = result.scalar_one_or_none()
 
     if thread:
@@ -48,10 +47,9 @@ async def get_or_create_thread(
         threadable_type=threadable_type,
         threadable_id=threadable_id,
         team_id=team_id,
-        campaign_id=campaign_id,
     )
-    session.add(thread)
-    await session.flush()
+    transaction.add(thread)
+    await transaction.flush()
 
     logger.info(
         f"Created new thread for {threadable_type}:{threadable_id} (thread_id={thread.id})"
@@ -212,10 +210,8 @@ async def notify_thread(
     channel = f"thread_{thread_id}"
     payload = json.dumps(message)
 
-    # PostgreSQL NOTIFY
-    await session.execute(
-        text(f"NOTIFY {channel}, :payload"),
-        {"payload": payload},
-    )
+    # PostgreSQL NOTIFY doesn't support parameterized queries
+    # Use dollar-quoted strings to avoid escaping issues
+    await session.execute(text(f"NOTIFY {channel}, $${payload}$$"))
 
     logger.debug(f"Notified thread {thread_id}: {message.get('type')}")

@@ -1,5 +1,4 @@
 from app.campaigns.models import Campaign
-from app.media.objects import MediaObject
 from app.campaigns.objects import CampaignObject
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +6,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.objects.base import BaseObject
+from app.objects.base import BaseObject, ObjectRegistry
 from app.objects.enums import ObjectTypes, RelationType, RelationCardinality
 from app.objects.schemas import (
     EnumFieldValue,
@@ -46,6 +45,7 @@ class DeliverableObject(BaseObject):
             joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
             selectinload(Deliverable.media),
             selectinload(Deliverable.assigned_roster),
+            joinedload(Deliverable.thread),
         ]
 
     column_definitions = [
@@ -193,13 +193,17 @@ class DeliverableObject(BaseObject):
                     objects=[CampaignObject.to_list_dto(deliverable.campaign)],
                 )
             )
+        # Use ObjectRegistry to avoid circular import during module discovery
+        media_object_class = ObjectRegistry().get_class(ObjectTypes.Media)
         relations.append(
             ObjectRelationGroup(
                 relation_name="media",
                 relation_label="Media Files",
                 relation_type=RelationType.child,
                 cardinality=RelationCardinality.many,
-                objects=[MediaObject.to_list_dto(media) for media in deliverable.media],
+                objects=[
+                    media_object_class.to_list_dto(media) for media in deliverable.media
+                ],
             )
         )
 
@@ -213,6 +217,7 @@ class DeliverableObject(BaseObject):
             created_at=deliverable.created_at,
             updated_at=deliverable.updated_at,
             relations=relations,
+            thread_id=deliverable.thread.id if deliverable.thread else None,
         )
 
     @classmethod

@@ -110,7 +110,10 @@ class CampaignObject(BaseObject):
     @classmethod
     def get_load_options(cls):
         """Return load options for eager loading relationships."""
-        return [joinedload(Campaign.brand)]
+        return [
+            joinedload(Campaign.brand),
+            joinedload(Campaign.thread),
+        ]
 
     @classmethod
     def to_detail_dto(cls, campaign: Campaign) -> ObjectDetailDTO:
@@ -332,6 +335,7 @@ class CampaignObject(BaseObject):
             actions=actions,
             created_at=campaign.created_at,
             updated_at=campaign.updated_at,
+            thread_id=campaign.thread.id if campaign.thread else None,
         )
 
     @classmethod

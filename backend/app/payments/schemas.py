@@ -1,9 +1,11 @@
 from datetime import date, datetime
 from decimal import Decimal
+from msgspec import UNSET, UnsetType
 
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 from app.actions.schemas import ActionDTO
+from app.threads.schemas import ThreadUnreadInfo
 
 
 class InvoiceSchema(BaseSchema):
@@ -25,21 +27,22 @@ class InvoiceSchema(BaseSchema):
     campaign_id: int | None
     team_id: int | None
     actions: list[ActionDTO]
+    thread: ThreadUnreadInfo | None = None
 
 
 class InvoiceUpdateSchema(BaseSchema):
     """Schema for updating an Invoice."""
 
-    invoice_number: int | None = None
-    customer_name: str | None = None
-    customer_email: str | None = None
-    posting_date: date | None = None
-    due_date: date | None = None
-    amount_due: Decimal | None = None
-    amount_paid: Decimal | None = None
-    description: str | None = None
-    notes: str | None = None
-    campaign_id: int | None = None
+    invoice_number: int | None | UnsetType = UNSET
+    customer_name: str | None | UnsetType = UNSET
+    customer_email: str | None | UnsetType = UNSET
+    posting_date: date | None | UnsetType = UNSET
+    due_date: date | None | UnsetType = UNSET
+    amount_due: Decimal | None | UnsetType = UNSET
+    amount_paid: Decimal | None | UnsetType = UNSET
+    description: str | None | UnsetType = UNSET
+    notes: str | None | UnsetType = UNSET
+    campaign_id: int | None | UnsetType = UNSET
 
 
 class InvoiceCreateSchema(BaseSchema):

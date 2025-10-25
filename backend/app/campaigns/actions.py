@@ -54,9 +54,15 @@ class UpdateCampaign(BaseAction):
         obj: Campaign,
         data: CampaignUpdateSchema,
         transaction: AsyncSession,
+        user: int,
     ) -> ActionExecutionResponse:
-        update_model(obj, data)
-        transaction.add(obj)
+        await update_model(
+            session=transaction,
+            model_instance=obj,
+            update_vals=data,
+            user_id=user,
+            team_id=obj.team_id,
+        )
 
         return ActionExecutionResponse(
             success=True,

@@ -10,6 +10,7 @@ interface PageTopBarProps {
   title: string;
   state?: string;
   actions?: React.ReactNode;
+  chatButton?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -17,6 +18,7 @@ export function PageTopBar({
   title,
   state,
   actions,
+  chatButton,
   children,
 }: PageTopBarProps) {
   return (
@@ -39,8 +41,11 @@ export function PageTopBar({
             {state && <Badge>{humanizeEnumValue(state)}</Badge>}
           </div>
 
-          {/* Right: Actions */}
-          <div className="flex justify-end">{actions}</div>
+          {/* Right: Chat Button + Actions */}
+          <div className="flex items-center justify-end gap-2">
+            {chatButton}
+            {actions}
+          </div>
         </div>
       </header>
       <div className="container mx-auto p-6">{children}</div>

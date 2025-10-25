@@ -29,14 +29,16 @@ class CreateInvoice(BaseAction):
         data: InvoiceCreateSchema,
         transaction: AsyncSession,
         team_id: int,
+        user: int,
     ) -> ActionExecutionResponse:
-        new_invoice = create_model(
+        new_invoice = await create_model(
+            session=transaction,
             team_id=team_id,
             campaign_id=None,
             model_class=Invoice,
             create_vals=data,
+            user_id=user,
         )
-        transaction.add(new_invoice)
         return ActionExecutionResponse(
             success=True,
             message=f"Created invoice #{new_invoice.invoice_number}",

@@ -152,9 +152,6 @@ export const actionRegistry: ActionRegistry = {
       );
     },
   },
-  deliverable_actions__deliverable_remove_media: {
-    render: () => null, // TODO: Add form if needed
-  },
 
   // Media actions
   top_level_media_actions__top_level_media_create: {

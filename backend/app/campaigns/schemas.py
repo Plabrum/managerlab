@@ -1,6 +1,8 @@
 from datetime import datetime, date
+from msgspec import UNSET, UnsetType
 from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure, CounterpartyType, OwnershipMode
+from app.threads.schemas import ThreadUnreadInfo
 from app.utils.sqids import Sqid
 from app.actions.schemas import ActionDTO
 
@@ -19,46 +21,7 @@ class CampaignSchema(BaseSchema):
     updated_at: datetime
     team_id: int | None
     actions: list[ActionDTO]
-
-    # Counterparty
-    counterparty_type: CounterpartyType | None
-    counterparty_name: str | None
-    counterparty_email: str | None
-
-    # Compensation
-    compensation_total_usd: float | None
-    payment_terms_days: int | None
-
-    # Flight dates
-    flight_start_date: date | None
-    flight_end_date: date | None
-
-    # FTC & Usage
-    ftc_string: str | None
-    usage_duration: str | None
-    usage_territory: str | None
-    usage_paid_media_option: bool | None
-
-    # Exclusivity
-    exclusivity_category: str | None
-    exclusivity_days_before: int | None
-    exclusivity_days_after: int | None
-
-    # Ownership
-    ownership_mode: OwnershipMode | None
-
-    # Approval
-    approval_rounds: int | None
-    approval_sla_hours: int | None
-
-
-class CampaignUpdateSchema(BaseSchema):
-    """Schema for updating a Campaign."""
-
-    name: str | None = None
-    description: str | None = None
-    brand_id: int | None = None
-    compensation_structure: CompensationStructure | None = None
+    thread: ThreadUnreadInfo | None = None
 
     # Counterparty
     counterparty_type: CounterpartyType | None = None
@@ -90,6 +53,46 @@ class CampaignUpdateSchema(BaseSchema):
     # Approval
     approval_rounds: int | None = None
     approval_sla_hours: int | None = None
+
+
+class CampaignUpdateSchema(BaseSchema):
+    """Schema for updating a Campaign."""
+
+    name: str | None | UnsetType = UNSET
+    description: str | None | UnsetType = UNSET
+    brand_id: int | None | UnsetType = UNSET
+    compensation_structure: CompensationStructure | None | UnsetType = UNSET
+
+    # Counterparty
+    counterparty_type: CounterpartyType | None | UnsetType = UNSET
+    counterparty_name: str | None | UnsetType = UNSET
+    counterparty_email: str | None | UnsetType = UNSET
+
+    # Compensation
+    compensation_total_usd: float | None | UnsetType = UNSET
+    payment_terms_days: int | None | UnsetType = UNSET
+
+    # Flight dates
+    flight_start_date: date | None | UnsetType = UNSET
+    flight_end_date: date | None | UnsetType = UNSET
+
+    # FTC & Usage
+    ftc_string: str | None | UnsetType = UNSET
+    usage_duration: str | None | UnsetType = UNSET
+    usage_territory: str | None | UnsetType = UNSET
+    usage_paid_media_option: bool | None | UnsetType = UNSET
+
+    # Exclusivity
+    exclusivity_category: str | None | UnsetType = UNSET
+    exclusivity_days_before: int | None | UnsetType = UNSET
+    exclusivity_days_after: int | None | UnsetType = UNSET
+
+    # Ownership
+    ownership_mode: OwnershipMode | None | UnsetType = UNSET
+
+    # Approval
+    approval_rounds: int | None | UnsetType = UNSET
+    approval_sla_hours: int | None | UnsetType = UNSET
 
 
 class CampaignCreateSchema(BaseSchema):

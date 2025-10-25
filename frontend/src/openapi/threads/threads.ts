@@ -33,12 +33,9 @@ import type {
   MessageCreateSchema,
   MessageListResponse,
   MessageSchema,
+  ObjectTypes,
   ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400,
-  ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams,
-  ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400,
-  ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams,
   ThreadsThreadableTypeThreadableIdMessagesCreateMessage400,
-  ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams,
   ThreadsThreadableTypeThreadableIdMessagesListMessages400,
   ThreadsThreadableTypeThreadableIdMessagesListMessagesParams
 } from '../managerLab.schemas';
@@ -52,8 +49,8 @@ import { customInstance } from '.././custom-instance';
  * @summary ListMessages
  */
 export const threadsThreadableTypeThreadableIdMessagesListMessages = (
-    threadableType: string,
-    threadableId: number,
+    threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams,
  signal?: AbortSignal
 ) => {
@@ -69,8 +66,8 @@ export const threadsThreadableTypeThreadableIdMessagesListMessages = (
 
 
 
-export const getThreadsThreadableTypeThreadableIdMessagesListMessagesQueryKey = (threadableType?: string,
-    threadableId?: number,
+export const getThreadsThreadableTypeThreadableIdMessagesListMessagesQueryKey = (threadableType?: ObjectTypes,
+    threadableId?: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams,) => {
     return [
     `/threads/${threadableType}/${threadableId}/messages`, ...(params ? [params]: [])
@@ -78,8 +75,8 @@ export const getThreadsThreadableTypeThreadableIdMessagesListMessagesQueryKey = 
     }
 
     
-export const getThreadsThreadableTypeThreadableIdMessagesListMessagesQueryOptions = <TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(threadableType: string,
-    threadableId: number,
+export const getThreadsThreadableTypeThreadableIdMessagesListMessagesQueryOptions = <TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
 ) => {
 
@@ -103,8 +100,8 @@ export type ThreadsThreadableTypeThreadableIdMessagesListMessagesQueryError = Th
 
 
 export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params: undefined |  ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>,
@@ -115,8 +112,8 @@ export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData =
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>,
@@ -127,8 +124,8 @@ export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData =
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -137,8 +134,8 @@ export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData =
  */
 
 export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -154,8 +151,8 @@ export function useThreadsThreadableTypeThreadableIdMessagesListMessages<TData =
 
 
 
-export const getThreadsThreadableTypeThreadableIdMessagesListMessagesSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(threadableType: string,
-    threadableId: number,
+export const getThreadsThreadableTypeThreadableIdMessagesListMessagesSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
 ) => {
 
@@ -179,20 +176,20 @@ export type ThreadsThreadableTypeThreadableIdMessagesListMessagesSuspenseQueryEr
 
 
 export function useThreadsThreadableTypeThreadableIdMessagesListMessagesSuspense<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params: undefined |  ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useThreadsThreadableTypeThreadableIdMessagesListMessagesSuspense<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useThreadsThreadableTypeThreadableIdMessagesListMessagesSuspense<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -201,8 +198,8 @@ export function useThreadsThreadableTypeThreadableIdMessagesListMessagesSuspense
  */
 
 export function useThreadsThreadableTypeThreadableIdMessagesListMessagesSuspense<TData = Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError = ThreadsThreadableTypeThreadableIdMessagesListMessages400>(
- threadableType: string,
-    threadableId: number,
+ threadableType: ObjectTypes,
+    threadableId: unknown,
     params?: ThreadsThreadableTypeThreadableIdMessagesListMessagesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesListMessages>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -222,10 +219,9 @@ export function useThreadsThreadableTypeThreadableIdMessagesListMessagesSuspense
  * @summary CreateMessage
  */
 export const threadsThreadableTypeThreadableIdMessagesCreateMessage = (
-    threadableType: string,
-    threadableId: number,
+    threadableType: ObjectTypes,
+    threadableId: unknown,
     messageCreateSchema: MessageCreateSchema,
-    params: ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams,
  signal?: AbortSignal
 ) => {
       
@@ -233,8 +229,7 @@ export const threadsThreadableTypeThreadableIdMessagesCreateMessage = (
       return customInstance<MessageSchema>(
       {url: `/threads/${threadableType}/${threadableId}/messages`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: messageCreateSchema,
-        params, signal
+      data: messageCreateSchema, signal
     },
       );
     }
@@ -242,8 +237,8 @@ export const threadsThreadableTypeThreadableIdMessagesCreateMessage = (
 
 
 export const getThreadsThreadableTypeThreadableIdMessagesCreateMessageMutationOptions = <TError = ThreadsThreadableTypeThreadableIdMessagesCreateMessage400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, TError,{threadableType: string;threadableId: number;data: MessageCreateSchema;params: ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, TError,{threadableType: string;threadableId: number;data: MessageCreateSchema;params: ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, TError,{threadableType: ObjectTypes;threadableId: unknown;data: MessageCreateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, TError,{threadableType: ObjectTypes;threadableId: unknown;data: MessageCreateSchema}, TContext> => {
 
 const mutationKey = ['threadsThreadableTypeThreadableIdMessagesCreateMessage'];
 const {mutation: mutationOptions} = options ?
@@ -255,10 +250,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, {threadableType: string;threadableId: number;data: MessageCreateSchema;params: ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams}> = (props) => {
-          const {threadableType,threadableId,data,params} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, {threadableType: ObjectTypes;threadableId: unknown;data: MessageCreateSchema}> = (props) => {
+          const {threadableType,threadableId,data} = props ?? {};
 
-          return  threadsThreadableTypeThreadableIdMessagesCreateMessage(threadableType,threadableId,data,params,)
+          return  threadsThreadableTypeThreadableIdMessagesCreateMessage(threadableType,threadableId,data,)
         }
 
         
@@ -274,11 +269,11 @@ const {mutation: mutationOptions} = options ?
  * @summary CreateMessage
  */
 export const useThreadsThreadableTypeThreadableIdMessagesCreateMessage = <TError = ThreadsThreadableTypeThreadableIdMessagesCreateMessage400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, TError,{threadableType: string;threadableId: number;data: MessageCreateSchema;params: ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>, TError,{threadableType: ObjectTypes;threadableId: unknown;data: MessageCreateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMessagesCreateMessage>>,
         TError,
-        {threadableType: string;threadableId: number;data: MessageCreateSchema;params: ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams},
+        {threadableType: ObjectTypes;threadableId: unknown;data: MessageCreateSchema},
         TContext
       > => {
 
@@ -290,9 +285,8 @@ export const useThreadsThreadableTypeThreadableIdMessagesCreateMessage = <TError
  * @summary GetBatchThreadUnread
  */
 export const threadsThreadableTypeBatchUnreadGetBatchThreadUnread = (
-    threadableType: string,
+    threadableType: ObjectTypes,
     batchUnreadRequest: BatchUnreadRequest,
-    params: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams,
  signal?: AbortSignal
 ) => {
       
@@ -300,8 +294,7 @@ export const threadsThreadableTypeBatchUnreadGetBatchThreadUnread = (
       return customInstance<BatchUnreadResponse>(
       {url: `/threads/${threadableType}/batch-unread`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: batchUnreadRequest,
-        params, signal
+      data: batchUnreadRequest, signal
     },
       );
     }
@@ -309,8 +302,8 @@ export const threadsThreadableTypeBatchUnreadGetBatchThreadUnread = (
 
 
 export const getThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadMutationOptions = <TError = ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, TError,{threadableType: string;data: BatchUnreadRequest;params: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, TError,{threadableType: string;data: BatchUnreadRequest;params: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, TError,{threadableType: ObjectTypes;data: BatchUnreadRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, TError,{threadableType: ObjectTypes;data: BatchUnreadRequest}, TContext> => {
 
 const mutationKey = ['threadsThreadableTypeBatchUnreadGetBatchThreadUnread'];
 const {mutation: mutationOptions} = options ?
@@ -322,10 +315,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, {threadableType: string;data: BatchUnreadRequest;params: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams}> = (props) => {
-          const {threadableType,data,params} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, {threadableType: ObjectTypes;data: BatchUnreadRequest}> = (props) => {
+          const {threadableType,data} = props ?? {};
 
-          return  threadsThreadableTypeBatchUnreadGetBatchThreadUnread(threadableType,data,params,)
+          return  threadsThreadableTypeBatchUnreadGetBatchThreadUnread(threadableType,data,)
         }
 
         
@@ -341,80 +334,15 @@ const {mutation: mutationOptions} = options ?
  * @summary GetBatchThreadUnread
  */
 export const useThreadsThreadableTypeBatchUnreadGetBatchThreadUnread = <TError = ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, TError,{threadableType: string;data: BatchUnreadRequest;params: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>, TError,{threadableType: ObjectTypes;data: BatchUnreadRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof threadsThreadableTypeBatchUnreadGetBatchThreadUnread>>,
         TError,
-        {threadableType: string;data: BatchUnreadRequest;params: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams},
+        {threadableType: ObjectTypes;data: BatchUnreadRequest},
         TContext
       > => {
 
       const mutationOptions = getThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
- * @summary MarkThreadRead
- */
-export const threadsThreadableTypeThreadableIdMarkReadMarkThreadRead = (
-    threadableType: string,
-    threadableId: number,
-    params: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams,
- signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<void>(
-      {url: `/threads/${threadableType}/${threadableId}/mark-read`, method: 'POST',
-        params, signal
-    },
-      );
-    }
-  
-
-
-export const getThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadMutationOptions = <TError = ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMarkReadMarkThreadRead>>, TError,{threadableType: string;threadableId: number;params: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMarkReadMarkThreadRead>>, TError,{threadableType: string;threadableId: number;params: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams}, TContext> => {
-
-const mutationKey = ['threadsThreadableTypeThreadableIdMarkReadMarkThreadRead'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMarkReadMarkThreadRead>>, {threadableType: string;threadableId: number;params: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams}> = (props) => {
-          const {threadableType,threadableId,params} = props ?? {};
-
-          return  threadsThreadableTypeThreadableIdMarkReadMarkThreadRead(threadableType,threadableId,params,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadMutationResult = NonNullable<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMarkReadMarkThreadRead>>>
-    
-    export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadMutationError = ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400
-
-    /**
- * @summary MarkThreadRead
- */
-export const useThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead = <TError = ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMarkReadMarkThreadRead>>, TError,{threadableType: string;threadableId: number;params: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof threadsThreadableTypeThreadableIdMarkReadMarkThreadRead>>,
-        TError,
-        {threadableType: string;threadableId: number;params: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams},
-        TContext
-      > => {
-
-      const mutationOptions = getThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

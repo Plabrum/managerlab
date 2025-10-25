@@ -31,7 +31,8 @@ import type {
   DeliverableResponseSchema,
   DeliverableUpdateSchema,
   DeliverablesIdGetDeliverable400,
-  DeliverablesIdUpdateDeliverable400
+  DeliverablesIdUpdateDeliverable400,
+  DeliverablesIdUpdateDeliverableParams
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -190,6 +191,7 @@ export function useDeliverablesIdGetDeliverableSuspense<TData = Awaited<ReturnTy
 export const deliverablesIdUpdateDeliverable = (
     id: unknown,
     deliverableUpdateSchema: DeliverableUpdateSchema,
+    params: DeliverablesIdUpdateDeliverableParams,
  signal?: AbortSignal
 ) => {
       
@@ -197,7 +199,8 @@ export const deliverablesIdUpdateDeliverable = (
       return customInstance<DeliverableResponseSchema>(
       {url: `/deliverables/${id}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: deliverableUpdateSchema, signal
+      data: deliverableUpdateSchema,
+        params, signal
     },
       );
     }
@@ -205,8 +208,8 @@ export const deliverablesIdUpdateDeliverable = (
 
 
 export const getDeliverablesIdUpdateDeliverableMutationOptions = <TError = DeliverablesIdUpdateDeliverable400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}, TContext> => {
 
 const mutationKey = ['deliverablesIdUpdateDeliverable'];
 const {mutation: mutationOptions} = options ?
@@ -218,10 +221,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, {id: unknown;data: DeliverableUpdateSchema}> = (props) => {
-          const {id,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, {id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}> = (props) => {
+          const {id,data,params} = props ?? {};
 
-          return  deliverablesIdUpdateDeliverable(id,data,)
+          return  deliverablesIdUpdateDeliverable(id,data,params,)
         }
 
         
@@ -237,11 +240,11 @@ const {mutation: mutationOptions} = options ?
  * @summary UpdateDeliverable
  */
 export const useDeliverablesIdUpdateDeliverable = <TError = DeliverablesIdUpdateDeliverable400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>, TError,{id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deliverablesIdUpdateDeliverable>>,
         TError,
-        {id: unknown;data: DeliverableUpdateSchema},
+        {id: unknown;data: DeliverableUpdateSchema;params: DeliverablesIdUpdateDeliverableParams},
         TContext
       > => {
 

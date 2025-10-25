@@ -10,7 +10,6 @@ from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.schemas import (
     AddMediaToDeliverableSchema,
     DeliverableUpdateSchema,
-    RemoveMediaFromDeliverableSchema,
 )
 from app.media.models import Media
 from app.utils.db import update_model
@@ -59,8 +58,15 @@ class EditDeliverable(BaseAction):
         obj: Deliverable,
         data: DeliverableUpdateSchema,
         transaction: AsyncSession,
+        user: int,
     ) -> ActionExecutionResponse:
-        update_model(obj, data)
+        await update_model(
+            session=transaction,
+            model_instance=obj,
+            update_vals=data,
+            user_id=user,
+            team_id=obj.team_id,
+        )
 
         return ActionExecutionResponse(
             success=True,
@@ -155,51 +161,4 @@ class AddMediaToDeliverable(BaseAction):
             success=True,
             message=f"Added {len(new_media_ids)} media file(s) to deliverable",
             results={"added_count": len(new_media_ids)},
-        )
-
-
-@deliverable_actions
-class RemoveMediaFromDeliverable(BaseAction):
-    """Remove media files from a deliverable."""
-
-    action_key = DeliverableActions.remove_media
-    label = "Remove Media"
-    is_bulk_allowed = False
-    priority = 11
-    icon = ActionIcon.trash
-    model = Deliverable
-    load_options = [selectinload(Deliverable.media)]
-
-    @classmethod
-    async def execute(
-        cls,
-        obj: Deliverable,
-        data: RemoveMediaFromDeliverableSchema,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
-        # media_ids are already decoded from SQID strings to ints by msgspec
-        requested_media_ids = data.media_ids
-
-        # Remove media from deliverable using set-based comparison
-        existing_media_ids = {media.id for media in obj.media}
-        media_ids_to_remove = set(requested_media_ids) & existing_media_ids
-
-        # Delete DeliverableMedia association objects
-        result = await transaction.execute(
-            select(DeliverableMedia).where(
-                DeliverableMedia.deliverable_id == obj.id,
-                DeliverableMedia.media_id.in_(media_ids_to_remove),
-            )
-        )
-        associations = result.scalars().all()
-
-        for association in associations:
-            await transaction.delete(association)
-
-        removed_count = len(associations)
-
-        return ActionExecutionResponse(
-            success=True,
-            message=f"Removed {removed_count} media file(s) from deliverable",
-            results={"removed_count": removed_count},
         )

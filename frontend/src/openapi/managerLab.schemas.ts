@@ -5,6 +5,11 @@
  * Private schema of ManagerLab with Scalar OpenAPI docs
  * OpenAPI spec version: 0.0.1
  */
+export const AcceptDeliverableMediaActionValue = {
+  action: 'deliverable_media_actions__deliverable_media_accept',
+} as const;
+export type AcceptDeliverableMediaAction = typeof AcceptDeliverableMediaActionValue;
+
 export type ActionDTOIcon = string | null;
 
 export type ActionDTOConfirmationMessage = string | null;
@@ -31,6 +36,7 @@ export const ActionGroupType = {
   media_actions: 'media_actions',
   top_level_media_actions: 'top_level_media_actions',
   deliverable_actions: 'deliverable_actions',
+  deliverable_media_actions: 'deliverable_media_actions',
   top_level_deliverable_actions: 'top_level_deliverable_actions',
   brand_actions: 'brand_actions',
   top_level_brand_actions: 'top_level_brand_actions',
@@ -168,6 +174,8 @@ export type BrandSchemaNotes = string | null;
 
 export type BrandSchemaTeamId = number | null;
 
+export type BrandSchemaThread = ThreadUnreadInfo | null;
+
 export interface BrandSchema {
   id: unknown;
   name: string;
@@ -180,6 +188,7 @@ export interface BrandSchema {
   updated_at: string;
   team_id?: BrandSchemaTeamId;
   actions: ActionDTO[];
+  thread?: BrandSchemaThread;
 }
 
 export type BrandUpdateSchemaName = string | null;
@@ -285,6 +294,8 @@ export type CampaignSchemaAssignedRosterId = number | null;
 
 export type CampaignSchemaTeamId = number | null;
 
+export type CampaignSchemaThread = ThreadUnreadInfo | null;
+
 export type CampaignSchemaCounterpartyType = CounterpartyType | null;
 
 export type CampaignSchemaCounterpartyName = string | null;
@@ -331,6 +342,7 @@ export interface CampaignSchema {
   updated_at: string;
   team_id?: CampaignSchemaTeamId;
   actions: ActionDTO[];
+  thread?: CampaignSchemaThread;
   counterparty_type?: CampaignSchemaCounterpartyType;
   counterparty_name?: CampaignSchemaCounterpartyName;
   counterparty_email?: CampaignSchemaCounterpartyEmail;
@@ -666,12 +678,17 @@ export interface DeliverableCreateSchema {
 
 export type DeliverableMediaAssociationSchemaApprovedAt = string | null;
 
+export type DeliverableMediaAssociationSchemaThreadId = unknown | null;
+
 export interface DeliverableMediaAssociationSchema {
+  id: unknown;
   approved_at?: DeliverableMediaAssociationSchemaApprovedAt;
   is_featured: boolean;
   media: MediaResponseSchema;
   created_at: string;
   updated_at: string;
+  actions: ActionDTO[];
+  thread_id?: DeliverableMediaAssociationSchemaThreadId;
 }
 
 export type DeliverableResponseSchemaContent = string | null;
@@ -696,6 +713,8 @@ export type DeliverableResponseSchemaCampaignId = number | null;
 
 export type DeliverableResponseSchemaAssignedRoster = RosterInDeliverableSchema | null;
 
+export type DeliverableResponseSchemaThread = ThreadUnreadInfo | null;
+
 export interface DeliverableResponseSchema {
   id: unknown;
   title: string;
@@ -719,6 +738,7 @@ export interface DeliverableResponseSchema {
   deliverable_media_associations: DeliverableMediaAssociationSchema[];
   assigned_roster?: DeliverableResponseSchemaAssignedRoster;
   actions: ActionDTO[];
+  thread?: DeliverableResponseSchemaThread;
 }
 
 /**
@@ -932,6 +952,8 @@ export type InvoiceSchemaCampaignId = number | null;
 
 export type InvoiceSchemaTeamId = number | null;
 
+export type InvoiceSchemaThread = ThreadUnreadInfo | null;
+
 export interface InvoiceSchema {
   id: unknown;
   invoice_number: number;
@@ -949,6 +971,7 @@ export interface InvoiceSchema {
   campaign_id?: InvoiceSchemaCampaignId;
   team_id?: InvoiceSchemaTeamId;
   actions: ActionDTO[];
+  thread?: InvoiceSchemaThread;
 }
 
 export type InvoiceUpdateSchemaInvoiceNumber = number | null;
@@ -1005,6 +1028,8 @@ export interface ListTeamsResponse {
 
 export type MediaResponseSchemaThumbnailUrl = string | null;
 
+export type MediaResponseSchemaThread = ThreadUnreadInfo | null;
+
 export interface MediaResponseSchema {
   id: unknown;
   file_name: string;
@@ -1017,6 +1042,7 @@ export interface MediaResponseSchema {
   view_url: string;
   thumbnail_url?: MediaResponseSchemaThumbnailUrl;
   actions: ActionDTO[];
+  thread?: MediaResponseSchemaThread;
 }
 
 export type MediaSchemaTeamId = number | null;
@@ -1042,8 +1068,10 @@ export interface MediaUpdateSchema {
   file_name?: MediaUpdateSchemaFileName;
 }
 
+export type MessageCreateSchemaContent = {[key: string]: unknown};
+
 export interface MessageCreateSchema {
-  content: string;
+  content: MessageCreateSchemaContent;
 }
 
 export interface MessageListResponse {
@@ -1052,18 +1080,22 @@ export interface MessageListResponse {
   limit: number;
 }
 
+export type MessageSchemaContent = {[key: string]: unknown};
+
 export interface MessageSchema {
   id: unknown;
   thread_id: unknown;
   user_id: unknown;
-  content: string;
+  content: MessageSchemaContent;
   created_at: string;
   updated_at: string;
   user: ThreadsSchemasUserSchema;
 }
 
+export type MessageUpdateSchemaContent = {[key: string]: unknown};
+
 export interface MessageUpdateSchema {
-  content: string;
+  content: MessageUpdateSchemaContent;
 }
 
 export type NumericalDataPointValue = number | number | null;
@@ -1079,6 +1111,8 @@ export interface NumericalTimeSeriesData {
   type: 'numerical';
 }
 
+export type ObjectDetailDTOThreadId = unknown | null;
+
 export interface ObjectDetailDTO {
   id: string;
   object_type: ObjectTypes;
@@ -1089,6 +1123,7 @@ export interface ObjectDetailDTO {
   created_at: string;
   updated_at: string;
   relations?: ObjectRelationGroup[];
+  thread_id?: ObjectDetailDTOThreadId;
 }
 
 export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
@@ -1167,6 +1202,7 @@ export const ObjectTypes = {
   brandcontacts: 'brandcontacts',
   campaigns: 'campaigns',
   deliverables: 'deliverables',
+  deliverablemedia: 'deliverablemedia',
   media: 'media',
   invoices: 'invoices',
 } as const;
@@ -1218,6 +1254,11 @@ export interface RegisterMediaSchema {
   mime_type: string;
 }
 
+export const RejectDeliverableMediaActionValue = {
+  action: 'deliverable_media_actions__deliverable_media_reject',
+} as const;
+export type RejectDeliverableMediaAction = typeof RejectDeliverableMediaActionValue;
+
 /**
  * Cardinality of a relationship.
  */
@@ -1242,14 +1283,10 @@ export const RelationType = {
   child: 'child',
 } as const;
 
-export interface RemoveMediaFromDeliverableAction {
-  data: RemoveMediaFromDeliverableSchema;
-  action: 'deliverable_actions__deliverable_remove_media';
-}
-
-export interface RemoveMediaFromDeliverableSchema {
-  media_ids: unknown[];
-}
+export const RemoveMediaFromDeliverableActionValue = {
+  action: 'deliverable_media_actions__deliverable_media_remove_media',
+} as const;
+export type RemoveMediaFromDeliverableAction = typeof RemoveMediaFromDeliverableActionValue;
 
 /**
  * Role levels for team membership.
@@ -1317,6 +1354,8 @@ export type RosterSchemaProfilePhotoId = number | null;
 
 export type RosterSchemaTeamId = number | null;
 
+export type RosterSchemaThread = ThreadUnreadInfo | null;
+
 export interface RosterSchema {
   id: unknown;
   name: string;
@@ -1333,6 +1372,7 @@ export interface RosterSchema {
   updated_at: string;
   team_id?: RosterSchemaTeamId;
   actions: ActionDTO[];
+  thread?: RosterSchemaThread;
 }
 
 export type RosterUpdateSchemaName = string | null;
@@ -1825,7 +1865,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1853,7 +1893,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1957,6 +1997,10 @@ export type DeliverablesIdGetDeliverable400 = {
   status_code: number;
   detail: string;
   extra?: DeliverablesIdGetDeliverable400Extra;
+};
+
+export type DeliverablesIdUpdateDeliverableParams = {
+user_id: number;
 };
 
 export type DeliverablesIdUpdateDeliverable400ExtraAnyOf = {[key: string]: unknown};
@@ -2113,10 +2157,6 @@ export type ThreadsThreadableTypeThreadableIdMessagesListMessages400 = {
   extra?: ThreadsThreadableTypeThreadableIdMessagesListMessages400Extra;
 };
 
-export type ThreadsThreadableTypeThreadableIdMessagesCreateMessageParams = {
-user_id: number;
-};
-
 export type ThreadsThreadableTypeThreadableIdMessagesCreateMessage400ExtraAnyOf = {[key: string]: unknown};
 
 export type ThreadsThreadableTypeThreadableIdMessagesCreateMessage400Extra = null | ThreadsThreadableTypeThreadableIdMessagesCreateMessage400ExtraAnyOf | unknown[];
@@ -2130,10 +2170,6 @@ export type ThreadsThreadableTypeThreadableIdMessagesCreateMessage400 = {
   extra?: ThreadsThreadableTypeThreadableIdMessagesCreateMessage400Extra;
 };
 
-export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnreadParams = {
-user_id: number;
-};
-
 export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400ExtraAnyOf = {[key: string]: unknown};
 
 export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400Extra = null | ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400ExtraAnyOf | unknown[];
@@ -2145,23 +2181,6 @@ export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400 = {
   status_code: number;
   detail: string;
   extra?: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400Extra;
-};
-
-export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadReadParams = {
-user_id: number;
-};
-
-export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400ExtraAnyOf = {[key: string]: unknown};
-
-export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400Extra = null | ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400 = {
-  status_code: number;
-  detail: string;
-  extra?: ThreadsThreadableTypeThreadableIdMarkReadMarkThreadRead400Extra;
 };
 
 export type LocalUploadKeyLocalUpload200 = { [key: string]: unknown };

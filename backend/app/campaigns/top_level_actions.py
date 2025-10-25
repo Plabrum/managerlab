@@ -26,16 +26,19 @@ class CreateCampaign(BaseAction):
 
     @classmethod
     async def execute(
-        cls, data: CampaignCreateSchema, transaction: AsyncSession, team_id: int
+        cls,
+        data: CampaignCreateSchema,
+        transaction: AsyncSession,
+        team_id: int,
+        user: int,
     ) -> Campaign:
         # brand_id is already decoded from SQID string to int by msgspec
-        new_campaign = create_model(
+        new_campaign = await create_model(
+            session=transaction,
             team_id=team_id,
             campaign_id=None,
             model_class=Campaign,
             create_vals=data,
+            user_id=user,
         )
-        transaction.add(new_campaign)
-        # Flush to get the ID assigned by the database
-        await transaction.flush()
         return new_campaign

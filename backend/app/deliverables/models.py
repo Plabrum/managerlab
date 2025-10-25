@@ -9,6 +9,7 @@ from sqlalchemy.ext.mutable import MutableDict
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.base.threadable_mixin import ThreadableMixin
 from app.deliverables.enums import (
     DeliverableStates,
     DeliverableType,
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
 
 
 class Deliverable(
+    ThreadableMixin,
     RLSMixin(scope_with_campaign_id=True),
     StateMachineMixin(
         initial_state=DeliverableStates.DRAFT, state_enum=DeliverableStates
@@ -103,7 +105,9 @@ class Deliverable(
     )
 
 
-class DeliverableMedia(BaseDBModel):
+class DeliverableMedia(
+    ThreadableMixin, RLSMixin(scope_with_campaign_id=True), BaseDBModel
+):
     """Association model for deliverable-media relationship with approval status."""
 
     __tablename__ = "deliverable_media"

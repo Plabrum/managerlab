@@ -1,7 +1,10 @@
 from datetime import datetime, date
 
+from msgspec import UNSET, UnsetType
+
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
+from app.threads.schemas import ThreadUnreadInfo
 from app.utils.sqids import Sqid
 
 
@@ -23,19 +26,20 @@ class RosterSchema(BaseSchema):
     updated_at: datetime
     team_id: int | None
     actions: list[ActionDTO]
+    thread: ThreadUnreadInfo | None = None
 
 
 class RosterUpdateSchema(BaseSchema):
     """Schema for updating a roster member."""
 
-    name: str | None = None
-    email: str | None = None
-    phone: str | None = None
-    birthdate: date | None = None
-    instagram_handle: str | None = None
-    facebook_handle: str | None = None
-    tiktok_handle: str | None = None
-    youtube_channel: str | None = None
+    name: str | None | UnsetType = UNSET
+    email: str | None | UnsetType = UNSET
+    phone: str | None | UnsetType = UNSET
+    birthdate: date | None | UnsetType = UNSET
+    instagram_handle: str | None | UnsetType = UNSET
+    facebook_handle: str | None | UnsetType = UNSET
+    tiktok_handle: str | None | UnsetType = UNSET
+    youtube_channel: str | None | UnsetType = UNSET
 
 
 class RosterCreateSchema(BaseSchema):

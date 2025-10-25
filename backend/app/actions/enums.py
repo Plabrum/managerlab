@@ -7,6 +7,7 @@ class ActionGroupType(StrEnum):
     MediaActions = "media_actions"
     TopLevelMediaActions = "top_level_media_actions"
     DeliverableActions = "deliverable_actions"
+    DeliverableMediaActions = "deliverable_media_actions"
     TopLevelDeliverableActions = "top_level_deliverable_actions"
     BrandActions = "brand_actions"
     TopLevelBrandActions = "top_level_brand_actions"
@@ -29,3 +30,5 @@ class ActionIcon(StrEnum):
     edit = auto()
     trash = auto()
     add = auto()
+    check = auto()
+    x = auto()

@@ -10,29 +10,27 @@ import type {
 
 interface DeliverablePreviewProps {
   deliverable: DeliverableResponseSchema;
-  mediaAssociations: DeliverableMediaAssociationSchema[];
+  mediaAssociation: DeliverableMediaAssociationSchema | undefined;
   roster: RosterInDeliverableSchema | null | undefined;
 }
 
 export function DeliverablePreview({
   deliverable,
-  mediaAssociations,
+  mediaAssociation,
   roster,
 }: DeliverablePreviewProps) {
-  // Get featured media, or fallback to first media
-  const featuredMedia = mediaAssociations.find((m) => m.approved_at !== null);
   // Get platform directly from deliverable (type-safe!)
   const platform = deliverable.platforms;
   const content = deliverable.content || deliverable.title;
   const postingDate = deliverable.posting_date;
 
   // If we don't have the minimum required data, show empty preview
-  if (!featuredMedia || !roster || !platform) {
+  if (!mediaAssociation || !roster || !platform) {
     return <EmptyPreview />;
   }
 
   // Get image URL from media (now includes presigned URL!)
-  const imageUrl = featuredMedia.media.view_url;
+  const imageUrl = mediaAssociation.media.view_url;
 
   // Platform-specific preview rendering
   switch (platform.toLowerCase()) {

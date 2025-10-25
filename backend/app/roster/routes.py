@@ -1,4 +1,4 @@
-from litestar import Router, get, post
+from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.roster.models import Roster
@@ -8,18 +8,37 @@ from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
 from app.actions.registry import ActionRegistry
 from app.actions.enums import ActionGroupType
+from app.threads.models import Thread
 
 
 @get("/{id:str}")
 async def get_roster(
-    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry
+    id: Sqid,
+    request: Request,
+    transaction: AsyncSession,
+    action_registry: ActionRegistry,
 ) -> RosterSchema:
     """Get a roster member by SQID."""
-    roster = await get_or_404(transaction, Roster, id)
+    from sqlalchemy.orm import joinedload, selectinload
+
+    roster = await get_or_404(
+        transaction,
+        Roster,
+        id,
+        load_options=[
+            joinedload(Roster.thread).options(
+                selectinload(Thread.messages),
+                selectinload(Thread.read_statuses),
+            )
+        ],
+    )
 
     # Compute actions for this roster member
     action_group = action_registry.get_class(ActionGroupType.RosterActions)
     actions = action_group.get_available_actions(obj=roster)
+
+    # Convert thread to unread info using the mixin method
+    thread_info = roster.get_thread_unread_info(request.user)
 
     return RosterSchema(
         id=roster.id,
@@ -37,17 +56,23 @@ async def get_roster(
         updated_at=roster.updated_at,
         team_id=roster.team_id,
         actions=actions,
+        thread=thread_info,
     )
 
 
 @post("/{id:str}")
 async def update_roster(
-    id: Sqid, data: RosterUpdateSchema, transaction: AsyncSession
+    id: Sqid, data: RosterUpdateSchema, request: Request, transaction: AsyncSession
 ) -> RosterSchema:
     """Update a roster member by SQID."""
     roster = await get_or_404(transaction, Roster, id)
-    update_model(roster, data)
-    await transaction.flush()
+    await update_model(
+        session=transaction,
+        model_instance=roster,
+        update_vals=data,
+        user_id=request.user,
+        team_id=roster.team_id,
+    )
     return RosterSchema(
         id=roster.id,
         name=roster.name,

@@ -41,14 +41,14 @@ class CreateDeliverable(DeliverableTopLevelActionMixin, BaseAction):
         data: DeliverableCreateSchema,
         transaction: AsyncSession,
         team_id: int,
+        user: int,
     ) -> Deliverable:
-        deliverable = create_model(
+        deliverable = await create_model(
+            session=transaction,
             team_id=team_id,
             campaign_id=None,
             model_class=Deliverable,
             create_vals=data,
+            user_id=user,
         )
-        transaction.add(deliverable)
-        # Flush to get the ID assigned by the database
-        await transaction.flush()
         return deliverable

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.base.threadable_mixin import ThreadableMixin
 from app.payments.enums import InvoiceStates
 from app.state_machine.models import StateMachineMixin
 
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
 
 
 class Invoice(
+    ThreadableMixin,
     RLSMixin(scope_with_campaign_id=True),
     StateMachineMixin(state_enum=InvoiceStates, initial_state=InvoiceStates.DRAFT),
     BaseDBModel,
