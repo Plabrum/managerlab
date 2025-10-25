@@ -15,7 +15,11 @@ interface Comment {
   createdAt: Date;
 }
 
-// Mocked comments data
+interface MediaCommentsProps {
+  threadId?: unknown; // TODO: Use for fetching thread comments
+}
+
+// Mocked comments data - TODO: Replace with actual thread integration
 const MOCK_COMMENTS: Comment[] = [
   {
     id: '1',
@@ -46,7 +50,11 @@ const MOCK_COMMENTS: Comment[] = [
   },
 ];
 
-export function MediaComments() {
+export function MediaComments({}: MediaCommentsProps) {
+  // TODO: Use threadId to fetch actual comments from the thread
+  // For now, using mock data
+  const comments = MOCK_COMMENTS;
+
   return (
     <Card>
       <CardHeader>
@@ -54,29 +62,35 @@ export function MediaComments() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {MOCK_COMMENTS.map((comment) => (
-            <div key={comment.id} className="flex gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={comment.author.avatar} />
-                <AvatarFallback className="text-xs">
-                  {comment.author.initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-medium">
-                    {comment.author.name}
-                  </span>
-                  <span className="text-muted-foreground text-xs">
-                    {formatDistanceToNow(comment.createdAt, {
-                      addSuffix: true,
-                    })}
-                  </span>
+          {comments.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              No comments yet. Be the first to comment!
+            </p>
+          ) : (
+            comments.map((comment) => (
+              <div key={comment.id} className="flex gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={comment.author.avatar} />
+                  <AvatarFallback className="text-xs">
+                    {comment.author.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-medium">
+                      {comment.author.name}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      {formatDistanceToNow(comment.createdAt, {
+                        addSuffix: true,
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-sm">{comment.content}</p>
                 </div>
-                <p className="text-sm">{comment.content}</p>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </CardContent>
     </Card>

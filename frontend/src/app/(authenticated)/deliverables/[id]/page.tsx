@@ -68,7 +68,7 @@ export default function DeliverableDetailPage({
         </TabsContent>
 
         <TabsContent value="media-approval" className="space-y-6">
-          <DeliverableMediaApproval deliverable={data} />
+          <DeliverableMediaApproval deliverable={data} onRefetch={refetch} />
         </TabsContent>
       </ObjectDetailTabs>
     </PageTopBar>

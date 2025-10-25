@@ -30,7 +30,8 @@ async def get_deliverable(
         id,
         load_options=[
             joinedload(Deliverable.deliverable_media_associations).options(
-                selectinload(DeliverableMedia.media).options(joinedload(Media.thread))
+                selectinload(DeliverableMedia.media).options(joinedload(Media.thread)),
+                joinedload(DeliverableMedia.thread),
             ),
             joinedload(Deliverable.campaign),
             selectinload(Deliverable.assigned_roster),
@@ -60,7 +61,8 @@ async def update_deliverable(
         id,
         load_options=[
             joinedload(Deliverable.deliverable_media_associations).options(
-                selectinload(DeliverableMedia.media)
+                selectinload(DeliverableMedia.media),
+                joinedload(DeliverableMedia.thread),
             ),
             selectinload(Deliverable.assigned_roster),
             joinedload(Deliverable.thread).options(

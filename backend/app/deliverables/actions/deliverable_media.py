@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.actions.base import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
@@ -8,7 +9,8 @@ from app.deliverables.enums import DeliverableMediaActions
 from app.deliverables.models import DeliverableMedia
 
 deliverable_media_actions = action_group_factory(
-    ActionGroupType.DeliverableMediaActions, model_type=DeliverableMedia
+    ActionGroupType.DeliverableMediaActions,
+    model_type=DeliverableMedia,
 )
 
 
@@ -21,6 +23,10 @@ class RemoveMediaFromDeliverable(BaseAction):
     is_bulk_allowed = False
     priority = 11
     icon = ActionIcon.trash
+    load_options = [
+        joinedload(DeliverableMedia.deliverable),
+        joinedload(DeliverableMedia.thread),
+    ]
 
     @classmethod
     async def execute(
@@ -47,6 +53,10 @@ class AcceptDeliverableMedia(BaseAction):
     is_bulk_allowed = True
     priority = 1
     icon = ActionIcon.check
+    load_options = [
+        joinedload(DeliverableMedia.deliverable),
+        joinedload(DeliverableMedia.thread),
+    ]
 
     @classmethod
     async def execute(
@@ -78,6 +88,10 @@ class RejectDeliverableMedia(BaseAction):
     is_bulk_allowed = True
     priority = 2
     icon = ActionIcon.x
+    load_options = [
+        joinedload(DeliverableMedia.deliverable),
+        joinedload(DeliverableMedia.thread),
+    ]
 
     @classmethod
     async def execute(

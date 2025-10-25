@@ -18,6 +18,7 @@ from app.threads.schemas import ThreadUnreadInfo
 class DeliverableMediaAssociationSchema(BaseSchema):
     """Association between deliverable and media with approval status."""
 
+    id: Sqid
     approved_at: datetime | None
     is_featured: bool
     media: MediaResponseSchema
@@ -102,13 +103,14 @@ def deliverable_media_to_schema(
     )
 
     return DeliverableMediaAssociationSchema(
+        id=dm.id,
         approved_at=dm.approved_at,
         is_featured=dm.is_featured,
         media=media_to_response(dm.media, s3_client, media_actions),
         created_at=dm.created_at,
         updated_at=dm.updated_at,
         actions=deliverable_media_actions,
-        thread_id=dm.media.thread.id if dm.media.thread else None,
+        thread_id=dm.thread.id if dm.thread else None,
     )
 
 

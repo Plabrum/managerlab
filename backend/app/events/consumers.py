@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.brands.models.brands import Brand
 from app.campaigns.models import Campaign
+from app.deliverables.models import DeliverableMedia
 from app.roster.models import Roster
 from app.base.models import BaseDBModel
 from app.events.enums import EventType
@@ -130,24 +131,25 @@ def build_update_message_content(
     object_type: str,
     object_id: int,
 ) -> dict[str, Any]:
-    # Format object reference
-    object_type_display = object_type.replace("_", " ").title()
-    object_ref = None
-
-    # Try common name attributes
-    for attr in ["name", "title", "display_name"]:
-        if hasattr(obj, attr):
-            value = getattr(obj, attr)
-            if value:
-                object_ref = f"{object_type_display}: {value}"
-                break
-
-    # Fallback to ID if no name found
-    if object_ref is None:
-        object_ref = f"{object_type_display} {sqid_encode(object_id)}"
-
+    # # Format object reference
+    # object_type_display = object_type.replace("_", " ").title()
+    # object_ref = None
+    #
+    # # Try common name attributes
+    # for attr in ["name", "title", "display_name"]:
+    #     if hasattr(obj, attr):
+    #         value = getattr(obj, attr)
+    #         if value:
+    #             object_ref = f"{object_type_display}: {value}"
+    #             break
+    #
+    # # Fallback to ID if no name found
+    # if object_ref is None:
+    #     object_ref = f"{object_type_display} {sqid_encode(object_id)}"
+    #
     # Build base nodes
-    nodes = [text("updated "), bold(object_ref)]
+    # nodes = [text("updated "), bold(object_ref)]
+    nodes = [text("updated ")]
 
     # Add field changes if available
     if event_data and event_data.changes:
@@ -186,13 +188,18 @@ def build_update_message_content(
 
 
 # List of all threadable models
-THREADABLE_MODELS = [Brand, Campaign, Roster]
+THREADABLE_MODELS = [Brand, Campaign, DeliverableMedia, Roster]
 
 
 def _get_campaign_id(obj: Any) -> int | None:
     """Extract campaign_id from object (campaigns use their own ID)."""
     if isinstance(obj, Campaign):
         return obj.id
+    if isinstance(obj, DeliverableMedia):
+        # DeliverableMedia gets campaign_id from its deliverable
+        return (
+            getattr(obj.deliverable, "campaign_id", None) if obj.deliverable else None
+        )
     return getattr(obj, "campaign_id", None)
 
 

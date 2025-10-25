@@ -25,6 +25,11 @@ from app.objects.services import (
 from app.objects.enums import ObjectTypes
 from app.utils.logging import logger
 from app.utils.sqids import Sqid
+from app.utils.discovery import discover_and_import
+
+# Auto-discover all object files to trigger registration with ObjectRegistry
+# This happens here (not in __init__.py) to avoid circular imports during module loading
+discover_and_import(["objects.py", "objects/**/*.py"], base_path="app")
 
 
 @get("/{object_type:str}/{id:str}")

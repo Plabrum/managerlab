@@ -681,6 +681,7 @@ export type DeliverableMediaAssociationSchemaApprovedAt = string | null;
 export type DeliverableMediaAssociationSchemaThreadId = unknown | null;
 
 export interface DeliverableMediaAssociationSchema {
+  id: unknown;
   approved_at?: DeliverableMediaAssociationSchemaApprovedAt;
   is_featured: boolean;
   media: MediaResponseSchema;
@@ -1201,6 +1202,7 @@ export const ObjectTypes = {
   brandcontacts: 'brandcontacts',
   campaigns: 'campaigns',
   deliverables: 'deliverables',
+  deliverablemedia: 'deliverablemedia',
   media: 'media',
   invoices: 'invoices',
 } as const;

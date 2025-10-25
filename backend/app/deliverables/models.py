@@ -105,7 +105,9 @@ class Deliverable(
     )
 
 
-class DeliverableMedia(BaseDBModel):
+class DeliverableMedia(
+    ThreadableMixin, RLSMixin(scope_with_campaign_id=True), BaseDBModel
+):
     """Association model for deliverable-media relationship with approval status."""
 
     __tablename__ = "deliverable_media"
