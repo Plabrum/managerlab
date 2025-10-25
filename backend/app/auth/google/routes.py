@@ -103,7 +103,7 @@ async def google_callback(
     user = await oauth_service.create_or_update_user(transaction, user_info, tokens)
 
     # Create secure session
-    request.session["user_id"] = user.id
+    request.session["user_id"] = int(user.id)
     request.session["authenticated"] = True
 
     # Set initial scope - check for team membership first, then campaign access
@@ -118,7 +118,7 @@ async def google_callback(
     if first_role:
         # User has team access - set team scope
         request.session["scope_type"] = ScopeType.TEAM.value
-        request.session["team_id"] = first_role.team_id
+        request.session["team_id"] = int(first_role.team_id)
         logger.info(
             f"User {user.id} logged in with team scope (team_id={first_role.team_id})"
         )
@@ -133,7 +133,7 @@ async def google_callback(
         if first_guest:
             # User has campaign access - set campaign scope
             request.session["scope_type"] = ScopeType.CAMPAIGN.value
-            request.session["campaign_id"] = first_guest.campaign_id
+            request.session["campaign_id"] = int(first_guest.campaign_id)
             logger.info(
                 f"User {user.id} logged in with campaign scope (campaign_id={first_guest.campaign_id})"
             )

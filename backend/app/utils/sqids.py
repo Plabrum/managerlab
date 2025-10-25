@@ -33,13 +33,11 @@ def sqid_encode(value: int) -> str:
 
 
 class Sqid(int):
-    """A distinct type for SQID values that behaves like int but triggers custom hooks.
+    def __int__(self) -> int:
+        return int.__new__(int, super().__int__())
 
-    This allows msgspec to recognize it as a custom type and call our dec_hook.
-    At runtime, it's a subclass of int, so it works seamlessly with database operations.
-    """
-
-    pass
+    def __str__(self) -> str:
+        return sqid_encode(int(self))
 
 
 class SqidType(TypeDecorator):
