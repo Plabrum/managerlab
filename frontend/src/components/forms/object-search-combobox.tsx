@@ -78,6 +78,7 @@ const OBJECT_CREATE_ACTIONS: Record<
     actionGroup: 'top_level_deliverable_actions',
     action: 'top_level_deliverable_actions__top_level_deliverable_create',
   },
+  deliverablemedia: null, // No create action defined
   brandcontacts: null, // No create action defined
   invoices: null, // No create action defined
   users: null, // No create action defined

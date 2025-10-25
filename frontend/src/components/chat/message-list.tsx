@@ -4,13 +4,19 @@ import { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageItem } from './message-item';
-import type { MessageSchema } from '@/openapi/managerLab.schemas';
+import type {
+  MessageSchema,
+  MessageSchemaContent,
+} from '@/openapi/managerLab.schemas';
 
 interface MessageListProps {
   messages: MessageSchema[];
   currentUserId: string;
   isLoading?: boolean;
-  onEditMessage?: (messageId: string, content: string) => Promise<void>;
+  onEditMessage?: (
+    messageId: string,
+    content: MessageSchemaContent
+  ) => Promise<void>;
   onDeleteMessage?: (messageId: string) => Promise<void>;
 }
 
