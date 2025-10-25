@@ -3,14 +3,14 @@
 import logging
 from typing import Annotated
 
-from litestar import Router, get, post
-from litestar.exceptions import NotFoundException
+from litestar import Request, Router, get, post
 from litestar.params import Parameter
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth.guards import requires_user_scope
+from app.objects.enums import ObjectTypes
 from app.threads.models import Thread, Message
 from app.threads.schemas import (
     MessageSchema,
@@ -24,23 +24,29 @@ from app.threads.schemas import (
 from app.threads.services import (
     get_or_create_thread,
     get_batch_unread_counts,
-    mark_thread_as_read,
     notify_thread,
 )
 from app.utils.sqids import Sqid
 
 logger = logging.getLogger(__name__)
 
+# System user for messages with null user_id
+ARIVE_SYSTEM_USER = UserSchema(
+    id=Sqid(0),  # Special ID for system user
+    email="system@arive.ai",
+    name="Arive",
+)
+
 
 @post(
-    "/{threadable_type:str}/{threadable_id:int}/messages",
+    "/{threadable_type:str}/{threadable_id:str}/messages",
 )
 async def create_message(
-    threadable_type: str,
-    threadable_id: int,
+    request: Request,
+    threadable_type: ObjectTypes,
+    threadable_id: Sqid,
     data: MessageCreateSchema,
     transaction: AsyncSession,
-    user_id: int,
     team_id: int,
     campaign_id: int | None,
 ) -> MessageSchema:
@@ -54,7 +60,6 @@ async def create_message(
         threadable_id: ID of the object
         data: Message content
         transaction: Database session
-        user_id: Authenticated user ID
         team_id: Team ID from session
         campaign_id: Optional campaign ID from session
         channels: Channels plugin for broadcasting
@@ -64,17 +69,16 @@ async def create_message(
     """
     # Get or create thread
     thread = await get_or_create_thread(
-        transaction,
-        threadable_type,
-        threadable_id,
-        team_id,
-        campaign_id,
+        transaction=transaction,
+        threadable_type=threadable_type,
+        threadable_id=threadable_id,
+        team_id=team_id,
     )
 
     # Create message
     message = Message(
         thread_id=thread.id,
-        user_id=user_id,
+        user_id=request.user,
         content=data.content,
         team_id=team_id,
         campaign_id=campaign_id,
@@ -89,7 +93,7 @@ async def create_message(
         {
             "type": "new_message",
             "thread_id": thread.id,
-            "user_id": user_id,
+            "user_id": message.user_id,
             "message_id": message.id,
         },
     )
@@ -102,28 +106,36 @@ async def create_message(
     # Load user for response
     await transaction.refresh(message, ["user"])
 
+    # Default to Arive system user if user_id is null
+    if message.user is None:
+        user_schema = ARIVE_SYSTEM_USER
+        user_id = Sqid(0)
+    else:
+        user_schema = UserSchema(
+            id=message.user.id,  # Already a Sqid
+            email=message.user.email,
+            name=message.user.name,
+        )
+        user_id = message.user.id
+
     # Construct response
     return MessageSchema(
         id=message.id,  # Already a Sqid
         thread_id=thread.id,  # Already a Sqid
-        user_id=message.user.id,  # Already a Sqid
+        user_id=user_id,
         content=message.content,
         created_at=message.created_at,
         updated_at=message.updated_at,
-        user=UserSchema(
-            id=message.user.id,  # Already a Sqid
-            email=message.user.email,
-            name=message.user.name,
-        ),
+        user=user_schema,
     )
 
 
 @get(
-    "/{threadable_type:str}/{threadable_id:int}/messages",
+    "/{threadable_type:str}/{threadable_id:str}/messages",
 )
 async def list_messages(
-    threadable_type: str,
-    threadable_id: int,
+    threadable_type: ObjectTypes,
+    threadable_id: Sqid,
     transaction: AsyncSession,
     offset: Annotated[int, Parameter(ge=0)] = 0,
     limit: Annotated[int, Parameter(ge=1, le=100)] = 50,
@@ -155,7 +167,7 @@ async def list_messages(
             ),
         )
         .where(Message.deleted_at.is_(None))
-        .order_by(Message.created_at.desc())
+        .order_by(Message.created_at.asc())
         .offset(offset)
         .limit(limit)
         .options(selectinload(Message.user))
@@ -173,22 +185,31 @@ async def list_messages(
         )
 
     # Convert to schemas
-    message_schemas = [
-        MessageSchema(
-            id=message.id,  # Already a Sqid
-            thread_id=thread.id,  # Already a Sqid
-            user_id=message.user.id,  # Already a Sqid
-            content=message.content,
-            created_at=message.created_at,
-            updated_at=message.updated_at,
-            user=UserSchema(
+    message_schemas = []
+    for (message,) in rows:
+        # Default to Arive system user if user_id is null
+        if message.user is None:
+            user_schema = ARIVE_SYSTEM_USER
+            user_id = Sqid(0)
+        else:
+            user_schema = UserSchema(
                 id=message.user.id,  # Already a Sqid
                 email=message.user.email,
                 name=message.user.name,
-            ),
+            )
+            user_id = message.user.id
+
+        message_schemas.append(
+            MessageSchema(
+                id=message.id,  # Already a Sqid
+                thread_id=message.thread_id,  # Already a Sqid
+                user_id=user_id,
+                content=message.content,
+                created_at=message.created_at,
+                updated_at=message.updated_at,
+                user=user_schema,
+            )
         )
-        for message, thread in rows
-    ]
 
     return MessageListResponse(
         messages=message_schemas,
@@ -199,10 +220,10 @@ async def list_messages(
 
 @post("/{threadable_type:str}/batch-unread")
 async def get_batch_thread_unread(
-    threadable_type: str,
+    request: Request,
+    threadable_type: ObjectTypes,
     data: BatchUnreadRequest,
     transaction: AsyncSession,
-    user_id: int,
 ) -> BatchUnreadResponse:
     """Get unread counts for multiple threads in a single request.
 
@@ -228,7 +249,7 @@ async def get_batch_thread_unread(
         transaction,
         threadable_type,
         [int(oid) for oid in data.object_ids],
-        user_id,
+        request.user,
     )
 
     # Convert to response schema
@@ -247,44 +268,6 @@ async def get_batch_thread_unread(
     return BatchUnreadResponse(threads=thread_infos, total_unread=total_unread)
 
 
-@post(
-    "/{threadable_type:str}/{threadable_id:int}/mark-read",
-    status_code=204,
-)
-async def mark_thread_read(
-    threadable_type: str,
-    threadable_id: int,
-    transaction: AsyncSession,
-    user_id: int,
-) -> None:
-    """Mark all messages in a thread as read for the current user.
-
-    Updates or creates the read status with the current timestamp.
-
-    Args:
-        threadable_type: Type of object
-        threadable_id: ID of the object
-        transaction: Database session
-        user_id: Authenticated user ID
-
-    Raises:
-        NotFoundException: If thread not found
-    """
-    # Find the thread
-    stmt = select(Thread).where(
-        Thread.threadable_type == threadable_type,
-        Thread.threadable_id == threadable_id,
-    )
-    result = await transaction.execute(stmt)
-    thread = result.scalar_one_or_none()
-
-    if not thread:
-        raise NotFoundException(detail="Thread not found")
-
-    # Mark as read
-    await mark_thread_as_read(transaction, thread.id, user_id)
-
-
 # Router configuration
 thread_router = Router(
     path="/threads",
@@ -293,7 +276,6 @@ thread_router = Router(
         create_message,
         list_messages,
         get_batch_thread_unread,
-        mark_thread_read,
     ],
     tags=["threads"],
 )

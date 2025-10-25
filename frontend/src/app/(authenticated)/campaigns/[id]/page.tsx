@@ -5,10 +5,11 @@ import { ObjectActions } from '@/components/object-detail';
 import { CampaignFields } from '@/components/campaign-detail';
 import { useCampaignsIdGetCampaignSuspense } from '@/openapi/campaigns/campaigns';
 import { PageTopBar } from '@/components/page-topbar';
-import { ActionGroupType } from '@/openapi/managerLab.schemas';
-import { ChatButton } from '@/components/chat-button';
-import { ChatDrawer } from '@/components/chat-drawer';
+import { ActionGroupType, ObjectTypes } from '@/openapi/managerLab.schemas';
 import { useAuth } from '@/components/providers/auth-provider';
+import { ObjectDetailTabs } from '@/components/object-detail-tabs';
+import { TabsContent } from '@/components/ui/tabs';
+import { ActivityFeed } from '@/components/activity/activity-feed';
 
 export default function CampaignDetailPage({
   params,
@@ -17,53 +18,50 @@ export default function CampaignDetailPage({
 }) {
   const { id } = use(params);
   const { user } = useAuth();
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const { data, refetch } = useCampaignsIdGetCampaignSuspense(id, {});
-
-  // Note: ObjectDetailDTO has thread_id but doesn't include unread count
-  // We'll show the chat button but without unread count for now
-  const unreadCount = 0; // TODO: Fetch unread count separately if needed
+  const { data, refetch } = useCampaignsIdGetCampaignSuspense(id);
 
   return (
-    <>
-      <PageTopBar
-        title={data.title}
-        state={data.state}
-        chatButton={
-          <ChatButton
-            unreadCount={unreadCount}
-            onClick={() => setIsChatOpen(true)}
-          />
-        }
-        actions={
-          <ObjectActions
-            data={data}
-            actionGroup={ActionGroupType.campaign_actions}
-            onRefetch={refetch}
-          />
-        }
+    <PageTopBar
+      title={data.name}
+      state={data.state}
+      actions={
+        <ObjectActions
+          data={data}
+          actionGroup={ActionGroupType.campaign_actions}
+          onRefetch={refetch}
+        />
+      }
+    >
+      <ObjectDetailTabs
+        tabs={[
+          { value: 'summary', label: 'Summary' },
+          {
+            value: 'activity',
+            label: 'Activity',
+            unreadCount: data.thread?.unread_count,
+          },
+        ]}
+        defaultTab="summary"
       >
-        <div className="space-y-6">
-          {/* Two Column Grid */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Left Column - Fields */}
-            <ObjectFields fields={data.fields} />
+        <TabsContent value="summary" className="space-y-6">
+          <div className="space-y-6">
+            {/* Two Column Grid */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Left Column - Fields */}
+              <CampaignFields campaign={data} />
+            </div>
           </div>
+        </TabsContent>
 
-          {/* Relations */}
-          <ObjectRelations relations={data.relations || []} />
-        </div>
-      </PageTopBar>
-
-      <ChatDrawer
-        open={isChatOpen}
-        onOpenChange={setIsChatOpen}
-        threadableType="campaigns"
-        threadableId={parseInt(id, 10)}
-        currentUserId={user.id as string}
-        title={`Chat - ${data.title}`}
-      />
-    </>
+        <TabsContent value="activity">
+          <ActivityFeed
+            threadableType={ObjectTypes.campaigns}
+            threadableId={id}
+            currentUserId={user.id as string}
+          />
+        </TabsContent>
+      </ObjectDetailTabs>
+    </PageTopBar>
   );
 }

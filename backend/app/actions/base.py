@@ -110,6 +110,7 @@ class ActionGroup:
         self._execute_union: Type | None = None
 
     def __call__(self, action_class: Type[BaseAction]) -> Type[BaseAction]:
+        action_class.model = self.model_type
         action_key = action_class.action_key
         combined_key = self._get_action_key(action_key)
         self.actions[combined_key] = action_class

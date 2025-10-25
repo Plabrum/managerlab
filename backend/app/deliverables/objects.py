@@ -277,7 +277,6 @@ class DeliverableObject(BaseObject):
             created_at=deliverable.created_at,
             updated_at=deliverable.updated_at,
             fields=fields,
-            thread_id=deliverable.thread.id if deliverable.thread else None,
         )
 
     @classmethod

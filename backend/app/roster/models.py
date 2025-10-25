@@ -4,6 +4,7 @@ import sqlalchemy as sa
 from typing import TYPE_CHECKING
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.base.threadable_mixin import ThreadableMixin
 from app.state_machine.models import StateMachineMixin
 from app.roster.enums import RosterStates
 
@@ -15,6 +16,7 @@ if TYPE_CHECKING:
 
 
 class Roster(
+    ThreadableMixin,
     RLSMixin(),
     StateMachineMixin(
         state_enum=RosterStates,

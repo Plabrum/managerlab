@@ -5,7 +5,13 @@ import {
   ListTeamsResponse,
   TeamListItemSchema,
 } from '@/openapi/managerLab.schemas';
-import { createContext, useContext, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from 'react';
 import { config } from '@/lib/config';
 
 interface AuthContextValue {
@@ -41,6 +47,7 @@ export function AuthProvider({
   children: React.ReactNode;
 }) {
   const [teamsData, setTeamsData] = useState<ListTeamsResponse>(initialTeams);
+  const [isSwitchingTeam, setIsSwitchingTeam] = useState(false);
 
   const refetchTeams = useCallback(async () => {
     const res = await fetch(`${config.api.baseUrl}/users/teams`, {
@@ -76,6 +83,37 @@ export function AuthProvider({
       throw new Error(error.detail || 'Failed to switch team');
     }
   }, []);
+
+  // Auto-switch to first team if no scope is set
+  useEffect(() => {
+    if (
+      !isSwitchingTeam &&
+      !teamsData.current_team_id &&
+      !teamsData.is_campaign_scoped &&
+      teamsData.teams.length > 0
+    ) {
+      setIsSwitchingTeam(true);
+      // Switch to first team automatically
+      fetch(`${config.api.baseUrl}/users/switch-team`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ team_id: teamsData.teams[0].team_id }),
+      })
+        .then((res) => {
+          if (res.ok) {
+            // Refresh teams data to get updated current_team_id
+            return refetchTeams();
+          }
+        })
+        .finally(() => {
+          setIsSwitchingTeam(false);
+        });
+    }
+  }, [teamsData, isSwitchingTeam, refetchTeams]);
 
   const contextValue: AuthContextValue = {
     user,

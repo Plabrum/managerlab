@@ -248,7 +248,6 @@ class InvoiceObject(BaseObject):
             created_at=invoice.created_at,
             updated_at=invoice.updated_at,
             fields=fields,
-            thread_id=invoice.thread.id if invoice.thread else None,
         )
 
     @classmethod

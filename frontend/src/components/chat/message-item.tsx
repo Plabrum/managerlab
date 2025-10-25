@@ -1,49 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Textarea } from '@/components/ui/textarea';
-import type { MessageSchema } from '@/openapi/managerLab.schemas';
+import type {
+  MessageSchema,
+  MessageSchemaContent,
+} from '@/openapi/managerLab.schemas';
+import { MessageAvatar } from './message-avatar';
+import { MessageContent } from './message-content';
+import { MessageInput } from './message-input';
+import { MessageActions } from './message-actions';
+import { formatRelativeTime, validateMessageContent } from './message-utils';
 
 interface MessageItemProps {
   message: MessageSchema;
   isCurrentUser: boolean;
-  onEdit?: (messageId: string, content: string) => Promise<void>;
+  onEdit?: (messageId: string, content: MessageSchemaContent) => Promise<void>;
   onDelete?: (messageId: string) => Promise<void>;
-}
-
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-
-  return date.toLocaleDateString();
-}
-
-function getUserInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export function MessageItem({
@@ -53,24 +25,23 @@ export function MessageItem({
   onDelete,
 }: MessageItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(message.content);
-  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveEdit = async () => {
-    if (!onEdit || editContent.trim() === message.content) {
+  const handleSaveEdit = async (content: MessageSchemaContent) => {
+    if (
+      !onEdit ||
+      !validateMessageContent(content) ||
+      JSON.stringify(content) === JSON.stringify(message.content)
+    ) {
       setIsEditing(false);
       return;
     }
 
-    setIsSaving(true);
-    try {
-      await onEdit(message.id as string, editContent.trim());
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to edit message:', error);
-    } finally {
-      setIsSaving(false);
-    }
+    await onEdit(message.id as string, content);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
   };
 
   const handleDelete = async () => {
@@ -92,11 +63,7 @@ export function MessageItem({
 
   return (
     <div className="hover:bg-muted/50 group flex gap-3 px-4 py-3">
-      <Avatar className="h-8 w-8">
-        <AvatarFallback className="text-xs">
-          {getUserInitials(message.user.name)}
-        </AvatarFallback>
-      </Avatar>
+      <MessageAvatar userName={message.user.name} />
 
       <div className="flex-1 space-y-1">
         <div className="flex items-baseline gap-2">
@@ -112,64 +79,25 @@ export function MessageItem({
         </div>
 
         {isEditing ? (
-          <div className="space-y-2">
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[60px]"
-              disabled={isSaving}
-            />
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleSaveEdit}
-                disabled={isSaving || !editContent.trim()}
-              >
-                Save
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditContent(message.content);
-                }}
-                disabled={isSaving}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
+          <MessageInput
+            mode="edit"
+            initialContent={message.content}
+            onSendMessage={handleSaveEdit}
+            onCancel={handleCancelEdit}
+          />
         ) : (
-          <p className="text-foreground/90 whitespace-pre-wrap break-words text-sm">
-            {message.content}
-          </p>
+          <MessageContent
+            content={message.content}
+            className="text-foreground/90"
+          />
         )}
       </div>
 
       {isCurrentUser && !isEditing && (
-        <div className="opacity-0 transition-opacity group-hover:opacity-100">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleDelete}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <MessageActions
+          onEdit={() => setIsEditing(true)}
+          onDelete={handleDelete}
+        />
       )}
     </div>
   );

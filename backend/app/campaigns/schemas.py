@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from msgspec import UNSET, UnsetType
 from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure, CounterpartyType, OwnershipMode
 from app.threads.schemas import ThreadUnreadInfo
@@ -57,41 +58,41 @@ class CampaignSchema(BaseSchema):
 class CampaignUpdateSchema(BaseSchema):
     """Schema for updating a Campaign."""
 
-    name: str | None = None
-    description: str | None = None
-    brand_id: int | None = None
-    compensation_structure: CompensationStructure | None = None
+    name: str | None | UnsetType = UNSET
+    description: str | None | UnsetType = UNSET
+    brand_id: int | None | UnsetType = UNSET
+    compensation_structure: CompensationStructure | None | UnsetType = UNSET
 
     # Counterparty
-    counterparty_type: CounterpartyType | None = None
-    counterparty_name: str | None = None
-    counterparty_email: str | None = None
+    counterparty_type: CounterpartyType | None | UnsetType = UNSET
+    counterparty_name: str | None | UnsetType = UNSET
+    counterparty_email: str | None | UnsetType = UNSET
 
     # Compensation
-    compensation_total_usd: float | None = None
-    payment_terms_days: int | None = None
+    compensation_total_usd: float | None | UnsetType = UNSET
+    payment_terms_days: int | None | UnsetType = UNSET
 
     # Flight dates
-    flight_start_date: date | None = None
-    flight_end_date: date | None = None
+    flight_start_date: date | None | UnsetType = UNSET
+    flight_end_date: date | None | UnsetType = UNSET
 
     # FTC & Usage
-    ftc_string: str | None = None
-    usage_duration: str | None = None
-    usage_territory: str | None = None
-    usage_paid_media_option: bool | None = None
+    ftc_string: str | None | UnsetType = UNSET
+    usage_duration: str | None | UnsetType = UNSET
+    usage_territory: str | None | UnsetType = UNSET
+    usage_paid_media_option: bool | None | UnsetType = UNSET
 
     # Exclusivity
-    exclusivity_category: str | None = None
-    exclusivity_days_before: int | None = None
-    exclusivity_days_after: int | None = None
+    exclusivity_category: str | None | UnsetType = UNSET
+    exclusivity_days_before: int | None | UnsetType = UNSET
+    exclusivity_days_after: int | None | UnsetType = UNSET
 
     # Ownership
-    ownership_mode: OwnershipMode | None = None
+    ownership_mode: OwnershipMode | None | UnsetType = UNSET
 
     # Approval
-    approval_rounds: int | None = None
-    approval_sla_hours: int | None = None
+    approval_rounds: int | None | UnsetType = UNSET
+    approval_sla_hours: int | None | UnsetType = UNSET
 
 
 class CampaignCreateSchema(BaseSchema):

@@ -1,25 +1,67 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
+import type { MessageSchemaContent } from '@/openapi/managerLab.schemas';
 
 interface MessageInputProps {
-  onSendMessage: (content: string) => Promise<void>;
-  onTypingChange: (isTyping: boolean) => void;
+  onSendMessage: (content: MessageSchemaContent) => Promise<void>;
+  onTypingChange?: (isTyping: boolean) => void;
   disabled?: boolean;
+  // Edit mode props
+  mode?: 'new' | 'edit';
+  initialContent?: MessageSchemaContent;
+  onCancel?: () => void;
+}
+
+interface TiptapNode {
+  type?: string;
+  content?: Array<{ text?: string }>;
+}
+
+interface TiptapContent {
+  type?: string;
+  content?: TiptapNode[];
+}
+
+/**
+ * Checks if the content has any non-empty text
+ */
+function hasContentText(content: MessageSchemaContent | null): boolean {
+  if (!content || typeof content !== 'object') {
+    return false;
+  }
+
+  // Type guard for TipTap content structure
+  const hasContentArray =
+    'content' in content && Array.isArray(content.content);
+  if (!hasContentArray) {
+    return false;
+  }
+
+  const tiptapContent = content as TiptapContent;
+  return (tiptapContent.content ?? []).some((node: TiptapNode) =>
+    Array.isArray(node.content)
+      ? node.content.some((child) => child.text && child.text.trim())
+      : false
+  );
 }
 
 export function MessageInput({
   onSendMessage,
   onTypingChange,
   disabled = false,
+  mode = 'new',
+  initialContent,
+  onCancel,
 }: MessageInputProps) {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState<MessageSchemaContent | null>(
+    initialContent || null
+  );
   const [isSending, setIsSending] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isEditMode = mode === 'edit';
 
   useEffect(() => {
     return () => {
@@ -29,43 +71,48 @@ export function MessageInput({
     };
   }, []);
 
-  const handleContentChange = (value: string) => {
+  const handleContentChange = (value: MessageSchemaContent) => {
     setContent(value);
 
-    // Send typing indicator
-    if (value.trim()) {
-      onTypingChange(true);
+    // Send typing indicator (only in new message mode)
+    if (!isEditMode && onTypingChange) {
+      if (hasContentText(value)) {
+        onTypingChange(true);
 
-      // Clear existing timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
+        // Clear existing timeout
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
 
-      // Auto-clear typing after 3 seconds of inactivity
-      typingTimeoutRef.current = setTimeout(() => {
+        // Auto-clear typing after 3 seconds of inactivity
+        typingTimeoutRef.current = setTimeout(() => {
+          onTypingChange(false);
+        }, 3000);
+      } else {
         onTypingChange(false);
-      }, 3000);
-    } else {
-      onTypingChange(false);
+      }
     }
   };
 
   const handleSend = async () => {
-    if (!content.trim() || isSending || disabled) return;
+    if (!hasContentText(content) || isSending || disabled) return;
 
     setIsSending(true);
     try {
-      await onSendMessage(content.trim());
-      setContent('');
-      onTypingChange(false);
+      await onSendMessage(content!);
 
-      // Clear typing timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
+      // Only clear content in new message mode
+      if (!isEditMode) {
+        setContent(null);
+        if (onTypingChange) {
+          onTypingChange(false);
+        }
+
+        // Clear typing timeout
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
       }
-
-      // Focus back on textarea
-      textareaRef.current?.focus();
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
@@ -73,38 +120,18 @@ export function MessageInput({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Send on Enter (without Shift)
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
-    <div className="border-t p-4">
-      <div className="flex gap-2">
-        <Textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => handleContentChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          className="min-h-[80px] resize-none"
-          disabled={disabled || isSending}
-        />
-        <Button
-          onClick={handleSend}
-          disabled={!content.trim() || disabled || isSending}
-          size="icon"
-          className="shrink-0"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
-      </div>
-      <p className="text-muted-foreground mt-1 text-xs">
-        Press Enter to send, Shift+Enter for new line
-      </p>
-    </div>
+    <MinimalTiptap
+      content={content}
+      onChange={handleContentChange}
+      placeholder={isEditMode ? 'Edit message...' : 'Type a message...'}
+      editable={!disabled && !isSending}
+      editorClassName={isEditMode ? '' : 'min-h-20'}
+      toolbar="minimal"
+      onSend={handleSend}
+      isSending={isSending}
+      mode={mode}
+      onCancel={onCancel}
+    />
   );
 }

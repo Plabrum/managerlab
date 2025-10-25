@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Any
+from msgspec import UNSET, UnsetType
 
 from app.utils.sqids import Sqid
 from app.base.schemas import BaseSchema
@@ -22,6 +23,8 @@ class DeliverableMediaAssociationSchema(BaseSchema):
     media: MediaResponseSchema
     created_at: datetime
     updated_at: datetime
+    actions: list[ActionDTO]
+    thread_id: Sqid | None
 
 
 class RosterInDeliverableSchema(BaseSchema):
@@ -87,8 +90,16 @@ def deliverable_media_to_schema(
         s3_client: S3Client for generating presigned URLs
     """
     # Get media actions for nested media in deliverable context
-    action_group = ActionRegistry().get_class(ActionGroupType.MediaActions)
-    media_actions = action_group.get_available_actions(obj=dm.media)
+    media_action_group = ActionRegistry().get_class(ActionGroupType.MediaActions)
+    media_actions = media_action_group.get_available_actions(obj=dm.media)
+
+    # Get deliverable media actions for the association
+    deliverable_media_action_group = ActionRegistry().get_class(
+        ActionGroupType.DeliverableMediaActions
+    )
+    deliverable_media_actions = deliverable_media_action_group.get_available_actions(
+        obj=dm
+    )
 
     return DeliverableMediaAssociationSchema(
         approved_at=dm.approved_at,
@@ -96,6 +107,8 @@ def deliverable_media_to_schema(
         media=media_to_response(dm.media, s3_client, media_actions),
         created_at=dm.created_at,
         updated_at=dm.updated_at,
+        actions=deliverable_media_actions,
+        thread_id=dm.media.thread.id if dm.media.thread else None,
     )
 
 
@@ -167,26 +180,26 @@ def deliverable_to_response(
 class DeliverableUpdateSchema(BaseSchema):
     """Schema for updating a Deliverable."""
 
-    title: str | None = None
-    content: str | None = None
-    platforms: SocialMediaPlatforms | None = None
-    deliverable_type: DeliverableType | None = None
-    count: int | None = None
-    posting_date: datetime | None = None
-    posting_start_date: date | None = None
-    posting_end_date: date | None = None
+    title: str | None | UnsetType = UNSET
+    content: str | None | UnsetType = UNSET
+    platforms: SocialMediaPlatforms | None | UnsetType = UNSET
+    deliverable_type: DeliverableType | None | UnsetType = UNSET
+    count: int | None | UnsetType = UNSET
+    posting_date: datetime | None | UnsetType = UNSET
+    posting_start_date: date | None | UnsetType = UNSET
+    posting_end_date: date | None | UnsetType = UNSET
 
     # Caption requirements
-    handles: list[str] | None = None
-    hashtags: list[str] | None = None
-    disclosures: list[str] | None = None
+    handles: list[str] | None | UnsetType = UNSET
+    hashtags: list[str] | None | UnsetType = UNSET
+    disclosures: list[str] | None | UnsetType = UNSET
 
     # Approval
-    approval_required: bool | None = None
-    approval_rounds: int | None = None
+    approval_required: bool | None | UnsetType = UNSET
+    approval_rounds: int | None | UnsetType = UNSET
 
-    notes: dict[str, Any] | None = None
-    campaign_id: int | None = None
+    notes: dict[str, Any] | None | UnsetType = UNSET
+    campaign_id: int | None | UnsetType = UNSET
 
 
 class DeliverableCreateSchema(BaseSchema):
@@ -216,11 +229,5 @@ class DeliverableCreateSchema(BaseSchema):
 
 class AddMediaToDeliverableSchema(BaseSchema):
     """Schema for adding media to a Deliverable."""
-
-    media_ids: list[Sqid]
-
-
-class RemoveMediaFromDeliverableSchema(BaseSchema):
-    """Schema for removing media from a Deliverable."""
 
     media_ids: list[Sqid]

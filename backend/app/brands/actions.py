@@ -55,8 +55,15 @@ class UpdateBrand(BaseAction):
         obj: Brand,
         data: BrandUpdateSchema,
         transaction: AsyncSession,
+        user: int,
     ) -> ActionExecutionResponse:
-        update_model(obj, data)
+        await update_model(
+            session=transaction,
+            model_instance=obj,
+            update_vals=data,
+            user_id=user,
+            team_id=obj.team_id,
+        )
 
         return ActionExecutionResponse(
             success=True,

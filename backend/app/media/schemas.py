@@ -1,4 +1,5 @@
 from datetime import datetime
+from msgspec import UNSET, UnsetType
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 from app.media.models import Media
@@ -76,7 +77,7 @@ def media_to_response(
 
 
 class MediaUpdateSchema(BaseSchema):
-    file_name: str | None = None
+    file_name: str | None | UnsetType = UNSET
 
 
 class MediaWithUrlsSchema(BaseSchema):

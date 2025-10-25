@@ -1,4 +1,4 @@
-from litestar import Router, get, post
+from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.campaigns.models import Campaign
@@ -10,7 +10,6 @@ from app.actions.registry import ActionRegistry
 from app.actions.enums import ActionGroupType
 from app.threads.models import Thread
 
-# Register CampaignObject with the objects framework
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
 from app.campaigns.objects import CampaignObject
@@ -20,7 +19,10 @@ ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
 
 @get("/{id:str}")
 async def get_campaign(
-    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry, user_id: int
+    id: Sqid,
+    request: Request,
+    transaction: AsyncSession,
+    action_registry: ActionRegistry,
 ) -> CampaignSchema:
     """Get a campaign by SQID."""
     from sqlalchemy.orm import joinedload, selectinload
@@ -42,7 +44,7 @@ async def get_campaign(
     actions = action_group.get_available_actions(obj=campaign)
 
     # Convert thread to unread info using the mixin method
-    thread_info = campaign.get_thread_unread_info(user_id)
+    thread_info = campaign.get_thread_unread_info(request.user)
 
     return CampaignSchema(
         id=campaign.id,
@@ -86,12 +88,17 @@ async def get_campaign(
 
 @post("/{id:str}")
 async def update_campaign(
-    id: Sqid, data: CampaignUpdateSchema, transaction: AsyncSession
+    id: Sqid, data: CampaignUpdateSchema, request: Request, transaction: AsyncSession
 ) -> CampaignSchema:
     """Update a campaign by SQID."""
     campaign = await get_or_404(transaction, Campaign, id)
-    update_model(campaign, data)
-    await transaction.flush()
+    await update_model(
+        session=transaction,
+        model_instance=campaign,
+        update_vals=data,
+        user_id=request.user,
+        team_id=campaign.team_id,
+    )
     return CampaignSchema(
         id=campaign.id,
         name=campaign.name,

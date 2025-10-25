@@ -103,6 +103,7 @@ def provide_action_registry(
         request=request,
         team_id=team_id,
         campaign_id=campaign_id,
+        user=request.user,
     )
 
 

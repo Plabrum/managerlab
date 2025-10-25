@@ -393,5 +393,4 @@ class CampaignObject(BaseObject):
             created_at=campaign.created_at,
             updated_at=campaign.updated_at,
             fields=fields,
-            thread_id=campaign.thread.id if campaign.thread else None,
         )

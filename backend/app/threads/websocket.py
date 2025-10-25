@@ -1,6 +1,7 @@
 """WebSocket handler for real-time thread updates using PostgreSQL LISTEN/NOTIFY."""
 
 import asyncio
+from app.users.models import User
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -12,8 +13,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.guards import requires_user_scope
+from app.objects.enums import ObjectTypes
 from app.threads.models import Thread
-from app.threads.services import notify_thread
+from app.threads.services import notify_thread, mark_thread_as_read
+from app.utils.sqids import Sqid, sqid_encode
 
 logger = logging.getLogger(__name__)
 
@@ -33,15 +36,45 @@ async def postgres_listen(raw_conn: Any, channel: str):
         logger.debug(f"Stopped LISTEN on channel: {channel}")
 
 
+@asynccontextmanager
+async def safe_websocket_sender(socket: WebSocket):
+    """Context manager that safely handles WebSocket send operations."""
+
+    class WebSocketSender:
+        def __init__(self, ws: WebSocket):
+            self.ws = ws
+            self.is_closed = False
+
+        async def send_json(self, data: dict[str, Any]) -> bool:
+            """Send JSON data. Returns False if connection is closed."""
+            if self.is_closed:
+                return False
+            try:
+                await self.ws.send_json(data)
+                return True
+            except RuntimeError as e:
+                if "after sending 'websocket.close'" in str(e):
+                    self.is_closed = True
+                    logger.debug("WebSocket already closed")
+                    return False
+                raise
+
+    sender = WebSocketSender(socket)
+    try:
+        yield sender
+    finally:
+        sender.is_closed = True
+
+
 class ThreadWebSocketHandler(WebsocketListener):
-    path = "/ws/threads/{threadable_type:str}/{threadable_id:int}"
+    path = "/ws/threads/{threadable_type:str}/{threadable_id:str}"
     guards = [requires_user_scope]
 
     async def on_accept(
         self,
         socket: WebSocket,
-        threadable_type: str,
-        threadable_id: int,
+        threadable_type: ObjectTypes,
+        threadable_id: Sqid,
         transaction: AsyncSession,
     ) -> None:
         """Verify thread access and start listening for notifications."""
@@ -58,11 +91,18 @@ class ThreadWebSocketHandler(WebsocketListener):
             return
 
         self.thread_id = thread.id
-        self.user_id = socket.user.id
-        self.user_name = socket.user.name
+        # socket.user is already the user_id (int), not a User object
+        self.user_id = socket.user
+
+        # Load user name from database
+        user_stmt = select(User).where(User.id == self.user_id)
+        user_result = await transaction.execute(user_stmt)
+        user = user_result.scalar_one()
+        self.user_name = user.name
 
         # Get engine for LISTEN connection (needs separate connection from pool)
         engine = transaction.get_bind()
+        self.engine = engine  # Store for later use in on_receive
 
         # Track this user as viewing the thread
         if self.thread_id not in active_viewers:
@@ -90,7 +130,7 @@ class ThreadWebSocketHandler(WebsocketListener):
         )
 
         logger.info(
-            f"WebSocket connected: user {socket.user} -> thread {self.thread_id}"
+            f"WebSocket connected: user {self.user_id} ({self.user_name}) -> thread {self.thread_id}"
         )
 
     async def on_disconnect(self, socket: WebSocket) -> None:
@@ -119,8 +159,10 @@ class ThreadWebSocketHandler(WebsocketListener):
             f"WebSocket disconnected from thread {getattr(self, 'thread_id', None)}"
         )
 
-    async def on_receive(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Handle client messages: ping/pong and typing indicators."""
+    async def on_receive(
+        self, data: dict[str, Any], transaction: AsyncSession
+    ) -> dict[str, Any]:
+        """Handle client messages: ping/pong, typing indicators, and mark-read."""
         msg_type = data.get("type")
 
         if msg_type == "ping":
@@ -141,10 +183,22 @@ class ThreadWebSocketHandler(WebsocketListener):
                         # We'll use the notification system for this
                         return {
                             "type": "typing_update",
-                            "user_id": self.user_id,
+                            "user_id": sqid_encode(self.user_id),
                             "is_typing": is_typing,
                             "viewers": self._get_viewers_list(),
                         }
+
+        elif msg_type == "mark_read":
+            # Mark thread as read for this user
+            if (
+                hasattr(self, "thread_id")
+                and hasattr(self, "user_id")
+                and hasattr(self, "engine")
+            ):
+                # Create a new async session from the engine
+                await mark_thread_as_read(transaction, self.thread_id, self.user_id)
+                await transaction.commit()
+                return {"type": "marked_read"}
 
         return {"type": "error", "message": "Unknown message type"}
 
@@ -177,8 +231,11 @@ class ThreadWebSocketHandler(WebsocketListener):
 
             # Context manager handles LISTEN/UNLISTEN automatically
             async with postgres_listen(raw_conn, channel):
-                # psycopg3 async iterator - yields notifications as they arrive
-                async for notify in raw_conn.notifies():
-                    message = json.loads(notify.payload)
-                    await socket.send_json(message)
-                    logger.debug(f"Forwarded notification: {message.get('type')}")
+                async with safe_websocket_sender(socket) as sender:
+                    # psycopg3 async iterator - yields notifications as they arrive
+                    async for notify in raw_conn.notifies():
+                        message = json.loads(notify.payload)
+                        if not await sender.send_json(message):
+                            # Connection closed, stop listening
+                            break
+                        logger.debug(f"Forwarded notification: {message.get('type')}")

@@ -1,4 +1,4 @@
-from litestar import Router, get, post
+from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.payments.models import Invoice
@@ -20,7 +20,10 @@ ObjectRegistry().register(ObjectTypes.Invoices, InvoiceObject)
 
 @get("/{id:str}")
 async def get_invoice(
-    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry, user_id: int
+    id: Sqid,
+    request: Request,
+    transaction: AsyncSession,
+    action_registry: ActionRegistry,
 ) -> InvoiceSchema:
     """Get an invoice by SQID."""
     from sqlalchemy.orm import joinedload, selectinload
@@ -42,7 +45,7 @@ async def get_invoice(
     actions = action_group.get_available_actions(obj=invoice)
 
     # Convert thread to unread info using the mixin method
-    thread_info = invoice.get_thread_unread_info(user_id)
+    thread_info = invoice.get_thread_unread_info(request.user)
 
     return InvoiceSchema(
         id=invoice.id,
@@ -67,12 +70,17 @@ async def get_invoice(
 
 @post("/{id:str}")
 async def update_invoice(
-    id: Sqid, data: InvoiceUpdateSchema, transaction: AsyncSession
+    id: Sqid, data: InvoiceUpdateSchema, request: Request, transaction: AsyncSession
 ) -> InvoiceSchema:
     """Update an invoice by SQID."""
     invoice = await get_or_404(transaction, Invoice, id)
-    update_model(invoice, data)
-    await transaction.flush()
+    await update_model(
+        session=transaction,
+        model_instance=invoice,
+        update_vals=data,
+        user_id=request.user,
+        team_id=invoice.team_id,
+    )
     return InvoiceSchema(
         id=invoice.id,
         invoice_number=invoice.invoice_number,

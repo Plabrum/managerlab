@@ -1,4 +1,4 @@
-from litestar import Router, get, post
+from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.brands.models.brands import Brand
@@ -27,7 +27,10 @@ ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 
 @get("/{id:str}")
 async def get_brand(
-    id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry, user_id: int
+    id: Sqid,
+    request: Request,
+    transaction: AsyncSession,
+    action_registry: ActionRegistry,
 ) -> BrandSchema:
     """Get a brand by SQID."""
     from sqlalchemy.orm import joinedload, selectinload
@@ -49,7 +52,7 @@ async def get_brand(
     actions = action_group.get_available_actions(obj=brand)
 
     # Convert thread to unread info using the mixin method
-    thread_info = brand.get_thread_unread_info(user_id)
+    thread_info = brand.get_thread_unread_info(request.user)
 
     return BrandSchema(
         id=brand.id,
@@ -69,12 +72,17 @@ async def get_brand(
 
 @post("/{id:str}")
 async def update_brand(
-    id: Sqid, data: BrandUpdateSchema, transaction: AsyncSession
+    id: Sqid, data: BrandUpdateSchema, request: Request, transaction: AsyncSession
 ) -> BrandSchema:
     """Update a brand by SQID."""
     brand = await get_or_404(transaction, Brand, id)
-    update_model(brand, data)
-    await transaction.flush()
+    await update_model(
+        session=transaction,
+        model_instance=brand,
+        update_vals=data,
+        user_id=request.user,
+        team_id=brand.team_id,
+    )
     return BrandSchema(
         id=brand.id,
         name=brand.name,
@@ -110,12 +118,20 @@ async def get_brand_contact(id: Sqid, transaction: AsyncSession) -> BrandContact
 
 @post("/contacts/{id:str}")
 async def update_brand_contact(
-    id: Sqid, data: BrandContactUpdateSchema, transaction: AsyncSession
+    id: Sqid,
+    data: BrandContactUpdateSchema,
+    request: Request,
+    transaction: AsyncSession,
 ) -> BrandContactSchema:
     """Update a brand contact by SQID."""
     contact = await get_or_404(transaction, BrandContact, id)
-    update_model(contact, data)
-    await transaction.flush()
+    await update_model(
+        session=transaction,
+        model_instance=contact,
+        update_vals=data,
+        user_id=request.user,
+        team_id=contact.team_id,
+    )
     return BrandContactSchema(
         id=contact.id,
         first_name=contact.first_name,

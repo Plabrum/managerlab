@@ -1,15 +1,18 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use } from 'react';
 import { useDeliverablesIdGetDeliverableSuspense } from '@/openapi/deliverables/deliverables';
 import { PageTopBar } from '@/components/page-topbar';
-import { DeliverablePreview } from '@/components/deliverable-preview/deliverable-preview';
-import { MediaComments } from '@/components/media-comments';
-import { SimpleMediaGallery } from '@/components/deliverable-preview/media-gallery-simple';
 import { ObjectActions } from '@/components/object-detail';
-import { ChatButton } from '@/components/chat-button';
-import { ChatDrawer } from '@/components/chat-drawer';
 import { useAuth } from '@/components/providers/auth-provider';
+import { ActionGroupType, ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ObjectDetailTabs } from '@/components/object-detail-tabs';
+import { TabsContent } from '@/components/ui/tabs';
+import { ActivityFeed } from '@/components/activity/activity-feed';
+import {
+  DeliverableFields,
+  DeliverableMediaApproval,
+} from '@/components/deliverable-detail';
 
 export default function DeliverableDetailPage({
   params,
@@ -18,63 +21,56 @@ export default function DeliverableDetailPage({
 }) {
   const { id } = use(params);
   const { user } = useAuth();
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Type-safe deliverable with relations and actions
   const { data, refetch } = useDeliverablesIdGetDeliverableSuspense(id);
 
-  const unreadCount = data.thread?.unread_count ?? 0;
-
   return (
-    <>
-      <PageTopBar
-        title={data.title}
-        state={data.state}
-        chatButton={
-          <ChatButton
-            unreadCount={unreadCount}
-            onClick={() => setIsChatOpen(true)}
-          />
-        }
-        actions={
-          <ObjectActions
-            data={data}
-            actionGroup="deliverable_actions"
-            onRefetch={refetch}
-          />
-        }
+    <PageTopBar
+      title={data.title}
+      state={data.state}
+      actions={
+        <ObjectActions
+          data={data}
+          actionGroup={ActionGroupType.deliverable_actions}
+          onRefetch={refetch}
+        />
+      }
+    >
+      <ObjectDetailTabs
+        tabs={[
+          { value: 'summary', label: 'Summary' },
+          {
+            value: 'activity',
+            label: 'Activity',
+            unreadCount: data.thread?.unread_count,
+          },
+          { value: 'media-approval', label: 'Media Approval' },
+        ]}
+        defaultTab="summary"
       >
-        <div className="space-y-6">
-          {/* Two Column Grid - Preview left, Comments right */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 ">
-            {/* Left Column - Preview */}
-            <div className="flex justify-center">
-              <DeliverablePreview
-                deliverable={data}
-                mediaAssociations={data.deliverable_media_associations}
-                roster={data.assigned_roster}
-              />
-              <SimpleMediaGallery
-                media={data.deliverable_media_associations.map(
-                  (dm) => dm.media
-                )}
-              />
+        <TabsContent value="summary" className="space-y-6">
+          <div className="space-y-6">
+            {/* Two Column Grid */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Left Column - Fields */}
+              <DeliverableFields deliverable={data} />
             </div>
-
-            {/* Right Column - Comments */}
-            <MediaComments />
           </div>
-        </div>
-      </PageTopBar>
+        </TabsContent>
 
-      <ChatDrawer
-        open={isChatOpen}
-        onOpenChange={setIsChatOpen}
-        threadableType="deliverables"
-        threadableId={parseInt(id, 10)}
-        currentUserId={user.id as string}
-        title={`Chat - ${data.title}`}
-      />
-    </>
+        <TabsContent value="activity">
+          <ActivityFeed
+            threadableType={ObjectTypes.deliverables}
+            threadableId={id}
+            currentUserId={user.id as string}
+          />
+        </TabsContent>
+
+        <TabsContent value="media-approval" className="space-y-6">
+          <DeliverableMediaApproval deliverable={data} />
+        </TabsContent>
+      </ObjectDetailTabs>
+    </PageTopBar>
   );
 }

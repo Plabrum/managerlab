@@ -22,7 +22,14 @@ class DeliverableActions(StrEnum):
     delete = "deliverable.delete"
     update = "deliverable.update"
     add_media = "deliverable.add_media"
-    remove_media = "deliverable.remove_media"
+
+
+class DeliverableMediaActions(StrEnum):
+    """Actions for DeliverableMedia association objects."""
+
+    remove_media = "deliverable_media.remove_media"
+    accept = "deliverable_media.accept"
+    reject = "deliverable_media.reject"
 
 
 class TopLevelDeliverableActions(StrEnum):

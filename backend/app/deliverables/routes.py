@@ -1,4 +1,4 @@
-from litestar import Router, get, post
+from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -8,6 +8,7 @@ from app.deliverables.schemas import (
     DeliverableUpdateSchema,
     deliverable_to_response,
 )
+from app.media.models import Media
 from app.utils.sqids import Sqid
 from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404, update_model
@@ -17,7 +18,7 @@ from app.threads.models import Thread
 
 @get("/{id:str}")
 async def get_deliverable(
-    id: Sqid, transaction: AsyncSession, s3_client: S3Dep, user_id: int
+    request: Request, id: Sqid, transaction: AsyncSession, s3_client: S3Dep
 ) -> DeliverableResponseSchema:
     """Get a deliverable by SQID with type-safe field access and relations."""
     # id is already decoded from SQID string to int by msgspec
@@ -29,7 +30,7 @@ async def get_deliverable(
         id,
         load_options=[
             joinedload(Deliverable.deliverable_media_associations).options(
-                selectinload(DeliverableMedia.media)
+                selectinload(DeliverableMedia.media).options(joinedload(Media.thread))
             ),
             joinedload(Deliverable.campaign),
             selectinload(Deliverable.assigned_roster),
@@ -39,13 +40,14 @@ async def get_deliverable(
             ),
         ],
     )
-    return deliverable_to_response(deliverable, s3_client, user_id)
+    return deliverable_to_response(deliverable, s3_client, request.user)
 
 
 @post("/{id:str}")
 async def update_deliverable(
     id: Sqid,
     data: DeliverableUpdateSchema,
+    request: Request,
     transaction: AsyncSession,
     s3_client: S3Dep,
     user_id: int,
@@ -67,8 +69,13 @@ async def update_deliverable(
             ),
         ],
     )
-    update_model(deliverable, data)
-    await transaction.flush()
+    await update_model(
+        session=transaction,
+        model_instance=deliverable,
+        update_vals=data,
+        user_id=request.user,
+        team_id=deliverable.team_id,
+    )
     return deliverable_to_response(deliverable, s3_client, user_id)
 
 

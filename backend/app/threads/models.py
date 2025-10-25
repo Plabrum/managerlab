@@ -1,8 +1,9 @@
 """Thread models for threads and messages."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
@@ -65,18 +66,18 @@ class Message(
         nullable=False,
         index=True,
     )
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[int | None] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
 
-    # Content
-    content: Mapped[str] = mapped_column(sa.Text, nullable=False)
+    # Content (stored as TipTap JSON format)
+    content: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
     # Relationships
     thread: Mapped["Thread"] = relationship("Thread", back_populates="messages")
-    user: Mapped["User"] = relationship("User")
+    user: Mapped["User | None"] = relationship("User")
 
     # Index for efficient message listing
     __table_args__ = (

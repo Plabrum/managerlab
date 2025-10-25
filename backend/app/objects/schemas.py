@@ -230,7 +230,6 @@ class ObjectListDTO(BaseSchema):
     actions: List[ActionDTO] = []
     fields: List[ObjectFieldDTO] = []
     link: Optional[str] = None
-    thread_id: Sqid | None = None
 
     def __post_init__(self) -> None:
         self.link = f"{self.object_type}/{self.id}"

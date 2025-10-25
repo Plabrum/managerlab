@@ -1,4 +1,5 @@
 from datetime import datetime
+from msgspec import UNSET, UnsetType
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 from app.actions.schemas import ActionDTO
@@ -25,12 +26,12 @@ class BrandSchema(BaseSchema):
 class BrandUpdateSchema(BaseSchema):
     """Schema for updating a Brand."""
 
-    name: str | None = None
-    description: str | None = None
-    website: str | None = None
-    email: str | None = None
-    phone: str | None = None
-    notes: str | None = None
+    name: str | None | UnsetType = UNSET
+    description: str | None | UnsetType = UNSET
+    website: str | None | UnsetType = UNSET
+    email: str | None | UnsetType = UNSET
+    phone: str | None | UnsetType = UNSET
+    notes: str | None | UnsetType = UNSET
 
 
 class BrandCreateSchema(BaseSchema):
@@ -63,12 +64,12 @@ class BrandContactSchema(BaseSchema):
 class BrandContactUpdateSchema(BaseSchema):
     """Schema for updating a BrandContact."""
 
-    first_name: str | None = None
-    last_name: str | None = None
-    email: str | None = None
-    phone: str | None = None
-    notes: str | None = None
-    brand_id: int | None = None
+    first_name: str | None | UnsetType = UNSET
+    last_name: str | None | UnsetType = UNSET
+    email: str | None | UnsetType = UNSET
+    phone: str | None | UnsetType = UNSET
+    notes: str | None | UnsetType = UNSET
+    brand_id: int | None | UnsetType = UNSET
 
 
 class BrandContactCreateSchema(BaseSchema):
