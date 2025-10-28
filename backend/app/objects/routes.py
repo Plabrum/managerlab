@@ -4,7 +4,6 @@ from litestar import Router, get, post
 
 from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
-from app.actions.registry import ActionRegistry
 from app.objects.schemas import (
     ObjectListRequest,
     ObjectListResponse,
@@ -46,22 +45,13 @@ async def list_objects(
     data: ObjectListRequest,
     transaction: AsyncSession,
     object_registry: ObjectRegistry,
-    action_registry: ActionRegistry,
 ) -> ObjectListResponse:
     logger.info(f"data:{data}")
     object_service = object_registry.get_class(object_type)
     objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)
-    columns = object_service.column_definitions
 
-    # Get top-level actions for this object type (e.g., create)
-    list_actions = []
-    top_level_action_group_type = object_service.get_top_level_action_group()
-    if top_level_action_group_type:
-        top_level_action_group = action_registry.get_class(top_level_action_group_type)
-        list_actions = top_level_action_group.get_available_actions()
-
-    # Convert objects to DTOs (async)
+    # Convert objects to DTOs
     object_dtos = [object_service.to_list_dto(obj) for obj in objects]
 
     return ObjectListResponse(
@@ -69,8 +59,7 @@ async def list_objects(
         total=total,
         limit=data.limit,
         offset=data.offset,
-        columns=columns,
-        actions=list_actions,
+        actions=object_service.get_top_level_actions(),
     )
 
 

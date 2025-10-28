@@ -6,26 +6,24 @@ from sqlalchemy import func
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ActionDTO,
-    ObjectListDTO,
     ObjectListRequest,
-    ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
-    StringFieldValue,
-    EmailFieldValue,
-    BoolFieldValue,
-    EnumFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.users.enums import UserStates
 from app.users.models import User
-from app.utils.sqids import sqid_encode
 
 
 class UserObject(BaseObject):
     object_type = ObjectTypes.Users
     model = User
+
+    # Title/subtitle configuration
+    title_field = "name"
+    subtitle_field = "email"
+    state_field = "state"
+
     column_definitions = [
         ColumnDefinitionDTO(
             key="name",
@@ -34,22 +32,28 @@ class UserObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="email",
             label="Email",
-            type=FieldType.String,
+            type=FieldType.Email,
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="email_verified",
-            label="Email verified",
+            label="Email Verified",
             type=FieldType.Bool,
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Bool),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="state",
@@ -59,52 +63,10 @@ class UserObject(BaseObject):
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[e.name for e in UserStates],
+            editable=False,
+            include_in_list=True,
         ),
     ]
-
-    @classmethod
-    async def to_list_dto(cls, user: User) -> ObjectListDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=user.name),
-                label="Name",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="email",
-                value=EmailFieldValue(value=user.email),
-                label="Email",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="email_verified",
-                value=BoolFieldValue(value=user.email_verified),
-                label="Email Verified",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="state",
-                value=EnumFieldValue(value=user.state.name),
-                label="Status",
-                editable=False,
-            ),
-        ]
-
-        return ObjectListDTO(
-            id=sqid_encode(user.id),
-            object_type=ObjectTypes.Users,
-            title=user.name,
-            subtitle=user.email,
-            state=user.state.name,
-            actions=[
-                ActionDTO(action="edit", label="Edit", is_bulk_allowed=True),
-                ActionDTO(action="release", label="Release", is_bulk_allowed=True),
-            ],
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            fields=fields,
-        )
 
     @classmethod
     async def query_from_request(

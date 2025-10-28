@@ -1,7 +1,7 @@
 """Object schemas and DTOs."""
 
 from datetime import date, datetime
-from typing import Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 from app.base.schemas import BaseSchema
 from app.objects.enums import (
@@ -174,7 +174,7 @@ class ObjectFieldDTO(BaseSchema):
 
 
 class ColumnDefinitionDTO(BaseSchema):
-    """Definition of a column for list views."""
+    """Definition of a column for list views with auto-generation support."""
 
     key: str
     label: str
@@ -183,6 +183,15 @@ class ColumnDefinitionDTO(BaseSchema):
     sortable: bool = True
     default_visible: bool = True
     available_values: List[str] | None = None
+
+    # Auto-generation fields
+    editable: bool = True  # Whether field can be edited
+    nullable: bool = False  # Whether field value can be None
+    include_in_list: bool = True  # Whether to include in list view DTOs
+    accessor: str | Callable[[Any], Any] | None = (
+        None  # How to extract value from model (defaults to key)
+    )
+    formatter: Callable[[Any], Any] | None = None  # Optional display formatter
 
 
 class ObjectRelationGroup(BaseSchema):
@@ -207,7 +216,7 @@ class ObjectListDTO(BaseSchema):
     id: str
     object_type: ObjectTypes
     title: str
-    state: str
+    state: str | None
     created_at: datetime
     updated_at: datetime
     subtitle: Optional[str] = None
@@ -237,7 +246,6 @@ class ObjectListResponse(BaseSchema):
     total: int
     limit: int
     offset: int
-    columns: List[ColumnDefinitionDTO]
     actions: list[ActionDTO] = []
 
 

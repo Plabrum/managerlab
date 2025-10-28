@@ -3,46 +3,51 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.actions.registry import ActionRegistry
 from app.actions.enums import ActionGroupType
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    EnumFieldValue,
-    ObjectListDTO,
     ObjectListRequest,
-    ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
-    StringFieldValue,
-    DatetimeFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.enums import DeliverableStates, SocialMediaPlatforms
-from app.utils.sqids import sqid_encode
 
 
 class DeliverableObject(BaseObject):
     object_type = ObjectTypes.Deliverables
     model = Deliverable
 
-    @classmethod
-    def get_top_level_action_group(cls):
-        return ActionGroupType.TopLevelDeliverableActions
+    # Title/subtitle configuration
+    title_field = "title"
+    state_field = "state"
+
+    # Action groups
+    top_level_action_group = ActionGroupType.TopLevelDeliverableActions
+    action_group = ActionGroupType.DeliverableActions
+
+    # Load options for eager loading relationships
+    load_options = [
+        joinedload(Deliverable.deliverable_media_associations).options(
+            selectinload(DeliverableMedia.media)
+        ),
+        joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
+        selectinload(Deliverable.media),
+        selectinload(Deliverable.assigned_roster),
+        joinedload(Deliverable.thread),
+    ]
 
     @classmethod
-    def get_load_options(cls):
-        """Return load options for eager loading relationships."""
-        return [
-            joinedload(Deliverable.deliverable_media_associations).options(
-                selectinload(DeliverableMedia.media)
-            ),
-            joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
-            selectinload(Deliverable.media),
-            selectinload(Deliverable.assigned_roster),
-            joinedload(Deliverable.thread),
-        ]
+    def to_list_dto(cls, obj: Deliverable):
+        dto = super().to_list_dto(obj)
+        # Custom subtitle truncation
+        if obj.content:
+            dto.subtitle = (
+                obj.content[:100] + "..." if len(obj.content) > 100 else obj.content
+            )
+        return dto
 
     column_definitions = [
         ColumnDefinitionDTO(
@@ -52,6 +57,7 @@ class DeliverableObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
+            include_in_list=False,
         ),
         ColumnDefinitionDTO(
             key="created_at",
@@ -60,6 +66,7 @@ class DeliverableObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
+            include_in_list=False,
         ),
         ColumnDefinitionDTO(
             key="updated_at",
@@ -68,6 +75,7 @@ class DeliverableObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
+            include_in_list=False,
         ),
         ColumnDefinitionDTO(
             key="title",
@@ -76,14 +84,19 @@ class DeliverableObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="content",
             label="Content",
-            type=FieldType.Text,
+            type=FieldType.String,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Text),
+            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="platforms",
@@ -93,6 +106,8 @@ class DeliverableObject(BaseObject):
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[platform.value for platform in SocialMediaPlatforms],
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="state",
@@ -102,6 +117,8 @@ class DeliverableObject(BaseObject):
             filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[state.value for state in DeliverableStates],
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="posting_date",
@@ -110,70 +127,11 @@ class DeliverableObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
     ]
-
-    @classmethod
-    def to_list_dto(cls, deliverable: Deliverable) -> ObjectListDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="title",
-                value=StringFieldValue(value=deliverable.title),
-                label="Title",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="state",
-                value=EnumFieldValue(value=deliverable.state.value),
-                label="Status",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="content",
-                value=(
-                    StringFieldValue(value=(deliverable.content))
-                    if deliverable.content
-                    else None
-                ),
-                label="Content",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="platforms",
-                value=EnumFieldValue(value=deliverable.platforms.value),
-                label="Platform",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="posting_date",
-                value=(
-                    DatetimeFieldValue(value=deliverable.posting_date)
-                    if deliverable.posting_date
-                    else None
-                ),
-                label="Posting Date",
-                editable=False,
-            ),
-        ]
-
-        action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
-        actions = action_group.get_available_actions(obj=deliverable)
-
-        return ObjectListDTO(
-            id=sqid_encode(deliverable.id),
-            object_type=ObjectTypes.Deliverables,
-            title=deliverable.title,
-            subtitle=(
-                deliverable.content[:100] + "..."
-                if deliverable.content and len(deliverable.content) > 100
-                else deliverable.content
-            ),
-            state=deliverable.state.name,
-            actions=actions,
-            created_at=deliverable.created_at,
-            updated_at=deliverable.updated_at,
-            fields=fields,
-        )
 
     @classmethod
     async def query_from_request(

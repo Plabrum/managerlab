@@ -3,28 +3,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
 from app.objects.base import BaseObject
-from app.actions.registry import ActionRegistry
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectListDTO,
     ObjectListRequest,
-    ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
-    StringFieldValue,
-    IntFieldValue,
-    EmailFieldValue,
-    DateFieldValue,
-    USDFieldValue,
 )
 from app.objects.services import get_filter_by_field_type
 from app.payments.models import Invoice
-from app.utils.sqids import sqid_encode
 
 
 class InvoiceObject(BaseObject):
     object_type = ObjectTypes.Invoices
     model = Invoice
+
+    # Title/subtitle configuration - will be customized in to_list_dto
+    state_field = "state"
+
+    # Action groups
+    action_group = ActionGroupType.InvoiceActions
+
+    @classmethod
+    def to_list_dto(cls, obj: Invoice):
+        dto = super().to_list_dto(obj)
+        # Custom title and subtitle
+        dto.title = f"Invoice #{obj.invoice_number}"
+        dto.subtitle = f"{obj.customer_name} - ${obj.amount_due}"
+        return dto
+
     column_definitions = [
         ColumnDefinitionDTO(
             key="id",
@@ -33,6 +39,7 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
+            include_in_list=False,
         ),
         ColumnDefinitionDTO(
             key="created_at",
@@ -41,6 +48,7 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
+            include_in_list=False,
         ),
         ColumnDefinitionDTO(
             key="updated_at",
@@ -49,6 +57,7 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
+            include_in_list=False,
         ),
         ColumnDefinitionDTO(
             key="invoice_number",
@@ -57,6 +66,8 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="customer_name",
@@ -65,6 +76,8 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="customer_email",
@@ -73,6 +86,8 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Email),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="amount_due",
@@ -81,6 +96,8 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.USD),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="amount_paid",
@@ -89,6 +106,8 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.USD),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="due_date",
@@ -97,6 +116,9 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Date),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
         ColumnDefinitionDTO(
             key="posting_date",
@@ -105,66 +127,11 @@ class InvoiceObject(BaseObject):
             sortable=True,
             filter_type=get_filter_by_field_type(FieldType.Date),
             default_visible=False,
+            editable=False,
+            nullable=True,
+            include_in_list=False,
         ),
     ]
-
-    @classmethod
-    def to_list_dto(cls, invoice: Invoice) -> ObjectListDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="invoice_number",
-                value=IntFieldValue(value=invoice.invoice_number),
-                label="Invoice #",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="customer_name",
-                value=StringFieldValue(value=invoice.customer_name),
-                label="Customer",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="customer_email",
-                value=EmailFieldValue(value=invoice.customer_email),
-                label="Email",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="amount_due",
-                value=USDFieldValue(value=float(invoice.amount_due)),
-                label="Amount Due",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="amount_paid",
-                value=USDFieldValue(value=float(invoice.amount_paid)),
-                label="Amount Paid",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="due_date",
-                value=(
-                    DateFieldValue(value=invoice.due_date) if invoice.due_date else None
-                ),
-                label="Due Date",
-                editable=False,
-            ),
-        ]
-
-        action_group = ActionRegistry().get_class(ActionGroupType.InvoiceActions)
-        actions = action_group.get_available_actions(obj=invoice)
-
-        return ObjectListDTO(
-            id=sqid_encode(invoice.id),
-            object_type=ObjectTypes.Invoices,
-            title=f"Invoice #{invoice.invoice_number}",
-            subtitle=f"{invoice.customer_name} - ${invoice.amount_due}",
-            state=invoice.state.name,
-            actions=actions,
-            created_at=invoice.created_at,
-            updated_at=invoice.updated_at,
-            fields=fields,
-        )
 
     @classmethod
     async def query_from_request(
