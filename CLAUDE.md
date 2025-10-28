@@ -11,22 +11,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make dev-worker` - Start SAQ async worker for background task processing
 - `make test` - Run backend pytest suite
 - `make backend-check` - Run backend type checking with basedpyright
+- `make check-frontend` - Run frontend type checking and linting
+- `make check-all` - Run all pre-release checks (backend + frontend)
 - `make codegen` - Generate TypeScript API client from backend OpenAPI schema
 
 ### Backend Development
-- `cd backend && uv run litestar run -r -d -p 8000` - Start backend development server
+- `make dev-backend` - Start backend development server
 - `make db-start` - Start PostgreSQL Docker container for development
-- `make db-migrate-generate` - Auto-generate Alembic migration from model changes
-- `make db-migrate` - Apply database migrations
-- `cd backend && uv run pytest` - Run backend tests
-- `cd backend && uv run basedpyright` - Run type checking with basedpyright
-- `cd backend && uv run ruff check && uv run ruff format` - Lint and format Python code
+- `make db-migrate` - Auto-generate Alembic migration from model changes
+- `make db-upgrade` - Apply database migrations
+- `make test` - Run backend tests
+- `make backend-check` - Run type checking with basedpyright
+- `make lint-backend` - Lint and format Python code
 
 ### Frontend Development
-- `cd frontend && pnpm run dev` - Start Next.js development server with Turbopack
-- `cd frontend && pnpm run build` - Build for production
-- `cd frontend && pnpm run lint` - Run ESLint
-- `cd frontend && pnpm run format:check` - Check Prettier formatting
+- `make dev-frontend` - Start Next.js development server with Turbopack
+- `make build-frontend` - Build for production
+- `make type-check-frontend` - Run TypeScript type checking (fast, no build required)
+- `make lint-frontend` - Run ESLint
+- `make format-frontend` - Check Prettier formatting
+- `make check-frontend` - Run type checking + linting together
 
 ### Docker & Deployment
 - `make docker-build` - Build backend Docker image
@@ -60,12 +64,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Database Workflow
 1. Modify SQLAlchemy models in `backend/app/models/`
-2. Run `make db-migrate-generate` to create migration
-3. Run `make db-migrate` to apply migration
+2. Run `make db-migrate` to create migration
+3. Run `make db-upgrade` to apply migration
 
 ### Testing
 - Backend tests use pytest with asyncio support
-- Run tests with `make test` or `cd backend && uv run pytest`
+- Run tests with `make test`
 - Docker health checks via `make docker-test`
 
 ### Configuration

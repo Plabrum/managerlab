@@ -20,8 +20,11 @@ help:
 	@echo "  build-frontend   - Build frontend for production"
 	@echo "  start-frontend   - Start frontend production server"
 	@echo "  lint-frontend    - Run frontend linting"
+	@echo "  type-check-frontend - Run frontend type checking"
+	@echo "  format-frontend  - Check frontend code formatting"
+	@echo "  check-frontend   - Run all frontend checks (type-check + lint)"
 	@echo "  lint-backend     - Run backend linting with ruff"
-	@echo "  check-all        - Run all pre-release checks (backend lint, frontend lint, frontend build)"
+	@echo "  check-all        - Run all pre-release checks (backend lint, frontend checks)"
 	@echo "  test             - Run backend tests"
 	@echo "  backend-check    - Run backend type checking with basedpyright"
 	@echo "  docker-build     - Build backend Docker image locally"
@@ -110,6 +113,26 @@ start-frontend:
 lint-frontend:
 	cd frontend && pnpm run lint
 
+.PHONY: type-check-frontend
+type-check-frontend:
+	cd frontend && pnpm run type-check
+
+.PHONY: format-frontend
+format-frontend:
+	cd frontend && pnpm run format:check
+
+.PHONY: check-frontend
+check-frontend:
+	@echo "🔍 Running frontend checks..."
+	@echo ""
+	@echo "1️⃣  Type checking..."
+	@make type-check-frontend
+	@echo ""
+	@echo "2️⃣  Linting..."
+	@make lint-frontend
+	@echo ""
+	@echo "✅ Frontend checks completed successfully!"
+
 .PHONY: lint-backend
 lint-backend:
 	@echo "🔍 Running backend linting..."
@@ -122,8 +145,8 @@ check-all:
 	@echo "1️⃣  Running backend linting..."
 	@make lint-backend
 	@echo ""
-	@echo "2️⃣  Running frontend linting..."
-	@make lint-frontend
+	@echo "2️⃣  Running frontend checks..."
+	@make check-frontend
 	@echo ""
 	@echo "3️⃣  Building frontend for production..."
 	@make build-frontend
