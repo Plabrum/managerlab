@@ -76,16 +76,10 @@ export type ActionRegistry = {
 
 /**
  * Helper to extract field value from object data
- * Handles both ObjectDetailDTO (with fields array) and domain-specific schemas (with direct properties)
+ * Handles domain-specific schemas with direct properties
  */
 function getFieldValue(objectData: DomainObject, key: string): unknown {
-  // Check if this is an ObjectDetailDTO with fields array
-  if ('fields' in objectData && Array.isArray(objectData.fields)) {
-    const field = objectData.fields.find((f) => f.key === key);
-    return field?.value;
-  }
-
-  // Otherwise treat as domain-specific schema with direct properties
+  // Treat as domain-specific schema with direct properties
   return (objectData as unknown as Record<string, unknown>)[key];
 }
 

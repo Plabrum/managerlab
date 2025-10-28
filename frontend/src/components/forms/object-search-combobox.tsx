@@ -189,7 +189,7 @@ export function ObjectSearchCombobox({
         >[0]['data'],
       });
 
-      // Backend now returns ObjectDetailDTO with the full object
+      // Backend returns the full object
       // Extract the ID (it's a SQID string)
       const newId = result.id;
 

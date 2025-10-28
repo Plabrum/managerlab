@@ -3,6 +3,7 @@ from typing import (
     Any,
     TypeAliasType,
     Annotated,
+    Union,
     get_args,
     get_origin,
     get_type_hints,
@@ -15,7 +16,7 @@ import sys
 import msgspec
 from litestar.dto.base_dto import AbstractDTO
 
-from app.actions.enums import ActionGroupType
+from app.actions.enums import ActionGroupType, ActionResultType
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 
@@ -39,11 +40,24 @@ class ActionExecutionRequest(BaseSchema):
     object_id: Sqid
 
 
+class RedirectActionResult(BaseSchema, tag=ActionResultType.redirect.value):
+    path: str  # e.g., "/brands/abc123" or ".." for parent
+
+
+class DownloadFileActionResult(BaseSchema, tag=ActionResultType.download_file.value):
+    url: str
+    filename: str
+
+
+ActionResult = Union[RedirectActionResult, DownloadFileActionResult]
+
+
 class ActionExecutionResponse(BaseSchema):
-    success: bool
-    message: str
-    results: dict[str, Any] = {}
-    should_redirect_to_parent: bool = False
+    """Response from action execution with metadata for navigation and query invalidation."""
+
+    message: str = ""
+    invalidate_queries: list[str] = []  # Query keys to invalidate
+    action_result: ActionResult | None = None  # Frontend action to perform
 
 
 class ActionListResponse(BaseSchema):

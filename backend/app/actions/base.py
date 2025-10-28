@@ -6,6 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
+from app.actions.schemas import (
+    ActionExecutionResponse,
+)
 from app.base.models import BaseDBModel
 from app.actions.enums import ActionIcon, ActionGroupType
 from app.actions.schemas import ActionDTO
@@ -89,7 +92,7 @@ class BaseAction(ABC):
         return True
 
     @classmethod
-    async def execute(cls, **kwargs: Any) -> BaseDBModel:  # type: ignore[override]
+    async def execute(cls, obj, **kwargs: Any) -> ActionExecutionResponse:
         """Execute the action and return the affected database model object."""
         raise NotImplementedError(f"{cls.__name__} must implement execute()")
 
@@ -143,7 +146,7 @@ class ActionGroup:
         self,
         data: Any,  # Discriminated union instance
         object_id: int | None = None,
-    ) -> Any:  # Will be ObjectDetailDTO once imported
+    ) -> ActionExecutionResponse:
         action_class: BaseAction = self.action_registry._struct_to_action[type(data)]
         obj = (
             await action_class.get_object(
@@ -171,14 +174,7 @@ class ActionGroup:
         }
 
         # Execute action and get the resulting object
-        result_object = await action_class.execute(**filtered_kwargs)
-
-        # Convert to ObjectDetailDTO if we have an object service
-        if self.object_service is not None:
-            return self.object_service.to_detail_dto(result_object)
-
-        # Fallback: return the object as-is (shouldn't happen in practice)
-        return result_object
+        return await action_class.execute(**filtered_kwargs)
 
     def get_available_actions(
         self,

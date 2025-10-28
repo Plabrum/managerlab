@@ -44,9 +44,7 @@ class CreateRoster(RosterTopLevelActionMixin, BaseAction):
         user_id = request.session.get("user_id")
         if not user_id:
             return ActionExecutionResponse(
-                success=False,
                 message="User not authenticated",
-                results={},
             )
 
         # Create roster member
@@ -60,7 +58,5 @@ class CreateRoster(RosterTopLevelActionMixin, BaseAction):
         )
         transaction.add(roster)
         return ActionExecutionResponse(
-            success=True,
             message="Created roster member",
-            results={"roster_id": roster.id},
         )

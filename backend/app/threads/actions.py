@@ -61,9 +61,7 @@ class UpdateMessage(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Updated message",
-            results={},
         )
 
 
@@ -110,8 +108,5 @@ class DeleteMessage(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Deleted message",
-            results={},
-            should_redirect_to_parent=True,
         )

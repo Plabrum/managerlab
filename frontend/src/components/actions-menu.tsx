@@ -8,11 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type {
-  ActionDTO,
-  ActionGroupType,
-  ObjectDetailDTO,
-} from '@/openapi/managerLab.schemas';
+import type { ActionDTO, ActionGroupType } from '@/openapi/managerLab.schemas';
+import type { DomainObject } from '@/types/domain-objects';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
@@ -27,7 +24,7 @@ interface ActionsMenuProps {
    * Object data to automatically extract default values for forms
    * The registry's render functions will use this
    */
-  objectData?: ObjectDetailDTO;
+  objectData?: DomainObject;
 }
 
 export function ActionsMenu({

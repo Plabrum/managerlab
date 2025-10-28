@@ -34,10 +34,7 @@ class DeleteBrand(BaseAction):
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Deleted brand",
-            results={},
-            should_redirect_to_parent=True,
         )
 
 
@@ -66,7 +63,5 @@ class UpdateBrand(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Updated brand",
-            results={},
         )

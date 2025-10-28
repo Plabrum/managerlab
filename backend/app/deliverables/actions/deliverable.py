@@ -37,10 +37,7 @@ class DeleteDeliverable(BaseAction):
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Deleted deliverable",
-            results={},
-            should_redirect_to_parent=True,
         )
 
 
@@ -69,9 +66,7 @@ class EditDeliverable(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Updated deliverable",
-            results={},
         )
 
 
@@ -93,9 +88,7 @@ class PublishDeliverable(BaseAction):
         obj.state = DeliverableStates.POSTED
 
         return ActionExecutionResponse(
-            success=True,
             message="Published deliverable",
-            results={},
         )
 
     @classmethod
@@ -135,9 +128,7 @@ class AddMediaToDeliverable(BaseAction):
             # Convert to int for set operations
             missing_ids = set(int(mid) for mid in requested_media_ids) - found_ids
             return ActionExecutionResponse(
-                success=False,
                 message=f"Media not found: {missing_ids}",
-                results={},
             )
 
         # Add media to deliverable via association table (only add if not already associated)
@@ -158,7 +149,5 @@ class AddMediaToDeliverable(BaseAction):
             transaction.add(association)
 
         return ActionExecutionResponse(
-            success=True,
             message=f"Added {len(new_media_ids)} media file(s) to deliverable",
-            results={"added_count": len(new_media_ids)},
         )

@@ -6,7 +6,6 @@
  */
 
 import type {
-  ObjectDetailDTO,
   DeliverableResponseSchema,
   MediaResponseSchema,
   CampaignSchema,
@@ -17,7 +16,6 @@ import type {
  * Domain object type - represents any object with an id and actions
  */
 export type DomainObject =
-  | ObjectDetailDTO
   | DeliverableResponseSchema
   | MediaResponseSchema
   | CampaignSchema

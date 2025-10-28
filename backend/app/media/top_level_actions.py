@@ -44,7 +44,5 @@ class CreateMedia(BaseAction):
         queue = task_queues.get("default")
         await queue.enqueue("generate_thumbnail", media_id=int(media.id))
         return ActionExecutionResponse(
-            success=True,
             message=f"Created media '{media.file_name}'",
-            results={"media_id": media.id},
         )

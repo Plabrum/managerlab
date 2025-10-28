@@ -7,7 +7,6 @@ from app.actions.registry import ActionRegistry
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
     ObjectFieldDTO,
@@ -100,67 +99,6 @@ class BrandObject(BaseObject):
     @classmethod
     def get_action_group(cls):
         return ActionGroupType.BrandActions
-
-    @classmethod
-    def to_detail_dto(cls, brand: Brand) -> ObjectDetailDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=brand.name),
-                label="Name",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="description",
-                value=(
-                    StringFieldValue(value=brand.description)
-                    if brand.description
-                    else None
-                ),
-                label="Description",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="website",
-                value=URLFieldValue(value=brand.website) if brand.website else None,
-                label="Website",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="email",
-                value=EmailFieldValue(value=brand.email) if brand.email else None,
-                label="Email",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="phone",
-                value=StringFieldValue(value=brand.phone) if brand.phone else None,
-                label="Phone",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="notes",
-                value=StringFieldValue(value=brand.notes) if brand.notes else None,
-                label="Notes",
-                editable=True,
-            ),
-        ]
-
-        # Get available actions for this brand
-        action_group = ActionRegistry().get_class(ActionGroupType.BrandActions)
-        actions = action_group.get_available_actions(obj=brand)
-
-        return ObjectDetailDTO(
-            id=sqid_encode(brand.id),
-            object_type=ObjectTypes.Brands,
-            state="active",
-            title=brand.name,
-            fields=fields,
-            actions=actions,
-            created_at=brand.created_at,
-            updated_at=brand.updated_at,
-            thread_id=brand.thread.id if brand.thread else None,
-        )
 
     @classmethod
     def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
@@ -263,57 +201,6 @@ class BrandContactObject(BaseObject):
             default_visible=False,
         ),
     ]
-
-    @classmethod
-    def to_detail_dto(cls, contact: BrandContact) -> ObjectDetailDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="first_name",
-                value=StringFieldValue(value=contact.first_name),
-                label="First Name",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="last_name",
-                value=StringFieldValue(value=contact.last_name),
-                label="Last Name",
-                editable=True,
-            ),
-        ]
-
-        if contact.email:
-            fields.append(
-                ObjectFieldDTO(
-                    key="email",
-                    value=EmailFieldValue(value=contact.email),
-                    label="Email",
-                    editable=True,
-                )
-            )
-
-        if contact.phone:
-            fields.append(
-                ObjectFieldDTO(
-                    key="phone",
-                    value=StringFieldValue(value=contact.phone),
-                    label="Phone",
-                    editable=True,
-                )
-            )
-
-        # BrandContactActions not implemented yet
-        actions: list[Any] = []
-
-        return ObjectDetailDTO(
-            id=sqid_encode(contact.id),
-            object_type=ObjectTypes.BrandContacts,
-            state="active",
-            title=f"{contact.first_name} {contact.last_name}",
-            fields=fields,
-            actions=actions,
-            created_at=contact.created_at,
-            updated_at=contact.updated_at,
-        )
 
     @classmethod
     def to_list_dto(cls, contact: BrandContact) -> ObjectListDTO:

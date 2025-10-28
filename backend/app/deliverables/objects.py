@@ -1,25 +1,21 @@
 from app.campaigns.models import Campaign
-from app.campaigns.objects import CampaignObject
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.objects.base import BaseObject, ObjectRegistry
-from app.objects.enums import ObjectTypes, RelationType, RelationCardinality
+from app.actions.enums import ActionGroupType
+from app.objects.base import BaseObject
+from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     EnumFieldValue,
-    ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
     ObjectFieldDTO,
     FieldType,
     ColumnDefinitionDTO,
     StringFieldValue,
-    TextFieldValue,
     DatetimeFieldValue,
-    ObjectRelationGroup,
 )
 from app.objects.services import get_filter_by_field_type
 from app.deliverables.models import Deliverable, DeliverableMedia
@@ -116,109 +112,6 @@ class DeliverableObject(BaseObject):
             default_visible=True,
         ),
     ]
-
-    @classmethod
-    def to_detail_dto(cls, deliverable: Deliverable) -> ObjectDetailDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="title",
-                value=StringFieldValue(value=deliverable.title),
-                label="Title",
-                editable=True,
-            ),
-            (
-                ObjectFieldDTO(
-                    key="content",
-                    value=(
-                        StringFieldValue(value=deliverable.content)
-                        if deliverable.content
-                        else None
-                    ),
-                    label="Content",
-                    editable=True,
-                )
-            ),
-            (
-                ObjectFieldDTO(
-                    key="platforms",
-                    value=(
-                        StringFieldValue(value=deliverable.platforms.value)
-                        if deliverable.platforms
-                        else None
-                    ),
-                    label="Platform",
-                    editable=True,
-                )
-            ),
-            (
-                ObjectFieldDTO(
-                    key="posting_date",
-                    value=(
-                        DatetimeFieldValue(value=deliverable.posting_date)
-                        if deliverable.posting_date
-                        else None
-                    ),
-                    label="Posting Date",
-                    editable=True,
-                )
-            ),
-            (
-                ObjectFieldDTO(
-                    key="notes",
-                    value=(
-                        TextFieldValue(value=deliverable.notes)
-                        if deliverable.notes
-                        else None
-                    ),
-                    label="Notes",
-                    editable=True,
-                )
-            ),
-        ]
-
-        action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
-        actions = action_group.get_available_actions(obj=deliverable)
-
-        # Build new structured relations
-        relations = []
-
-        # Add campaign parent
-        if deliverable.campaign:
-            relations.append(
-                ObjectRelationGroup(
-                    relation_name="campaign",
-                    relation_label="Campaign",
-                    relation_type=RelationType.parent,
-                    cardinality=RelationCardinality.one,
-                    objects=[CampaignObject.to_list_dto(deliverable.campaign)],
-                )
-            )
-        # Use ObjectRegistry to avoid circular import during module discovery
-        media_object_class = ObjectRegistry().get_class(ObjectTypes.Media)
-        relations.append(
-            ObjectRelationGroup(
-                relation_name="media",
-                relation_label="Media Files",
-                relation_type=RelationType.child,
-                cardinality=RelationCardinality.many,
-                objects=[
-                    media_object_class.to_list_dto(media) for media in deliverable.media
-                ],
-            )
-        )
-
-        return ObjectDetailDTO(
-            id=sqid_encode(deliverable.id),
-            object_type=ObjectTypes.Deliverables,
-            state=deliverable.state.name,
-            title=deliverable.title,
-            fields=fields,
-            actions=actions,
-            created_at=deliverable.created_at,
-            updated_at=deliverable.updated_at,
-            relations=relations,
-            thread_id=deliverable.thread.id if deliverable.thread else None,
-        )
 
     @classmethod
     def to_list_dto(cls, deliverable: Deliverable) -> ObjectListDTO:
