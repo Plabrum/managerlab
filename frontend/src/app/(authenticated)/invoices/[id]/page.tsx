@@ -1,14 +1,11 @@
 'use client';
 
 import { use } from 'react';
-import {
-  ObjectFields,
-  ObjectRelations,
-  ObjectActions,
-} from '@/components/object-detail';
-import { useOObjectTypeIdGetObjectDetailSuspense } from '@/openapi/objects/objects';
+import { ObjectActions } from '@/components/object-detail';
+import { useInvoicesIdGetInvoiceSuspense } from '@/openapi/invoices/invoices';
 import { PageTopBar } from '@/components/page-topbar';
 import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function InvoiceDetailPage({
   params,
@@ -17,14 +14,11 @@ export default function InvoiceDetailPage({
 }) {
   const { id } = use(params);
 
-  const { data, refetch } = useOObjectTypeIdGetObjectDetailSuspense(
-    'invoices',
-    id
-  );
+  const { data, refetch } = useInvoicesIdGetInvoiceSuspense(id);
 
   return (
     <PageTopBar
-      title={data.title}
+      title={`Invoice #${data.invoice_number}`}
       state={data.state}
       actions={
         <ObjectActions
@@ -35,14 +29,79 @@ export default function InvoiceDetailPage({
       }
     >
       <div className="space-y-6">
-        {/* Two Column Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left Column - Fields */}
-          <ObjectFields fields={data.fields} />
-        </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-muted-foreground text-sm font-medium">
+                  Customer Name
+                </label>
+                <p className="text-sm">{data.customer_name}</p>
+              </div>
+              <div>
+                <label className="text-muted-foreground text-sm font-medium">
+                  Customer Email
+                </label>
+                <p className="text-sm">{data.customer_email}</p>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Relations */}
-        <ObjectRelations relations={data.relations || []} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Invoice Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-muted-foreground text-sm font-medium">
+                  Posting Date
+                </label>
+                <p className="text-sm">
+                  {new Date(data.posting_date).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <label className="text-muted-foreground text-sm font-medium">
+                  Due Date
+                </label>
+                <p className="text-sm">
+                  {new Date(data.due_date).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <label className="text-muted-foreground text-sm font-medium">
+                  Amount Due
+                </label>
+                <p className="text-sm">${data.amount_due.toLocaleString()}</p>
+              </div>
+              <div>
+                <label className="text-muted-foreground text-sm font-medium">
+                  Amount Paid
+                </label>
+                <p className="text-sm">${data.amount_paid.toLocaleString()}</p>
+              </div>
+              {data.description && (
+                <div>
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Description
+                  </label>
+                  <p className="text-sm">{data.description}</p>
+                </div>
+              )}
+              {data.notes && (
+                <div>
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Notes
+                  </label>
+                  <p className="text-sm">{data.notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </PageTopBar>
   );

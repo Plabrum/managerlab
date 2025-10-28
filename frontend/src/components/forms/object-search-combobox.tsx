@@ -189,9 +189,22 @@ export function ObjectSearchCombobox({
         >[0]['data'],
       });
 
-      // Backend returns the full object
-      // Extract the ID (it's a SQID string)
-      const newId = result.id;
+      // Backend returns ActionExecutionResponse with a redirect to the new object
+      // Extract the ID from the redirect path
+      let newId: string | null = null;
+      if (
+        result.action_result &&
+        result.action_result.type === 'redirect' &&
+        'path' in result.action_result
+      ) {
+        // Extract ID from path like "/brands/abc123" -> "abc123"
+        const pathParts = result.action_result.path.split('/');
+        newId = pathParts[pathParts.length - 1];
+      }
+
+      if (!newId) {
+        throw new Error('Failed to extract ID from create action response');
+      }
 
       // Invalidate cache so the list refreshes
       await queryClient.invalidateQueries({

@@ -10,6 +10,8 @@ import type {
   MediaResponseSchema,
   CampaignSchema,
   BrandSchema,
+  InvoiceSchema,
+  RosterSchema,
 } from '@/openapi/managerLab.schemas';
 
 /**
@@ -19,4 +21,6 @@ export type DomainObject =
   | DeliverableResponseSchema
   | MediaResponseSchema
   | CampaignSchema
-  | BrandSchema;
+  | BrandSchema
+  | InvoiceSchema
+  | RosterSchema;
