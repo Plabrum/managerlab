@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type {
   ActionDTO,
   ActionGroupType,
-  ObjectDetailDTO,
+  ActionExecutionResponse,
   ActionsActionGroupExecuteActionBody,
   ActionsActionGroupObjectIdExecuteObjectActionBody,
 } from '@/openapi/managerLab.schemas';
@@ -13,7 +13,6 @@ import {
   useActionsActionGroupExecuteAction,
   useActionsActionGroupObjectIdExecuteObjectAction,
 } from '@/openapi/actions/actions';
-import { invalidateQueriesForAction } from '@/lib/query-invalidation';
 
 export type ActionExecutorState = {
   isExecuting: boolean;
@@ -37,13 +36,13 @@ export type ActionFormRenderer = (props: {
 export type ActionExecutorOptions = {
   actionGroup: ActionGroupType;
   objectId?: string;
-  onSuccess?: (action: ActionDTO, response: ObjectDetailDTO) => void;
+  onSuccess?: (action: ActionDTO, response: ActionExecutionResponse) => void;
   onError?: (action: ActionDTO, error: Error) => void;
   renderActionForm?: ActionFormRenderer;
   onInvalidate?: (
     queryClient: ReturnType<typeof useQueryClient>,
     action: ActionDTO,
-    response: ObjectDetailDTO
+    response: ActionExecutionResponse
   ) => void;
 };
 
@@ -90,7 +89,7 @@ export function useActionExecutor({
         const requestBody =
           actionBody || ({ action: action.action, data: {} } as const);
 
-        let response: ObjectDetailDTO;
+        let response: ActionExecutionResponse;
 
         // Execute with proper typing based on whether we have an objectId
         if (objectId) {
@@ -106,37 +105,66 @@ export function useActionExecutor({
           });
         }
 
-        // Show success toast (ObjectDetailDTO doesn't have a message, use action label)
-        toast.success(`${action.label} completed successfully`);
+        // Show success toast using response message
+        toast.success(
+          response.message || `${action.label} completed successfully`
+        );
 
-        // Invalidate queries to refresh data
+        // Invalidate queries based on response metadata
         if (onInvalidate) {
           // Custom invalidation logic provided
           onInvalidate(queryClient, action, response);
-        } else {
-          // Default smart invalidation
-          invalidateQueriesForAction(
-            queryClient,
-            actionGroup,
-            objectId,
-            action
-          );
+        } else if (
+          response.invalidate_queries &&
+          response.invalidate_queries.length > 0
+        ) {
+          // Use invalidation queries from response
+          response.invalidate_queries.forEach((queryKey) => {
+            queryClient.invalidateQueries({
+              queryKey: [queryKey],
+              refetchType: 'active',
+            });
+          });
         }
 
         // Call success callback
         onSuccess?.(action, response);
 
-        // Handle redirect to parent if needed (check action.should_redirect_to_parent)
-        if (action.should_redirect_to_parent && objectId) {
-          // Extract the parent path from the current URL
-          // e.g., /deliverables/123 -> /deliverables
-          const currentPath = window.location.pathname;
-          const parentPath = currentPath.substring(
-            0,
-            currentPath.lastIndexOf('/')
-          );
-          if (parentPath) {
-            router.push(parentPath);
+        // Handle action result based on response metadata
+        if (response.action_result) {
+          // Type narrowing based on which fields are present
+          if ('path' in response.action_result) {
+            // RedirectActionResult
+            const path = (response.action_result as { path: string }).path;
+            if (path === '..') {
+              // Navigate to parent (for delete actions)
+              const currentPath = window.location.pathname;
+              const parentPath = currentPath.substring(
+                0,
+                currentPath.lastIndexOf('/')
+              );
+              if (parentPath) {
+                router.push(parentPath);
+              }
+            } else {
+              // Navigate to specific path (for create actions)
+              router.push(path);
+            }
+          } else if (
+            'url' in response.action_result &&
+            'filename' in response.action_result
+          ) {
+            // DownloadFileActionResult - trigger browser download
+            const { url, filename } = response.action_result as {
+              url: string;
+              filename: string;
+            };
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
           }
         }
 

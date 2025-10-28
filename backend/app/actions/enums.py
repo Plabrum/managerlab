@@ -22,6 +22,13 @@ class ActionGroupType(StrEnum):
     MessageActions = "message_actions"
 
 
+class ActionResultType(StrEnum):
+    """Types of actions the frontend should take after action execution."""
+
+    redirect = "redirect"
+    download_file = "download_file"
+
+
 class ActionIcon(StrEnum):
     default = auto()
     refresh = auto()

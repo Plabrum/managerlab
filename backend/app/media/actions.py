@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.media.enums import MediaStates
 from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
-from app.actions.schemas import ActionExecutionResponse
+from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
 from app.client.s3_client import S3Client
 from app.media.models import Media
 from app.media.enums import MediaActions
@@ -35,10 +36,7 @@ class DeleteMedia(BaseAction):
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Deleted media",
-            results={},
-            should_redirect_to_parent=True,
         )
 
 
@@ -67,9 +65,7 @@ class UpdateMedia(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Updated media",
-            results={},
         )
 
 
@@ -92,16 +88,13 @@ class DownloadMedia(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
-            message="Download URL generated",
-            results={
-                "download_url": download_url,
-                "file_name": obj.file_name,
-            },
+            message="Download ready",
+            action_result=DownloadFileActionResult(
+                url=download_url,
+                filename=obj.file_name,
+            ),
         )
 
     @classmethod
     def is_available(cls, obj: Media | None) -> bool:
-        from app.media.enums import MediaStates
-
         return obj is not None and obj.state == MediaStates.READY

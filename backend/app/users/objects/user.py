@@ -7,7 +7,6 @@ from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     ActionDTO,
-    ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
     ObjectFieldDTO,
@@ -62,36 +61,6 @@ class UserObject(BaseObject):
             available_values=[e.name for e in UserStates],
         ),
     ]
-
-    @classmethod
-    def to_detail_dto(cls, user: User) -> ObjectDetailDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=user.name),
-                label="Name",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="email",
-                value=EmailFieldValue(value=user.email),
-                label="Email",
-                editable=True,
-            ),
-        ]
-
-        return ObjectDetailDTO(
-            id=sqid_encode(user.id),
-            object_type=ObjectTypes.Users,
-            state=user.state.name,
-            title=user.name,
-            fields=fields,
-            actions=[],
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            children=[],
-            parents=[],
-        )
 
     @classmethod
     async def to_list_dto(cls, user: User) -> ObjectListDTO:

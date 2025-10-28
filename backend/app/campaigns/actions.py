@@ -33,10 +33,7 @@ class DeleteCampaign(BaseAction):
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Deleted campaign",
-            results={},
-            should_redirect_to_parent=True,
         )
 
 
@@ -65,7 +62,5 @@ class UpdateCampaign(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Updated campaign",
-            results={},
         )

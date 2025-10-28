@@ -2,8 +2,25 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { ObjectRelationGroup } from '@/openapi/managerLab.schemas';
 import Link from 'next/link';
+
+// Type definitions for object relations
+// TODO: These types are temporary - remove when relations are properly implemented
+interface RelationObject {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  state?: string | null;
+  url: string;
+  object_type: string;
+}
+
+interface ObjectRelationGroup {
+  relation_name: string;
+  relation_label: string;
+  relation_type: 'parent' | 'child';
+  objects: RelationObject[];
+}
 
 interface ObjectRelationsProps {
   relations: ObjectRelationGroup[];

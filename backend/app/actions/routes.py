@@ -3,10 +3,10 @@ from litestar import Router, get, post
 from app.actions.registry import ActionRegistry
 from app.actions.schemas import (
     ActionListResponse,
+    ActionExecutionResponse,
     build_action_union,
 )
 from app.actions.enums import ActionGroupType
-from app.objects.schemas import ObjectDetailDTO
 from app.utils.sqids import Sqid
 from app.utils.discovery import discover_and_import
 
@@ -60,7 +60,7 @@ async def execute_action(
     action_group: ActionGroupType,
     data: Action,  # type: ignore [valid-type]
     action_registry: ActionRegistry,
-) -> ObjectDetailDTO:
+) -> ActionExecutionResponse:
     action_group_instance = action_registry.get_class(action_group)
     return await action_group_instance.trigger(
         object_id=None,
@@ -77,7 +77,7 @@ async def execute_object_action(
     object_id: Sqid,
     data: Action,  # type: ignore [valid-type]
     action_registry: ActionRegistry,
-) -> ObjectDetailDTO:
+) -> ActionExecutionResponse:
     action_group_instance = action_registry.get_class(action_group)
     # object_id is already decoded from SQID string to int by msgspec
     return await action_group_instance.trigger(

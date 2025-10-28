@@ -38,9 +38,7 @@ class RemoveMediaFromDeliverable(BaseAction):
         await transaction.delete(obj)
 
         return ActionExecutionResponse(
-            success=True,
             message="Removed media from deliverable",
-            results={},
         )
 
 
@@ -68,9 +66,7 @@ class AcceptDeliverableMedia(BaseAction):
         obj.approved_at = datetime.now(tz=timezone.utc)
 
         return ActionExecutionResponse(
-            success=True,
             message="Accepted media",
-            results={},
         )
 
     @classmethod
@@ -103,9 +99,7 @@ class RejectDeliverableMedia(BaseAction):
         obj.approved_at = None
 
         return ActionExecutionResponse(
-            success=True,
             message="Rejected media",
-            results={},
         )
 
     @classmethod

@@ -25,6 +25,14 @@ export interface ActionDTO {
   should_redirect_to_parent?: boolean;
 }
 
+export type ActionExecutionResponseActionResult = RedirectActionResult | DownloadFileActionResult | null;
+
+export interface ActionExecutionResponse {
+  message?: string;
+  invalidate_queries?: string[];
+  action_result?: ActionExecutionResponseActionResult;
+}
+
 /**
  * Types of action groups.
  */
@@ -816,6 +824,12 @@ export interface DeliverableUpdateSchema {
   campaign_id?: DeliverableUpdateSchemaCampaignId;
 }
 
+export interface DownloadFileActionResult {
+  url: string;
+  filename: string;
+  type: 'download_file';
+}
+
 export const DownloadMediaActionValue = {
   action: 'media_actions__media_download',
 } as const;
@@ -1111,21 +1125,6 @@ export interface NumericalTimeSeriesData {
   type: 'numerical';
 }
 
-export type ObjectDetailDTOThreadId = unknown | null;
-
-export interface ObjectDetailDTO {
-  id: string;
-  object_type: ObjectTypes;
-  state: string;
-  title: string;
-  fields: ObjectFieldDTO[];
-  actions: ActionDTO[];
-  created_at: string;
-  updated_at: string;
-  relations?: ObjectRelationGroup[];
-  thread_id?: ObjectDetailDTOThreadId;
-}
-
 export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
 
 export type ObjectFieldDTOLabel = string | null;
@@ -1176,14 +1175,6 @@ export interface ObjectListResponse {
   offset: number;
   columns: ColumnDefinitionDTO[];
   actions?: ActionDTO[];
-}
-
-export interface ObjectRelationGroup {
-  relation_name: string;
-  relation_label: string;
-  relation_type: RelationType;
-  cardinality: RelationCardinality;
-  objects: ObjectListDTO[];
 }
 
 export interface ObjectSchemaResponse {
@@ -1247,6 +1238,11 @@ export interface RangeFilterDefinition {
   type: 'range_filter';
 }
 
+export interface RedirectActionResult {
+  path: string;
+  type: 'redirect';
+}
+
 export interface RegisterMediaSchema {
   file_key: string;
   file_name: string;
@@ -1258,30 +1254,6 @@ export const RejectDeliverableMediaActionValue = {
   action: 'deliverable_media_actions__deliverable_media_reject',
 } as const;
 export type RejectDeliverableMediaAction = typeof RejectDeliverableMediaActionValue;
-
-/**
- * Cardinality of a relationship.
- */
-export type RelationCardinality = typeof RelationCardinality[keyof typeof RelationCardinality];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const RelationCardinality = {
-  one: 'one',
-  many: 'many',
-} as const;
-
-/**
- * Type of relationship between objects.
- */
-export type RelationType = typeof RelationType[keyof typeof RelationType];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const RelationType = {
-  parent: 'parent',
-  child: 'child',
-} as const;
 
 export const RemoveMediaFromDeliverableActionValue = {
   action: 'deliverable_media_actions__deliverable_media_remove_media',
@@ -1798,19 +1770,6 @@ export type AuthGoogleCallbackGoogleCallback400 = {
   status_code: number;
   detail: string;
   extra?: AuthGoogleCallbackGoogleCallback400Extra;
-};
-
-export type OObjectTypeIdGetObjectDetail400ExtraAnyOf = {[key: string]: unknown};
-
-export type OObjectTypeIdGetObjectDetail400Extra = null | OObjectTypeIdGetObjectDetail400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type OObjectTypeIdGetObjectDetail400 = {
-  status_code: number;
-  detail: string;
-  extra?: OObjectTypeIdGetObjectDetail400Extra;
 };
 
 export type OObjectTypeSchemaGetObjectSchema400ExtraAnyOf = {[key: string]: unknown};

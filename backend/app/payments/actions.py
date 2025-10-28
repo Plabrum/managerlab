@@ -32,10 +32,7 @@ class DeleteInvoice(BaseAction):
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Deleted invoice",
-            results={},
-            should_redirect_to_parent=True,
         )
 
 
@@ -64,7 +61,5 @@ class UpdateInvoice(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Updated invoice",
-            results={},
         )

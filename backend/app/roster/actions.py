@@ -34,10 +34,7 @@ class DeleteRoster(BaseAction):
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Deleted roster member",
-            results={},
-            should_redirect_to_parent=True,
         )
 
 
@@ -66,7 +63,5 @@ class UpdateRoster(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Updated roster member",
-            results={},
         )

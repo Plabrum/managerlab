@@ -9,7 +9,6 @@ from app.base.models import BaseDBModel
 from app.base.registry import BaseRegistry
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectDetailDTO,
     ObjectListDTO,
     ObjectListRequest,
     ColumnDefinitionDTO,
@@ -38,10 +37,6 @@ class BaseObject(ABC):
         if cls.object_type is not None:
             cls.registry = ObjectRegistry()  # Store reference to singleton
             cls.registry.register(cls.object_type, cls)
-
-    @classmethod
-    @abstractmethod
-    def to_detail_dto(cls, object: BaseDBModel) -> ObjectDetailDTO: ...
 
     @classmethod
     @abstractmethod

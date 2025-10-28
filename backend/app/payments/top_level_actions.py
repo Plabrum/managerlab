@@ -40,7 +40,5 @@ class CreateInvoice(BaseAction):
             user_id=user,
         )
         return ActionExecutionResponse(
-            success=True,
             message=f"Created invoice #{new_invoice.invoice_number}",
-            results={"invoice_id": new_invoice.id},
         )

@@ -6,7 +6,6 @@ from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     DatetimeFieldValue,
     EnumFieldValue,
-    ObjectDetailDTO,
     ObjectListDTO,
     ObjectFieldDTO,
     FieldType,
@@ -94,83 +93,6 @@ class MediaObject(BaseObject):
             default_visible=True,
         ),
     ]
-
-    @classmethod
-    def to_detail_dto(cls, object: Media) -> ObjectDetailDTO:
-        s3_client: S3Client = cls.registry.dependencies["s3_client"]
-        view_url = s3_client.generate_presigned_download_url(
-            key=object.file_key, expires_in=3600
-        )
-        thumbnail_url = (
-            s3_client.generate_presigned_download_url(
-                key=object.thumbnail_key, expires_in=3600
-            )
-            if object.thumbnail_key
-            else None
-        )
-
-        fields = [
-            ObjectFieldDTO(
-                key="file_name",
-                value=StringFieldValue(value=object.file_name),
-                label="File Name",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="file_type",
-                value=StringFieldValue(value=object.file_type),
-                label="File Type",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="file_size",
-                value=IntFieldValue(value=object.file_size),
-                label="File Size",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="mime_type",
-                value=StringFieldValue(value=object.mime_type),
-                label="MIME Type",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="state",
-                value=EnumFieldValue(value=object.state.value),
-                label="State",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="created_at",
-                value=DatetimeFieldValue(value=object.created_at),
-                label="Created At",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="image",
-                value=ImageFieldValue(
-                    url=view_url,
-                    thumbnail_url=thumbnail_url,
-                ),
-                label="Image",
-                editable=False,
-            ),
-        ]
-
-        action_class = ActionRegistry().get_class(ActionGroupType.MediaActions)
-        actions = action_class.get_available_actions(obj=object)
-
-        return ObjectDetailDTO(
-            id=sqid_encode(object.id),
-            object_type=ObjectTypes.Media,
-            state=object.state,
-            title=object.file_name,
-            fields=fields,
-            actions=actions,
-            created_at=object.created_at,
-            updated_at=object.updated_at,
-            thread_id=object.thread.id if object.thread else None,
-        )
 
     @classmethod
     def to_list_dto(cls, object: Media) -> ObjectListDTO:

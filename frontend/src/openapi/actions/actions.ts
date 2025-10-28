@@ -28,6 +28,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ActionExecutionResponse,
   ActionGroupType,
   ActionListResponse,
   ActionsActionGroupExecuteAction400,
@@ -35,8 +36,7 @@ import type {
   ActionsActionGroupListActions400,
   ActionsActionGroupObjectIdExecuteObjectAction400,
   ActionsActionGroupObjectIdExecuteObjectActionBody,
-  ActionsActionGroupObjectIdListObjectActions400,
-  ObjectDetailDTO
+  ActionsActionGroupObjectIdListObjectActions400
 } from '../managerLab.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -199,7 +199,7 @@ export const actionsActionGroupExecuteAction = (
 ) => {
       
       
-      return customInstance<ObjectDetailDTO>(
+      return customInstance<ActionExecutionResponse>(
       {url: `/actions/${actionGroup}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: actionsActionGroupExecuteActionBody, signal
@@ -422,7 +422,7 @@ export const actionsActionGroupObjectIdExecuteObjectAction = (
 ) => {
       
       
-      return customInstance<ObjectDetailDTO>(
+      return customInstance<ActionExecutionResponse>(
       {url: `/actions/${actionGroup}/${objectId}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: actionsActionGroupObjectIdExecuteObjectActionBody, signal

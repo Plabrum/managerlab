@@ -6,7 +6,6 @@ from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
 from app.actions.registry import ActionRegistry
 from app.objects.schemas import (
-    ObjectDetailDTO,
     ObjectListRequest,
     ObjectListResponse,
     ObjectSchemaResponse,
@@ -24,26 +23,11 @@ from app.objects.services import (
 )
 from app.objects.enums import ObjectTypes
 from app.utils.logging import logger
-from app.utils.sqids import Sqid
 from app.utils.discovery import discover_and_import
 
 # Auto-discover all object files to trigger registration with ObjectRegistry
 # This happens here (not in __init__.py) to avoid circular imports during module loading
 discover_and_import(["objects.py", "objects/**/*.py"], base_path="app")
-
-
-@get("/{object_type:str}/{id:str}")
-async def get_object_detail(
-    object_type: ObjectTypes,
-    id: Sqid,
-    transaction: AsyncSession,
-    object_registry: ObjectRegistry,
-) -> ObjectDetailDTO:
-    logger.info(f"data:{id}, object_type:{object_type}")
-    object_service = object_registry.get_class(object_type)
-    # id is already decoded from SQID string to int by msgspec
-    obj: BaseDBModel = await object_service.get_by_id(transaction, id)
-    return object_service.to_detail_dto(obj)
 
 
 @get("/{object_type:str}/schema")
@@ -163,7 +147,6 @@ async def get_time_series_data(
 object_router = Router(
     path="/o",
     route_handlers=[
-        get_object_detail,
         get_object_schema,
         list_objects,
         get_time_series_data,

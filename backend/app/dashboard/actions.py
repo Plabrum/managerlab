@@ -37,10 +37,7 @@ class DeleteDashboard(BaseAction):
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Dashboard deleted successfully",
-            results={},
-            should_redirect_to_parent=True,
         )
 
 
@@ -71,7 +68,5 @@ class UpdateDashboard(BaseAction):
         )
 
         return ActionExecutionResponse(
-            success=True,
             message="Dashboard updated successfully",
-            results={},
         )

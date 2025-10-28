@@ -66,8 +66,5 @@ class DeleteTeam(BaseAction):
         obj.soft_delete()
         transaction.add(obj)
         return ActionExecutionResponse(
-            success=True,
             message="Team deleted successfully",
-            results={},
-            should_redirect_to_parent=False,
         )
