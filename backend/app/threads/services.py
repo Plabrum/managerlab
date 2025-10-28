@@ -1,16 +1,144 @@
 """Thread service layer for business logic and WebSocket management."""
 
-import json
 import logging
 from datetime import datetime, timezone
-from typing import Any
 
-from sqlalchemy import select, func, text
+from litestar.channels import ChannelsPlugin
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.threads.models import Thread, Message, ThreadReadStatus
+from app.threads.models import Thread, Message, ThreadReadStatus, ThreadViewerEvent
+from app.threads.websocket_messages import (
+    ViewerInfo,
+    ServerMessage,
+    encode_server_message_str,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# WebSocket Viewer Presence Management (DB-backed, multi-server safe)
+# ============================================================================
+
+
+async def get_current_viewers_from_db(
+    session: AsyncSession, thread_id: int
+) -> list[ViewerInfo]:
+    """Get current viewers for a thread by querying the event log.
+
+    Reconstructs current viewer state from append-only event log.
+    A user is "currently viewing" if their last event was "joined".
+
+    Args:
+        session: Database session
+        thread_id: Thread ID
+
+    Returns:
+        List of current viewers with typing status (always False on initial load)
+    """
+    # Subquery: Get most recent event for each user in this thread
+    latest_event_subq = (
+        select(
+            ThreadViewerEvent.user_id,
+            func.max(ThreadViewerEvent.created_at).label("latest_created_at"),
+        )
+        .where(ThreadViewerEvent.thread_id == thread_id)
+        .group_by(ThreadViewerEvent.user_id)
+        .subquery()
+    )
+
+    # Get the actual latest events for each user
+    stmt = (
+        select(ThreadViewerEvent)
+        .join(
+            latest_event_subq,
+            (ThreadViewerEvent.user_id == latest_event_subq.c.user_id)
+            & (ThreadViewerEvent.created_at == latest_event_subq.c.latest_created_at),
+        )
+        .where(
+            ThreadViewerEvent.thread_id == thread_id,
+            ThreadViewerEvent.event_type
+            == "joined",  # Only users whose last event was "joined"
+        )
+    )
+
+    result = await session.execute(stmt)
+    events = result.scalars().all()
+
+    return [
+        ViewerInfo(
+            user_id=event.user_id,
+            name=event.user_name,
+            is_typing=False,  # Typing status is ephemeral, always starts as False
+        )
+        for event in events
+    ]
+
+
+async def record_viewer_joined(
+    session: AsyncSession, thread_id: int, user_id: int, user_name: str
+) -> None:
+    """Record a viewer joined event in the database.
+
+    Args:
+        session: Database session
+        thread_id: Thread ID
+        user_id: User ID
+        user_name: User's display name
+    """
+    event = ThreadViewerEvent(
+        thread_id=thread_id,
+        user_id=user_id,
+        event_type="joined",
+        user_name=user_name,
+    )
+    session.add(event)
+    await session.flush()
+
+    logger.debug(f"User {user_id} joined thread {thread_id} (recorded to DB)")
+
+
+async def record_viewer_left(
+    session: AsyncSession, thread_id: int, user_id: int
+) -> None:
+    """Record a viewer left event in the database.
+
+    Args:
+        session: Database session
+        thread_id: Thread ID
+        user_id: User ID
+    """
+    # Get user name from most recent joined event (needed for denormalization)
+    stmt = (
+        select(ThreadViewerEvent.user_name)
+        .where(
+            ThreadViewerEvent.thread_id == thread_id,
+            ThreadViewerEvent.user_id == user_id,
+            ThreadViewerEvent.event_type == "joined",
+        )
+        .order_by(ThreadViewerEvent.created_at.desc())
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    user_name = result.scalar_one_or_none()
+
+    if not user_name:
+        logger.warning(
+            f"Could not find user name for viewer {user_id} in thread {thread_id}"
+        )
+        user_name = "Unknown"
+
+    event = ThreadViewerEvent(
+        thread_id=thread_id,
+        user_id=user_id,
+        event_type="left",
+        user_name=user_name,
+    )
+    session.add(event)
+    await session.flush()
+
+    logger.debug(f"User {user_id} left thread {thread_id} (recorded to DB)")
 
 
 async def get_or_create_thread(
@@ -196,22 +324,58 @@ async def mark_thread_as_read(
 
 
 async def notify_thread(
-    session: AsyncSession,
+    channels: ChannelsPlugin,
     thread_id: int,
-    message: dict[str, Any],
+    message: ServerMessage,
+    viewers: list[ViewerInfo],
 ) -> None:
-    """Broadcast a message to a thread via PostgreSQL NOTIFY.
+    """Broadcast a message to a thread via Channels plugin.
 
     Args:
-        session: Database session
+        channels: ChannelsPlugin instance from DI
         thread_id: Thread ID to notify
-        message: Message payload (will be JSON-encoded)
+        message: Typed server message to broadcast (without viewers field)
+        viewers: Current viewers list to include in message
     """
+    # Add viewers to message using msgspec struct manipulation
+    # Since structs are frozen, we need to recreate with viewers
+    from app.threads.websocket_messages import (
+        MessageUpdateMessage,
+        UserJoinedMessage,
+        UserLeftMessage,
+        TypingUpdateMessage,
+        MarkedReadMessage,
+    )
+
+    # Match on message type and add viewers field
+    if isinstance(message, MessageUpdateMessage):
+        message_with_viewers = MessageUpdateMessage(
+            update_type=message.update_type,
+            message_id=message.message_id,
+            thread_id=message.thread_id,
+            user_id=message.user_id,
+            viewers=viewers,
+        )
+    elif isinstance(message, UserJoinedMessage):
+        message_with_viewers = UserJoinedMessage(
+            user_id=message.user_id, viewers=viewers
+        )
+    elif isinstance(message, UserLeftMessage):
+        message_with_viewers = UserLeftMessage(user_id=message.user_id, viewers=viewers)
+    elif isinstance(message, TypingUpdateMessage):
+        message_with_viewers = TypingUpdateMessage(
+            user_id=message.user_id, is_typing=message.is_typing, viewers=viewers
+        )
+    elif isinstance(message, MarkedReadMessage):
+        message_with_viewers = MarkedReadMessage(viewers=viewers)
+    else:
+        # Fallback - shouldn't happen with typed unions
+        logger.error(f"Unknown message type: {type(message)}")
+        return
+
     channel = f"thread_{thread_id}"
-    payload = json.dumps(message)
+    payload = encode_server_message_str(message_with_viewers)
 
-    # PostgreSQL NOTIFY doesn't support parameterized queries
-    # Use dollar-quoted strings to avoid escaping issues
-    await session.execute(text(f"NOTIFY {channel}, $${payload}$$"))
+    channels.publish(payload, [channel])
 
-    logger.debug(f"Notified thread {thread_id}: {message.get('type')}")
+    logger.debug(f"Notified thread {thread_id}: {message}")

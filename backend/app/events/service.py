@@ -4,6 +4,7 @@ import logging
 from dataclasses import asdict
 from typing import Any
 
+from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.base.models import BaseDBModel
@@ -36,6 +37,7 @@ async def emit_event(
     user_id: int,
     team_id: int,
     event_data: EventDataTypes = None,
+    channels: ChannelsPlugin | None = None,
 ) -> Event:
     # Get object metadata
     object_type = obj.__tablename__
@@ -66,7 +68,11 @@ async def emit_event(
         f"Event emitted: {event_type.value} on {object_type}#{object_id} by User#{user_id}"
     )
 
-    # Trigger consumers, passing the actual object
-    await trigger_consumers(session, event, obj)
+    # Trigger consumers, passing the actual object and any DI dependencies
+    dependencies = {}
+    if channels is not None:
+        dependencies["channels"] = channels
+
+    await trigger_consumers(session, event, obj, **dependencies)
 
     return event

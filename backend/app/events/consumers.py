@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.brands.models.brands import Brand
@@ -13,8 +14,13 @@ from app.events.models import Event
 from app.events.registry import event_consumer
 from app.events.schemas import FieldChange, UpdatedEventData
 from app.threads.models import Message
-from app.threads.services import get_or_create_thread, notify_thread
-from app.utils.sqids import sqid_encode
+from app.threads.services import (
+    get_or_create_thread,
+    get_current_viewers_from_db,
+    notify_thread,
+)
+from app.threads.websocket_messages import MessageUpdateMessage, MessageUpdateType
+from app.utils.sqids import Sqid as SqidType, sqid_encode
 from app.utils.tiptap import doc, paragraph, text, bold
 
 logger = logging.getLogger(__name__)
@@ -30,6 +36,7 @@ async def _post_to_thread(
     event: Event,
     content: dict,
     user_id: int | None,
+    channels: ChannelsPlugin,
     campaign_id: int | None = None,
 ) -> None:
     """
@@ -40,6 +47,7 @@ async def _post_to_thread(
         event: The event that triggered this
         content: TipTap content to post
         user_id: User ID for the message (None for system messages)
+        channels: ChannelsPlugin instance from DI
         campaign_id: Optional campaign_id for dual-scoped messages
     """
     # Get or create thread for this object
@@ -61,16 +69,21 @@ async def _post_to_thread(
     session.add(thread_message)
     await session.flush()
 
+    # Get current viewers from DB
+    viewers = await get_current_viewers_from_db(session, thread.id)
+
     # Notify WebSocket subscribers
+    # Event messages are system-created messages, so treat as "created"
     await notify_thread(
-        session,
+        channels,
         thread.id,
-        {
-            "type": "event",
-            "event_type": event.event_type.value,
-            "message_id": thread_message.id,
-            "event_id": event.id,
-        },
+        MessageUpdateMessage(
+            update_type=MessageUpdateType.CREATED,
+            message_id=SqidType(thread_message.id),
+            thread_id=SqidType(thread.id),
+            user_id=SqidType(0),  # System user (events have no user_id)
+        ),
+        viewers,
     )
 
     logger.info(
@@ -187,7 +200,9 @@ def _get_campaign_id(obj: Any) -> int | None:
 
 
 @event_consumer(EventType.CREATED, model=THREADABLE_MODELS)
-async def post_created_to_thread(session: AsyncSession, event: Event, obj: Any) -> None:
+async def post_created_to_thread(
+    session: AsyncSession, event: Event, obj: Any, channels: ChannelsPlugin
+) -> None:
     """Post creation events to thread (attributed to actor)."""
     object_ref = _format_object_ref(event, obj)
 
@@ -196,13 +211,18 @@ async def post_created_to_thread(session: AsyncSession, event: Event, obj: Any) 
 
     campaign_id = _get_campaign_id(obj)
     await _post_to_thread(
-        session, event, content, user_id=event.actor_id, campaign_id=campaign_id
+        session,
+        event,
+        content,
+        user_id=event.actor_id,
+        channels=channels,
+        campaign_id=campaign_id,
     )
 
 
 @event_consumer(EventType.UPDATED, model=THREADABLE_MODELS)
 async def post_updated_to_thread(
-    session: AsyncSession, event: Event, obj: BaseDBModel
+    session: AsyncSession, event: Event, obj: BaseDBModel, channels: ChannelsPlugin
 ) -> None:
     """Post update events to thread (attributed to actor)."""
     # Parse event data into structured format
@@ -218,12 +238,19 @@ async def post_updated_to_thread(
 
     campaign_id = _get_campaign_id(obj)
     await _post_to_thread(
-        session, event, content, user_id=event.actor_id, campaign_id=campaign_id
+        session,
+        event,
+        content,
+        user_id=event.actor_id,
+        channels=channels,
+        campaign_id=campaign_id,
     )
 
 
 @event_consumer(EventType.DELETED, model=THREADABLE_MODELS)
-async def post_deleted_to_thread(session: AsyncSession, event: Event, obj: Any) -> None:
+async def post_deleted_to_thread(
+    session: AsyncSession, event: Event, obj: Any, channels: ChannelsPlugin
+) -> None:
     """Post deletion events to thread (system message)."""
     object_ref = _format_object_ref(event, obj)
 
@@ -232,13 +259,18 @@ async def post_deleted_to_thread(session: AsyncSession, event: Event, obj: Any) 
 
     campaign_id = _get_campaign_id(obj)
     await _post_to_thread(
-        session, event, content, user_id=None, campaign_id=campaign_id
+        session,
+        event,
+        content,
+        user_id=None,
+        channels=channels,
+        campaign_id=campaign_id,
     )
 
 
 @event_consumer(EventType.STATE_CHANGED, model=THREADABLE_MODELS)
 async def post_state_changed_to_thread(
-    session: AsyncSession, event: Event, obj: Any
+    session: AsyncSession, event: Event, obj: Any, channels: ChannelsPlugin
 ) -> None:
     """Post state change events to thread (system message)."""
     object_ref = _format_object_ref(event, obj)
@@ -264,5 +296,10 @@ async def post_state_changed_to_thread(
 
     campaign_id = _get_campaign_id(obj)
     await _post_to_thread(
-        session, event, content, user_id=None, campaign_id=campaign_id
+        session,
+        event,
+        content,
+        user_id=None,
+        channels=channels,
+        campaign_id=campaign_id,
     )

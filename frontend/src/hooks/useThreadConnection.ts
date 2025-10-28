@@ -15,7 +15,6 @@ interface WebSocketMessage {
   viewers?: Viewer[];
   message_id?: number;
   thread_id?: number;
-  timestamp?: number;
   is_typing?: boolean;
 }
 
@@ -63,21 +62,42 @@ export function useThreadConnection({
 
       switch (notification.type) {
         case 'user_joined':
-        case 'typing_update':
+          // User joined - replace entire viewers list
           if (notification.viewers) {
             setViewers(notification.viewers);
           }
           break;
 
-        case 'new_message':
-        case 'message_updated':
-        case 'message_deleted':
-          // Notify consumer to refetch messages
-          onMessageUpdate?.();
+        case 'user_left':
+          // User left - remove from viewers list
+          if (notification.user_id !== undefined) {
+            setViewers((prevViewers) =>
+              prevViewers.filter(
+                (viewer) => viewer.user_id !== notification.user_id
+              )
+            );
+          }
           break;
 
-        case 'pong':
-          // Handle pong response
+        case 'typing_update':
+          // Update specific user's typing status
+          if (
+            notification.user_id !== undefined &&
+            notification.is_typing !== undefined
+          ) {
+            setViewers((prevViewers) =>
+              prevViewers.map((viewer) =>
+                viewer.user_id === notification.user_id
+                  ? { ...viewer, is_typing: notification.is_typing! }
+                  : viewer
+              )
+            );
+          }
+          break;
+
+        case 'message_update':
+          // Message was created, updated, or deleted - refetch messages
+          onMessageUpdate?.();
           break;
 
         case 'marked_read':
@@ -104,15 +124,7 @@ export function useThreadConnection({
       setViewers([]);
     };
 
-    // Send ping every 30 seconds to keep connection alive
-    const pingInterval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
-      }
-    }, 30000);
-
     return () => {
-      clearInterval(pingInterval);
       ws.close();
       wsRef.current = null;
     };

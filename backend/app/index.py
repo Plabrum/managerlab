@@ -18,6 +18,8 @@ from litestar.middleware.session.server_side import (
     ServerSideSessionBackend,
 )
 from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
+from litestar.channels import ChannelsPlugin
+from litestar.channels.backends.asyncpg import AsyncPgChannelsBackend
 from litestar_saq import SAQConfig, SAQPlugin
 from app.base.models import BaseDBModel
 from sqlalchemy.pool import NullPool
@@ -35,7 +37,8 @@ from app.deliverables.routes import deliverable_router
 from app.media.routes import media_router, local_media_router
 from app.payments.routes import invoice_router
 from app.dashboard.routes import dashboard_router
-from app.threads import thread_router, ThreadWebSocketHandler
+from app.threads import thread_router
+from app.threads.websocket import thread_handler
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils import providers
 from app.utils.logging import logging_config
@@ -87,7 +90,7 @@ route_handlers: list[Any] = [
     invoice_router,
     dashboard_router,
     thread_router,
-    ThreadWebSocketHandler,
+    thread_handler,
 ]
 
 # Only include local media router in development
@@ -113,7 +116,9 @@ app = Litestar(
         ApplicationError: exception_to_http_response,
         RepositoryError: exception_to_http_response,
     },
-    stores={"sessions": providers.create_postgres_session_store()},
+    stores={
+        "sessions": providers.create_postgres_session_store(),
+    },
     dependencies={
         "transaction": Provide(providers.provide_transaction),
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
@@ -155,6 +160,10 @@ app = Litestar(
                 web_enabled=config.IS_DEV,  # Enable web UI in development
                 use_server_lifespan=True,  # Integrate with Litestar lifecycle
             )
+        ),
+        ChannelsPlugin(
+            backend=AsyncPgChannelsBackend(config.ASYNC_DATABASE_URL),
+            arbitrary_channels_allowed=True,  # Allow dynamic thread channels
         ),
     ],
     openapi_config=OpenAPIConfig(

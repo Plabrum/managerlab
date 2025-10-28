@@ -4,6 +4,7 @@ import logging
 from typing import Annotated
 
 from litestar import Request, Router, get, post
+from litestar.channels import ChannelsPlugin
 from litestar.params import Parameter
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,9 +25,11 @@ from app.threads.schemas import (
 from app.threads.services import (
     get_or_create_thread,
     get_batch_unread_counts,
+    get_current_viewers_from_db,
     notify_thread,
 )
-from app.utils.sqids import Sqid
+from app.threads.websocket_messages import MessageUpdateMessage, MessageUpdateType
+from app.utils.sqids import Sqid, Sqid as SqidType
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +52,7 @@ async def create_message(
     transaction: AsyncSession,
     team_id: int,
     campaign_id: int | None,
+    channels: ChannelsPlugin,
 ) -> MessageSchema:
     """Create a new message in a thread.
 
@@ -86,16 +90,20 @@ async def create_message(
     transaction.add(message)
     await transaction.flush()
 
-    # Notify WebSocket subscribers via PostgreSQL NOTIFY
+    # Get current viewers from DB
+    viewers = await get_current_viewers_from_db(transaction, thread.id)
+
+    # Notify WebSocket subscribers via Channels
     await notify_thread(
-        transaction,
+        channels,
         thread.id,
-        {
-            "type": "new_message",
-            "thread_id": thread.id,
-            "user_id": message.user_id,
-            "message_id": message.id,
-        },
+        MessageUpdateMessage(
+            update_type=MessageUpdateType.CREATED,
+            message_id=SqidType(message.id),
+            thread_id=SqidType(thread.id),
+            user_id=SqidType(message.user_id or 0),  # Sqid(0) for system user
+        ),
+        viewers,
     )
 
     logger.info(
