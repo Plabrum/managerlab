@@ -1,11 +1,9 @@
 """WebSocket handler for real-time thread updates using Litestar Channels plugin."""
 
-import json
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-import msgspec
 from litestar import WebSocket
 from litestar.channels import ChannelsPlugin
 from litestar.exceptions import WebSocketDisconnect
@@ -23,20 +21,80 @@ from app.threads.services import (
     record_viewer_left,
 )
 from app.threads.websocket_messages import (
+    ClientMessage,
     MarkedReadMessage,
     MarkReadMessage,
+    ServerMessage,
     TypingMessage,
     TypingUpdateMessage,
     UserJoinedMessage,
     UserLeftMessage,
     ViewerInfo,
-    decode_client_message,
-    encode_server_message_str,
+    encode_server_message_str,  # Only needed for channels.publish()
 )
 from app.users.models import User
 from app.utils.sqids import Sqid
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# Message Handlers
+# ============================================================================
+
+
+async def handle_typing_message(
+    message: TypingMessage,
+    thread_id: int,
+    user_id: int,
+    channels: ChannelsPlugin,
+    transaction: AsyncSession,
+) -> None:
+    """Handle typing indicator updates from clients."""
+    # Get current viewers from DB
+    viewers = await get_current_viewers_from_db(transaction, thread_id)
+
+    # Update typing status for current user
+    updated_viewers = [
+        ViewerInfo(
+            user_id=viewer.user_id,
+            name=viewer.name,
+            is_typing=message.is_typing
+            if viewer.user_id == user_id
+            else viewer.is_typing,
+        )
+        for viewer in viewers
+    ]
+
+    # Broadcast typing update to all viewers
+    typing_update = TypingUpdateMessage(
+        user_id=user_id, is_typing=message.is_typing, viewers=updated_viewers
+    )
+    # Note: channels.publish() needs manual encoding (not a handler return)
+    channels.publish(encode_server_message_str(typing_update), [f"thread_{thread_id}"])
+
+
+async def handle_mark_read_message(
+    message: MarkReadMessage,
+    thread_id: int,
+    user_id: int,
+    transaction: AsyncSession,
+) -> MarkedReadMessage:
+    """Handle mark-as-read requests from clients."""
+    # Mark thread as read
+    await mark_thread_as_read(transaction, thread_id, user_id)
+    await transaction.commit()
+
+    # Get current viewers from DB
+    viewers = await get_current_viewers_from_db(transaction, thread_id)
+
+    # Return confirmation to sender
+    return MarkedReadMessage(viewers=viewers)
+
+
+# ============================================================================
+# WebSocket Lifecycle & Handler
+# ============================================================================
 
 
 @asynccontextmanager
@@ -141,77 +199,21 @@ async def thread_connection_lifespan(
     guards=[requires_user_scope],
 )
 async def thread_handler(
-    data: str,
+    data: ClientMessage,
     channels: ChannelsPlugin,
     socket: WebSocket,
     transaction: AsyncSession,
-) -> str | None:
+) -> ServerMessage | None:
     """Handle incoming client messages (typing indicators and mark-read requests)."""
     # Get connection state
     thread_id: int = socket.state["thread_id"]
     user_id: int = socket.state["user_id"]
 
-    try:
-        # Parse the message using msgspec
-        data_bytes: bytes
-        if isinstance(data, dict):
-            # Litestar may have already parsed JSON - re-encode for msgspec
-            data_bytes = json.dumps(data).encode("utf-8")
-        elif isinstance(data, str):
-            data_bytes = data.encode("utf-8")
-        else:
-            data_bytes = data
+    # Route to appropriate handler based on message type
+    match data:
+        case TypingMessage():
+            await handle_typing_message(data, thread_id, user_id, channels, transaction)
+            return None  # Don't send response back to sender
 
-        message = decode_client_message(data_bytes)
-
-        # Handle different message types
-        if isinstance(message, TypingMessage):
-            # Get current viewers from DB
-            viewers = await get_current_viewers_from_db(transaction, thread_id)
-
-            # Update typing status for current user
-            updated_viewers = []
-            for viewer in viewers:
-                if viewer.user_id == user_id:
-                    # Replace with updated typing status
-                    updated_viewers.append(
-                        ViewerInfo(
-                            user_id=viewer.user_id,
-                            name=viewer.name,
-                            is_typing=message.is_typing,
-                        )
-                    )
-                else:
-                    updated_viewers.append(viewer)
-
-            # Broadcast typing update to all viewers
-            typing_update = TypingUpdateMessage(
-                user_id=user_id, is_typing=message.is_typing, viewers=updated_viewers
-            )
-            channels.publish(
-                encode_server_message_str(typing_update), [f"thread_{thread_id}"]
-            )
-
-            # Don't send response back to sender
-            return None
-
-        elif isinstance(message, MarkReadMessage):
-            # Mark thread as read
-            await mark_thread_as_read(transaction, thread_id, user_id)
-            await transaction.commit()
-
-            # Get current viewers from DB
-            viewers = await get_current_viewers_from_db(transaction, thread_id)
-
-            # Return confirmation to sender
-            response = MarkedReadMessage(viewers=viewers)
-            return encode_server_message_str(response)
-
-    except msgspec.ValidationError as e:
-        logger.warning(f"Invalid WebSocket message: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Error handling WebSocket message: {e}", exc_info=True)
-        return None
-
-    return None
+        case MarkReadMessage():
+            return await handle_mark_read_message(data, thread_id, user_id, transaction)
