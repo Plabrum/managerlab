@@ -8,32 +8,26 @@ from litestar import WebSocket
 from litestar.channels import ChannelsPlugin
 from litestar.exceptions import WebSocketDisconnect
 from litestar.handlers import websocket_listener
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.guards import requires_user_scope
 from app.objects.enums import ObjectTypes
-from app.threads.models import Thread
 from app.threads.services import (
-    get_current_viewers_from_db,
+    ThreadViewerStore,
+    get_or_create_thread,
     mark_thread_as_read,
-    record_viewer_joined,
-    record_viewer_left,
 )
-from app.threads.websocket_messages import (
+from app.threads.utils import encode_server_message_str, get_thread_channel
+from app.threads.schemas import (
     ClientMessage,
-    MarkedReadMessage,
     MarkReadMessage,
     ServerMessage,
     TypingMessage,
     TypingUpdateMessage,
     UserJoinedMessage,
     UserLeftMessage,
-    ViewerInfo,
-    encode_server_message_str,  # Only needed for channels.publish()
 )
-from app.users.models import User
-from app.utils.sqids import Sqid
+from app.utils.sqids import Sqid, sqid_encode
 
 logger = logging.getLogger(__name__)
 
@@ -48,48 +42,54 @@ async def handle_typing_message(
     thread_id: int,
     user_id: int,
     channels: ChannelsPlugin,
-    transaction: AsyncSession,
+    viewer_store: ThreadViewerStore,
 ) -> None:
-    """Handle typing indicator updates from clients."""
-    # Get current viewers from DB
-    viewers = await get_current_viewers_from_db(transaction, thread_id)
+    """Handle typing indicator updates from clients.
 
-    # Update typing status for current user
-    updated_viewers = [
-        ViewerInfo(
-            user_id=viewer.user_id,
-            name=viewer.name,
-            is_typing=message.is_typing
-            if viewer.user_id == user_id
-            else viewer.is_typing,
-        )
-        for viewer in viewers
-    ]
+    Typing messages act as a heartbeat to ensure the user is tracked as a viewer.
+    """
+    # Ensure user is tracked as a viewer (heartbeat)
+    viewer_ids = await viewer_store.add_viewer(thread_id, user_id)
 
-    # Broadcast typing update to all viewers
     typing_update = TypingUpdateMessage(
-        user_id=user_id, is_typing=message.is_typing, viewers=updated_viewers
+        user_id=sqid_encode(user_id),
+        is_typing=message.is_typing,
+        viewers=[sqid_encode(viewer) for viewer in viewer_ids],
     )
     # Note: channels.publish() needs manual encoding (not a handler return)
-    channels.publish(encode_server_message_str(typing_update), [f"thread_{thread_id}"])
+    channels.publish(
+        encode_server_message_str(typing_update), [get_thread_channel(thread_id)]
+    )
 
 
 async def handle_mark_read_message(
-    message: MarkReadMessage,
     thread_id: int,
     user_id: int,
     transaction: AsyncSession,
-) -> MarkedReadMessage:
+) -> None:
     """Handle mark-as-read requests from clients."""
     # Mark thread as read
     await mark_thread_as_read(transaction, thread_id, user_id)
     await transaction.commit()
+    return None
 
-    # Get current viewers from DB
-    viewers = await get_current_viewers_from_db(transaction, thread_id)
 
-    # Return confirmation to sender
-    return MarkedReadMessage(viewers=viewers)
+async def handle_user_joined(
+    thread_id: int,
+    user_id: int,
+    channels: ChannelsPlugin,
+    viewer_store: ThreadViewerStore,
+):
+    viewer_ids = await viewer_store.add_viewer(thread_id, user_id)
+    join_message = UserJoinedMessage(
+        user_id=sqid_encode(user_id),
+        viewers=[sqid_encode(viewer) for viewer in viewer_ids],
+    )
+    channels.publish(
+        encode_server_message_str(join_message), [get_thread_channel(thread_id)]
+    )
+
+    logger.info(f"WebSocket connected: user {user_id} -> thread {thread_id}")
 
 
 # ============================================================================
@@ -104,92 +104,46 @@ async def thread_connection_lifespan(
     threadable_type: ObjectTypes,
     threadable_id: Sqid,
     transaction: AsyncSession,
+    viewer_store: ThreadViewerStore,
+    team_id: int,
 ) -> AsyncGenerator[None, None]:
-    """Manage WebSocket connection lifecycle for thread notifications."""
-    # Find thread (RLS will enforce access)
-    stmt = select(Thread).where(
-        Thread.threadable_type == threadable_type,
-        Thread.threadable_id == threadable_id,
+    thread = await get_or_create_thread(
+        transaction=transaction,
+        threadable_type=threadable_type,
+        threadable_id=threadable_id,
+        team_id=team_id,
     )
-    result = await transaction.execute(stmt)
-    thread = result.scalar_one_or_none()
 
-    if not thread:
-        await socket.close(code=1008, reason="Thread not found")
-        return
-
-    thread_id = thread.id
     user_id = socket.user
+    await handle_user_joined(thread.id, user_id, channels, viewer_store)
 
-    # Load user name from database
-    user_stmt = select(User).where(User.id == user_id)
-    user_result = await transaction.execute(user_stmt)
-    user = user_result.scalar_one()
-    user_name = user.name
-
-    # Get current viewers from DB
-    viewers = await get_current_viewers_from_db(transaction, thread_id)
-
-    # Add this user to viewers list
-    viewers.append(ViewerInfo(user_id=user_id, name=user_name, is_typing=False))
-
-    # Record joined event in DB
-    await record_viewer_joined(transaction, thread_id, user_id, user_name)
-    await transaction.commit()
-
-    # Notify other users that someone joined
-    join_message = UserJoinedMessage(user_id=user_id, viewers=viewers)
-    channels.publish(encode_server_message_str(join_message), [f"thread_{thread_id}"])
-
-    logger.info(
-        f"WebSocket connected: user {user_id} ({user_name}) -> thread {thread_id}"
-    )
-
-    # Subscribe to channel and run background sender
-    channel_name = f"thread_{thread_id}"
-
-    async with channels.start_subscription([channel_name]) as subscriber:
+    async with channels.start_subscription(
+        [get_thread_channel(thread.id)]
+    ) as subscriber:
         try:
             # Background task sends all incoming messages to WebSocket
             async with subscriber.run_in_background(socket.send_text):
                 # Store connection state for handler
-                socket.state["thread_id"] = thread_id
+                socket.state["thread_id"] = thread.id
                 socket.state["user_id"] = user_id
-                socket.state["user_name"] = user_name
                 yield
         except WebSocketDisconnect:
             pass
         finally:
-            # User disconnected - clean up
-            # Create new session for cleanup (old one may be closed)
-            from sqlalchemy.ext.asyncio import (
-                AsyncSession as AsyncSessionClass,
-                AsyncEngine,
+            # Remove viewer from MemoryStore and get updated list
+            viewer_ids = await viewer_store.remove_viewer(thread.id, user_id)
+
+            # Notify other users that someone left
+            left_message = UserLeftMessage(
+                user_id=sqid_encode(user_id),
+                viewers=[sqid_encode(viewer) for viewer in viewer_ids],
+            )
+            channels.publish(
+                encode_server_message_str(left_message), [get_thread_channel(thread.id)]
             )
 
-            engine = transaction.get_bind()
-            # Type assertion - get_bind returns Engine | Connection, but we know it's an AsyncEngine
-            assert isinstance(engine, AsyncEngine)
-            async with AsyncSessionClass(
-                engine, expire_on_commit=False
-            ) as cleanup_session:
-                # Record viewer left event in DB
-                await record_viewer_left(cleanup_session, thread_id, user_id)
-                await cleanup_session.commit()
-
-                # Get updated viewers list
-                updated_viewers = await get_current_viewers_from_db(
-                    cleanup_session, thread_id
-                )
-
-                # Notify other users that someone left
-                left_message = UserLeftMessage(user_id=user_id, viewers=updated_viewers)
-                channels.publish(
-                    encode_server_message_str(left_message), [f"thread_{thread_id}"]
-                )
-
             logger.info(
-                f"WebSocket disconnected: user {user_id} from thread {thread_id}"
+                f"WebSocket disconnected: user {user_id} from thread {thread.id}"
             )
 
 
@@ -203,6 +157,7 @@ async def thread_handler(
     channels: ChannelsPlugin,
     socket: WebSocket,
     transaction: AsyncSession,
+    viewer_store: ThreadViewerStore,
 ) -> ServerMessage | None:
     """Handle incoming client messages (typing indicators and mark-read requests)."""
     # Get connection state
@@ -212,8 +167,8 @@ async def thread_handler(
     # Route to appropriate handler based on message type
     match data:
         case TypingMessage():
-            await handle_typing_message(data, thread_id, user_id, channels, transaction)
-            return None  # Don't send response back to sender
-
+            await handle_typing_message(
+                data, thread_id, user_id, channels, viewer_store
+            )
         case MarkReadMessage():
-            return await handle_mark_read_message(data, thread_id, user_id, transaction)
+            await handle_mark_read_message(thread_id, user_id, transaction)

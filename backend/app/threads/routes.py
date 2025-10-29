@@ -8,33 +8,35 @@ from litestar.channels import ChannelsPlugin
 from litestar.params import Parameter
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload
 
 from app.auth.guards import requires_user_scope
 from app.objects.enums import ObjectTypes
+from app.threads.enums import MessageUpdateType
 from app.threads.models import Thread, Message
 from app.threads.schemas import (
     MessageSchema,
-    UserSchema,
+    MessageSenderSchema,
     MessageCreateSchema,
     MessageListResponse,
     BatchUnreadRequest,
     BatchUnreadResponse,
+    MessageUpdateMessage,
     ThreadUnreadInfo,
 )
 from app.threads.services import (
     get_or_create_thread,
     get_batch_unread_counts,
-    get_current_viewers_from_db,
     notify_thread,
 )
-from app.threads.websocket_messages import MessageUpdateMessage, MessageUpdateType
-from app.utils.sqids import Sqid, Sqid as SqidType
+from app.users.models import User
+from app.utils.db import get_or_404
+from app.utils.sqids import Sqid, sqid_encode
 
 logger = logging.getLogger(__name__)
 
 # System user for messages with null user_id
-ARIVE_SYSTEM_USER = UserSchema(
+ARIVE_SYSTEM_USER = MessageSenderSchema(
     id=Sqid(0),  # Special ID for system user
     email="system@arive.ai",
     name="Arive",
@@ -54,23 +56,7 @@ async def create_message(
     campaign_id: int | None,
     channels: ChannelsPlugin,
 ) -> MessageSchema:
-    """Create a new message in a thread.
-
-    Auto-creates the thread if it doesn't exist.
-    Broadcasts a notification to WebSocket subscribers.
-
-    Args:
-        threadable_type: Type of object (e.g., "DeliverableMedia")
-        threadable_id: ID of the object
-        data: Message content
-        transaction: Database session
-        team_id: Team ID from session
-        campaign_id: Optional campaign ID from session
-        channels: Channels plugin for broadcasting
-
-    Returns:
-        Created message
-    """
+    user = await get_or_404(transaction, User, request.user)
     # Get or create thread
     thread = await get_or_create_thread(
         transaction=transaction,
@@ -82,7 +68,7 @@ async def create_message(
     # Create message
     message = Message(
         thread_id=thread.id,
-        user_id=request.user,
+        user_id=user.id,
         content=data.content,
         team_id=team_id,
         campaign_id=campaign_id,
@@ -90,20 +76,17 @@ async def create_message(
     transaction.add(message)
     await transaction.flush()
 
-    # Get current viewers from DB
-    viewers = await get_current_viewers_from_db(transaction, thread.id)
-
     # Notify WebSocket subscribers via Channels
     await notify_thread(
         channels,
         thread.id,
         MessageUpdateMessage(
             update_type=MessageUpdateType.CREATED,
-            message_id=SqidType(message.id),
-            thread_id=SqidType(thread.id),
-            user_id=SqidType(message.user_id or 0),  # Sqid(0) for system user
+            message_id=sqid_encode(message.id),
+            thread_id=sqid_encode(thread.id),
+            user_id=sqid_encode(user.id),
+            viewers=[],
         ),
-        viewers,
     )
 
     logger.info(
@@ -111,26 +94,17 @@ async def create_message(
         f"({threadable_type}:{threadable_id})"
     )
 
-    # Load user for response
-    await transaction.refresh(message, ["user"])
-
-    # Default to Arive system user if user_id is null
-    if message.user is None:
-        user_schema = ARIVE_SYSTEM_USER
-        user_id = Sqid(0)
-    else:
-        user_schema = UserSchema(
-            id=message.user.id,  # Already a Sqid
-            email=message.user.email,
-            name=message.user.name,
-        )
-        user_id = message.user.id
+    user_schema = MessageSenderSchema(
+        id=user.id,  # Already a Sqid
+        email=user.email,
+        name=user.name,
+    )
 
     # Construct response
     return MessageSchema(
-        id=message.id,  # Already a Sqid
-        thread_id=thread.id,  # Already a Sqid
-        user_id=user_id,
+        id=message.id,
+        thread_id=thread.id,
+        user_id=user.id,
         content=message.content,
         created_at=message.created_at,
         updated_at=message.updated_at,
@@ -148,22 +122,6 @@ async def list_messages(
     offset: Annotated[int, Parameter(ge=0)] = 0,
     limit: Annotated[int, Parameter(ge=1, le=100)] = 50,
 ) -> MessageListResponse:
-    """List messages in a thread with pagination.
-
-    Returns the most recent messages, ordered by creation time descending.
-    Excludes soft-deleted messages.
-
-    Args:
-        threadable_type: Type of object
-        threadable_id: ID of the object
-        transaction: Database session
-        offset: Pagination offset
-        limit: Number of messages to return (max 100)
-
-    Returns:
-        Paginated list of messages
-    """
-    # Single query joining Thread and Message
     stmt = (
         select(Message)
         .join(
@@ -178,11 +136,11 @@ async def list_messages(
         .order_by(Message.created_at.asc())
         .offset(offset)
         .limit(limit)
-        .options(selectinload(Message.user))
+        .options(joinedload(Message.user), joinedload(Message.thread))
     )
 
     result = await transaction.execute(stmt)
-    rows = result.all()
+    rows = result.scalars()
 
     if not rows:
         # No messages found
@@ -194,13 +152,13 @@ async def list_messages(
 
     # Convert to schemas
     message_schemas = []
-    for (message,) in rows:
+    for message in rows:
         # Default to Arive system user if user_id is null
         if message.user is None:
             user_schema = ARIVE_SYSTEM_USER
             user_id = Sqid(0)
         else:
-            user_schema = UserSchema(
+            user_schema = MessageSenderSchema(
                 id=message.user.id,  # Already a Sqid
                 email=message.user.email,
                 name=message.user.name,
@@ -210,7 +168,7 @@ async def list_messages(
         message_schemas.append(
             MessageSchema(
                 id=message.id,  # Already a Sqid
-                thread_id=message.thread_id,  # Already a Sqid
+                thread_id=message.thread.id,  # Already a Sqid
                 user_id=user_id,
                 content=message.content,
                 created_at=message.created_at,
@@ -233,20 +191,6 @@ async def get_batch_thread_unread(
     data: BatchUnreadRequest,
     transaction: AsyncSession,
 ) -> BatchUnreadResponse:
-    """Get unread counts for multiple threads in a single request.
-
-    This is much more efficient than calling the single unread endpoint
-    multiple times when displaying a list of objects with unread badges.
-
-    Args:
-        threadable_type: Type of object (e.g., "DeliverableMedia")
-        data: List of object IDs to check
-        transaction: Database session
-        user_id: Authenticated user ID
-
-    Returns:
-        Unread counts for each requested object and total unread count
-    """
     if not data.object_ids:
         return BatchUnreadResponse(threads=[], total_unread=0)
 

@@ -8,3 +8,11 @@ class MessageActions(StrEnum):
 
     update = "update"
     delete = "delete"
+
+
+class MessageUpdateType(StrEnum):
+    """Type of message update."""
+
+    CREATED = "created"
+    UPDATED = "updated"
+    DELETED = "deleted"

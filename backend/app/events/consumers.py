@@ -13,14 +13,14 @@ from app.events.enums import EventType
 from app.events.models import Event
 from app.events.registry import event_consumer
 from app.events.schemas import FieldChange, UpdatedEventData
+from app.threads.enums import MessageUpdateType
 from app.threads.models import Message
+from app.threads.schemas import MessageUpdateMessage
 from app.threads.services import (
     get_or_create_thread,
-    get_current_viewers_from_db,
     notify_thread,
 )
-from app.threads.websocket_messages import MessageUpdateMessage, MessageUpdateType
-from app.utils.sqids import Sqid as SqidType, sqid_encode
+from app.utils.sqids import sqid_encode
 from app.utils.tiptap import doc, paragraph, text, bold
 
 logger = logging.getLogger(__name__)
@@ -69,8 +69,7 @@ async def _post_to_thread(
     session.add(thread_message)
     await session.flush()
 
-    # Get current viewers from DB
-    viewers = await get_current_viewers_from_db(session, thread.id)
+    # Event messages don't need real-time viewer presence - use empty list
 
     # Notify WebSocket subscribers
     # Event messages are system-created messages, so treat as "created"
@@ -79,11 +78,11 @@ async def _post_to_thread(
         thread.id,
         MessageUpdateMessage(
             update_type=MessageUpdateType.CREATED,
-            message_id=SqidType(thread_message.id),
-            thread_id=SqidType(thread.id),
-            user_id=SqidType(0),  # System user (events have no user_id)
+            message_id=sqid_encode(thread_message.id),
+            thread_id=sqid_encode(thread.id),
+            user_id=sqid_encode(0),  # System user (events have no user_id)
+            viewers=[],
         ),
-        viewers,
     )
 
     logger.info(

@@ -13,12 +13,18 @@ from sqlalchemy.pool import NullPool
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.sessions.store import PostgreSQLSessionStore
+from app.threads.services import ThreadViewerStore
 from app.utils.configure import config, Config
 from app.utils.db import set_rls_variables
 from app.utils.db_filters import apply_soft_delete_filter
 from app.actions.registry import ActionRegistry
 from app.objects.base import ObjectRegistry
 from app.client.s3_client import S3Dep
+
+
+def provide_viewer_store(request: Request) -> ThreadViewerStore:
+    """Provide ThreadViewerStore instance with injected MemoryStore."""
+    return ThreadViewerStore(store=request.app.stores.get("viewers"))
 
 
 async def provide_transaction(

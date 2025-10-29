@@ -7,11 +7,10 @@ from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.threads.models import Message
-from app.threads.enums import MessageActions
-from app.threads.schemas import MessageUpdateSchema
-from app.threads.services import get_current_viewers_from_db, notify_thread
-from app.threads.websocket_messages import MessageUpdateMessage, MessageUpdateType
-from app.utils.sqids import Sqid as SqidType
+from app.threads.enums import MessageActions, MessageUpdateType
+from app.threads.schemas import MessageUpdateMessage, MessageUpdateSchema
+from app.threads.services import notify_thread
+from app.utils.sqids import sqid_encode
 
 
 # Create message action group
@@ -54,20 +53,17 @@ class UpdateMessage(BaseAction):
         transaction.add(obj)
         await transaction.flush()
 
-        # Get current viewers from DB
-        viewers = await get_current_viewers_from_db(transaction, obj.thread_id)
-
         # Notify WebSocket subscribers
         await notify_thread(
             channels,
             obj.thread_id,
             MessageUpdateMessage(
                 update_type=MessageUpdateType.UPDATED,
-                message_id=SqidType(obj.id),
-                thread_id=SqidType(obj.thread_id),
-                user_id=SqidType(obj.user_id or 0),
+                message_id=sqid_encode(obj.id),
+                thread_id=sqid_encode(obj.thread_id),
+                user_id=sqid_encode(obj.user_id or 0),
+                viewers=[],
             ),
-            viewers,
         )
 
         return ActionExecutionResponse(
@@ -108,20 +104,17 @@ class DeleteMessage(BaseAction):
         obj.soft_delete()
         await transaction.flush()
 
-        # Get current viewers from DB
-        viewers = await get_current_viewers_from_db(transaction, obj.thread_id)
-
         # Notify WebSocket subscribers
         await notify_thread(
             channels,
             obj.thread_id,
             MessageUpdateMessage(
                 update_type=MessageUpdateType.DELETED,
-                message_id=SqidType(obj.id),
-                thread_id=SqidType(obj.thread_id),
-                user_id=SqidType(obj.user_id or 0),
+                message_id=sqid_encode(obj.id),
+                thread_id=sqid_encode(obj.thread_id),
+                user_id=sqid_encode(obj.user_id or 0),
+                viewers=[],
             ),
-            viewers,
         )
 
         return ActionExecutionResponse(

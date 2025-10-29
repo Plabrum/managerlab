@@ -19,7 +19,8 @@ from litestar.middleware.session.server_side import (
 )
 from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
 from litestar.channels import ChannelsPlugin
-from litestar.channels.backends.asyncpg import AsyncPgChannelsBackend
+from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
+from litestar.stores.memory import MemoryStore
 from litestar_saq import SAQConfig, SAQPlugin
 from app.base.models import BaseDBModel
 from sqlalchemy.pool import NullPool
@@ -118,6 +119,7 @@ app = Litestar(
     },
     stores={
         "sessions": providers.create_postgres_session_store(),
+        "viewers": MemoryStore(),
     },
     dependencies={
         "transaction": Provide(providers.provide_transaction),
@@ -132,6 +134,7 @@ app = Litestar(
         ),
         "team_id": Provide(providers.provide_team_id, sync_to_thread=False),
         "campaign_id": Provide(providers.provide_campaign_id, sync_to_thread=False),
+        "viewer_store": Provide(providers.provide_viewer_store, sync_to_thread=False),
     },
     plugins=[
         SQLAlchemyPlugin(
@@ -162,7 +165,7 @@ app = Litestar(
             )
         ),
         ChannelsPlugin(
-            backend=AsyncPgChannelsBackend(config.ASYNC_DATABASE_URL),
+            backend=PsycoPgChannelsBackend(config.PSYCOPG_DATABASE_URL),
             arbitrary_channels_allowed=True,  # Allow dynamic thread channels
         ),
     ],
