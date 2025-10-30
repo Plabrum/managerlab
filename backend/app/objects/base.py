@@ -9,9 +9,10 @@ from app.base.models import BaseDBModel
 from app.base.registry import BaseRegistry
 from app.objects.enums import ObjectTypes, FieldType
 from app.objects.schemas import (
-    ObjectListDTO,
+    ObjectListSchema,
     ObjectListRequest,
-    ColumnDefinitionDTO,
+    ObjectColumn,
+    ColumnDefinitionSchema,
     SortDirection,
     ObjectFieldDTO,
     StringFieldValue,
@@ -43,7 +44,7 @@ class ObjectRegistry(
 class BaseObject(ABC):
     object_type: ClassVar[ObjectTypes]
     model: ClassVar[Type[BaseDBModel]]
-    column_definitions: ClassVar[List[ColumnDefinitionDTO]]
+    column_definitions: ClassVar[List[ObjectColumn]]
     registry: ClassVar["ObjectRegistry"]
 
     # Optional overrides for title/subtitle generation
@@ -77,6 +78,28 @@ class BaseObject(ABC):
         return []
 
     @classmethod
+    def get_column_schemas(cls) -> List[ColumnDefinitionSchema]:
+        """Convert internal ObjectColumn definitions to external API schemas.
+
+        Returns:
+            List of ColumnDefinitionSchema for use in API responses
+        """
+        from app.objects.services import get_filter_by_field_type
+
+        return [
+            ColumnDefinitionSchema(
+                key=col.key,
+                label=col.label,
+                type=col.type,
+                sortable=col.sortable,
+                default_visible=col.default_visible,
+                available_values=col.available_values,
+                filter_type=get_filter_by_field_type(col.type),
+            )
+            for col in cls.column_definitions
+        ]
+
+    @classmethod
     def get_top_level_actions(cls) -> List["Any"]:
         """Get top-level actions for this object type (e.g., create).
 
@@ -92,22 +115,9 @@ class BaseObject(ABC):
         return action_group.get_available_actions()
 
     @classmethod
-    def _get_field_value(cls, obj: BaseDBModel, col_def: ColumnDefinitionDTO) -> Any:
-        """Extract field value from object using accessor or key."""
-        # Use accessor if provided, otherwise use key
-        if col_def.accessor is not None:
-            if callable(col_def.accessor):
-                value = col_def.accessor(obj)
-            else:
-                value = getattr(obj, col_def.accessor, None)
-        else:
-            value = getattr(obj, col_def.key, None)
-
-        # Apply formatter if provided
-        if col_def.formatter is not None and value is not None:
-            value = col_def.formatter(value)
-
-        return value
+    def _get_field_value(cls, obj: BaseDBModel, col_def: ObjectColumn) -> Any:
+        """Extract field value from object using value callable."""
+        return col_def.value(obj)
 
     @classmethod
     def _create_field_value_wrapper(cls, value: Any, field_type: FieldType):
@@ -148,8 +158,8 @@ class BaseObject(ABC):
                 return StringFieldValue(value=str(value))
 
     @classmethod
-    def to_list_dto(cls, obj: BaseDBModel) -> ObjectListDTO:
-        """Auto-generate ObjectListDTO from column_definitions.
+    def to_list_schema(cls, obj: BaseDBModel) -> ObjectListSchema:
+        """Auto-generate ObjectListSchema from column_definitions.
 
         This default implementation generates fields from column_definitions
         and can be extended via get_custom_fields() for special cases.
@@ -184,7 +194,7 @@ class BaseObject(ABC):
         # Add custom fields
         fields.extend(cls.get_custom_fields(obj))
 
-        # Get title and subtitle
+        # Get title and subtitle using _get_field_value (supports accessor/formatter)
         title = (
             cls._get_field_value(
                 obj,
@@ -203,7 +213,21 @@ class BaseObject(ABC):
 
         subtitle = None
         if cls.subtitle_field:
-            subtitle = str(getattr(obj, cls.subtitle_field, None))
+            # Use _get_field_value to support accessor/formatter for subtitle too
+            subtitle_col = next(
+                (
+                    col
+                    for col in cls.column_definitions
+                    if col.key == cls.subtitle_field
+                ),
+                None,
+            )
+            if subtitle_col:
+                subtitle_value = cls._get_field_value(obj, subtitle_col)
+                subtitle = str(subtitle_value) if subtitle_value is not None else None
+            else:
+                # Fallback to simple attribute access if no column definition
+                subtitle = str(getattr(obj, cls.subtitle_field, None))
 
         # Get per-object actions if action group is defined
         actions = []
@@ -214,7 +238,7 @@ class BaseObject(ABC):
             action_group = ActionRegistry().get_class(cls.action_group)
             actions = action_group.get_available_actions(obj=obj)
 
-        return ObjectListDTO(
+        return ObjectListSchema(
             id=sqid_encode(obj.id),
             object_type=cls.object_type,
             title=str(title),
@@ -333,14 +357,14 @@ class BaseObject(ABC):
         return query
 
     @classmethod
-    def get_field_metadata(cls, field_name: str) -> ColumnDefinitionDTO | None:
+    def get_field_metadata(cls, field_name: str) -> ObjectColumn | None:
         """Get column definition metadata for a field.
 
         Args:
             field_name: Name of the field to look up
 
         Returns:
-            ColumnDefinitionDTO if field exists, None otherwise
+            ObjectColumn if field exists, None otherwise
         """
         for col_def in cls.column_definitions:
             if col_def.key == field_name:

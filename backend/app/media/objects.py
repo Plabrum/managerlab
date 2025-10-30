@@ -1,16 +1,11 @@
-from typing import List
-
 from app.actions.enums import ActionGroupType
 from app.client.s3_client import S3Client
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectFieldDTO,
     FieldType,
-    ColumnDefinitionDTO,
-    ImageFieldValue,
+    ObjectColumn,
 )
-from app.objects.services import get_filter_by_field_type
 from app.media.models import Media
 
 
@@ -20,23 +15,17 @@ class MediaObject(BaseObject):
 
     # Title/subtitle configuration
     title_field = "file_name"
+    subtitle_field = "file_info"
     state_field = "state"
 
     # Action groups
     top_level_action_group = ActionGroupType.TopLevelMediaActions
     action_group = ActionGroupType.MediaActions
 
-    @classmethod
-    def to_list_dto(cls, obj: Media):
-        dto = super().to_list_dto(obj)
-        # Custom subtitle with file type and mime type
-        dto.subtitle = f"{obj.file_type} - {obj.mime_type}"
-        return dto
-
-    @classmethod
-    def get_custom_fields(cls, obj: Media) -> List[ObjectFieldDTO]:
-        """Add custom image field with S3 presigned URLs."""
-        s3_client: S3Client = cls.registry.dependencies["s3_client"]
+    @staticmethod
+    def _format_image_urls(obj: Media):
+        """Generate S3 presigned URLs for image."""
+        s3_client: S3Client = MediaObject.registry.dependencies["s3_client"]
         view_url = s3_client.generate_presigned_download_url(
             key=obj.file_key, expires_in=3600
         )
@@ -47,87 +36,95 @@ class MediaObject(BaseObject):
             if obj.thumbnail_key
             else None
         )
-
-        return [
-            ObjectFieldDTO(
-                key="image",
-                value=ImageFieldValue(
-                    url=view_url,
-                    thumbnail_url=thumbnail_url,
-                ),
-                label="Image",
-                editable=False,
-            ),
-        ]
+        return {"url": view_url, "thumbnail_url": thumbnail_url}
 
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="id",
             label="ID",
             type=FieldType.Int,
+            value=lambda obj: obj.id,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
+            key="file_info",
+            label="File Info",
+            type=FieldType.String,
+            value=lambda obj: f"{obj.file_type} - {obj.mime_type}",
+            sortable=False,
+            default_visible=False,
+            editable=False,
+            include_in_list=False,
+        ),
+        ObjectColumn(
             key="updated_at",
             label="Updated At",
             type=FieldType.Datetime,
+            value=lambda obj: obj.updated_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="file_name",
             label="File Name",
             type=FieldType.String,
+            value=lambda obj: obj.file_name,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="file_type",
             label="Type",
             type=FieldType.String,
+            value=lambda obj: obj.file_type,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="file_size",
             label="Size",
             type=FieldType.Int,
+            value=lambda obj: obj.file_size,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="state",
             label="State",
             type=FieldType.Enum,
+            value=lambda obj: obj.state,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="created_at",
             label="Created",
             type=FieldType.Datetime,
+            value=lambda obj: obj.created_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        # Image is handled via get_custom_fields() with S3 URL generation
+        ObjectColumn(
+            key="image",
+            label="Image",
+            type=FieldType.Image,
+            value=lambda obj: MediaObject._format_image_urls(obj),
+            sortable=False,
+            default_visible=True,
+            editable=False,
+            include_in_list=True,
+        ),
     ]

@@ -2,9 +2,8 @@ from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     FieldType,
-    ColumnDefinitionDTO,
+    ObjectColumn,
 )
-from app.objects.services import get_filter_by_field_type
 from app.users.models import Team
 
 
@@ -17,22 +16,22 @@ class TeamObject(BaseObject):
     subtitle_field = "description"
 
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: obj.name,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="description",
             label="Description",
             type=FieldType.String,
+            value=lambda obj: obj.description,
             sortable=False,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             nullable=True,

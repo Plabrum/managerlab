@@ -7,9 +7,8 @@ from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     ObjectListRequest,
     FieldType,
-    ColumnDefinitionDTO,
+    ObjectColumn,
 )
-from app.objects.services import get_filter_by_field_type
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
 
@@ -27,82 +26,82 @@ class BrandObject(BaseObject):
     action_group = ActionGroupType.BrandActions
 
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="id",
             label="ID",
             type=FieldType.Int,
+            value=lambda obj: obj.id,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="created_at",
             label="Created At",
             type=FieldType.Datetime,
+            value=lambda obj: obj.created_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="updated_at",
             label="Updated At",
             type=FieldType.Datetime,
+            value=lambda obj: obj.updated_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: obj.name,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="description",
             label="Description",
             type=FieldType.String,
+            value=lambda obj: obj.description,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             nullable=True,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="website",
             label="Website",
             type=FieldType.URL,
+            value=lambda obj: obj.website,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.URL),
             default_visible=True,
             editable=False,
             nullable=True,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="phone",
             label="Phone",
             type=FieldType.String,
+            value=lambda obj: obj.phone,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=True,
             nullable=True,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="email",
             label="Email",
             type=FieldType.Email,
+            value=lambda obj: obj.email,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Email),
             default_visible=True,
             editable=False,
             nullable=True,
@@ -115,65 +114,69 @@ class BrandContactObject(BaseObject):
     object_type = ObjectTypes.BrandContacts
     model = BrandContact
 
-    # Custom title generation
+    # Title/subtitle configuration
+    title_field = "full_name"
     subtitle_field = "email"
 
-    @classmethod
-    def to_list_dto(cls, obj: BrandContact):
-        dto = super().to_list_dto(obj)
-        # Generate full name for title
-        dto.title = f"{obj.first_name} {obj.last_name}"
-        return dto
-
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
+            key="full_name",
+            label="Name",
+            type=FieldType.String,
+            value=lambda obj: f"{obj.first_name} {obj.last_name}",
+            sortable=False,
+            default_visible=True,
+            editable=False,
+            include_in_list=True,
+        ),
+        ObjectColumn(
             key="first_name",
             label="First Name",
             type=FieldType.String,
+            value=lambda obj: obj.first_name,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="last_name",
             label="Last Name",
             type=FieldType.String,
+            value=lambda obj: obj.last_name,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="email",
             label="Email",
             type=FieldType.Email,
+            value=lambda obj: obj.email,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Email),
             default_visible=True,
             editable=False,
             nullable=True,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="phone",
             label="Phone",
             type=FieldType.String,
+            value=lambda obj: obj.phone,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             nullable=True,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="brand_id",
             label="Brand ID",
             type=FieldType.Int,
+            value=lambda obj: obj.brand_id,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
             include_in_list=False,
         ),

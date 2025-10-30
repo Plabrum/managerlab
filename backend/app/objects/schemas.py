@@ -1,5 +1,6 @@
 """Object schemas and DTOs."""
 
+from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
@@ -173,8 +174,33 @@ class ObjectFieldDTO(BaseSchema):
     editable: bool = True
 
 
-class ColumnDefinitionDTO(BaseSchema):
-    """Definition of a column for list views with auto-generation support."""
+@dataclass(frozen=True)
+class ObjectColumn:
+    """Internal column configuration for object definitions.
+
+    This is used to define columns in BaseObject.column_definitions.
+    It includes internal metadata like accessor/formatter that are not exposed via API.
+    """
+
+    key: str
+    label: str
+    type: FieldType
+    value: Callable[[Any], Any]  # Callable to extract/compute value from object
+    sortable: bool = True
+    default_visible: bool = True
+    available_values: List[str] | None = None
+
+    # Internal-only fields (not exposed via API)
+    editable: bool = True  # Whether field can be edited
+    nullable: bool = False  # Whether field value can be None
+    include_in_list: bool = True  # Whether to include in list view DTOs
+
+
+class ColumnDefinitionSchema(BaseSchema):
+    """External API schema for column definitions.
+
+    This is returned by the schema endpoint and contains only serializable fields.
+    """
 
     key: str
     label: str
@@ -184,21 +210,12 @@ class ColumnDefinitionDTO(BaseSchema):
     default_visible: bool = True
     available_values: List[str] | None = None
 
-    # Auto-generation fields
-    editable: bool = True  # Whether field can be edited
-    nullable: bool = False  # Whether field value can be None
-    include_in_list: bool = True  # Whether to include in list view DTOs
-    accessor: str | Callable[[Any], Any] | None = (
-        None  # How to extract value from model (defaults to key)
-    )
-    formatter: Callable[[Any], Any] | None = None  # Optional display formatter
-
 
 class ObjectRelationGroup(BaseSchema):
     """A group of related objects with metadata.
 
     Groups related objects by relationship type (e.g., all media for a deliverable)
-    and provides rich data by reusing ObjectListDTO.
+    and provides rich data by reusing ObjectListSchema.
     """
 
     relation_name: str  # e.g., "campaign", "media", "brand"
@@ -206,12 +223,12 @@ class ObjectRelationGroup(BaseSchema):
     relation_type: RelationType
     cardinality: RelationCardinality
 
-    # Reuse ObjectListDTO - includes title, subtitle, state, fields, actions, link
-    objects: List["ObjectListDTO"]
+    # Reuse ObjectListSchema - includes title, subtitle, state, fields, actions, link
+    objects: List["ObjectListSchema"]
 
 
-class ObjectListDTO(BaseSchema):
-    """Lightweight object representation for lists/tables."""
+class ObjectListSchema(BaseSchema):
+    """External API schema for object list representation."""
 
     id: str
     object_type: ObjectTypes
@@ -242,7 +259,7 @@ class ObjectListRequest(BaseSchema):
 class ObjectListResponse(BaseSchema):
     """Response schema for object lists."""
 
-    objects: List[ObjectListDTO]
+    objects: List[ObjectListSchema]
     total: int
     limit: int
     offset: int
@@ -252,7 +269,7 @@ class ObjectListResponse(BaseSchema):
 class ObjectSchemaResponse(BaseSchema):
     """Schema metadata for an object type."""
 
-    columns: List[ColumnDefinitionDTO]
+    columns: List[ColumnDefinitionSchema]
 
 
 # ============================================================================

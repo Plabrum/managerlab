@@ -9,9 +9,8 @@ from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     ObjectListRequest,
     FieldType,
-    ColumnDefinitionDTO,
+    ObjectColumn,
 )
-from app.objects.services import get_filter_by_field_type
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.enums import DeliverableStates, SocialMediaPlatforms
 
@@ -22,6 +21,7 @@ class DeliverableObject(BaseObject):
 
     # Title/subtitle configuration
     title_field = "title"
+    subtitle_field = "content_preview"
     state_field = "state"
 
     # Action groups
@@ -39,93 +39,98 @@ class DeliverableObject(BaseObject):
         joinedload(Deliverable.thread),
     ]
 
-    @classmethod
-    def to_list_dto(cls, obj: Deliverable):
-        dto = super().to_list_dto(obj)
-        # Custom subtitle truncation
-        if obj.content:
-            dto.subtitle = (
-                obj.content[:100] + "..." if len(obj.content) > 100 else obj.content
-            )
-        return dto
-
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="id",
             label="ID",
             type=FieldType.Int,
+            value=lambda obj: obj.id,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
+            key="content_preview",
+            label="Content Preview",
+            type=FieldType.String,
+            value=lambda obj: (
+                obj.content[:100] + "..."
+                if obj.content and len(obj.content) > 100
+                else obj.content
+            ),
+            sortable=False,
+            default_visible=False,
+            editable=False,
+            nullable=True,
+            include_in_list=False,
+        ),
+        ObjectColumn(
             key="created_at",
             label="Created At",
             type=FieldType.Datetime,
+            value=lambda obj: obj.created_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="updated_at",
             label="Updated At",
             type=FieldType.Datetime,
+            value=lambda obj: obj.updated_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="title",
             label="Title",
             type=FieldType.String,
+            value=lambda obj: obj.title,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="content",
             label="Content",
             type=FieldType.String,
+            value=lambda obj: obj.content,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             nullable=True,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="platforms",
             label="Platform",
             type=FieldType.Enum,
+            value=lambda obj: obj.platforms,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[platform.value for platform in SocialMediaPlatforms],
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="state",
             label="Status",
             type=FieldType.Enum,
+            value=lambda obj: obj.state,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[state.value for state in DeliverableStates],
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="posting_date",
             label="Posting Date",
             type=FieldType.Datetime,
+            value=lambda obj: obj.posting_date,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=True,
             editable=False,
             nullable=True,

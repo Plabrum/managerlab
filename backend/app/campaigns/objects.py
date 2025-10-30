@@ -4,9 +4,8 @@ from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     FieldType,
-    ColumnDefinitionDTO,
+    ObjectColumn,
 )
-from app.objects.services import get_filter_by_field_type
 from app.campaigns.models import Campaign
 from app.campaigns.enums import CampaignStates
 from app.utils.sqids import sqid_encode
@@ -32,86 +31,84 @@ class CampaignObject(BaseObject):
     ]
 
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="id",
             label="ID",
             type=FieldType.Int,
+            value=lambda obj: obj.id,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="created_at",
             label="Created At",
             type=FieldType.Datetime,
+            value=lambda obj: obj.created_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="updated_at",
             label="Updated At",
             type=FieldType.Datetime,
+            value=lambda obj: obj.updated_at,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
             include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: obj.name,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="description",
             label="Description",
             type=FieldType.String,
+            value=lambda obj: obj.description,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=False,
             editable=False,
             nullable=True,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="brand",
             label="Brand",
             type=FieldType.URL,
+            value=lambda campaign: f"brands/{sqid_encode(campaign.brand.id)}"
+            if campaign.brand
+            else None,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=True,
             editable=False,
             nullable=True,
             include_in_list=True,
-            accessor=lambda campaign: f"brands/{sqid_encode(campaign.brand.id)}"
-            if campaign.brand
-            else None,
-            formatter=lambda value: value,  # Already formatted by accessor
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="state",
             label="Status",
             type=FieldType.Enum,
+            value=lambda obj: obj.state,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=False,
             available_values=[state.value for state in CampaignStates],
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="compensation_structure",
             label="Compensation",
             type=FieldType.Enum,
+            value=lambda obj: obj.compensation_structure,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             editable=False,
             nullable=True,

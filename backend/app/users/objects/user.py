@@ -8,9 +8,8 @@ from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     ObjectListRequest,
     FieldType,
-    ColumnDefinitionDTO,
+    ObjectColumn,
 )
-from app.objects.services import get_filter_by_field_type
 from app.users.enums import UserStates
 from app.users.models import User
 
@@ -25,42 +24,42 @@ class UserObject(BaseObject):
     state_field = "state"
 
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: obj.name,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="email",
             label="Email",
             type=FieldType.Email,
+            value=lambda obj: obj.email,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="email_verified",
             label="Email Verified",
             type=FieldType.Bool,
+            value=lambda obj: obj.email_verified,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Bool),
             default_visible=True,
             editable=False,
             include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="state",
             label="Status",
             type=FieldType.Enum,
+            value=lambda obj: obj.state,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[e.name for e in UserStates],
             editable=False,

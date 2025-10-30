@@ -36,7 +36,8 @@ async def get_object_schema(
 ) -> ObjectSchemaResponse:
     """Get schema metadata for an object type (column definitions)."""
     object_service = object_registry.get_class(object_type)
-    return ObjectSchemaResponse(columns=object_service.column_definitions)
+    # Convert internal ObjectColumn to external ColumnDefinitionSchema
+    return ObjectSchemaResponse(columns=object_service.get_column_schemas())
 
 
 @post("/{object_type:str}", operation_id="list_objects")
@@ -51,11 +52,11 @@ async def list_objects(
     objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)
 
-    # Convert objects to DTOs
-    object_dtos = [object_service.to_list_dto(obj) for obj in objects]
+    # Convert objects to schemas
+    object_schemas = [object_service.to_list_schema(obj) for obj in objects]
 
     return ObjectListResponse(
-        objects=object_dtos,
+        objects=object_schemas,
         total=total,
         limit=data.limit,
         offset=data.offset,
