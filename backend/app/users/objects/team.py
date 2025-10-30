@@ -3,24 +3,32 @@ from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
     FieldType,
     ObjectColumn,
+    StringFieldValue,
 )
 from app.users.models import Team
 
 
-class TeamObject(BaseObject):
+class TeamObject(BaseObject[Team]):
     object_type = ObjectTypes.Teams
-    model = Team
 
-    # Title/subtitle configuration
-    title_field = "name"
-    subtitle_field = "description"
+    @classmethod
+    def model(cls) -> type[Team]:
+        return Team
+
+    @classmethod
+    def title_field(cls, team: Team) -> str:
+        return team.name
+
+    @classmethod
+    def subtitle_field(cls, team: Team) -> str:
+        return team.description or ""
 
     column_definitions = [
         ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
-            value=lambda obj: obj.name,
+            value=lambda obj: StringFieldValue(value=obj.name),
             sortable=True,
             default_visible=True,
             editable=False,
@@ -30,7 +38,7 @@ class TeamObject(BaseObject):
             key="description",
             label="Description",
             type=FieldType.String,
-            value=lambda obj: obj.description,
+            value=lambda obj: StringFieldValue(value=obj.description) if obj.description else None,
             sortable=False,
             default_visible=True,
             editable=False,

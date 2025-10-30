@@ -1,25 +1,25 @@
 from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
+from app.auth.guards import requires_user_id
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
+from app.brands.objects import BrandContactObject, BrandObject
 from app.brands.schemas import (
-    BrandSchema,
-    BrandUpdateSchema,
     BrandContactSchema,
     BrandContactUpdateSchema,
+    BrandSchema,
+    BrandUpdateSchema,
 )
-from app.utils.sqids import Sqid
-from app.auth.guards import requires_user_id
-from app.utils.db import get_or_404, update_model
-from app.actions.registry import ActionRegistry
-from app.actions.enums import ActionGroupType
-from app.threads.models import Thread
 
 # Register BrandObject and BrandContactObject with the objects framework
 from app.objects.base import ObjectRegistry
 from app.objects.enums import ObjectTypes
-from app.brands.objects import BrandObject, BrandContactObject
+from app.threads.models import Thread
+from app.utils.db import get_or_404, update_model
+from app.utils.sqids import Sqid
 
 ObjectRegistry().register(ObjectTypes.Brands, BrandObject)
 ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
@@ -71,9 +71,7 @@ async def get_brand(
 
 
 @post("/{id:str}")
-async def update_brand(
-    id: Sqid, data: BrandUpdateSchema, request: Request, transaction: AsyncSession
-) -> BrandSchema:
+async def update_brand(id: Sqid, data: BrandUpdateSchema, request: Request, transaction: AsyncSession) -> BrandSchema:
     """Update a brand by SQID."""
     brand = await get_or_404(transaction, Brand, id)
     await update_model(

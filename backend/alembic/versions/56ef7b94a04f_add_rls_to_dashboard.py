@@ -6,16 +6,17 @@ Create Date: 2025-10-20 15:58:51.758009
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
+
+from alembic_utils.pg_policy import PGPolicy
 
 from alembic import op
-from alembic_utils.pg_policy import PGPolicy
 
 # revision identifiers, used by Alembic.
 revision: str = "56ef7b94a04f"
-down_revision: Union[str, Sequence[str], None] = "39b4f471b02b"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "39b4f471b02b"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

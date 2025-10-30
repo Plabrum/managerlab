@@ -1,13 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import action_group_factory, ActionGroupType, BaseAction
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.brands.models.brands import Brand
 from app.brands.enums import BrandActions
+from app.brands.models.brands import Brand
 from app.brands.schemas import BrandUpdateSchema
 from app.utils.db import update_model
-
 
 # Create brand action group
 brand_actions = action_group_factory(

@@ -319,7 +319,6 @@ export function formatCellValue(
   }
 
   const value = field.value;
-  const fieldLabel = field.label;
 
   switch (value.type) {
     case 'image':
@@ -375,7 +374,7 @@ export function formatCellValue(
             target="_blank"
             rel="noopener noreferrer"
           >
-            {fieldLabel || String(value.value)}
+            {value.label || String(value.value)}
           </a>
         );
       }

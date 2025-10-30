@@ -15,8 +15,9 @@ Example:
         return {"status": "cleaned"}
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from litestar_saq import CronJob
 from saq.types import Context

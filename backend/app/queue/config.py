@@ -11,17 +11,17 @@ To add a new task:
 4. Done! It's automatically registered via auto-discovery.
 """
 
-from datetime import timezone
-from saq.types import Context
+from datetime import UTC
 
 from litestar_saq import QueueConfig
+from saq.types import Context
 
 from app.queue.registry import get_registry
 from app.utils.configure import config
 from app.utils.discovery import discover_and_import
 
 # Auto-discover all task files to trigger decorator registration
-discover_and_import(["tasks.py"], base_path="app")
+discover_and_import(["tasks.py", "tasks/**/*.py"], base_path="app")
 
 
 async def queue_startup(ctx: Context) -> None:
@@ -31,7 +31,8 @@ async def queue_startup(ctx: Context) -> None:
     This runs when each SAQ worker starts up, injecting the necessary
     dependencies into the context for use by background tasks.
     """
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
     from app.client.s3_client import provide_s3_client
 
     # Create database session factory
@@ -66,7 +67,7 @@ def get_queue_config() -> list[QueueConfig]:
             # Scheduled tasks are automatically collected from @scheduled_task decorators
             scheduled_tasks=registry.get_all_scheduled_tasks(),
             # Timezone for cron schedules
-            cron_tz=timezone.utc,
+            cron_tz=UTC,
             # Worker lifecycle hooks
             startup=queue_startup,  # Inject dependencies when worker starts
             # Worker configuration

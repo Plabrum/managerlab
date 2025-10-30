@@ -1,7 +1,7 @@
 """Dashboard schemas for request/response handling."""
 
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 from app.base.schemas import BaseSchema
 from app.dashboard.enums import DashboardOwnerType

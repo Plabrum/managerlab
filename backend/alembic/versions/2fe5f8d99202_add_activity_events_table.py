@@ -6,18 +6,19 @@ Create Date: 2025-10-24 10:19:43.304372
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 from app.utils.sqids import SqidType
 
 # revision identifiers, used by Alembic.
 revision: str = "2fe5f8d99202"
-down_revision: Union[str, Sequence[str], None] = "baa8f83b7f5a"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "baa8f83b7f5a"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -42,9 +43,7 @@ def upgrade() -> None:
         ),
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column("changes", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-        sa.Column(
-            "extra_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("extra_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("team_id", SqidType(), nullable=False),
         sa.Column("id", SqidType(), autoincrement=True, nullable=False),
         sa.Column(
@@ -91,9 +90,7 @@ def upgrade() -> None:
         ["team_id", "created_at"],
         unique=False,
     )
-    op.create_index(
-        op.f("ix_activity_events_team_id"), "activity_events", ["team_id"], unique=False
-    )
+    op.create_index(op.f("ix_activity_events_team_id"), "activity_events", ["team_id"], unique=False)
     op.create_index(
         "ix_activity_events_team_object",
         "activity_events",

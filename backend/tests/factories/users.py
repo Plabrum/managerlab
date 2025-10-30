@@ -1,13 +1,14 @@
 """User-related model factories."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from polyfactory import Use
 
-from app.users.models import User, WaitlistEntry, Team, Role
-from app.users.enums import UserStates, RoleLevel
-from app.roster.models import Roster
 from app.roster.enums import RosterStates
+from app.roster.models import Roster
+from app.users.enums import RoleLevel, UserStates
+from app.users.models import Role, Team, User, WaitlistEntry
+
 from .base import BaseFactory
 
 
@@ -24,9 +25,9 @@ class UserFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
 
 
 class TeamFactory(BaseFactory):
@@ -40,9 +41,9 @@ class TeamFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
 
 
 class RoleFactory(BaseFactory):
@@ -55,9 +56,9 @@ class RoleFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
 
 
 class RosterFactory(BaseFactory):
@@ -74,9 +75,9 @@ class RosterFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
 
 
 class WaitlistEntryFactory(BaseFactory):
@@ -92,6 +93,6 @@ class WaitlistEntryFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-6m",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))

@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -63,7 +64,7 @@ class AcceptDeliverableMedia(BaseAction):
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         # Set approved_at to current time
-        obj.approved_at = datetime.now(tz=timezone.utc)
+        obj.approved_at = datetime.now(tz=UTC)
 
         return ActionExecutionResponse(
             message="Accepted media",

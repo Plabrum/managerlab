@@ -1,11 +1,11 @@
 """PostgreSQL-backed session store implementation."""
 
 import json
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, Union
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from litestar.stores.base import Store
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 
 from app.sessions.models import Session
 
@@ -23,9 +23,7 @@ class PostgreSQLSessionStore(Store):
         self.db_session_factory = db_session_factory
         self.default_expiry = default_expiry
 
-    async def get(
-        self, key: str, renew_for: Optional[Union[int, timedelta]] = None
-    ) -> Any:
+    async def get(self, key: str, renew_for: int | timedelta | None = None) -> Any:
         """Get session data by key."""
         async with self.db_session_factory() as db_session:
             stmt = select(Session).where(Session.session_id == key)
@@ -45,24 +43,20 @@ class PostgreSQLSessionStore(Store):
             # Renew session if requested
             if renew_for is not None:
                 if isinstance(renew_for, timedelta):
-                    session.expires_at = datetime.now(tz=timezone.utc) + renew_for
+                    session.expires_at = datetime.now(tz=UTC) + renew_for
                 else:
-                    session.expires_at = datetime.now(tz=timezone.utc) + timedelta(
-                        seconds=renew_for
-                    )
+                    session.expires_at = datetime.now(tz=UTC) + timedelta(seconds=renew_for)
                 await db_session.commit()
 
             # Convert dict back to bytes for Litestar
             return json.dumps(session.data).encode("utf-8")
 
-    async def set(
-        self, session_id: str, data: bytes, expires_in: int | None = None
-    ) -> None:
+    async def set(self, session_id: str, data: bytes, expires_in: int | None = None) -> None:
         """Set session data by session_id."""
         if expires_in is None:
             expires_in = self.default_expiry
 
-        expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in)
+        expires_at = datetime.now(tz=UTC) + timedelta(seconds=expires_in)
 
         # Convert bytes to dict for storage in JSONB
         try:
@@ -83,9 +77,7 @@ class PostgreSQLSessionStore(Store):
                 session.expires_at = expires_at
             else:
                 # Create new session
-                session = Session(
-                    session_id=session_id, data=session_data, expires_at=expires_at
-                )
+                session = Session(session_id=session_id, data=session_data, expires_at=expires_at)
                 db_session.add(session)
 
             await db_session.commit()
@@ -115,7 +107,7 @@ class PostgreSQLSessionStore(Store):
 
             return True
 
-    async def expires_in(self, key: str) -> Optional[int]:
+    async def expires_in(self, key: str) -> int | None:
         """Get seconds until session expires."""
         async with self.db_session_factory() as db_session:
             stmt = select(Session).where(Session.session_id == key)
@@ -125,14 +117,14 @@ class PostgreSQLSessionStore(Store):
             if not session or session.is_expired:
                 return None
 
-            now = datetime.now(tz=timezone.utc)
+            now = datetime.now(tz=UTC)
             delta = session.expires_at - now
             return max(0, int(delta.total_seconds()))
 
     async def delete_expired(self) -> None:
         """Clean up expired sessions."""
         async with self.db_session_factory() as db_session:
-            now = datetime.now(tz=timezone.utc)
+            now = datetime.now(tz=UTC)
             stmt = delete(Session).where(Session.expires_at < now)
             await db_session.execute(stmt)
             await db_session.commit()

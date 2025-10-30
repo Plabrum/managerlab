@@ -39,12 +39,8 @@ class Config:
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
-    GOOGLE_REDIRECT_URI: str = os.getenv(
-        "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback"
-    )
-    SUCCESS_REDIRECT_URL: str = os.getenv(
-        "SUCCESS_REDIRECT_URL", "http://localhost:3000/"
-    )
+    GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback")
+    SUCCESS_REDIRECT_URL: str = os.getenv("SUCCESS_REDIRECT_URL", "http://localhost:3000/")
     S3_BUCKET: str = os.getenv("S3_BUCKET", "")
 
     # Session Configuration

@@ -8,10 +8,7 @@ from app.payments.models import Invoice
 from app.payments.schemas import InvoiceUpdateSchema
 from app.utils.db import update_model
 
-
-invoice_actions = action_group_factory(
-    ActionGroupType.InvoiceActions, model_type=Invoice
-)
+invoice_actions = action_group_factory(ActionGroupType.InvoiceActions, model_type=Invoice)
 
 
 @invoice_actions

@@ -1,28 +1,42 @@
-from app.campaigns.models import Campaign
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
+from app.campaigns.models import Campaign
+from app.deliverables.enums import DeliverableStates, SocialMediaPlatforms
+from app.deliverables.models import Deliverable, DeliverableMedia
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectListRequest,
+    DatetimeFieldValue,
+    EnumFieldValue,
     FieldType,
+    IntFieldValue,
     ObjectColumn,
+    StringFieldValue,
 )
-from app.deliverables.models import Deliverable, DeliverableMedia
-from app.deliverables.enums import DeliverableStates, SocialMediaPlatforms
 
 
-class DeliverableObject(BaseObject):
+class DeliverableObject(BaseObject[Deliverable]):
     object_type = ObjectTypes.Deliverables
-    model = Deliverable
 
-    # Title/subtitle configuration
-    title_field = "title"
-    subtitle_field = "content_preview"
-    state_field = "state"
+    @classmethod
+    def model(cls) -> type[Deliverable]:
+        return Deliverable
+
+    @classmethod
+    def title_field(cls, deliverable: Deliverable) -> str:
+        return deliverable.title
+
+    @classmethod
+    def subtitle_field(cls, deliverable: Deliverable) -> str:
+        content = deliverable.content
+        if content and len(content) > 100:
+            return content[:100] + "..."
+        return content or ""
+
+    @classmethod
+    def state_field(cls, deliverable: Deliverable) -> str:
+        return deliverable.state
 
     # Action groups
     top_level_action_group = ActionGroupType.TopLevelDeliverableActions
@@ -30,9 +44,7 @@ class DeliverableObject(BaseObject):
 
     # Load options for eager loading relationships
     load_options = [
-        joinedload(Deliverable.deliverable_media_associations).options(
-            selectinload(DeliverableMedia.media)
-        ),
+        joinedload(Deliverable.deliverable_media_associations).options(selectinload(DeliverableMedia.media)),
         joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
         selectinload(Deliverable.media),
         selectinload(Deliverable.assigned_roster),
@@ -44,7 +56,7 @@ class DeliverableObject(BaseObject):
             key="id",
             label="ID",
             type=FieldType.Int,
-            value=lambda obj: obj.id,
+            value=lambda obj: IntFieldValue(value=obj.id),
             sortable=True,
             default_visible=False,
             include_in_list=False,
@@ -54,9 +66,11 @@ class DeliverableObject(BaseObject):
             label="Content Preview",
             type=FieldType.String,
             value=lambda obj: (
-                obj.content[:100] + "..."
+                StringFieldValue(value=obj.content[:100] + "...")
                 if obj.content and len(obj.content) > 100
-                else obj.content
+                else StringFieldValue(value=obj.content)
+                if obj.content
+                else None
             ),
             sortable=False,
             default_visible=False,
@@ -68,7 +82,7 @@ class DeliverableObject(BaseObject):
             key="created_at",
             label="Created At",
             type=FieldType.Datetime,
-            value=lambda obj: obj.created_at,
+            value=lambda obj: DatetimeFieldValue(value=obj.created_at),
             sortable=True,
             default_visible=False,
             include_in_list=False,
@@ -77,7 +91,7 @@ class DeliverableObject(BaseObject):
             key="updated_at",
             label="Updated At",
             type=FieldType.Datetime,
-            value=lambda obj: obj.updated_at,
+            value=lambda obj: DatetimeFieldValue(value=obj.updated_at),
             sortable=True,
             default_visible=False,
             include_in_list=False,
@@ -86,7 +100,7 @@ class DeliverableObject(BaseObject):
             key="title",
             label="Title",
             type=FieldType.String,
-            value=lambda obj: obj.title,
+            value=lambda obj: StringFieldValue(value=obj.title),
             sortable=True,
             default_visible=True,
             editable=False,
@@ -96,7 +110,7 @@ class DeliverableObject(BaseObject):
             key="content",
             label="Content",
             type=FieldType.String,
-            value=lambda obj: obj.content,
+            value=lambda obj: StringFieldValue(value=obj.content) if obj.content else None,
             sortable=True,
             default_visible=True,
             editable=False,
@@ -107,7 +121,7 @@ class DeliverableObject(BaseObject):
             key="platforms",
             label="Platform",
             type=FieldType.Enum,
-            value=lambda obj: obj.platforms,
+            value=lambda obj: EnumFieldValue(value=obj.platforms),
             sortable=True,
             default_visible=True,
             available_values=[platform.value for platform in SocialMediaPlatforms],
@@ -118,7 +132,7 @@ class DeliverableObject(BaseObject):
             key="state",
             label="Status",
             type=FieldType.Enum,
-            value=lambda obj: obj.state,
+            value=lambda obj: EnumFieldValue(value=obj.state),
             sortable=True,
             default_visible=True,
             available_values=[state.value for state in DeliverableStates],
@@ -129,7 +143,7 @@ class DeliverableObject(BaseObject):
             key="posting_date",
             label="Posting Date",
             type=FieldType.Datetime,
-            value=lambda obj: obj.posting_date,
+            value=lambda obj: DatetimeFieldValue(value=obj.posting_date) if obj.posting_date else None,
             sortable=True,
             default_visible=True,
             editable=False,
@@ -137,20 +151,3 @@ class DeliverableObject(BaseObject):
             include_in_list=True,
         ),
     ]
-
-    @classmethod
-    async def query_from_request(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ):
-        """Override default sorting for Deliverable."""
-
-        query = select(cls.model)
-
-        # Apply structured filters and sorts using helper method
-        query = cls.apply_request_to_query(query, cls.model, request)
-
-        # Custom default sort for deliverables
-        if not request.sorts:
-            query = query.order_by(Deliverable.posting_date.desc())
-
-        return query

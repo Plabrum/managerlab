@@ -1,34 +1,25 @@
-from sqlalchemy import select, func
-from abc import ABC
-from typing import Sequence, Type, ClassVar, List, TYPE_CHECKING, Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Select, or_, inspect
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, ClassVar
+
 import sqlalchemy as sa
+from sqlalchemy import Select, func, inspect, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
+
+from app.actions.registry import ActionRegistry
 from app.base.models import BaseDBModel
 from app.base.registry import BaseRegistry
-from app.objects.enums import ObjectTypes, FieldType
+from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectListSchema,
-    ObjectListRequest,
-    ObjectColumn,
     ColumnDefinitionSchema,
-    SortDirection,
+    ObjectColumn,
     ObjectFieldDTO,
-    StringFieldValue,
-    IntFieldValue,
-    FloatFieldValue,
-    BoolFieldValue,
-    EnumFieldValue,
-    DateFieldValue,
-    DatetimeFieldValue,
-    USDFieldValue,
-    EmailFieldValue,
-    URLFieldValue,
-    TextFieldValue,
-    ImageFieldValue,
+    ObjectListRequest,
+    ObjectListSchema,
+    SortDirection,
 )
-from app.objects.services import apply_filter
+from app.objects.services import apply_filter, get_filter_by_field_type
 from app.utils.sqids import sqid_encode
 
 if TYPE_CHECKING:
@@ -36,28 +27,38 @@ if TYPE_CHECKING:
 
 
 class ObjectRegistry(
-    BaseRegistry[ObjectTypes, Type["BaseObject"]],
+    BaseRegistry[ObjectTypes, type["BaseObject"]],
 ):
     pass
 
 
-class BaseObject(ABC):
+class BaseObject[O: BaseDBModel](ABC):
     object_type: ClassVar[ObjectTypes]
-    model: ClassVar[Type[BaseDBModel]]
-    column_definitions: ClassVar[List[ObjectColumn]]
+    column_definitions: ClassVar[list[ObjectColumn]]
     registry: ClassVar["ObjectRegistry"]
 
-    # Optional overrides for title/subtitle generation
-    title_field: ClassVar[str | None] = None
-    subtitle_field: ClassVar[str | None] = None
-    state_field: ClassVar[str] = "state"  # Default to "state" attribute
+    @classmethod
+    @abstractmethod
+    def model(cls) -> type[O]: ...
+
+    @classmethod
+    @abstractmethod
+    def title_field(cls, obj: O) -> str: ...
+
+    @classmethod
+    @abstractmethod
+    def subtitle_field(cls, obj: O) -> str: ...
+
+    @classmethod
+    def state_field(cls, obj: O) -> str | None:
+        return None
 
     # Action groups
     top_level_action_group: ClassVar["ActionGroupType | None"] = None
     action_group: ClassVar["ActionGroupType | None"] = None
 
     # Load options for eager loading relationships
-    load_options: ClassVar[List[ExecutableOption]] = []
+    load_options: ClassVar[list[ExecutableOption]] = []
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -66,26 +67,7 @@ class BaseObject(ABC):
             cls.registry.register(cls.object_type, cls)
 
     @classmethod
-    def get_custom_fields(cls, obj: BaseDBModel) -> List[ObjectFieldDTO]:
-        """Override to add custom fields not defined in column_definitions.
-
-        Useful for computed fields, conditional fields, or fields that need
-        complex logic beyond simple attribute access.
-
-        Returns:
-            List of additional ObjectFieldDTO instances to include in the list view
-        """
-        return []
-
-    @classmethod
-    def get_column_schemas(cls) -> List[ColumnDefinitionSchema]:
-        """Convert internal ObjectColumn definitions to external API schemas.
-
-        Returns:
-            List of ColumnDefinitionSchema for use in API responses
-        """
-        from app.objects.services import get_filter_by_field_type
-
+    def get_column_schemas(cls) -> list[ColumnDefinitionSchema]:
         return [
             ColumnDefinitionSchema(
                 key=col.key,
@@ -100,149 +82,45 @@ class BaseObject(ABC):
         ]
 
     @classmethod
-    def get_top_level_actions(cls) -> List["Any"]:
-        """Get top-level actions for this object type (e.g., create).
-
-        Returns:
-            List of ActionDTO instances, or empty list if no top-level actions exist
-        """
+    def get_top_level_actions(cls) -> list["Any"]:
         if not cls.top_level_action_group:
             return []
-
-        from app.actions.registry import ActionRegistry
-
         action_group = ActionRegistry().get_class(cls.top_level_action_group)
         return action_group.get_available_actions()
 
     @classmethod
-    def _get_field_value(cls, obj: BaseDBModel, col_def: ObjectColumn) -> Any:
-        """Extract field value from object using value callable."""
-        return col_def.value(obj)
-
-    @classmethod
-    def _create_field_value_wrapper(cls, value: Any, field_type: FieldType):
-        """Wrap raw value in appropriate FieldValue type based on FieldType."""
-        if value is None:
-            return None
-
-        match field_type:
-            case FieldType.String:
-                return StringFieldValue(value=str(value))
-            case FieldType.Int:
-                return IntFieldValue(value=int(value))
-            case FieldType.Float:
-                return FloatFieldValue(value=float(value))
-            case FieldType.Bool:
-                return BoolFieldValue(value=bool(value))
-            case FieldType.Enum:
-                return EnumFieldValue(value=str(value))
-            case FieldType.Date:
-                return DateFieldValue(value=value)
-            case FieldType.Datetime:
-                return DatetimeFieldValue(value=value)
-            case FieldType.USD:
-                return USDFieldValue(value=float(value))
-            case FieldType.Email:
-                return EmailFieldValue(value=str(value))
-            case FieldType.URL:
-                return URLFieldValue(value=str(value))
-            case FieldType.Text:
-                return TextFieldValue(value=value)
-            case FieldType.Image:
-                # Image values should be dicts with url and thumbnail_url
-                if isinstance(value, dict):
-                    return ImageFieldValue(**value)
-                else:
-                    return ImageFieldValue(url=str(value))
-            case _:
-                return StringFieldValue(value=str(value))
-
-    @classmethod
-    def to_list_schema(cls, obj: BaseDBModel) -> ObjectListSchema:
-        """Auto-generate ObjectListSchema from column_definitions.
-
-        This default implementation generates fields from column_definitions
-        and can be extended via get_custom_fields() for special cases.
-        """
+    def to_list_schema(cls, obj: O) -> ObjectListSchema:
         # Generate fields from column_definitions
-        fields: List[ObjectFieldDTO] = []
+        fields: list[ObjectFieldDTO] = []
 
         for col_def in cls.column_definitions:
             # Skip if not included in list view
             if not col_def.include_in_list:
                 continue
 
-            # Extract value
-            value = cls._get_field_value(obj, col_def)
-
-            # Skip None values unless nullable
-            if value is None and not col_def.nullable:
-                continue
-
-            # Wrap value in appropriate type
-            wrapped_value = cls._create_field_value_wrapper(value, col_def.type)
+            # Extract already-wrapped field value from column definition
+            field_value = col_def.value(obj)
 
             # Create field DTO
             field_dto = ObjectFieldDTO(
                 key=col_def.key,
-                value=wrapped_value,
+                value=field_value,
                 label=col_def.label,
                 editable=col_def.editable,
             )
             fields.append(field_dto)
 
-        # Add custom fields
-        fields.extend(cls.get_custom_fields(obj))
-
-        # Get title and subtitle using _get_field_value (supports accessor/formatter)
-        title = (
-            cls._get_field_value(
-                obj,
-                next(
-                    (
-                        col
-                        for col in cls.column_definitions
-                        if col.key == cls.title_field
-                    ),
-                    cls.column_definitions[0],  # Fallback to first column
-                ),
-            )
-            if cls.title_field
-            else str(getattr(obj, cls.title_field or "name", ""))
-        )
-
-        subtitle = None
-        if cls.subtitle_field:
-            # Use _get_field_value to support accessor/formatter for subtitle too
-            subtitle_col = next(
-                (
-                    col
-                    for col in cls.column_definitions
-                    if col.key == cls.subtitle_field
-                ),
-                None,
-            )
-            if subtitle_col:
-                subtitle_value = cls._get_field_value(obj, subtitle_col)
-                subtitle = str(subtitle_value) if subtitle_value is not None else None
-            else:
-                # Fallback to simple attribute access if no column definition
-                subtitle = str(getattr(obj, cls.subtitle_field, None))
-
         # Get per-object actions if action group is defined
         actions = []
         if cls.action_group:
-            # Import here to avoid circular dependency
-            from app.actions.registry import ActionRegistry
-
             action_group = ActionRegistry().get_class(cls.action_group)
             actions = action_group.get_available_actions(obj=obj)
 
         return ObjectListSchema(
             id=sqid_encode(obj.id),
             object_type=cls.object_type,
-            title=str(title),
-            subtitle=subtitle,
+            title=cls.title_field(obj),
+            subtitle=cls.subtitle_field(obj),
             state=getattr(obj, "state", None),
             created_at=obj.created_at,
             updated_at=obj.updated_at,
@@ -257,12 +135,12 @@ class BaseObject(ABC):
             return None
 
         # Introspect model to find all string/text columns
-        mapper = inspect(cls.model)
+        mapper = inspect(cls.model())
         conditions = []
 
         for column in mapper.columns:
             # Check if column is a string type
-            if isinstance(column.type, (sa.String, sa.Text)):
+            if isinstance(column.type, sa.String | sa.Text):
                 # Add ILIKE condition for case-insensitive search
                 conditions.append(column.ilike(f"%{search_term}%"))
 
@@ -270,14 +148,12 @@ class BaseObject(ABC):
         return or_(*conditions) if conditions else None
 
     @classmethod
-    async def query_from_request(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ):
+    async def query_from_request(cls, session: AsyncSession, request: ObjectListRequest):
         """Build query from request filters, sorts, and search.
 
         Scope and soft-delete filtering are applied automatically via SQLAlchemy events.
         """
-        query = select(cls.model)
+        query = select(cls.model())
 
         # Apply load options (eager loading, etc.)
         query = query.options(*cls.load_options)
@@ -288,11 +164,11 @@ class BaseObject(ABC):
             query = query.where(search_filter)
 
         # Apply structured filters and sorts using helper method
-        query = cls.apply_request_to_query(query, cls.model, request)
+        query = cls.apply_request_to_query(query, cls.model(), request)
 
         # Default sort if no sorts applied
         if not request.sorts:
-            query = query.order_by(cls.model.created_at.desc())
+            query = query.order_by(cls.model().created_at.desc())
 
         return query
 
@@ -302,11 +178,7 @@ class BaseObject(ABC):
 
         Scope and soft-delete filtering are applied automatically via SQLAlchemy events.
         """
-        query = (
-            select(cls.model)
-            .where(cls.model.id == object_id)
-            .options(*cls.load_options)
-        )
+        query = select(cls.model()).where(cls.model().id == object_id).options(*cls.load_options)
 
         result = await session.execute(query)
         obj = result.unique().scalar_one_or_none()
@@ -315,17 +187,13 @@ class BaseObject(ABC):
         return obj
 
     @classmethod
-    async def get_list(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ) -> tuple[Sequence[BaseDBModel], int]:
+    async def get_list(cls, session: AsyncSession, request: ObjectListRequest) -> tuple[Sequence[BaseDBModel], int]:
         """Get list of objects with filtering and pagination.
 
         Scope and soft-delete filtering are applied automatically via SQLAlchemy events.
         """
         query = await cls.query_from_request(session, request)
-        total_rows = await session.execute(
-            select(func.count()).select_from(query.subquery())
-        )
+        total_rows = await session.execute(select(func.count()).select_from(query.subquery()))
         total = total_rows.scalar_one()
 
         # Apply pagination
@@ -339,7 +207,7 @@ class BaseObject(ABC):
 
     @classmethod
     def apply_request_to_query(
-        cls, query: Select, model_class: Type[BaseDBModel], request: ObjectListRequest
+        cls, query: Select, model_class: type[BaseDBModel], request: ObjectListRequest
     ) -> Select:
         if request.filters:
             for filter_def in request.filters:
@@ -382,6 +250,4 @@ class BaseObject(ABC):
             ValueError: If field does not exist
         """
         if cls.get_field_metadata(field_name) is None:
-            raise ValueError(
-                f"Field '{field_name}' not found in {cls.object_type} column definitions"
-            )
+            raise ValueError(f"Field '{field_name}' not found in {cls.object_type} column definitions")

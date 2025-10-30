@@ -6,17 +6,18 @@ Create Date: 2025-10-17 13:08:26.667699
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision: str = "70595ac371c4"
-down_revision: Union[str, Sequence[str], None] = "a5c6dd4e2369"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "a5c6dd4e2369"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -33,16 +34,12 @@ def upgrade() -> None:
         ),
         sa.Column(
             "owner_type",
-            sa.Enum(
-                "USER", "TEAM", name="dashboardownertype", native_enum=False, length=10
-            ),
+            sa.Enum("USER", "TEAM", name="dashboardownertype", native_enum=False, length=10),
             nullable=False,
         ),
         sa.Column("user_id", sa.Integer(), nullable=True),
         sa.Column("team_id", sa.Integer(), nullable=True),
-        sa.Column(
-            "is_default", sa.Boolean(), server_default=sa.text("false"), nullable=False
-        ),
+        sa.Column("is_default", sa.Boolean(), server_default=sa.text("false"), nullable=False),
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column(
             "created_at",
@@ -67,15 +64,9 @@ def upgrade() -> None:
         sa.UniqueConstraint("user_id", "name", name="unique_user_dashboard_name"),
     )
     op.create_index(op.f("ix_dashboards_name"), "dashboards", ["name"], unique=False)
-    op.create_index(
-        op.f("ix_dashboards_owner_type"), "dashboards", ["owner_type"], unique=False
-    )
-    op.create_index(
-        op.f("ix_dashboards_team_id"), "dashboards", ["team_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_dashboards_user_id"), "dashboards", ["user_id"], unique=False
-    )
+    op.create_index(op.f("ix_dashboards_owner_type"), "dashboards", ["owner_type"], unique=False)
+    op.create_index(op.f("ix_dashboards_team_id"), "dashboards", ["team_id"], unique=False)
+    op.create_index(op.f("ix_dashboards_user_id"), "dashboards", ["user_id"], unique=False)
     # ### end Alembic commands ###
 
 

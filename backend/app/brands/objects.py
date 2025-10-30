@@ -1,25 +1,33 @@
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.actions.enums import ActionGroupType
+from app.brands.models.brands import Brand
+from app.brands.models.contacts import BrandContact
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectListRequest,
+    DatetimeFieldValue,
+    EmailFieldValue,
     FieldType,
+    IntFieldValue,
     ObjectColumn,
+    StringFieldValue,
+    URLFieldValue,
 )
-from app.brands.models.brands import Brand
-from app.brands.models.contacts import BrandContact
 
 
-class BrandObject(BaseObject):
+class BrandObject(BaseObject[Brand]):
     object_type = ObjectTypes.Brands
-    model = Brand
 
-    # Title/subtitle configuration
-    title_field = "name"
-    subtitle_field = "description"
+    @classmethod
+    def model(cls) -> type[Brand]:
+        return Brand
+
+    @classmethod
+    def title_field(cls, brand: Brand) -> str:
+        return brand.name
+
+    @classmethod
+    def subtitle_field(cls, brand: Brand) -> str:
+        return brand.description or ""
 
     # Action groups
     top_level_action_group = ActionGroupType.TopLevelBrandActions
@@ -30,7 +38,7 @@ class BrandObject(BaseObject):
             key="id",
             label="ID",
             type=FieldType.Int,
-            value=lambda obj: obj.id,
+            value=lambda obj: IntFieldValue(value=obj.id),
             sortable=True,
             default_visible=False,
             include_in_list=False,
@@ -39,7 +47,7 @@ class BrandObject(BaseObject):
             key="created_at",
             label="Created At",
             type=FieldType.Datetime,
-            value=lambda obj: obj.created_at,
+            value=lambda obj: DatetimeFieldValue(value=obj.created_at),
             sortable=True,
             default_visible=False,
             include_in_list=False,
@@ -48,7 +56,7 @@ class BrandObject(BaseObject):
             key="updated_at",
             label="Updated At",
             type=FieldType.Datetime,
-            value=lambda obj: obj.updated_at,
+            value=lambda obj: DatetimeFieldValue(value=obj.updated_at),
             sortable=True,
             default_visible=False,
             include_in_list=False,
@@ -57,7 +65,7 @@ class BrandObject(BaseObject):
             key="name",
             label="Name",
             type=FieldType.String,
-            value=lambda obj: obj.name,
+            value=lambda obj: StringFieldValue(value=obj.name),
             sortable=True,
             default_visible=True,
             editable=False,
@@ -67,7 +75,7 @@ class BrandObject(BaseObject):
             key="description",
             label="Description",
             type=FieldType.String,
-            value=lambda obj: obj.description,
+            value=lambda obj: (StringFieldValue(value=obj.description) if obj.description else None),
             sortable=True,
             default_visible=True,
             editable=False,
@@ -78,7 +86,7 @@ class BrandObject(BaseObject):
             key="website",
             label="Website",
             type=FieldType.URL,
-            value=lambda obj: obj.website,
+            value=lambda obj: URLFieldValue(value=obj.website) if obj.website else None,
             sortable=True,
             default_visible=True,
             editable=False,
@@ -89,7 +97,7 @@ class BrandObject(BaseObject):
             key="phone",
             label="Phone",
             type=FieldType.String,
-            value=lambda obj: obj.phone,
+            value=lambda obj: StringFieldValue(value=obj.phone) if obj.phone else None,
             sortable=True,
             default_visible=True,
             editable=True,
@@ -100,7 +108,7 @@ class BrandObject(BaseObject):
             key="email",
             label="Email",
             type=FieldType.Email,
-            value=lambda obj: obj.email,
+            value=lambda obj: EmailFieldValue(value=obj.email) if obj.email else None,
             sortable=True,
             default_visible=True,
             editable=False,
@@ -110,20 +118,27 @@ class BrandObject(BaseObject):
     ]
 
 
-class BrandContactObject(BaseObject):
+class BrandContactObject(BaseObject[BrandContact]):
     object_type = ObjectTypes.BrandContacts
-    model = BrandContact
 
-    # Title/subtitle configuration
-    title_field = "full_name"
-    subtitle_field = "email"
+    @classmethod
+    def model(cls) -> type[BrandContact]:
+        return BrandContact
+
+    @classmethod
+    def title_field(cls, contact: BrandContact) -> str:
+        return f"{contact.first_name} {contact.last_name}"
+
+    @classmethod
+    def subtitle_field(cls, contact: BrandContact) -> str:
+        return contact.email or ""
 
     column_definitions = [
         ObjectColumn(
             key="full_name",
             label="Name",
             type=FieldType.String,
-            value=lambda obj: f"{obj.first_name} {obj.last_name}",
+            value=lambda obj: StringFieldValue(value=f"{obj.first_name} {obj.last_name}"),
             sortable=False,
             default_visible=True,
             editable=False,
@@ -133,7 +148,7 @@ class BrandContactObject(BaseObject):
             key="first_name",
             label="First Name",
             type=FieldType.String,
-            value=lambda obj: obj.first_name,
+            value=lambda obj: StringFieldValue(value=obj.first_name),
             sortable=True,
             default_visible=True,
             editable=False,
@@ -143,7 +158,7 @@ class BrandContactObject(BaseObject):
             key="last_name",
             label="Last Name",
             type=FieldType.String,
-            value=lambda obj: obj.last_name,
+            value=lambda obj: StringFieldValue(value=obj.last_name),
             sortable=True,
             default_visible=True,
             editable=False,
@@ -153,7 +168,7 @@ class BrandContactObject(BaseObject):
             key="email",
             label="Email",
             type=FieldType.Email,
-            value=lambda obj: obj.email,
+            value=lambda obj: EmailFieldValue(value=obj.email) if obj.email else None,
             sortable=True,
             default_visible=True,
             editable=False,
@@ -164,7 +179,7 @@ class BrandContactObject(BaseObject):
             key="phone",
             label="Phone",
             type=FieldType.String,
-            value=lambda obj: obj.phone,
+            value=lambda obj: StringFieldValue(value=obj.phone) if obj.phone else None,
             sortable=True,
             default_visible=True,
             editable=False,
@@ -175,28 +190,9 @@ class BrandContactObject(BaseObject):
             key="brand_id",
             label="Brand ID",
             type=FieldType.Int,
-            value=lambda obj: obj.brand_id,
+            value=lambda obj: IntFieldValue(value=obj.brand_id),
             sortable=True,
             default_visible=False,
             include_in_list=False,
         ),
     ]
-
-    @classmethod
-    async def query_from_request(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ):
-        """Override default sorting for BrandContact."""
-
-        query = select(cls.model)
-
-        # Apply structured filters and sorts using helper method
-        query = cls.apply_request_to_query(query, cls.model, request)
-
-        # Custom default sort for contacts
-        if not request.sorts:
-            query = query.order_by(
-                BrandContact.last_name.asc(), BrandContact.first_name.asc()
-            )
-
-        return query

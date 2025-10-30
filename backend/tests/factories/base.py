@@ -1,7 +1,7 @@
 """Base factory configuration for polyfactory."""
 
-from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 from faker import Faker
+from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
 from app.base.models import BaseDBModel
 

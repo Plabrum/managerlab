@@ -1,28 +1,29 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Sequence
+from collections.abc import Sequence
+
 from litestar import Router, get, post
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
+from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
+    CategoricalTimeSeriesData,
+    NumericalDataPoint,
+    NumericalTimeSeriesData,
     ObjectListRequest,
     ObjectListResponse,
     ObjectSchemaResponse,
     TimeSeriesDataRequest,
     TimeSeriesDataResponse,
-    NumericalDataPoint,
-    NumericalTimeSeriesData,
-    CategoricalTimeSeriesData,
 )
 from app.objects.services import (
-    resolve_time_range,
     determine_granularity,
     get_default_aggregation,
     query_time_series_data,
+    resolve_time_range,
 )
-from app.objects.enums import ObjectTypes
-from app.utils.logging import logger
 from app.utils.discovery import discover_and_import
+from app.utils.logging import logger
 
 # Auto-discover all object files to trigger registration with ObjectRegistry
 # This happens here (not in __init__.py) to avoid circular imports during module loading
@@ -86,9 +87,7 @@ async def get_time_series_data(
     field_type = field_metadata.type
 
     # Resolve time range
-    start_date, end_date = resolve_time_range(
-        data.time_range, data.start_date, data.end_date
-    )
+    start_date, end_date = resolve_time_range(data.time_range, data.start_date, data.end_date)
 
     # Determine granularity
     granularity = determine_granularity(data.granularity, start_date, end_date)
@@ -99,7 +98,7 @@ async def get_time_series_data(
     # Query data
     data_points, total_records = await query_time_series_data(
         session=transaction,
-        model_class=object_service.model,
+        model_class=object_service.model(),
         field_name=data.field,
         field_type=field_type,
         start_date=start_date,

@@ -1,6 +1,6 @@
 """Authentication-related routes and user management."""
 
-from litestar import Request, Router, post, get
+from litestar import Request, Router, get, post
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST
 from sqlalchemy import select
@@ -10,19 +10,17 @@ from app.auth.enums import ScopeType
 from app.auth.google.routes import google_auth_router
 from app.auth.guards import requires_user_id
 from app.auth.schemas import (
-    TeamScopeSchema,
     CampaignScopeSchema,
     ListScopesResponse,
     SwitchScopeRequest,
+    TeamScopeSchema,
 )
+from app.campaigns.models import Campaign, CampaignGuest
 from app.users.models import Role, Team
-from app.campaigns.models import CampaignGuest, Campaign
 
 
 @get("/list-scopes", guards=[requires_user_id])
-async def list_scopes(
-    request: Request, transaction: AsyncSession
-) -> ListScopesResponse:
+async def list_scopes(request: Request, transaction: AsyncSession) -> ListScopesResponse:
     """List all available scopes for the current user.
 
     Returns teams (via Role) and campaigns (via CampaignGuest) that the user has access to.
@@ -30,18 +28,12 @@ async def list_scopes(
     user_id: int = request.user
 
     # Get teams via Role table
-    team_stmt = (
-        select(Role, Team)
-        .join(Team, Role.team_id == Team.id)
-        .where(Role.user_id == user_id)
-    )
+    team_stmt = select(Role, Team).join(Team, Role.team_id == Team.id).where(Role.user_id == user_id)
     team_result = await transaction.execute(team_stmt)
     team_rows = team_result.all()
 
     teams = [
-        TeamScopeSchema(
-            team_id=role.team_id, team_name=team.name, role_level=role.role_level
-        )
+        TeamScopeSchema(team_id=role.team_id, team_name=team.name, role_level=role.role_level)
         for role, team in team_rows
     ]
 
@@ -83,9 +75,7 @@ async def list_scopes(
 
 
 @post("/switch-scope", guards=[requires_user_id])
-async def switch_scope(
-    request: Request, data: SwitchScopeRequest, transaction: AsyncSession
-) -> dict:
+async def switch_scope(request: Request, data: SwitchScopeRequest, transaction: AsyncSession) -> dict:
     """Switch the user's current scope.
 
     Validates that the user has access to the requested scope and updates the session.
@@ -94,9 +84,7 @@ async def switch_scope(
 
     if data.scope_type == ScopeType.TEAM:
         # Verify user has access to this team via Role table
-        stmt = select(Role).where(
-            Role.user_id == user_id, Role.team_id == data.scope_id
-        )
+        stmt = select(Role).where(Role.user_id == user_id, Role.team_id == data.scope_id)
         result = await transaction.execute(stmt)
         role = result.scalar_one_or_none()
 

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """Test script to understand polyfactory API."""
 
-from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
-from polyfactory import Use
 from faker import Faker
+from polyfactory import Use
+from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
-# Import our models
-from app import load_all_models
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
 
+# Import our models
+from app.utils.discovery import discover_and_import
 
-load_all_models()
+discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
 fake = Faker()
 

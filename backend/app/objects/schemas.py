@@ -1,22 +1,25 @@
 """Object schemas and DTOs."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Callable, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
+from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
+from app.client.s3_client import BaseS3Client
+from app.media.models import Media
 from app.objects.enums import (
+    AggregationType,
     FieldType,
     FilterType,
+    Granularity,
+    ObjectTypes,
+    RelationCardinality,
+    RelationType,
     SortDirection,
     TimeRange,
-    Granularity,
-    AggregationType,
-    ObjectTypes,
-    RelationType,
-    RelationCardinality,
 )
-from app.actions.schemas import ActionDTO
 
 
 class TextFilterDefinition(BaseSchema, tag=FilterType.text_filter.value):
@@ -31,8 +34,8 @@ class RangeFilterDefinition(BaseSchema, tag=FilterType.range_filter.value):
     """Range-based filter definition for numbers."""
 
     column: str
-    start: Union[int, float, None] = None  # nullable start value
-    finish: Union[int, float, None] = None  # nullable finish value
+    start: int | float | None = None  # nullable start value
+    finish: int | float | None = None  # nullable finish value
 
 
 class DateFilterDefinition(BaseSchema, tag=FilterType.date_filter.value):
@@ -52,16 +55,12 @@ class BooleanFilterDefinition(BaseSchema, tag=FilterType.boolean_filter.value):
 
 class EnumFilterDefinition(BaseSchema, tag=FilterType.enum_filter.value):
     column: str
-    values: List[str]  # list of selected enum values
+    values: list[str]  # list of selected enum values
 
 
-FilterDefinition = Union[
-    TextFilterDefinition,
-    RangeFilterDefinition,
-    DateFilterDefinition,
-    BooleanFilterDefinition,
-    EnumFilterDefinition,
-]
+FilterDefinition = (
+    TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition
+)
 
 
 class SortDefinition(BaseSchema):
@@ -127,9 +126,10 @@ class EmailFieldValue(BaseSchema, tag=FieldType.Email.value):
 
 
 class URLFieldValue(BaseSchema, tag=FieldType.URL.value):
-    """URL field value."""
+    """URL field value with optional display label."""
 
     value: str
+    label: str | None = None  # Display label for the URL (e.g., brand name)
 
 
 class TextFieldValue(BaseSchema, tag=FieldType.Text.value):
@@ -148,21 +148,36 @@ class ImageFieldValue(BaseSchema, tag=FieldType.Image.value):
     thumbnail_url: str | None = None
 
 
+def media_to_image_field_value(
+    media: Media,
+    s3_client: BaseS3Client,
+):
+    """Generate S3 presigned URLs for profile photo."""
+
+    photo_url = s3_client.generate_presigned_download_url(key=media.file_key, expires_in=3600)
+    thumbnail_url = (
+        s3_client.generate_presigned_download_url(key=media.thumbnail_key, expires_in=3600)
+        if media.thumbnail_key
+        else None
+    )
+    return ImageFieldValue(url=photo_url, thumbnail_url=thumbnail_url)
+
+
 # Union of all field value types
-FieldValue = Union[
-    StringFieldValue,
-    IntFieldValue,
-    FloatFieldValue,
-    BoolFieldValue,
-    EnumFieldValue,
-    DateFieldValue,
-    DatetimeFieldValue,
-    USDFieldValue,
-    EmailFieldValue,
-    URLFieldValue,
-    TextFieldValue,
-    ImageFieldValue,
-]
+FieldValue = (
+    StringFieldValue
+    | IntFieldValue
+    | FloatFieldValue
+    | BoolFieldValue
+    | EnumFieldValue
+    | DateFieldValue
+    | DatetimeFieldValue
+    | USDFieldValue
+    | EmailFieldValue
+    | URLFieldValue
+    | TextFieldValue
+    | ImageFieldValue
+)
 
 
 class ObjectFieldDTO(BaseSchema):
@@ -170,7 +185,7 @@ class ObjectFieldDTO(BaseSchema):
 
     key: str
     value: FieldValue | None
-    label: Optional[str] = None
+    label: str | None = None
     editable: bool = True
 
 
@@ -185,10 +200,10 @@ class ObjectColumn:
     key: str
     label: str
     type: FieldType
-    value: Callable[[Any], Any]  # Callable to extract/compute value from object
+    value: Callable[[Any], FieldValue | None]  # Returns wrapped FieldValue type
     sortable: bool = True
     default_visible: bool = True
-    available_values: List[str] | None = None
+    available_values: list[str] | None = None
 
     # Internal-only fields (not exposed via API)
     editable: bool = True  # Whether field can be edited
@@ -208,7 +223,7 @@ class ColumnDefinitionSchema(BaseSchema):
     filter_type: FilterType
     sortable: bool = True
     default_visible: bool = True
-    available_values: List[str] | None = None
+    available_values: list[str] | None = None
 
 
 class ObjectRelationGroup(BaseSchema):
@@ -224,7 +239,7 @@ class ObjectRelationGroup(BaseSchema):
     cardinality: RelationCardinality
 
     # Reuse ObjectListSchema - includes title, subtitle, state, fields, actions, link
-    objects: List["ObjectListSchema"]
+    objects: list["ObjectListSchema"]
 
 
 class ObjectListSchema(BaseSchema):
@@ -236,10 +251,10 @@ class ObjectListSchema(BaseSchema):
     state: str | None
     created_at: datetime
     updated_at: datetime
-    subtitle: Optional[str] = None
-    actions: List[ActionDTO] = []
-    fields: List[ObjectFieldDTO] = []
-    link: Optional[str] = None
+    subtitle: str | None = None
+    actions: list[ActionDTO] = []
+    fields: list[ObjectFieldDTO] = []
+    link: str | None = None
 
     def __post_init__(self) -> None:
         self.link = f"{self.object_type}/{self.id}"
@@ -250,8 +265,8 @@ class ObjectListRequest(BaseSchema):
 
     limit: int = 50
     offset: int = 0
-    filters: List[FilterDefinition] = []
-    sorts: List[SortDefinition] = []
+    filters: list[FilterDefinition] = []
+    sorts: list[SortDefinition] = []
     search: str | None = None
     column: list[str] | None = None
 
@@ -259,7 +274,7 @@ class ObjectListRequest(BaseSchema):
 class ObjectListResponse(BaseSchema):
     """Response schema for object lists."""
 
-    objects: List[ObjectListSchema]
+    objects: list[ObjectListSchema]
     total: int
     limit: int
     offset: int
@@ -269,7 +284,7 @@ class ObjectListResponse(BaseSchema):
 class ObjectSchemaResponse(BaseSchema):
     """Schema metadata for an object type."""
 
-    columns: List[ColumnDefinitionSchema]
+    columns: list[ColumnDefinitionSchema]
 
 
 # ============================================================================
@@ -285,10 +300,8 @@ class TimeSeriesDataRequest(BaseSchema):
     start_date: datetime | None = None  # Absolute start (overrides time_range)
     end_date: datetime | None = None  # Absolute end (overrides time_range)
     granularity: Granularity = Granularity.automatic  # Time bucket size
-    aggregation: AggregationType | None = (
-        None  # Aggregation type (auto-determined if None)
-    )
-    filters: List[FilterDefinition] = []  # Reuse existing filter system
+    aggregation: AggregationType | None = None  # Aggregation type (auto-determined if None)
+    filters: list[FilterDefinition] = []  # Reuse existing filter system
     fill_missing: bool = True  # Deprecated: gaps are now always filled via SQL (kept for API compatibility)
 
 
@@ -304,23 +317,23 @@ class CategoricalDataPoint(BaseSchema):
     """A single categorical data point with breakdowns."""
 
     timestamp: datetime
-    breakdowns: Dict[str, int]  # category -> count mapping
+    breakdowns: dict[str, int]  # category -> count mapping
     total_count: int
 
 
 class NumericalTimeSeriesData(BaseSchema, tag="numerical"):
     """Numerical time series data response."""
 
-    data_points: List[NumericalDataPoint]
+    data_points: list[NumericalDataPoint]
 
 
 class CategoricalTimeSeriesData(BaseSchema, tag="categorical"):
     """Categorical time series data response."""
 
-    data_points: List[CategoricalDataPoint]
+    data_points: list[CategoricalDataPoint]
 
 
-TimeSeriesData = Union[NumericalTimeSeriesData, CategoricalTimeSeriesData]
+TimeSeriesData = NumericalTimeSeriesData | CategoricalTimeSeriesData
 
 
 class TimeSeriesDataResponse(BaseSchema):

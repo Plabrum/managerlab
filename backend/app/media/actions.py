@@ -1,15 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.media.enums import MediaStates
-from app.actions import BaseAction, action_group_factory, ActionGroupType
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
 from app.client.s3_client import S3Client
+from app.media.enums import MediaActions, MediaStates
 from app.media.models import Media
-from app.media.enums import MediaActions
 from app.media.schemas import MediaUpdateSchema
 from app.utils.db import update_model
-
 
 # Create media action group
 media_actions = action_group_factory(
@@ -83,9 +81,7 @@ class DownloadMedia(BaseAction):
         obj: Media,
         s3_client: S3Client,
     ) -> ActionExecutionResponse:
-        download_url = s3_client.generate_presigned_download_url(
-            key=obj.file_key, expires_in=3600
-        )
+        download_url = s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
 
         return ActionExecutionResponse(
             message="Download ready",
