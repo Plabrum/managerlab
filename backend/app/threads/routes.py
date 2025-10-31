@@ -27,6 +27,7 @@ from app.threads.schemas import (
 from app.threads.services import (
     get_batch_unread_counts,
     get_or_create_thread,
+    mark_thread_as_read,
     notify_thread,
 )
 from app.users.models import User
@@ -75,6 +76,9 @@ async def create_message(
     )
     transaction.add(message)
     await transaction.flush()
+
+    # Mark thread as read for the sender (user's own messages shouldn't count as unread)
+    await mark_thread_as_read(transaction, thread.id, user.id)
 
     # Notify WebSocket subscribers via Channels
     await notify_thread(

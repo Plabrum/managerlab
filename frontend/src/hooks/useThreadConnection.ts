@@ -59,6 +59,25 @@ export function useThreadConnection({
     new Map()
   );
 
+  // Track page visibility for auto-marking as read
+  const [isPageVisible, setIsPageVisible] = useState(
+    typeof document !== 'undefined'
+      ? document.visibilityState === 'visible'
+      : true
+  );
+
+  // Listen for page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === 'visible');
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Process incoming messages
   useEffect(() => {
     if (!lastMessage) return;
@@ -122,6 +141,16 @@ export function useThreadConnection({
       case ThreadSocketMessageType.MESSAGE_DELETED:
         // Message changed - trigger refetch
         onMessageUpdate?.();
+
+        // Auto-mark as read if user is actively viewing the thread
+        if (
+          message.message_type === ThreadSocketMessageType.MESSAGE_CREATED &&
+          isPageVisible
+        ) {
+          send({
+            message_type: ThreadSocketMessageType.MARK_READ,
+          } as ClientMessage);
+        }
         break;
 
       default:
@@ -130,7 +159,7 @@ export function useThreadConnection({
           message.message_type
         );
     }
-  }, [lastMessage, userNameCache, onMessageUpdate]);
+  }, [lastMessage, userNameCache, onMessageUpdate, isPageVisible, send]);
 
   // Handle input focus (user started typing)
   const handleInputFocus = useCallback(() => {

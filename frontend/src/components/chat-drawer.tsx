@@ -39,7 +39,7 @@ export function ChatDrawer({
   currentUserId,
   title = 'Chat',
 }: ChatDrawerProps) {
-  const { currentTeamId } = useAuth();
+  const { currentTeamId, user } = useAuth();
 
   // Only enable WebSocket when drawer is open AND team scope is set
   const enabled = open && currentTeamId !== null;
@@ -59,6 +59,7 @@ export function ChatDrawer({
     threadableType,
     threadableId,
     currentUserId,
+    user,
     enabled,
   });
 

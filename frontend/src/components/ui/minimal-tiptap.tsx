@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
+import { Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -61,6 +62,52 @@ interface MinimalTiptapProps {
 }
 
 /**
+ * Custom TipTap extension to handle Enter key submission
+ * Uses keyboard shortcuts to properly integrate with TipTap's event system
+ */
+interface EnterKeySubmitOptions {
+  onSubmit: (() => void | Promise<void>) | null;
+}
+
+const EnterKeySubmit = Extension.create<EnterKeySubmitOptions>({
+  name: 'enterKeySubmit',
+
+  addOptions() {
+    return {
+      onSubmit: null,
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Enter: () => {
+        // Don't handle if no submit handler
+        if (!this.options.onSubmit) {
+          return false;
+        }
+
+        // Check if we're in a list item - allow normal behavior there
+        const { state } = this.editor;
+        const { $from } = state.selection;
+        const isInList = $from.node(-1)?.type.name === 'listItem';
+
+        if (isInList) {
+          return false; // Let default list behavior handle it
+        }
+
+        // Submit the form
+        this.options.onSubmit();
+        return true; // Prevent default Enter behavior
+      },
+      'Shift-Enter': () => {
+        // Always allow Shift-Enter to create a line break (default behavior)
+        return false;
+      },
+    };
+  },
+});
+
+/**
  * Helper to check if content has any non-empty text
  */
 function hasContentText(content: MessageSchemaContent | null): boolean {
@@ -99,6 +146,14 @@ function MinimalTiptap({
 }: MinimalTiptapProps) {
   const [showToolbar, setShowToolbar] = React.useState(initialShowToolbar);
 
+  // Use a ref to store the latest onSend callback to avoid closure issues
+  const onSendRef = React.useRef(onSend);
+
+  // Update ref when onSend changes
+  React.useEffect(() => {
+    onSendRef.current = onSend;
+  }, [onSend]);
+
   const isEditMode = mode === 'edit';
   const hasText = hasContentText(content);
   const showSendButton = onSend !== undefined;
@@ -114,6 +169,15 @@ function MinimalTiptap({
           keepMarks: true,
           keepAttributes: false,
         },
+      }),
+      // Add custom Enter key extension that uses the ref
+      EnterKeySubmit.configure({
+        onSubmit: onSend
+          ? () => {
+              // Use the ref to get the latest callback
+              onSendRef.current?.();
+            }
+          : null,
       }),
     ],
     content,
@@ -142,25 +206,6 @@ function MinimalTiptap({
           event.stopPropagation();
         }
 
-        // Handle Enter key for chat-like behavior
-        if (event.key === 'Enter' && !event.shiftKey) {
-          // If there's an onSend handler and we're not in a list or other special context,
-          // treat Enter as submit
-          if (onSend) {
-            // Check if we're in a list item - allow normal behavior there
-            const { state } = view;
-            const { $from } = state.selection;
-            const isInList = $from.node(-1)?.type.name === 'listItem';
-
-            if (!isInList) {
-              event.preventDefault();
-              onSend();
-              return true;
-            }
-          }
-        }
-
-        // Shift+Enter should insert a line break (default behavior)
         return false;
       },
     },
@@ -367,7 +412,7 @@ function MinimalTiptap({
     <div className={cn('overflow-hidden rounded-lg border', className)}>
       {editable && showToolbar && renderToolbar()}
 
-      <div className={cn(editorClassName)}>
+      <div className={cn('p-3', editorClassName)}>
         <EditorContent editor={editor} placeholder={placeholder} />
       </div>
 

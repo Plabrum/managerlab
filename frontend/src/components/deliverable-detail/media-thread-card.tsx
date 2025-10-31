@@ -13,6 +13,7 @@ import { ActivityFeedList } from '@/components/activity/activity-feed-list';
 import { MessageInput } from '@/components/chat/message-input';
 import { TypingIndicator } from '@/components/chat/typing-indicator';
 import { useThreadSync } from '@/hooks/useThreadSync';
+import { useAuth } from '@/components/providers/auth-provider';
 import { ObjectTypes } from '@/openapi/managerLab.schemas';
 import type { DeliverableMediaAssociationSchema } from '@/openapi/managerLab.schemas';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,7 @@ export function MediaThreadCard({
   defaultOpen = false,
 }: MediaThreadCardProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const { user } = useAuth();
 
   const {
     messages,
@@ -46,6 +48,7 @@ export function MediaThreadCard({
     threadableType: ObjectTypes.media,
     threadableId: String(mediaAssociation.media.id),
     currentUserId,
+    user,
     enabled: true,
   });
 

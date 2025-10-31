@@ -62,14 +62,15 @@ async def thread_connection_lifespan(
 
     logger.info(f"WebSocket connected: user {user_id} -> thread {thread.id}")
 
-    async with channels.start_subscription([get_thread_channel(thread.id)]) as subscriber:
+    async with (
+        channels.start_subscription([get_thread_channel(thread.id)]) as subscriber,
+        subscriber.run_in_background(socket.send_text, join=False),
+    ):
         try:
-            # Background task sends all incoming messages to WebSocket
-            async with subscriber.run_in_background(socket.send_text):
-                # Store connection state for handler
-                socket.state["thread_id"] = thread.id
-                socket.state["user_id"] = user_id
-                yield
+            # Store connection state for handler
+            socket.state["thread_id"] = thread.id
+            socket.state["user_id"] = user_id
+            yield
         except WebSocketDisconnect:
             pass
         finally:
