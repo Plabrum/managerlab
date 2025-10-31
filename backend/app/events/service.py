@@ -11,10 +11,10 @@ from app.events.models import Event, EventType
 from app.events.registry import trigger_consumers
 from app.events.schemas import (
     CreatedEventData,
-    UpdatedEventData,
+    CustomEventData,
     DeletedEventData,
     StateChangedEventData,
-    CustomEventData,
+    UpdatedEventData,
 )
 
 logger = logging.getLogger(__name__)
@@ -62,9 +62,7 @@ async def emit_event(
     session.add(event)
     await session.flush()
 
-    logger.info(
-        f"Event emitted: {event_type.value} on {object_type}#{object_id} by User#{user_id}"
-    )
+    logger.info(f"Event emitted: {event_type.value} on {object_type}#{object_id} by User#{user_id}")
 
     # Trigger consumers, passing the actual object
     await trigger_consumers(session, event, obj)

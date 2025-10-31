@@ -1,17 +1,18 @@
 from datetime import date, datetime
 from typing import Any
+
 from msgspec import UNSET, UnsetType
 
-from app.utils.sqids import Sqid
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
+from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.deliverables.enums import DeliverableType, SocialMediaPlatforms
 from app.deliverables.models import Deliverable, DeliverableMedia
-from app.media.schemas import MediaResponseSchema, media_to_response
+from app.media.schemas import MediaResponseSchema, media_to_response_schema
 from app.roster.models import Roster
-from app.actions.schemas import ActionDTO
-from app.actions.enums import ActionGroupType
-from app.actions.registry import ActionRegistry
 from app.threads.schemas import ThreadUnreadInfo
+from app.utils.sqids import Sqid
 
 
 # Response Schemas
@@ -81,9 +82,7 @@ class DeliverableResponseSchema(BaseSchema):
 
 
 # Transformer functions
-def deliverable_media_to_schema(
-    dm: DeliverableMedia, s3_client
-) -> DeliverableMediaAssociationSchema:
+def deliverable_media_to_schema(dm: DeliverableMedia, s3_client) -> DeliverableMediaAssociationSchema:
     """Transform DeliverableMedia association to schema.
 
     Args:
@@ -95,18 +94,14 @@ def deliverable_media_to_schema(
     media_actions = media_action_group.get_available_actions(obj=dm.media)
 
     # Get deliverable media actions for the association
-    deliverable_media_action_group = ActionRegistry().get_class(
-        ActionGroupType.DeliverableMediaActions
-    )
-    deliverable_media_actions = deliverable_media_action_group.get_available_actions(
-        obj=dm
-    )
+    deliverable_media_action_group = ActionRegistry().get_class(ActionGroupType.DeliverableMediaActions)
+    deliverable_media_actions = deliverable_media_action_group.get_available_actions(obj=dm)
 
     return DeliverableMediaAssociationSchema(
         id=dm.id,
         approved_at=dm.approved_at,
         is_featured=dm.is_featured,
-        media=media_to_response(dm.media, s3_client, media_actions),
+        media=media_to_response_schema(dm.media, s3_client, media_actions),
         created_at=dm.created_at,
         updated_at=dm.updated_at,
         actions=deliverable_media_actions,
@@ -128,9 +123,7 @@ def roster_to_schema(roster: Roster) -> RosterInDeliverableSchema:
     )
 
 
-def deliverable_to_response(
-    deliverable: Deliverable, s3_client, user_id: int
-) -> DeliverableResponseSchema:
+def deliverable_to_response(deliverable: Deliverable, s3_client, user_id: int) -> DeliverableResponseSchema:
     """Transform Deliverable model to response schema.
 
     Args:
@@ -166,14 +159,9 @@ def deliverable_to_response(
         created_at=deliverable.created_at,
         updated_at=deliverable.updated_at,
         deliverable_media_associations=[
-            deliverable_media_to_schema(dm, s3_client)
-            for dm in deliverable.deliverable_media_associations
+            deliverable_media_to_schema(dm, s3_client) for dm in deliverable.deliverable_media_associations
         ],
-        assigned_roster=(
-            roster_to_schema(deliverable.assigned_roster)
-            if deliverable.assigned_roster
-            else None
-        ),
+        assigned_roster=(roster_to_schema(deliverable.assigned_roster) if deliverable.assigned_roster else None),
         actions=actions,
         thread=thread_info,
     )

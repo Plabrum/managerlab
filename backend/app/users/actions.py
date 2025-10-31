@@ -4,12 +4,11 @@ from litestar.status_codes import HTTP_403_FORBIDDEN
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import action_group_factory, ActionGroupType, BaseAction
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.users.enums import TeamActions, RoleLevel
-from app.users.models import Team, Role
-
+from app.users.enums import RoleLevel, TeamActions
+from app.users.models import Role, Team
 
 team_actions = action_group_factory(
     ActionGroupType.TeamActions,
@@ -24,7 +23,10 @@ class DeleteTeam(BaseAction):
     is_bulk_allowed = False
     priority = 100
     icon = ActionIcon.trash
-    confirmation_message = "Are you sure you want to delete this team? This action will soft-delete the team and it can be restored later by an administrator."
+    confirmation_message = (
+        "Are you sure you want to delete this team? "
+        "This action will soft-delete the team and it can be restored later by an administrator."
+    )
     should_redirect_to_parent = False
 
     @classmethod

@@ -29,9 +29,7 @@ class Event(RLSMixin(), BaseDBModel):
     __tablename__ = "events"
 
     # Actor - who triggered the event
-    actor_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), nullable=False, index=True
-    )
+    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     actor: Mapped[User] = relationship("User", foreign_keys=[actor_id], lazy="joined")
 
     # Object - what was acted upon (polymorphic)

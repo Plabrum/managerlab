@@ -1,4 +1,3 @@
-from typing import Type
 from litestar import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,10 +5,9 @@ from app.actions import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.base.models import BaseDBModel
-from app.roster.models import Roster
 from app.roster.enums import TopLevelRosterActions
+from app.roster.models import Roster
 from app.roster.schemas import RosterCreateSchema
-
 
 top_level_roster_actions = action_group_factory(ActionGroupType.TopLevelRosterActions)
 
@@ -18,7 +16,7 @@ class RosterTopLevelActionMixin:
     """Mixin for roster top-level actions."""
 
     @classmethod
-    def get_model(cls) -> Type[BaseDBModel] | None:
+    def get_model(cls) -> type[BaseDBModel] | None:
         """Top-level actions don't operate on specific instances."""
         return None
 

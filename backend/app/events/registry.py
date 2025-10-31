@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Callable, Awaitable, Type
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,7 +25,7 @@ class ConsumerRegistration:
     """Registration info for an event consumer."""
 
     consumer: EventConsumer
-    model_filters: list[Type[BaseDBModel]] | None = None
+    model_filters: list[type[BaseDBModel]] | None = None
 
     def matches(self, event: Event) -> bool:
         """Check if this consumer should handle the given event."""
@@ -33,9 +33,7 @@ class ConsumerRegistration:
             return True
 
         # Check if event's object_type matches any of the model table names
-        return any(
-            event.object_type == model.__tablename__ for model in self.model_filters
-        )
+        return any(event.object_type == model.__tablename__ for model in self.model_filters)
 
 
 class EventConsumerRegistry(BaseRegistry[EventType, list[ConsumerRegistration]]):
@@ -45,7 +43,7 @@ class EventConsumerRegistry(BaseRegistry[EventType, list[ConsumerRegistration]])
         self,
         event_type: EventType,
         consumer: EventConsumer,
-        model_filters: list[Type[BaseDBModel]] | None = None,
+        model_filters: list[type[BaseDBModel]] | None = None,
     ) -> None:
         """
         Register a consumer for an event type with optional model filtering.
@@ -58,9 +56,7 @@ class EventConsumerRegistry(BaseRegistry[EventType, list[ConsumerRegistration]])
         if event_type not in self._registry:
             self._registry[event_type] = []
 
-        registration = ConsumerRegistration(
-            consumer=consumer, model_filters=model_filters
-        )
+        registration = ConsumerRegistration(consumer=consumer, model_filters=model_filters)
         self._registry[event_type].append(registration)
 
         if model_filters:
@@ -68,9 +64,7 @@ class EventConsumerRegistry(BaseRegistry[EventType, list[ConsumerRegistration]])
             filter_info = f" (filtered to {models_str})"
         else:
             filter_info = ""
-        logger.debug(
-            f"Registered event consumer '{consumer.__name__}' for {event_type.value}{filter_info}"
-        )
+        logger.debug(f"Registered event consumer '{consumer.__name__}' for {event_type.value}{filter_info}")
 
     def get_consumers(self, event: Event) -> list[EventConsumer]:
         """
@@ -94,7 +88,7 @@ _registry = EventConsumerRegistry()
 
 def event_consumer(
     *event_types: EventType,
-    model: Type[BaseDBModel] | list[Type[BaseDBModel]] | None = None,
+    model: type[BaseDBModel] | list[type[BaseDBModel]] | None = None,
 ) -> Callable[[EventConsumer], EventConsumer]:
     """
     Decorator to register a function as an event consumer.
@@ -140,9 +134,7 @@ def event_consumer(
     return decorator
 
 
-async def trigger_consumers(
-    session: AsyncSession, event: Event, obj: BaseDBModel
-) -> None:
+async def trigger_consumers(session: AsyncSession, event: Event, obj: BaseDBModel) -> None:
     """
     Trigger all registered consumers for an event.
 
@@ -157,9 +149,7 @@ async def trigger_consumers(
     consumers = _registry.get_consumers(event)
 
     if not consumers:
-        logger.debug(
-            f"No consumers registered for {event.event_type.value} on {event.object_type}"
-        )
+        logger.debug(f"No consumers registered for {event.event_type.value} on {event.object_type}")
         return
 
     logger.debug(

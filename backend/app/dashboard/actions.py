@@ -2,14 +2,13 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import action_group_factory, ActionGroupType, BaseAction
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.dashboard.enums import DashboardActions
 from app.dashboard.models import Dashboard
 from app.dashboard.schemas import UpdateDashboardSchema
 from app.utils.db import update_model
-
 
 dashboard_actions = action_group_factory(
     ActionGroupType.DashboardActions,

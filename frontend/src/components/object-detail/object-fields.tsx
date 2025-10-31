@@ -90,7 +90,7 @@ export function ObjectFields({ fields }: ObjectFieldsProps) {
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                {field.label || String(fieldValue.value)}
+                {fieldValue.label || String(fieldValue.value)}
               </a>
             );
           }

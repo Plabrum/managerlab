@@ -6,17 +6,18 @@ Create Date: 2025-09-25 14:12:33.566680
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision: str = "f4532b19ba66"
-down_revision: Union[str, Sequence[str], None] = "19f7d563fb31"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "19f7d563fb31"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -57,28 +58,14 @@ def upgrade() -> None:
         if_exists=True,
     )
     op.drop_table("state_transition_logs", if_exists=True)
-    op.drop_index(
-        op.f("ix_action_logs_action_name"), table_name="action_logs", if_exists=True
-    )
-    op.drop_index(
-        op.f("ix_action_logs_idempotency_key"), table_name="action_logs", if_exists=True
-    )
-    op.drop_index(
-        op.f("ix_action_logs_object_id"), table_name="action_logs", if_exists=True
-    )
-    op.drop_index(
-        op.f("ix_action_logs_object_type"), table_name="action_logs", if_exists=True
-    )
-    op.drop_index(
-        op.f("ix_action_logs_user_id"), table_name="action_logs", if_exists=True
-    )
+    op.drop_index(op.f("ix_action_logs_action_name"), table_name="action_logs", if_exists=True)
+    op.drop_index(op.f("ix_action_logs_idempotency_key"), table_name="action_logs", if_exists=True)
+    op.drop_index(op.f("ix_action_logs_object_id"), table_name="action_logs", if_exists=True)
+    op.drop_index(op.f("ix_action_logs_object_type"), table_name="action_logs", if_exists=True)
+    op.drop_index(op.f("ix_action_logs_user_id"), table_name="action_logs", if_exists=True)
     op.drop_table("action_logs", if_exists=True)
-    op.drop_index(
-        op.f("ix_invoices_current_state"), table_name="invoices", if_exists=True
-    )
-    op.drop_index(
-        op.f("ix_invoices_object_type"), table_name="invoices", if_exists=True
-    )
+    op.drop_index(op.f("ix_invoices_current_state"), table_name="invoices", if_exists=True)
+    op.drop_index(op.f("ix_invoices_object_type"), table_name="invoices", if_exists=True)
     op.drop_table("invoices", if_exists=True)
     op.add_column(
         "users",
@@ -96,9 +83,7 @@ def downgrade() -> None:
     op.create_table(
         "invoices",
         sa.Column("invoice_number", sa.INTEGER(), autoincrement=False, nullable=False),
-        sa.Column(
-            "customer_name", sa.VARCHAR(length=255), autoincrement=False, nullable=False
-        ),
+        sa.Column("customer_name", sa.VARCHAR(length=255), autoincrement=False, nullable=False),
         sa.Column(
             "customer_email",
             sa.VARCHAR(length=255),
@@ -128,12 +113,8 @@ def downgrade() -> None:
             autoincrement=False,
             nullable=False,
         ),
-        sa.Column(
-            "current_state", sa.VARCHAR(length=100), autoincrement=False, nullable=False
-        ),
-        sa.Column(
-            "object_type", sa.VARCHAR(length=50), autoincrement=False, nullable=False
-        ),
+        sa.Column("current_state", sa.VARCHAR(length=100), autoincrement=False, nullable=False),
+        sa.Column("object_type", sa.VARCHAR(length=50), autoincrement=False, nullable=False),
         sa.Column("id", sa.INTEGER(), autoincrement=True, nullable=False),
         sa.Column(
             "created_at",
@@ -157,21 +138,13 @@ def downgrade() -> None:
             postgresql_nulls_not_distinct=False,
         ),
     )
-    op.create_index(
-        op.f("ix_invoices_object_type"), "invoices", ["object_type"], unique=False
-    )
-    op.create_index(
-        op.f("ix_invoices_current_state"), "invoices", ["current_state"], unique=False
-    )
+    op.create_index(op.f("ix_invoices_object_type"), "invoices", ["object_type"], unique=False)
+    op.create_index(op.f("ix_invoices_current_state"), "invoices", ["current_state"], unique=False)
     op.create_table(
         "action_logs",
-        sa.Column(
-            "object_type", sa.VARCHAR(length=50), autoincrement=False, nullable=False
-        ),
+        sa.Column("object_type", sa.VARCHAR(length=50), autoincrement=False, nullable=False),
         sa.Column("object_id", sa.INTEGER(), autoincrement=False, nullable=False),
-        sa.Column(
-            "action_name", sa.VARCHAR(length=100), autoincrement=False, nullable=False
-        ),
+        sa.Column("action_name", sa.VARCHAR(length=100), autoincrement=False, nullable=False),
         sa.Column("user_id", sa.INTEGER(), autoincrement=False, nullable=True),
         sa.Column("object_version", sa.INTEGER(), autoincrement=False, nullable=False),
         sa.Column(
@@ -194,9 +167,7 @@ def downgrade() -> None:
         ),
         sa.Column("error_message", sa.TEXT(), autoincrement=False, nullable=True),
         sa.Column("success", sa.BOOLEAN(), autoincrement=False, nullable=False),
-        sa.Column(
-            "execution_time_ms", sa.INTEGER(), autoincrement=False, nullable=True
-        ),
+        sa.Column("execution_time_ms", sa.INTEGER(), autoincrement=False, nullable=True),
         sa.Column("id", sa.INTEGER(), autoincrement=True, nullable=False),
         sa.Column(
             "created_at",
@@ -214,36 +185,22 @@ def downgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("action_logs_pkey")),
     )
-    op.create_index(
-        op.f("ix_action_logs_user_id"), "action_logs", ["user_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_action_logs_object_type"), "action_logs", ["object_type"], unique=False
-    )
-    op.create_index(
-        op.f("ix_action_logs_object_id"), "action_logs", ["object_id"], unique=False
-    )
+    op.create_index(op.f("ix_action_logs_user_id"), "action_logs", ["user_id"], unique=False)
+    op.create_index(op.f("ix_action_logs_object_type"), "action_logs", ["object_type"], unique=False)
+    op.create_index(op.f("ix_action_logs_object_id"), "action_logs", ["object_id"], unique=False)
     op.create_index(
         op.f("ix_action_logs_idempotency_key"),
         "action_logs",
         ["idempotency_key"],
         unique=False,
     )
-    op.create_index(
-        op.f("ix_action_logs_action_name"), "action_logs", ["action_name"], unique=False
-    )
+    op.create_index(op.f("ix_action_logs_action_name"), "action_logs", ["action_name"], unique=False)
     op.create_table(
         "state_transition_logs",
-        sa.Column(
-            "object_type", sa.VARCHAR(length=50), autoincrement=False, nullable=False
-        ),
+        sa.Column("object_type", sa.VARCHAR(length=50), autoincrement=False, nullable=False),
         sa.Column("object_id", sa.INTEGER(), autoincrement=False, nullable=False),
-        sa.Column(
-            "from_state", sa.VARCHAR(length=100), autoincrement=False, nullable=True
-        ),
-        sa.Column(
-            "to_state", sa.VARCHAR(length=100), autoincrement=False, nullable=False
-        ),
+        sa.Column("from_state", sa.VARCHAR(length=100), autoincrement=False, nullable=True),
+        sa.Column("to_state", sa.VARCHAR(length=100), autoincrement=False, nullable=False),
         sa.Column("user_id", sa.INTEGER(), autoincrement=False, nullable=True),
         sa.Column(
             "context",

@@ -109,19 +109,10 @@ export function ObjectRelations({
 // Legacy exports for backward compatibility (deprecated)
 // These will be removed in a future version
 
-interface ObjectParentsProps {
-  parents: never[];
-}
-
-interface ObjectChildrenProps {
-  items: never[];
-}
-
 /**
  * @deprecated Use ObjectRelations component with filter={['parent']} instead
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function ObjectParents(_props: ObjectParentsProps) {
+export function ObjectParents() {
   console.warn(
     'ObjectParents is deprecated. Use ObjectRelations with filter={["parent"]} instead.'
   );
@@ -131,8 +122,7 @@ export function ObjectParents(_props: ObjectParentsProps) {
 /**
  * @deprecated Use ObjectRelations component with filter={['child']} instead
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function ObjectChildren(_props: ObjectChildrenProps) {
+export function ObjectChildren() {
   console.warn(
     'ObjectChildren is deprecated. Use ObjectRelations with filter={["child"]} instead.'
   );

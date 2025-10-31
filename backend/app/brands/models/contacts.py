@@ -8,7 +8,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 
-
 if TYPE_CHECKING:
     from app.brands.models.brands import Brand
     from app.campaigns.models import Campaign

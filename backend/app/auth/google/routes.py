@@ -1,19 +1,19 @@
-from litestar import Router, get, Response
-from litestar.di import Provide
-from litestar.exceptions import HTTPException
-from litestar.status_codes import HTTP_302_FOUND, HTTP_400_BAD_REQUEST
-from litestar.connection import Request
-from litestar.params import Parameter
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-import aiohttp
-from msgspec import Struct
-
-from app.auth.enums import ScopeType
-from app.auth.google.services import GoogleOAuthService
-from app.auth.google.models import GoogleOAuthAccount
 import logging
 
+import aiohttp
+from litestar import Response, Router, get
+from litestar.connection import Request
+from litestar.di import Provide
+from litestar.exceptions import HTTPException
+from litestar.params import Parameter
+from litestar.status_codes import HTTP_302_FOUND, HTTP_400_BAD_REQUEST
+from msgspec import Struct
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth.enums import ScopeType
+from app.auth.google.models import GoogleOAuthAccount
+from app.auth.google.services import GoogleOAuthService
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +45,7 @@ def provide_google_oauth_service(
 
 
 @get("/login", guards=[])
-async def google_login(
-    transaction: AsyncSession, oauth_service: GoogleOAuthService
-) -> Response:
+async def google_login(transaction: AsyncSession, oauth_service: GoogleOAuthService) -> Response:
     """Initiate Google OAuth login flow."""
     # Generate authorization URL and state
     auth_url, state = oauth_service.generate_auth_url()
@@ -56,9 +54,7 @@ async def google_login(
     await oauth_service.store_oauth_state(transaction, state)
 
     # Redirect to Google OAuth
-    return Response(
-        content="", status_code=HTTP_302_FOUND, headers={"Location": auth_url}
-    )
+    return Response(content="", status_code=HTTP_302_FOUND, headers={"Location": auth_url})
 
 
 @get("/callback", guards=[])
@@ -107,8 +103,8 @@ async def google_callback(
     request.session["authenticated"] = True
 
     # Set initial scope - check for team membership first, then campaign access
-    from app.users.models import Role
     from app.campaigns.models import CampaignGuest
+    from app.users.models import Role
 
     # Check if user has team membership
     team_stmt = select(Role).where(Role.user_id == user.id).limit(1)
@@ -119,14 +115,10 @@ async def google_callback(
         # User has team access - set team scope
         request.session["scope_type"] = ScopeType.TEAM.value
         request.session["team_id"] = int(first_role.team_id)
-        logger.info(
-            f"User {user.id} logged in with team scope (team_id={first_role.team_id})"
-        )
+        logger.info(f"User {user.id} logged in with team scope (team_id={first_role.team_id})")
     else:
         # Check if user has campaign guest access
-        campaign_stmt = (
-            select(CampaignGuest).where(CampaignGuest.user_id == user.id).limit(1)
-        )
+        campaign_stmt = select(CampaignGuest).where(CampaignGuest.user_id == user.id).limit(1)
         campaign_result = await transaction.execute(campaign_stmt)
         first_guest = campaign_result.scalar_one_or_none()
 
@@ -134,14 +126,10 @@ async def google_callback(
             # User has campaign access - set campaign scope
             request.session["scope_type"] = ScopeType.CAMPAIGN.value
             request.session["campaign_id"] = int(first_guest.campaign_id)
-            logger.info(
-                f"User {user.id} logged in with campaign scope (campaign_id={first_guest.campaign_id})"
-            )
+            logger.info(f"User {user.id} logged in with campaign scope (campaign_id={first_guest.campaign_id})")
         else:
             # User has no access - they'll need to be invited to a team or campaign
-            logger.warning(
-                f"User {user.id} logged in but has no team or campaign access"
-            )
+            logger.warning(f"User {user.id} logged in but has no team or campaign access")
             # Don't set scope - they'll see an error when trying to access resources
 
     # Redirect to frontend success page
@@ -156,9 +144,7 @@ async def google_callback(
 
 
 @get("/me")
-async def get_current_user_google_info(
-    request: Request, transaction: AsyncSession
-) -> GoogleUserInfoResponseSchema:
+async def get_current_user_google_info(request: Request, transaction: AsyncSession) -> GoogleUserInfoResponseSchema:
     """Get current user's Google OAuth information."""
     user_id = request.session.get("user_id")
     if not user_id:
@@ -169,9 +155,7 @@ async def get_current_user_google_info(
     google_account = result.scalar_one_or_none()
 
     if not google_account:
-        raise HTTPException(
-            status_code=404, detail="Google account not found for current user"
-        )
+        raise HTTPException(status_code=404, detail="Google account not found for current user")
 
     return GoogleUserInfoResponseSchema(
         google_id=google_account.google_id,

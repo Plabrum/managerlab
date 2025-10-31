@@ -1,8 +1,8 @@
 """Tests for event consumer helper functions."""
 
 from app.events.consumers import (
-    build_update_message_content,
     _parse_event_data_to_updated,
+    build_update_message_content,
 )
 from app.events.schemas import FieldChange, UpdatedEventData
 
@@ -121,9 +121,7 @@ class TestBuildUpdateMessageContent:
     def test_build_with_name_and_single_change(self):
         """Test building message with single field change."""
         obj = MockObject(id=1, name="Test Campaign")
-        event_data = UpdatedEventData(
-            changes={"status": FieldChange(old="draft", new="active")}
-        )
+        event_data = UpdatedEventData(changes={"status": FieldChange(old="draft", new="active")})
 
         content = build_update_message_content(
             obj=obj,
@@ -143,10 +141,7 @@ class TestBuildUpdateMessageContent:
         assert any(node.get("text") == "updated " for node in nodes)
         assert any(node.get("text") == ": " for node in nodes)
         assert any(
-            node.get("text") == "Status"
-            and node.get("marks")
-            and node["marks"][0]["type"] == "bold"
-            for node in nodes
+            node.get("text") == "Status" and node.get("marks") and node["marks"][0]["type"] == "bold" for node in nodes
         )
         assert any(node.get("text") == ": draft → active" for node in nodes)
 
@@ -181,9 +176,7 @@ class TestBuildUpdateMessageContent:
     def test_build_without_name_falls_back_to_id(self):
         """Test that objects without name attributes still build valid messages."""
         obj = MockObject(id=123)  # No name or title
-        event_data = UpdatedEventData(
-            changes={"status": FieldChange(old="draft", new="active")}
-        )
+        event_data = UpdatedEventData(changes={"status": FieldChange(old="draft", new="active")})
 
         content = build_update_message_content(
             obj=obj,
@@ -203,9 +196,7 @@ class TestBuildUpdateMessageContent:
     def test_build_with_title_attribute(self):
         """Test building message with title attribute."""
         obj = MockObject(id=456, title="Test Title")
-        event_data = UpdatedEventData(
-            changes={"status": FieldChange(old="draft", new="active")}
-        )
+        event_data = UpdatedEventData(changes={"status": FieldChange(old="draft", new="active")})
 
         content = build_update_message_content(
             obj=obj,
@@ -292,9 +283,7 @@ class TestBuildUpdateMessageContent:
     def test_build_with_underscore_object_type(self):
         """Test building message with underscore in object type."""
         obj = MockObject(id=222, name="Test Object")
-        event_data = UpdatedEventData(
-            changes={"status": FieldChange(old="draft", new="active")}
-        )
+        event_data = UpdatedEventData(changes={"status": FieldChange(old="draft", new="active")})
 
         content = build_update_message_content(
             obj=obj,

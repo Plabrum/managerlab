@@ -1,13 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import BaseAction, action_group_factory, ActionGroupType
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
-from app.campaigns.models import Campaign
 from app.campaigns.enums import CampaignActions
-from app.campaigns.schemas import CampaignCreateSchema
+from app.campaigns.models import Campaign
 from app.campaigns.objects import CampaignObject
+from app.campaigns.schemas import CampaignCreateSchema
 from app.utils.db import create_model
-
 
 top_level_campaign_actions = action_group_factory(
     ActionGroupType.TopLevelCampaignActions,

@@ -1,6 +1,7 @@
 """Media object model."""
 
 from typing import TYPE_CHECKING
+
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,9 +28,7 @@ class Media(
     # File metadata
     file_key: Mapped[str] = mapped_column(sa.Text, nullable=False, unique=True)
     file_name: Mapped[str] = mapped_column(sa.Text, nullable=False)
-    file_type: Mapped[str] = mapped_column(
-        sa.Text, nullable=False
-    )  # 'image' or 'video'
+    file_type: Mapped[str] = mapped_column(sa.Text, nullable=False)  # 'image' or 'video'
     file_size: Mapped[int] = mapped_column(sa.BigInteger, nullable=False)
     mime_type: Mapped[str] = mapped_column(sa.Text, nullable=False)
 

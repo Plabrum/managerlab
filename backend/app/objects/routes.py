@@ -1,29 +1,29 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Sequence
+from collections.abc import Sequence
+
 from litestar import Router, get, post
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.base.models import BaseDBModel
 from app.objects.base import ObjectRegistry
-from app.actions.registry import ActionRegistry
+from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
+    CategoricalTimeSeriesData,
+    NumericalDataPoint,
+    NumericalTimeSeriesData,
     ObjectListRequest,
     ObjectListResponse,
     ObjectSchemaResponse,
     TimeSeriesDataRequest,
     TimeSeriesDataResponse,
-    NumericalDataPoint,
-    NumericalTimeSeriesData,
-    CategoricalTimeSeriesData,
 )
 from app.objects.services import (
-    resolve_time_range,
     determine_granularity,
     get_default_aggregation,
     query_time_series_data,
+    resolve_time_range,
 )
-from app.objects.enums import ObjectTypes
-from app.utils.logging import logger
 from app.utils.discovery import discover_and_import
+from app.utils.logging import logger
 
 # Auto-discover all object files to trigger registration with ObjectRegistry
 # This happens here (not in __init__.py) to avoid circular imports during module loading
@@ -37,7 +37,8 @@ async def get_object_schema(
 ) -> ObjectSchemaResponse:
     """Get schema metadata for an object type (column definitions)."""
     object_service = object_registry.get_class(object_type)
-    return ObjectSchemaResponse(columns=object_service.column_definitions)
+    # Convert internal ObjectColumn to external ColumnDefinitionSchema
+    return ObjectSchemaResponse(columns=object_service.get_column_schemas())
 
 
 @post("/{object_type:str}", operation_id="list_objects")
@@ -46,31 +47,21 @@ async def list_objects(
     data: ObjectListRequest,
     transaction: AsyncSession,
     object_registry: ObjectRegistry,
-    action_registry: ActionRegistry,
 ) -> ObjectListResponse:
     logger.info(f"data:{data}")
     object_service = object_registry.get_class(object_type)
     objects: Sequence[BaseDBModel]
     objects, total = await object_service.get_list(transaction, data)
-    columns = object_service.column_definitions
 
-    # Get top-level actions for this object type (e.g., create)
-    list_actions = []
-    top_level_action_group_type = object_service.get_top_level_action_group()
-    if top_level_action_group_type:
-        top_level_action_group = action_registry.get_class(top_level_action_group_type)
-        list_actions = top_level_action_group.get_available_actions()
-
-    # Convert objects to DTOs (async)
-    object_dtos = [object_service.to_list_dto(obj) for obj in objects]
+    # Convert objects to schemas
+    object_schemas = [object_service.to_list_schema(obj) for obj in objects]
 
     return ObjectListResponse(
-        objects=object_dtos,
+        objects=object_schemas,
         total=total,
         limit=data.limit,
         offset=data.offset,
-        columns=columns,
-        actions=list_actions,
+        actions=object_service.get_top_level_actions(),
     )
 
 
@@ -96,9 +87,7 @@ async def get_time_series_data(
     field_type = field_metadata.type
 
     # Resolve time range
-    start_date, end_date = resolve_time_range(
-        data.time_range, data.start_date, data.end_date
-    )
+    start_date, end_date = resolve_time_range(data.time_range, data.start_date, data.end_date)
 
     # Determine granularity
     granularity = determine_granularity(data.granularity, start_date, end_date)
@@ -109,7 +98,7 @@ async def get_time_series_data(
     # Query data
     data_points, total_records = await query_time_series_data(
         session=transaction,
-        model_class=object_service.model,
+        model_class=object_service.model(),
         field_name=data.field,
         field_type=field_type,
         start_date=start_date,

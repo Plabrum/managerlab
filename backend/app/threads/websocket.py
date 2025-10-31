@@ -1,7 +1,6 @@
 """WebSocket handler for real-time thread updates using PostgreSQL LISTEN/NOTIFY."""
 
 import asyncio
-from app.users.models import User
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -15,7 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.guards import requires_user_scope
 from app.objects.enums import ObjectTypes
 from app.threads.models import Thread
-from app.threads.services import notify_thread, mark_thread_as_read
+from app.threads.services import mark_thread_as_read, notify_thread
+from app.users.models import User
 from app.utils.sqids import Sqid, sqid_encode
 
 logger = logging.getLogger(__name__)
@@ -125,13 +125,9 @@ class ThreadWebSocketHandler(WebsocketListener):
         )
 
         # Start PostgreSQL LISTEN in background
-        self.listen_task = asyncio.create_task(
-            self._listen_for_notifications(socket, self.thread_id, engine)
-        )
+        self.listen_task = asyncio.create_task(self._listen_for_notifications(socket, self.thread_id, engine))
 
-        logger.info(
-            f"WebSocket connected: user {self.user_id} ({self.user_name}) -> thread {self.thread_id}"
-        )
+        logger.info(f"WebSocket connected: user {self.user_id} ({self.user_name}) -> thread {self.thread_id}")
 
     async def on_disconnect(self, socket: WebSocket) -> None:
         """Cancel the LISTEN task and remove user from viewers."""
@@ -155,13 +151,9 @@ class ThreadWebSocketHandler(WebsocketListener):
                 # We need a session here, but we're disconnecting so we'll skip the notification
                 # Frontend will handle stale presence via timeout
 
-        logger.info(
-            f"WebSocket disconnected from thread {getattr(self, 'thread_id', None)}"
-        )
+        logger.info(f"WebSocket disconnected from thread {getattr(self, 'thread_id', None)}")
 
-    async def on_receive(
-        self, data: dict[str, Any], transaction: AsyncSession
-    ) -> dict[str, Any]:
+    async def on_receive(self, data: dict[str, Any], transaction: AsyncSession) -> dict[str, Any]:
         """Handle client messages: ping/pong, typing indicators, and mark-read."""
         msg_type = data.get("type")
 
@@ -175,9 +167,7 @@ class ThreadWebSocketHandler(WebsocketListener):
             if hasattr(self, "thread_id") and hasattr(self, "user_id"):
                 if self.thread_id in active_viewers:
                     if self.user_id in active_viewers[self.thread_id]:
-                        active_viewers[self.thread_id][self.user_id]["is_typing"] = (
-                            is_typing
-                        )
+                        active_viewers[self.thread_id][self.user_id]["is_typing"] = is_typing
 
                         # Broadcast typing status to other users (don't return to sender)
                         # We'll use the notification system for this
@@ -190,11 +180,7 @@ class ThreadWebSocketHandler(WebsocketListener):
 
         elif msg_type == "mark_read":
             # Mark thread as read for this user
-            if (
-                hasattr(self, "thread_id")
-                and hasattr(self, "user_id")
-                and hasattr(self, "engine")
-            ):
+            if hasattr(self, "thread_id") and hasattr(self, "user_id") and hasattr(self, "engine"):
                 # Create a new async session from the engine
                 await mark_thread_as_read(transaction, self.thread_id, self.user_id)
                 await transaction.commit()

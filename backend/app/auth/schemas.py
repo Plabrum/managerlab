@@ -3,8 +3,8 @@
 from msgspec import Struct
 
 from app.auth.enums import ScopeType
-from app.users.enums import RoleLevel
 from app.campaigns.enums import CampaignGuestAccessLevel
+from app.users.enums import RoleLevel
 
 
 class TeamScopeSchema(Struct):

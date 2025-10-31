@@ -6,7 +6,6 @@ from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from app.base.models import BaseDBModel
 
-
 # TODO PAL: Add Log Table
 # class StateTransitionLog[E: Enum, M: BaseDBModel](BaseDBModel):
 #     """Audit log for state transitions."""
@@ -49,9 +48,7 @@ class _StateMachineMixinBase[E: Enum](BaseDBModel):
     state: Mapped[E]
 
 
-def StateMachineMixin[E: Enum](
-    *, state_enum: type[E], initial_state: E
-) -> type[_StateMachineMixinBase[E]]:
+def StateMachineMixin[E: Enum](*, state_enum: type[E], initial_state: E) -> type[_StateMachineMixinBase[E]]:
     class _StateMachineMixin(_StateMachineMixinBase[E]):
         __abstract__ = True
 

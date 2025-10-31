@@ -2,20 +2,21 @@
 
 import logging
 from typing import Any
+
 from litestar import Request
 from litestar.exceptions import NotFoundException
-from msgspec import structs, UNSET
-from sqlalchemy import text, select
+from msgspec import UNSET, structs
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.enums import ScopeType
 from app.base.models import BaseDBModel
 from app.base.schemas import BaseSchema
 from app.events import (
-    emit_event,
-    EventType,
     CreatedEventData,
+    EventType,
     UpdatedEventData,
+    emit_event,
     make_field_changes,
 )
 
@@ -34,11 +35,7 @@ async def _emit_created_event(
     # Determine which fields to track
     if track_fields is None:
         # Track all non-None fields from create_vals
-        initial_values = {
-            field: value
-            for field, value in structs.asdict(create_vals).items()
-            if value is not None
-        }
+        initial_values = {field: value for field, value in structs.asdict(create_vals).items() if value is not None}
     else:
         # Track only specified fields
         initial_values = {field: getattr(obj, field, None) for field in track_fields}
@@ -62,11 +59,7 @@ async def _emit_updated_event(
 ) -> None:
     """Helper to emit an UPDATED event for a modified object."""
     # Capture new values after update
-    new_values = {
-        field: getattr(obj, field, None)
-        for field in old_values.keys()
-        if hasattr(obj, field)
-    }
+    new_values = {field: getattr(obj, field, None) for field in old_values.keys() if hasattr(obj, field)}
 
     # Compute changes and emit event if anything changed
     changes = make_field_changes(old_values, new_values)
@@ -129,13 +122,9 @@ async def update_model[T: BaseDBModel](
     # Capture old values before update (if tracking is enabled)
     old_values = None
     if should_track and team_id is not None:
-        fields_to_track = (
-            track_fields if track_fields else list(fields_to_update.keys())
-        )
+        fields_to_track = track_fields if track_fields else list(fields_to_update.keys())
         old_values = {
-            field: getattr(model_instance, field, None)
-            for field in fields_to_track
-            if hasattr(model_instance, field)
+            field: getattr(model_instance, field, None) for field in fields_to_track if hasattr(model_instance, field)
         }
 
     # Update the model (only fields that were provided, not UNSET)
@@ -188,11 +177,7 @@ async def create_model[T: BaseDBModel](
         The created model instance (after flush, with ID)
     """
     # Create the model instance
-    data = {
-        field: value
-        for field, value in structs.asdict(create_vals).items()
-        if value is not None
-    }
+    data = {field: value for field, value in structs.asdict(create_vals).items() if value is not None}
 
     # Add row-level security context
     rls_fields = {}
@@ -250,6 +235,4 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
         if campaign_id:
             # Validate campaign_id is an integer to prevent SQL injection
             campaign_id_int = int(campaign_id)
-            await session.execute(
-                text(f"SET LOCAL app.campaign_id = {campaign_id_int}")
-            )
+            await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id_int}"))

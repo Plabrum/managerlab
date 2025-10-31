@@ -11,19 +11,19 @@ from sqlalchemy.orm import selectinload
 
 from app.auth.guards import requires_user_scope
 from app.objects.enums import ObjectTypes
-from app.threads.models import Thread, Message
+from app.threads.models import Message, Thread
 from app.threads.schemas import (
-    MessageSchema,
-    UserSchema,
-    MessageCreateSchema,
-    MessageListResponse,
     BatchUnreadRequest,
     BatchUnreadResponse,
+    MessageCreateSchema,
+    MessageListResponse,
+    MessageSchema,
     ThreadUnreadInfo,
+    UserSchema,
 )
 from app.threads.services import (
-    get_or_create_thread,
     get_batch_unread_counts,
+    get_or_create_thread,
     notify_thread,
 )
 from app.utils.sqids import Sqid
@@ -98,10 +98,7 @@ async def create_message(
         },
     )
 
-    logger.info(
-        f"Created message {message.id} in thread {thread.id} "
-        f"({threadable_type}:{threadable_id})"
-    )
+    logger.info(f"Created message {message.id} in thread {thread.id} ({threadable_type}:{threadable_id})")
 
     # Load user for response
     await transaction.refresh(message, ["user"])

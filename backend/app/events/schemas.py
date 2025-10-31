@@ -6,9 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 
-def make_field_changes(
-    old_values: dict[str, Any], new_values: dict[str, Any]
-) -> dict[str, FieldChange]:
+def make_field_changes(old_values: dict[str, Any], new_values: dict[str, Any]) -> dict[str, FieldChange]:
     """
     Create a dict of FieldChange objects by comparing old and new values.
 

@@ -1,12 +1,14 @@
 from __future__ import annotations
-from typing import Any, Optional, Literal
+
 import datetime as dt
 import decimal
-from litestar.dto import DTOConfig
+from typing import Any, Literal
+
 import msgspec
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapper
+from litestar.dto import DTOConfig
 from litestar.dto.base_dto import AbstractDTO
+from sqlalchemy.orm import Mapper
 
 # ------------ helpers
 
@@ -14,36 +16,28 @@ from litestar.dto.base_dto import AbstractDTO
 def _maybe_optional(tp: Any, nullable: bool) -> Any:
     if not nullable:
         return tp
-    return Optional[tp]  # type: ignore[valid-type]
+    return tp | None  # type: ignore[valid-type]
 
 
 def _sa_column_to_pytype(col: sa.Column[Any]) -> Any:
     t = col.type
     # Common concrete SQLA types first
-    if isinstance(t, (sa.Integer, sa.BigInteger, sa.SmallInteger)):
+    if isinstance(t, sa.Integer | sa.BigInteger | sa.SmallInteger):
         return int
-    if isinstance(t, (sa.Float, sa.REAL)):
+    if isinstance(t, sa.Float | sa.REAL):
         return float
     if isinstance(t, sa.Numeric):
         return decimal.Decimal
     if isinstance(
         t,
-        (
-            sa.String,
-            sa.Text,
-            sa.LargeBinary,
-            sa.Unicode,
-            sa.UnicodeText,
-            sa.CHAR,
-            sa.VARCHAR,
-        ),
+        sa.String | sa.Text | sa.LargeBinary | sa.Unicode | sa.UnicodeText | sa.CHAR | sa.VARCHAR,
     ):
         return str
     if isinstance(t, sa.Boolean):
         return bool
     if isinstance(t, sa.Date):
         return dt.date
-    if isinstance(t, (sa.DateTime, sa.TIMESTAMP)):
+    if isinstance(t, sa.DateTime | sa.TIMESTAMP):
         return dt.datetime
     if isinstance(t, sa.Time):
         return dt.time
@@ -130,12 +124,12 @@ def dto_to_msgspec_struct_from_mapper(
                 if rel.uselist:
                     t = list[target_pk_t]  # type: ignore[valid-type]
                 # relationships are typically optional on write
-                fields[key] = Optional[t]  # type: ignore[valid-type]
+                fields[key] = t | None  # type: ignore[valid-type]
             elif include_relationships == "nested":
                 t = Any
                 if rel.uselist:
                     t = list[Any]  # type: ignore[index]
-                fields[key] = Optional[t]  # type: ignore[valid-type]
+                fields[key] = t | None  # type: ignore[valid-type]
 
     # 3) Apply DTO include/exclude (match *original* ORM attribute names)
     include = set(getattr(cfg, "include", set()) or set())

@@ -117,9 +117,7 @@ def exception_to_http_response(
         request.url.path,
         extra={
             "exception_type": exc.__class__.__name__,
-            "status_code": http_exc.status_code
-            if hasattr(http_exc, "status_code")
-            else 500,
+            "status_code": http_exc.status_code if hasattr(http_exc, "status_code") else 500,
         },
     )
 

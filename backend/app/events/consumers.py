@@ -3,19 +3,19 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.base.models import BaseDBModel
 from app.brands.models.brands import Brand
 from app.campaigns.models import Campaign
 from app.deliverables.models import DeliverableMedia
-from app.roster.models import Roster
-from app.base.models import BaseDBModel
 from app.events.enums import EventType
 from app.events.models import Event
 from app.events.registry import event_consumer
 from app.events.schemas import FieldChange, UpdatedEventData
+from app.roster.models import Roster
 from app.threads.models import Message
 from app.threads.services import get_or_create_thread, notify_thread
 from app.utils.sqids import sqid_encode
-from app.utils.tiptap import doc, paragraph, text, bold
+from app.utils.tiptap import bold, doc, paragraph, text
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +73,7 @@ async def _post_to_thread(
         },
     )
 
-    logger.info(
-        f"Posted event {event.id} to thread {thread.id} as message {thread_message.id}"
-    )
+    logger.info(f"Posted event {event.id} to thread {thread.id} as message {thread_message.id}")
 
 
 def _format_object_ref(event: Event, obj: Any) -> str:
@@ -113,14 +111,8 @@ def _parse_event_data_to_updated(
 
     changes: dict[str, FieldChange] = {}
     for field_name, change_data in changes_dict.items():
-        if (
-            isinstance(change_data, dict)
-            and "old" in change_data
-            and "new" in change_data
-        ):
-            changes[field_name] = FieldChange(
-                old=change_data["old"], new=change_data["new"]
-            )
+        if isinstance(change_data, dict) and "old" in change_data and "new" in change_data:
+            changes[field_name] = FieldChange(old=change_data["old"], new=change_data["new"])
 
     return UpdatedEventData(changes=changes) if changes else None
 
@@ -180,9 +172,7 @@ def _get_campaign_id(obj: Any) -> int | None:
         return obj.id
     if isinstance(obj, DeliverableMedia):
         # DeliverableMedia gets campaign_id from its deliverable
-        return (
-            getattr(obj.deliverable, "campaign_id", None) if obj.deliverable else None
-        )
+        return getattr(obj.deliverable, "campaign_id", None) if obj.deliverable else None
     return getattr(obj, "campaign_id", None)
 
 
@@ -195,15 +185,11 @@ async def post_created_to_thread(session: AsyncSession, event: Event, obj: Any) 
     content = doc(paragraph(text("created "), bold(object_ref)))
 
     campaign_id = _get_campaign_id(obj)
-    await _post_to_thread(
-        session, event, content, user_id=event.actor_id, campaign_id=campaign_id
-    )
+    await _post_to_thread(session, event, content, user_id=event.actor_id, campaign_id=campaign_id)
 
 
 @event_consumer(EventType.UPDATED, model=THREADABLE_MODELS)
-async def post_updated_to_thread(
-    session: AsyncSession, event: Event, obj: BaseDBModel
-) -> None:
+async def post_updated_to_thread(session: AsyncSession, event: Event, obj: BaseDBModel) -> None:
     """Post update events to thread (attributed to actor)."""
     # Parse event data into structured format
     event_data = _parse_event_data_to_updated(event.event_data)
@@ -217,9 +203,7 @@ async def post_updated_to_thread(
     )
 
     campaign_id = _get_campaign_id(obj)
-    await _post_to_thread(
-        session, event, content, user_id=event.actor_id, campaign_id=campaign_id
-    )
+    await _post_to_thread(session, event, content, user_id=event.actor_id, campaign_id=campaign_id)
 
 
 @event_consumer(EventType.DELETED, model=THREADABLE_MODELS)
@@ -231,15 +215,11 @@ async def post_deleted_to_thread(session: AsyncSession, event: Event, obj: Any) 
     content = doc(paragraph(text("deleted "), bold(object_ref)))
 
     campaign_id = _get_campaign_id(obj)
-    await _post_to_thread(
-        session, event, content, user_id=None, campaign_id=campaign_id
-    )
+    await _post_to_thread(session, event, content, user_id=None, campaign_id=campaign_id)
 
 
 @event_consumer(EventType.STATE_CHANGED, model=THREADABLE_MODELS)
-async def post_state_changed_to_thread(
-    session: AsyncSession, event: Event, obj: Any
-) -> None:
+async def post_state_changed_to_thread(session: AsyncSession, event: Event, obj: Any) -> None:
     """Post state change events to thread (system message)."""
     object_ref = _format_object_ref(event, obj)
 
@@ -263,6 +243,4 @@ async def post_state_changed_to_thread(
         content = doc(paragraph(text("changed state of "), bold(object_ref)))
 
     campaign_id = _get_campaign_id(obj)
-    await _post_to_thread(
-        session, event, content, user_id=None, campaign_id=campaign_id
-    )
+    await _post_to_thread(session, event, content, user_id=None, campaign_id=campaign_id)

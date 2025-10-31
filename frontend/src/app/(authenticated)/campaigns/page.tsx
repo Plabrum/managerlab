@@ -19,7 +19,6 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ObjectListDTO } from '@/openapi/managerLab.schemas';
 import { ActionGroupType } from '@/openapi/managerLab.schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageTopBar } from '@/components/page-topbar';
@@ -75,15 +74,8 @@ export default function CampaignsPage() {
     });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleBulkAction = (_action: string, _rows: typeof data.objects) => {
-    // TODO: Implement bulk action handling
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleRowActionClick = (_actionName: string, _row: ObjectListDTO) => {
-    // TODO: Implement row action handling with dynamic objectId
-  };
+  // TODO: Implement row action handling (see media page for reference)
+  // TODO: Implement bulk action handling
 
   return (
     <PageTopBar
@@ -128,8 +120,6 @@ export default function CampaignsPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
-        onActionClick={handleRowActionClick}
-        onBulkActionClick={handleBulkAction}
       />
     </PageTopBar>
   );

@@ -1,67 +1,48 @@
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ActionDTO,
-    ObjectListDTO,
-    ObjectFieldDTO,
     FieldType,
-    ColumnDefinitionDTO,
+    ObjectColumn,
     StringFieldValue,
 )
-from app.objects.services import get_filter_by_field_type
 from app.users.models import Team
-from app.utils.sqids import sqid_encode
 
 
-class TeamObject(BaseObject):
+class TeamObject(BaseObject[Team]):
     object_type = ObjectTypes.Teams
-    model = Team
+
+    @classmethod
+    def model(cls) -> type[Team]:
+        return Team
+
+    @classmethod
+    def title_field(cls, team: Team) -> str:
+        return team.name
+
+    @classmethod
+    def subtitle_field(cls, team: Team) -> str:
+        return team.description or ""
+
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.name),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="description",
             label="Description",
-            type=FieldType.Text,
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.description) if obj.description else None,
             sortable=False,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
     ]
-
-    @classmethod
-    async def to_list_dto(cls, team: Team) -> ObjectListDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=team.name),
-                label="Name",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="description",
-                value=StringFieldValue(value=team.description or ""),
-                label="Description",
-                editable=False,
-            ),
-        ]
-
-        return ObjectListDTO(
-            id=sqid_encode(team.id),
-            object_type=ObjectTypes.Teams,
-            title=team.name,
-            subtitle=team.description,
-            state="active",  # Teams don't have a state machine, so we use a default value
-            actions=[
-                ActionDTO(action="delete", label="Delete", is_bulk_allowed=False),
-            ],
-            created_at=team.created_at,
-            updated_at=team.updated_at,
-            fields=fields,
-        )

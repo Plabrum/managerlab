@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -80,9 +81,7 @@ class Message(
     user: Mapped["User | None"] = relationship("User")
 
     # Index for efficient message listing
-    __table_args__ = (
-        sa.Index("ix_messages_thread_created", "thread_id", "created_at"),
-    )
+    __table_args__ = (sa.Index("ix_messages_thread_created", "thread_id", "created_at"),)
 
 
 class ThreadReadStatus(BaseDBModel):
