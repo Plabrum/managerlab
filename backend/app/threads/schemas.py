@@ -6,7 +6,9 @@ from typing import Any
 from msgspec import Struct
 
 from app.base.schemas import BaseSchema
-from app.threads.enums import MessageUpdateType
+from app.threads.enums import (
+    ThreadSocketMessageType,
+)
 from app.utils.sqids import Sqid
 
 
@@ -86,65 +88,36 @@ class UserPresence(BaseSchema):
 # Websocket Message Schemas
 # ============================================================================
 
-# ============================================================================
-# Client → Server Messages
-# ============================================================================
+
+class ClientMessage(Struct, frozen=True):
+    """Single unified client message structure.
+
+    The message_type field determines which optional fields are relevant:
+    - USER_FOCUS: No additional fields
+    - USER_BLUR: No additional fields
+    - MARK_READ: No additional fields
+    """
+
+    message_type: ThreadSocketMessageType
 
 
-class TypingMessage(Struct, frozen=True, tag="typing"):
-    """Client typing indicator update."""
+class ServerMessage(Struct, frozen=True):
+    """Single unified server message structure.
 
-    is_typing: bool
+    The type field determines which optional fields are relevant:
+    - USER_JOINED: user_id, viewers
+    - USER_LEFT: user_id, viewers
+    - USER_FOCUS: user_id, viewers
+    - USER_BLUR: user_id, viewers
+    - MESSAGE_CREATED: message_id, thread_id, user_id, viewers
+    - MESSAGE_UPDATED: message_id, thread_id, user_id, viewers
+    - MESSAGE_DELETED: message_id, thread_id, user_id, viewers
+    """
 
-
-class MarkReadMessage(Struct, frozen=True, tag="mark_read"):
-    """Client request to mark thread as read."""
-
-    pass
-
-
-# Union of all client message types
-ClientMessage = TypingMessage | MarkReadMessage
-
-
-# ============================================================================
-# Server → Client Messages
-# ============================================================================
-
-
-class UserJoinedMessage(Struct, frozen=True, tag="user_joined"):
-    """Server notification that a user joined the thread."""
-
-    user_id: str
-    viewers: list[str]
-
-
-class UserLeftMessage(Struct, frozen=True, tag="user_left"):
-    """Server notification that a user left the thread."""
-
-    user_id: str
-    viewers: list[str]
-
-
-class TypingUpdateMessage(Struct, frozen=True, tag="typing_update"):
-    """Server notification that a user's typing status changed (transient)."""
-
-    user_id: str
-    is_typing: bool
-    viewers: list[str]
-
-
-class MessageUpdateMessage(Struct, frozen=True, tag="message_update"):
-    """Server notification that a message was created, updated, or deleted."""
-
-    update_type: MessageUpdateType
-    message_id: str
-    thread_id: str
-    user_id: str
-    viewers: list[int] = []  # Default empty, list of user IDs currently viewing
-
-
-# Union of all server message types
-ServerMessage = (
-    UserJoinedMessage | UserLeftMessage | TypingUpdateMessage | MessageUpdateMessage
-)
+    message_type: ThreadSocketMessageType
+    viewers: list[
+        str
+    ]  # Always included - list of Sqid-encoded user IDs currently viewing
+    user_id: str | None = None  # Sqid-encoded user ID
+    message_id: str | None = None  # Sqid-encoded message ID
+    thread_id: str | None = None  # Sqid-encoded thread ID

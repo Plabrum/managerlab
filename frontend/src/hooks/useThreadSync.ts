@@ -37,7 +37,14 @@ export function useThreadSync({
   });
 
   // WebSocket connection
-  const { viewers, isConnected, sendTypingIndicator } = useThreadConnection({
+  const {
+    viewers,
+    isConnected,
+    handleInputFocus,
+    handleInputBlur,
+    sendMarkRead,
+    updateUserName,
+  } = useThreadConnection({
     threadableType,
     threadableId,
     enabled,
@@ -66,6 +73,9 @@ export function useThreadSync({
     activeViewers,
     typingUsers,
     isConnected,
-    sendTypingIndicator,
+    handleInputFocus,
+    handleInputBlur,
+    sendMarkRead,
+    updateUserName,
   };
 }

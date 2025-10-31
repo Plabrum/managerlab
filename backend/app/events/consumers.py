@@ -13,9 +13,9 @@ from app.events.enums import EventType
 from app.events.models import Event
 from app.events.registry import event_consumer
 from app.events.schemas import FieldChange, UpdatedEventData
-from app.threads.enums import MessageUpdateType
+from app.threads.enums import ThreadSocketMessageType
 from app.threads.models import Message
-from app.threads.schemas import MessageUpdateMessage
+from app.threads.schemas import ServerMessage
 from app.threads.services import (
     get_or_create_thread,
     notify_thread,
@@ -69,19 +69,17 @@ async def _post_to_thread(
     session.add(thread_message)
     await session.flush()
 
-    # Event messages don't need real-time viewer presence - use empty list
-
     # Notify WebSocket subscribers
-    # Event messages are system-created messages, so treat as "created"
+    # Event messages are system-created messages
     await notify_thread(
         channels,
         thread.id,
-        MessageUpdateMessage(
-            update_type=MessageUpdateType.CREATED,
+        ServerMessage(
+            message_type=ThreadSocketMessageType.MESSAGE_CREATED,
             message_id=sqid_encode(thread_message.id),
             thread_id=sqid_encode(thread.id),
             user_id=sqid_encode(0),  # System user (events have no user_id)
-            viewers=[],
+            viewers=[],  # Empty - event consumers don't have viewer_store access
         ),
     )
 

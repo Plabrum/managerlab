@@ -55,6 +55,9 @@ interface MinimalTiptapProps {
   isSending?: boolean;
   mode?: 'new' | 'edit';
   onCancel?: () => void;
+  // Focus/blur handlers
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 /**
@@ -91,6 +94,8 @@ function MinimalTiptap({
   isSending = false,
   mode = 'new',
   onCancel,
+  onFocus,
+  onBlur,
 }: MinimalTiptapProps) {
   const [showToolbar, setShowToolbar] = React.useState(initialShowToolbar);
 
@@ -117,12 +122,46 @@ function MinimalTiptap({
     onUpdate: ({ editor }) => {
       onChange?.(editor.getJSON());
     },
+    onFocus: () => {
+      onFocus?.();
+    },
+    onBlur: () => {
+      onBlur?.();
+    },
     editorProps: {
       attributes: {
         class: cn(
           'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
           'p-0 border-0'
         ),
+      },
+      handleKeyDown: (view, event) => {
+        // Prevent keyboard shortcuts from bubbling when editor is focused
+        // This prevents Cmd+B from toggling sidebar while editing
+        if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
+          event.stopPropagation();
+        }
+
+        // Handle Enter key for chat-like behavior
+        if (event.key === 'Enter' && !event.shiftKey) {
+          // If there's an onSend handler and we're not in a list or other special context,
+          // treat Enter as submit
+          if (onSend) {
+            // Check if we're in a list item - allow normal behavior there
+            const { state } = view;
+            const { $from } = state.selection;
+            const isInList = $from.node(-1)?.type.name === 'listItem';
+
+            if (!isInList) {
+              event.preventDefault();
+              onSend();
+              return true;
+            }
+          }
+        }
+
+        // Shift+Enter should insert a line break (default behavior)
+        return false;
       },
     },
   });

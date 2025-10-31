@@ -53,7 +53,8 @@ export function ChatDrawer({
     deleteMessage,
     activeViewers,
     typingUsers,
-    sendTypingIndicator,
+    handleInputFocus,
+    handleInputBlur,
   } = useThreadSync({
     threadableType,
     threadableId,
@@ -95,7 +96,8 @@ export function ChatDrawer({
 
         <MessageInput
           onSendMessage={sendMessage}
-          onTypingChange={sendTypingIndicator}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           disabled={isSending}
         />
       </SheetContent>

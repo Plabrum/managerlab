@@ -40,7 +40,8 @@ export function MediaThreadCard({
     editMessage,
     deleteMessage,
     typingUsers,
-    sendTypingIndicator,
+    handleInputFocus,
+    handleInputBlur,
   } = useThreadSync({
     threadableType: ObjectTypes.media,
     threadableId: String(mediaAssociation.media.id),
@@ -112,7 +113,8 @@ export function MediaThreadCard({
             <div className="rounded-lg border">
               <MessageInput
                 onSendMessage={sendMessage}
-                onTypingChange={sendTypingIndicator}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
                 disabled={isSending}
               />
             </div>

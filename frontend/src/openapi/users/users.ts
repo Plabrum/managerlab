@@ -33,9 +33,9 @@ import type {
   ListTeamsResponse,
   SwitchTeamRequest,
   TeamSchema,
+  UserSchema,
   UserWaitlistFormSchema,
   UsersCreateUser400,
-  UsersSchemasUserSchema,
   UsersSignupAddUserToWaitlist400,
   UsersSwitchTeamSwitchTeam201,
   UsersSwitchTeamSwitchTeam400,
@@ -122,7 +122,7 @@ export const usersListUsers = (
 ) => {
       
       
-      return customInstance<UsersSchemasUserSchema[]>(
+      return customInstance<UserSchema[]>(
       {url: `/users`, method: 'GET', signal
     },
       );
@@ -267,7 +267,7 @@ export const usersCreateUser = (
 ) => {
       
       
-      return customInstance<UsersSchemasUserSchema>(
+      return customInstance<UserSchema>(
       {url: `/users`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createUserSchema, signal
@@ -331,7 +331,7 @@ export const usersUserIdGetUser = (
 ) => {
       
       
-      return customInstance<UsersSchemasUserSchema>(
+      return customInstance<UserSchema>(
       {url: `/users/${userId}`, method: 'GET', signal
     },
       );
@@ -685,7 +685,7 @@ export const usersCurrentUserGetCurrentUser = (
 ) => {
       
       
-      return customInstance<UsersSchemasUserSchema>(
+      return customInstance<UserSchema>(
       {url: `/users/current_user`, method: 'GET', signal
     },
       );

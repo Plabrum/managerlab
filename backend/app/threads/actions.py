@@ -7,8 +7,8 @@ from app.actions import BaseAction, action_group_factory, ActionGroupType
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.threads.models import Message
-from app.threads.enums import MessageActions, MessageUpdateType
-from app.threads.schemas import MessageUpdateMessage, MessageUpdateSchema
+from app.threads.enums import MessageActions, ThreadSocketMessageType
+from app.threads.schemas import ServerMessage, MessageUpdateSchema
 from app.threads.services import notify_thread
 from app.utils.sqids import sqid_encode
 
@@ -57,12 +57,12 @@ class UpdateMessage(BaseAction):
         await notify_thread(
             channels,
             obj.thread_id,
-            MessageUpdateMessage(
-                update_type=MessageUpdateType.UPDATED,
+            ServerMessage(
+                message_type=ThreadSocketMessageType.MESSAGE_UPDATED,
                 message_id=sqid_encode(obj.id),
                 thread_id=sqid_encode(obj.thread_id),
                 user_id=sqid_encode(obj.user_id or 0),
-                viewers=[],
+                viewers=[],  # Empty - actions don't have viewer_store access
             ),
         )
 
@@ -108,12 +108,12 @@ class DeleteMessage(BaseAction):
         await notify_thread(
             channels,
             obj.thread_id,
-            MessageUpdateMessage(
-                update_type=MessageUpdateType.DELETED,
+            ServerMessage(
+                message_type=ThreadSocketMessageType.MESSAGE_DELETED,
                 message_id=sqid_encode(obj.id),
                 thread_id=sqid_encode(obj.thread_id),
                 user_id=sqid_encode(obj.user_id or 0),
-                viewers=[],
+                viewers=[],  # Empty - actions don't have viewer_store access
             ),
         )
 

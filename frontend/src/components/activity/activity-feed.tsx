@@ -44,7 +44,8 @@ export function ActivityFeed({
     deleteMessage,
     activeViewers,
     typingUsers,
-    sendTypingIndicator,
+    handleInputFocus,
+    handleInputBlur,
   } = useThreadSync({
     threadableType,
     threadableId,
@@ -83,7 +84,8 @@ export function ActivityFeed({
       <div className="mt-4 rounded-lg border">
         <MessageInput
           onSendMessage={sendMessage}
-          onTypingChange={sendTypingIndicator}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           disabled={isSending}
         />
       </div>

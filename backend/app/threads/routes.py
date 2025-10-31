@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 
 from app.auth.guards import requires_user_scope
 from app.objects.enums import ObjectTypes
-from app.threads.enums import MessageUpdateType
+from app.threads.enums import ThreadSocketMessageType
 from app.threads.models import Thread, Message
 from app.threads.schemas import (
     MessageSchema,
@@ -21,7 +21,7 @@ from app.threads.schemas import (
     MessageListResponse,
     BatchUnreadRequest,
     BatchUnreadResponse,
-    MessageUpdateMessage,
+    ServerMessage,
     ThreadUnreadInfo,
 )
 from app.threads.services import (
@@ -80,12 +80,12 @@ async def create_message(
     await notify_thread(
         channels,
         thread.id,
-        MessageUpdateMessage(
-            update_type=MessageUpdateType.CREATED,
+        ServerMessage(
+            message_type=ThreadSocketMessageType.MESSAGE_CREATED,
             message_id=sqid_encode(message.id),
             thread_id=sqid_encode(thread.id),
             user_id=sqid_encode(user.id),
-            viewers=[],
+            viewers=[],  # Empty - REST routes don't have viewer_store access
         ),
     )
 
