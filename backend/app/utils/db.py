@@ -12,13 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.enums import ScopeType
 from app.base.models import BaseDBModel
 from app.base.schemas import BaseSchema
-from app.events import (
-    CreatedEventData,
-    EventType,
-    UpdatedEventData,
-    emit_event,
-    make_field_changes,
-)
+from app.events.enums import EventType
+from app.events.schemas import CreatedEventData, UpdatedEventData, make_field_changes
+from app.events.service import emit_event
 
 logger = logging.getLogger(__name__)
 
