@@ -1,47 +1,54 @@
+from app.utils.discovery import discover_and_import
+
+discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 import logging
 from typing import Any
+
 from advanced_alchemy.exceptions import RepositoryError
 from litestar import Litestar, Response, get
+from litestar.channels import ChannelsPlugin
+from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
 from litestar.config.cors import CORSConfig
 from litestar.contrib.sqlalchemy.plugins import (
     AsyncSessionConfig,
+    EngineConfig,
     SQLAlchemyAsyncConfig,
     SQLAlchemyPlugin,
-    EngineConfig,
 )
 from litestar.di import Provide
+from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
+from litestar.middleware.session.server_side import (
+    ServerSideSessionBackend,
+    ServerSideSessionConfig,
+)
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.plugins import ScalarRenderPlugin
 from litestar.security.session_auth import SessionAuth
-from litestar.middleware.session.server_side import (
-    ServerSideSessionConfig,
-    ServerSideSessionBackend,
-)
-from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
+from litestar.stores.memory import MemoryStore
 from litestar_saq import SAQConfig, SAQPlugin
-from app.base.models import BaseDBModel
 from sqlalchemy.pool import NullPool
 
-from app.queue.config import queue_config
-from app.utils.configure import config
-from app.users.routes import user_router, public_user_router
-from app.roster.routes import roster_router
-from app.auth.routes import auth_router
-from app.objects.routes import object_router
 from app.actions.routes import action_router
+from app.auth.routes import auth_router
+from app.base.models import BaseDBModel
 from app.brands.routes import brand_router
 from app.campaigns.routes import campaign_router
-from app.deliverables.routes import deliverable_router
-from app.media.routes import media_router, local_media_router
-from app.payments.routes import invoice_router
-from app.dashboard.routes import dashboard_router
-from app.threads import thread_router, ThreadWebSocketHandler
-from app.utils.exceptions import ApplicationError, exception_to_http_response
-from app.utils import providers
-from app.utils.logging import logging_config
 from app.client.s3_client import provide_s3_client
-from app.utils.sqids import Sqid, sqid_type_predicate, sqid_enc_hook, sqid_dec_hook
-
+from app.dashboard.routes import dashboard_router
+from app.deliverables.routes import deliverable_router
+from app.media.routes import local_media_router, media_router
+from app.objects.routes import object_router
+from app.payments.routes import invoice_router
+from app.queue.config import queue_config
+from app.roster.routes import roster_router
+from app.threads import thread_router
+from app.threads.websocket import thread_handler
+from app.users.routes import public_user_router, user_router
+from app.utils import providers
+from app.utils.configure import config
+from app.utils.exceptions import ApplicationError, exception_to_http_response
+from app.utils.logging import logging_config
+from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +94,7 @@ route_handlers: list[Any] = [
     invoice_router,
     dashboard_router,
     thread_router,
-    ThreadWebSocketHandler,
+    thread_handler,
 ]
 
 # Only include local media router in development
@@ -113,20 +120,20 @@ app = Litestar(
         ApplicationError: exception_to_http_response,
         RepositoryError: exception_to_http_response,
     },
-    stores={"sessions": providers.create_postgres_session_store()},
+    stores={
+        "sessions": providers.create_postgres_session_store(),
+        "viewers": MemoryStore(),
+    },
     dependencies={
         "transaction": Provide(providers.provide_transaction),
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
         "config": Provide(lambda: config, sync_to_thread=False),
         "s3_client": Provide(provide_s3_client, sync_to_thread=False),
-        "action_registry": Provide(
-            providers.provide_action_registry, sync_to_thread=False
-        ),
-        "object_registry": Provide(
-            providers.provide_object_registry, sync_to_thread=False
-        ),
+        "action_registry": Provide(providers.provide_action_registry, sync_to_thread=False),
+        "object_registry": Provide(providers.provide_object_registry, sync_to_thread=False),
         "team_id": Provide(providers.provide_team_id, sync_to_thread=False),
         "campaign_id": Provide(providers.provide_campaign_id, sync_to_thread=False),
+        "viewer_store": Provide(providers.provide_viewer_store, sync_to_thread=False),
     },
     plugins=[
         SQLAlchemyPlugin(
@@ -155,6 +162,10 @@ app = Litestar(
                 web_enabled=config.IS_DEV,  # Enable web UI in development
                 use_server_lifespan=True,  # Integrate with Litestar lifecycle
             )
+        ),
+        ChannelsPlugin(
+            backend=PsycoPgChannelsBackend(config.PSYCOPG_DATABASE_URL),
+            arbitrary_channels_allowed=True,  # Allow dynamic thread channels
         ),
     ],
     openapi_config=OpenAPIConfig(

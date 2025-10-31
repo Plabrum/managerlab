@@ -6,17 +6,17 @@ Create Date: 2025-10-01 23:20:58.815761
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "92a8ce5f8d2a"
-down_revision: Union[str, Sequence[str], None] = "d88e3812dfc0"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "d88e3812dfc0"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -32,12 +32,8 @@ def upgrade() -> None:
     op.add_column("media", sa.Column("status", sa.Text(), nullable=True))
 
     # Set defaults for existing rows
-    op.execute(
-        "UPDATE media SET file_key = 'legacy/' || id::text WHERE file_key IS NULL"
-    )
-    op.execute(
-        "UPDATE media SET file_name = filename WHERE file_name IS NULL AND filename IS NOT NULL"
-    )
+    op.execute("UPDATE media SET file_key = 'legacy/' || id::text WHERE file_key IS NULL")
+    op.execute("UPDATE media SET file_name = filename WHERE file_name IS NULL AND filename IS NOT NULL")
     op.execute("UPDATE media SET file_type = 'image' WHERE file_type IS NULL")
     op.execute("UPDATE media SET file_size = 0 WHERE file_size IS NULL")
     op.execute("UPDATE media SET mime_type = 'image/jpeg' WHERE mime_type IS NULL")

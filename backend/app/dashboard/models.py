@@ -1,17 +1,18 @@
 """Dashboard models for storing user and team dashboard configurations."""
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 from app.dashboard.enums import DashboardOwnerType
 
 if TYPE_CHECKING:
-    from app.users.models import User, Team
+    from app.users.models import Team, User
 
 
 class Dashboard(RLSMixin(), BaseDBModel):

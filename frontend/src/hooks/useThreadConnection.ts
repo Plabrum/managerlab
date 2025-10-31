@@ -1,23 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ObjectTypes } from '@/openapi/managerLab.schemas';
-
-export interface Viewer {
-  user_id: string;
-  name: string;
-  is_typing: boolean;
-}
-
-interface WebSocketMessage {
-  type: string;
-  user_id?: string;
-  viewers?: Viewer[];
-  message_id?: number;
-  thread_id?: number;
-  timestamp?: number;
-  is_typing?: boolean;
-}
+import { useWebSocket } from './useWebSocket';
+import {
+  ThreadSocketMessageType,
+  type ServerMessage,
+  type ClientMessage,
+  type Viewer,
+} from '@/types/websocket';
 
 interface UseThreadConnectionOptions {
   threadableType: ObjectTypes;
@@ -26,110 +17,174 @@ interface UseThreadConnectionOptions {
   onMessageUpdate?: () => void;
 }
 
+/**
+ * High-level hook for thread websocket connection.
+ * Manages viewer presence, typing indicators, and message updates.
+ */
 export function useThreadConnection({
   threadableType,
   threadableId,
   enabled = true,
   onMessageUpdate,
 }: UseThreadConnectionOptions) {
-  const wsRef = useRef<WebSocket | null>(null);
-  const [viewers, setViewers] = useState<Viewer[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-
-  // Connect to WebSocket
-  useEffect(() => {
-    if (!enabled) return;
-
-    // Use backend URL from environment variable, fallback to localhost:8000
+  // Build WebSocket URL
+  const wsUrl = useMemo(() => {
     const backendUrl =
       process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const protocol = backendUrl.startsWith('https') ? 'wss:' : 'ws:';
     const host = backendUrl.replace(/^https?:\/\//, '');
-    const wsUrl = `${protocol}//${host}/ws/threads/${threadableType}/${threadableId}`;
+    return `${protocol}//${host}/ws/threads/${threadableType}/${threadableId}`;
+  }, [threadableType, threadableId]);
 
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-      setIsConnected(true);
+  // Low-level websocket connection
+  const { isConnected, lastMessage, send } = useWebSocket({
+    url: wsUrl,
+    enabled,
+    onOpen: () => {
       // Mark thread as read when connecting
-      ws.send(JSON.stringify({ type: 'mark_read' }));
-    };
-
-    ws.onmessage = (event) => {
-      const notification: WebSocketMessage = JSON.parse(event.data);
-      console.log('WebSocket notification:', notification);
-
-      switch (notification.type) {
-        case 'user_joined':
-        case 'typing_update':
-          if (notification.viewers) {
-            setViewers(notification.viewers);
-          }
-          break;
-
-        case 'new_message':
-        case 'message_updated':
-        case 'message_deleted':
-          // Notify consumer to refetch messages
-          onMessageUpdate?.();
-          break;
-
-        case 'pong':
-          // Handle pong response
-          break;
-
-        case 'marked_read':
-          // Thread marked as read confirmation
-          break;
-
-        default:
-          console.log('Unknown notification type:', notification.type);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      console.error('WebSocket readyState:', ws.readyState);
-      console.error('WebSocket URL:', wsUrl);
-      setIsConnected(false);
-    };
-
-    ws.onclose = (event) => {
-      console.log('WebSocket disconnected');
-      console.log('Close code:', event.code, 'Reason:', event.reason);
-      console.log('Was clean close:', event.wasClean);
-      setIsConnected(false);
+      send({
+        message_type: ThreadSocketMessageType.MARK_READ,
+      } as ClientMessage);
+    },
+    onClose: () => {
       setViewers([]);
+    },
+  });
+
+  // Viewer state management
+  const [viewers, setViewers] = useState<Viewer[]>([]);
+
+  // User name cache (user_id → name)
+  const [userNameCache, setUserNameCache] = useState<Map<string, string>>(
+    new Map()
+  );
+
+  // Track page visibility for auto-marking as read
+  const [isPageVisible, setIsPageVisible] = useState(
+    typeof document !== 'undefined'
+      ? document.visibilityState === 'visible'
+      : true
+  );
+
+  // Listen for page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === 'visible');
     };
 
-    // Send ping every 30 seconds to keep connection alive
-    const pingInterval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
-      }
-    }, 30000);
-
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
-      clearInterval(pingInterval);
-      ws.close();
-      wsRef.current = null;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [enabled, threadableType, threadableId, onMessageUpdate]);
-
-  // Send typing indicator
-  const sendTypingIndicator = useCallback((isTyping: boolean) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({ type: 'typing', is_typing: isTyping })
-      );
-    }
   }, []);
+
+  // Process incoming messages
+  useEffect(() => {
+    if (!lastMessage) return;
+
+    const message: ServerMessage = JSON.parse(lastMessage.data);
+    console.log('[useThreadConnection] Message:', message);
+
+    // Helper: Get or create viewer with cached name
+    const getViewerFromId = (userId: string): Viewer => {
+      const cachedName = userNameCache.get(userId);
+      return {
+        user_id: userId,
+        name: cachedName || `User ${userId.slice(0, 6)}`, // Fallback to partial ID
+        is_typing: false,
+      };
+    };
+
+    switch (message.message_type) {
+      case ThreadSocketMessageType.USER_JOINED:
+        // Update viewers list from server
+        // Server sends viewers as array of user IDs, we need to enrich with names
+        const joinedViewers = message.viewers.map((userId) =>
+          getViewerFromId(userId)
+        );
+        setViewers(joinedViewers);
+        break;
+
+      case ThreadSocketMessageType.USER_LEFT:
+        // Remove user from viewers
+        if (message.user_id) {
+          setViewers((prev) =>
+            prev.filter((v) => v.user_id !== message.user_id)
+          );
+        }
+        break;
+
+      case ThreadSocketMessageType.USER_FOCUS:
+        // User started typing - set is_typing = true
+        if (message.user_id) {
+          setViewers((prev) =>
+            prev.map((v) =>
+              v.user_id === message.user_id ? { ...v, is_typing: true } : v
+            )
+          );
+        }
+        break;
+
+      case ThreadSocketMessageType.USER_BLUR:
+        // User stopped typing - set is_typing = false
+        if (message.user_id) {
+          setViewers((prev) =>
+            prev.map((v) =>
+              v.user_id === message.user_id ? { ...v, is_typing: false } : v
+            )
+          );
+        }
+        break;
+
+      case ThreadSocketMessageType.MESSAGE_CREATED:
+      case ThreadSocketMessageType.MESSAGE_UPDATED:
+      case ThreadSocketMessageType.MESSAGE_DELETED:
+        // Message changed - trigger refetch
+        onMessageUpdate?.();
+
+        // Auto-mark as read if user is actively viewing the thread
+        if (
+          message.message_type === ThreadSocketMessageType.MESSAGE_CREATED &&
+          isPageVisible
+        ) {
+          send({
+            message_type: ThreadSocketMessageType.MARK_READ,
+          } as ClientMessage);
+        }
+        break;
+
+      default:
+        console.log(
+          '[useThreadConnection] Unknown message type:',
+          message.message_type
+        );
+    }
+  }, [lastMessage, userNameCache, onMessageUpdate, isPageVisible, send]);
+
+  // Handle input focus (user started typing)
+  const handleInputFocus = useCallback(() => {
+    send({ message_type: ThreadSocketMessageType.USER_FOCUS } as ClientMessage);
+  }, [send]);
+
+  // Handle input blur (user stopped typing)
+  const handleInputBlur = useCallback(() => {
+    send({ message_type: ThreadSocketMessageType.USER_BLUR } as ClientMessage);
+  }, [send]);
+
+  // Mark thread as read
+  const sendMarkRead = useCallback(() => {
+    send({ message_type: ThreadSocketMessageType.MARK_READ } as ClientMessage);
+  }, [send]);
 
   return {
     viewers,
     isConnected,
-    sendTypingIndicator,
+    handleInputFocus,
+    handleInputBlur,
+    sendMarkRead,
+    // Expose user cache setter for updating names when user data is loaded
+    updateUserName: useCallback((userId: string, name: string) => {
+      setUserNameCache((prev) => new Map(prev).set(userId, name));
+    }, []),
   };
 }

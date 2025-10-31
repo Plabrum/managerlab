@@ -39,12 +39,8 @@ class Config:
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
-    GOOGLE_REDIRECT_URI: str = os.getenv(
-        "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback"
-    )
-    SUCCESS_REDIRECT_URL: str = os.getenv(
-        "SUCCESS_REDIRECT_URL", "http://localhost:3000/"
-    )
+    GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback")
+    SUCCESS_REDIRECT_URL: str = os.getenv("SUCCESS_REDIRECT_URL", "http://localhost:3000/")
     S3_BUCKET: str = os.getenv("S3_BUCKET", "")
 
     # Session Configuration
@@ -74,6 +70,11 @@ class Config:
     def ASYNC_DATABASE_URL(self) -> str:
         """Async database URL for application runtime with psycopg3."""
         return self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
+
+    @property
+    def PSYCOPG_DATABASE_URL(self) -> str:
+        """Plain psycopg database URL for psycopg-only clients (channels, direct connections)."""
+        return self.DATABASE_URL  # Plain postgresql:// format without SQLAlchemy driver
 
     @property
     def QUEUE_DSN(self) -> str:

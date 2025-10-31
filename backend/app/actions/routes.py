@@ -1,18 +1,16 @@
 from litestar import Router, get, post
 
+from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.actions.schemas import (
-    ActionListResponse,
     ActionExecutionResponse,
+    ActionListResponse,
     build_action_union,
 )
-from app.actions.enums import ActionGroupType
-from app.utils.sqids import Sqid
 from app.utils.discovery import discover_and_import
+from app.utils.sqids import Sqid
 
-discover_and_import(
-    ["actions.py", "actions/**/*.py", "top_level_actions.py"], base_path="app"
-)
+discover_and_import(["actions.py", "actions/**/*.py", "top_level_actions.py"], base_path="app")
 
 
 # ----------------------------

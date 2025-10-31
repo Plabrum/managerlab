@@ -6,17 +6,17 @@ Create Date: 2025-10-21 20:51:05.360894
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "31e0afb7f242"
-down_revision: Union[str, Sequence[str], None] = "49406ed19c7c"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "49406ed19c7c"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -26,21 +26,11 @@ def upgrade() -> None:
     op.add_column("roster", sa.Column("tiktok_handle", sa.Text(), nullable=True))
     op.add_column("roster", sa.Column("youtube_channel", sa.Text(), nullable=True))
     op.add_column("roster", sa.Column("profile_photo_id", sa.Integer(), nullable=True))
-    op.create_index(
-        op.f("ix_roster_facebook_handle"), "roster", ["facebook_handle"], unique=False
-    )
-    op.create_index(
-        op.f("ix_roster_profile_photo_id"), "roster", ["profile_photo_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_roster_tiktok_handle"), "roster", ["tiktok_handle"], unique=False
-    )
-    op.create_index(
-        op.f("ix_roster_youtube_channel"), "roster", ["youtube_channel"], unique=False
-    )
-    op.create_foreign_key(
-        None, "roster", "media", ["profile_photo_id"], ["id"], ondelete="SET NULL"
-    )
+    op.create_index(op.f("ix_roster_facebook_handle"), "roster", ["facebook_handle"], unique=False)
+    op.create_index(op.f("ix_roster_profile_photo_id"), "roster", ["profile_photo_id"], unique=False)
+    op.create_index(op.f("ix_roster_tiktok_handle"), "roster", ["tiktok_handle"], unique=False)
+    op.create_index(op.f("ix_roster_youtube_channel"), "roster", ["youtube_channel"], unique=False)
+    op.create_foreign_key(None, "roster", "media", ["profile_photo_id"], ["id"], ondelete="SET NULL")
     # ### end Alembic commands ###
 
 

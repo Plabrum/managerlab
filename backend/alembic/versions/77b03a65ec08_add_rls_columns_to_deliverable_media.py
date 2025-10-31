@@ -6,28 +6,24 @@ Create Date: 2025-10-24 17:44:53.666049
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "77b03a65ec08"
-down_revision: Union[str, Sequence[str], None] = "f62de0a04340"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "f62de0a04340"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     """Upgrade schema."""
     # Add columns as nullable first
-    op.add_column(
-        "deliverable_media", sa.Column("team_id", sa.Integer(), nullable=True)
-    )
-    op.add_column(
-        "deliverable_media", sa.Column("campaign_id", sa.Integer(), nullable=True)
-    )
+    op.add_column("deliverable_media", sa.Column("team_id", sa.Integer(), nullable=True))
+    op.add_column("deliverable_media", sa.Column("campaign_id", sa.Integer(), nullable=True))
 
     # Populate team_id and campaign_id from deliverables table
     op.execute("""
@@ -62,9 +58,7 @@ def upgrade() -> None:
         ["id"],
         ondelete="RESTRICT",
     )
-    op.create_foreign_key(
-        None, "deliverable_media", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
+    op.create_foreign_key(None, "deliverable_media", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
 
 
 def downgrade() -> None:
@@ -73,9 +67,7 @@ def downgrade() -> None:
     op.drop_constraint(None, "deliverable_media", type_="foreignkey")
     op.drop_constraint(None, "deliverable_media", type_="foreignkey")
     op.drop_index(op.f("ix_deliverable_media_team_id"), table_name="deliverable_media")
-    op.drop_index(
-        op.f("ix_deliverable_media_campaign_id"), table_name="deliverable_media"
-    )
+    op.drop_index(op.f("ix_deliverable_media_campaign_id"), table_name="deliverable_media")
     op.drop_column("deliverable_media", "campaign_id")
     op.drop_column("deliverable_media", "team_id")
     # ### end Alembic commands ###

@@ -1,23 +1,22 @@
+import inspect
+import sys
+from functools import reduce
 from typing import (
     TYPE_CHECKING,
+    Annotated,
     Any,
     TypeAliasType,
-    Annotated,
-    Union,
     get_args,
     get_origin,
     get_type_hints,
 )
-from app.utils.dto import dto_to_msgspec_struct_from_mapper
-from functools import reduce
-import inspect
-import sys
 
 import msgspec
 from litestar.dto.base_dto import AbstractDTO
 
 from app.actions.enums import ActionGroupType, ActionResultType
 from app.base.schemas import BaseSchema
+from app.utils.dto import dto_to_msgspec_struct_from_mapper
 from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
@@ -49,7 +48,7 @@ class DownloadFileActionResult(BaseSchema, tag=ActionResultType.download_file.va
     filename: str
 
 
-ActionResult = Union[RedirectActionResult, DownloadFileActionResult]
+ActionResult = RedirectActionResult | DownloadFileActionResult
 
 
 class ActionExecutionResponse(BaseSchema):
@@ -110,7 +109,7 @@ def _extract_data_param_type(action_cls: type) -> Any | None:
         The type annotation of the 'data' parameter, or None if no data parameter exists
     """
     meth = getattr(action_cls, "execute")
-    fn = meth.__func__ if isinstance(meth, (classmethod, staticmethod)) else meth
+    fn = meth.__func__ if isinstance(meth, classmethod | staticmethod) else meth
     fn = inspect.unwrap(fn)
 
     sig = inspect.signature(fn)

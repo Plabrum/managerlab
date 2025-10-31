@@ -39,7 +39,7 @@ export function ChatDrawer({
   currentUserId,
   title = 'Chat',
 }: ChatDrawerProps) {
-  const { currentTeamId } = useAuth();
+  const { currentTeamId, user } = useAuth();
 
   // Only enable WebSocket when drawer is open AND team scope is set
   const enabled = open && currentTeamId !== null;
@@ -53,11 +53,13 @@ export function ChatDrawer({
     deleteMessage,
     activeViewers,
     typingUsers,
-    sendTypingIndicator,
+    handleInputFocus,
+    handleInputBlur,
   } = useThreadSync({
     threadableType,
     threadableId,
     currentUserId,
+    user,
     enabled,
   });
 
@@ -95,7 +97,8 @@ export function ChatDrawer({
 
         <MessageInput
           onSendMessage={sendMessage}
-          onTypingChange={sendTypingIndicator}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           disabled={isSending}
         />
       </SheetContent>

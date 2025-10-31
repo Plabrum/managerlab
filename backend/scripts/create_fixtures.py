@@ -2,33 +2,31 @@
 """Script to populate the database with fake data for development."""
 
 import asyncio
-import sys
 import random
+import sys
 from pathlib import Path
 
 # Add the parent directory to sys.path to import app modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.utils.configure import config
 
 # Import all models to ensure SQLAlchemy relationships are registered
-
 from tests.factories import (
-    UserFactory,
-    TeamFactory,
-    RoleFactory,
-    RosterFactory,
-    WaitlistEntryFactory,
-    BrandFactory,
     BrandContactFactory,
+    BrandFactory,
     CampaignFactory,
     DeliverableFactory,
-    MediaFactory,
-    InvoiceFactory,
     GoogleOAuthAccountFactory,
+    InvoiceFactory,
+    MediaFactory,
+    RoleFactory,
+    RosterFactory,
+    TeamFactory,
+    UserFactory,
+    WaitlistEntryFactory,
 )
 
 
@@ -38,9 +36,7 @@ async def create_fixtures():
 
     # Create async engine and session
     engine = create_async_engine(config.ASYNC_DATABASE_URL, echo=False)
-    async_session_factory = sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
-    )
+    async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with async_session_factory() as session:
         try:
@@ -158,9 +154,7 @@ async def create_fixtures():
                 # Each deliverable gets 1-3 media assets
                 selected_media = random.sample(media_assets, min(3, len(media_assets)))
                 for media in selected_media:
-                    assoc = DeliverableMedia(
-                        deliverable_id=deliverable.id, media_id=media.id
-                    )
+                    assoc = DeliverableMedia(deliverable_id=deliverable.id, media_id=media.id)
                     session.add(assoc)
 
             await session.flush()
@@ -172,9 +166,7 @@ async def create_fixtures():
             for campaign in campaigns:
                 # Get contacts from the same brand
                 brand_contacts_for_campaign = [
-                    contact
-                    for contact in brand_contacts
-                    if contact.brand_id == campaign.brand_id
+                    contact for contact in brand_contacts if contact.brand_id == campaign.brand_id
                 ]
                 if brand_contacts_for_campaign:
                     # Each campaign gets 1-2 lead contacts

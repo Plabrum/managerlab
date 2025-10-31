@@ -1,18 +1,19 @@
 from datetime import date
-from sqlalchemy.orm import mapped_column, relationship, Mapped
-import sqlalchemy as sa
 from typing import TYPE_CHECKING
+
+import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 from app.base.threadable_mixin import ThreadableMixin
-from app.state_machine.models import StateMachineMixin
 from app.roster.enums import RosterStates
-
+from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
-    from app.users.models import User
     from app.campaigns.models import Campaign
     from app.media.models import Media
+    from app.users.models import User
 
 
 class Roster(
@@ -48,18 +49,10 @@ class Roster(
                 (today.month, today.day) < (self.birthdate.month, self.birthdate.day)
             )
 
-    instagram_handle: Mapped[str | None] = mapped_column(
-        sa.Text, nullable=True, index=True
-    )
-    facebook_handle: Mapped[str | None] = mapped_column(
-        sa.Text, nullable=True, index=True
-    )
-    tiktok_handle: Mapped[str | None] = mapped_column(
-        sa.Text, nullable=True, index=True
-    )
-    youtube_channel: Mapped[str | None] = mapped_column(
-        sa.Text, nullable=True, index=True
-    )
+    instagram_handle: Mapped[str | None] = mapped_column(sa.Text, nullable=True, index=True)
+    facebook_handle: Mapped[str | None] = mapped_column(sa.Text, nullable=True, index=True)
+    tiktok_handle: Mapped[str | None] = mapped_column(sa.Text, nullable=True, index=True)
+    youtube_channel: Mapped[str | None] = mapped_column(sa.Text, nullable=True, index=True)
 
     # Profile photo
     profile_photo_id: Mapped[int | None] = mapped_column(

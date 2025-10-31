@@ -6,17 +6,18 @@ Create Date: 2025-10-19 17:32:47.826498
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision: str = "a5c6dd4e2369"
-down_revision: Union[str, Sequence[str], None] = "fa9121fbce6b"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "fa9121fbce6b"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -53,9 +54,7 @@ def upgrade() -> None:
         ),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(["campaign_id"], ["campaigns.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(
-            ["invited_by_user_id"], ["users.id"], ondelete="SET NULL"
-        ),
+        sa.ForeignKeyConstraint(["invited_by_user_id"], ["users.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("user_id", "campaign_id", name="uq_user_campaign"),
@@ -72,9 +71,7 @@ def upgrade() -> None:
         ["deleted_at"],
         unique=False,
     )
-    op.create_index(
-        op.f("ix_campaign_guests_user_id"), "campaign_guests", ["user_id"], unique=False
-    )
+    op.create_index(op.f("ix_campaign_guests_user_id"), "campaign_guests", ["user_id"], unique=False)
     op.add_column("brand_contacts", sa.Column("team_id", sa.Integer(), nullable=False))
     op.add_column(
         "brand_contacts",
@@ -86,36 +83,18 @@ def upgrade() -> None:
         ["deleted_at"],
         unique=False,
     )
-    op.create_index(
-        op.f("ix_brand_contacts_team_id"), "brand_contacts", ["team_id"], unique=False
-    )
-    op.create_foreign_key(
-        None, "brand_contacts", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
+    op.create_index(op.f("ix_brand_contacts_team_id"), "brand_contacts", ["team_id"], unique=False)
+    op.create_foreign_key(None, "brand_contacts", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
     op.add_column("brands", sa.Column("team_id", sa.Integer(), nullable=False))
-    op.add_column(
-        "brands", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
-    op.create_index(
-        op.f("ix_brands_deleted_at"), "brands", ["deleted_at"], unique=False
-    )
+    op.add_column("brands", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+    op.create_index(op.f("ix_brands_deleted_at"), "brands", ["deleted_at"], unique=False)
     op.create_index(op.f("ix_brands_team_id"), "brands", ["team_id"], unique=False)
-    op.create_foreign_key(
-        None, "brands", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
+    op.create_foreign_key(None, "brands", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
     op.add_column("campaigns", sa.Column("team_id", sa.Integer(), nullable=False))
-    op.add_column(
-        "campaigns", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
-    op.create_index(
-        op.f("ix_campaigns_deleted_at"), "campaigns", ["deleted_at"], unique=False
-    )
-    op.create_index(
-        op.f("ix_campaigns_team_id"), "campaigns", ["team_id"], unique=False
-    )
-    op.create_foreign_key(
-        None, "campaigns", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
+    op.add_column("campaigns", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+    op.create_index(op.f("ix_campaigns_deleted_at"), "campaigns", ["deleted_at"], unique=False)
+    op.create_index(op.f("ix_campaigns_team_id"), "campaigns", ["team_id"], unique=False)
+    op.create_foreign_key(None, "campaigns", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
     op.add_column(
         "google_oauth_accounts",
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
@@ -137,82 +116,42 @@ def upgrade() -> None:
         unique=False,
     )
     op.add_column("invoices", sa.Column("team_id", sa.Integer(), nullable=False))
-    op.add_column(
-        "invoices", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
-    op.create_index(
-        op.f("ix_invoices_campaign_id"), "invoices", ["campaign_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_invoices_deleted_at"), "invoices", ["deleted_at"], unique=False
-    )
+    op.add_column("invoices", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+    op.create_index(op.f("ix_invoices_campaign_id"), "invoices", ["campaign_id"], unique=False)
+    op.create_index(op.f("ix_invoices_deleted_at"), "invoices", ["deleted_at"], unique=False)
     op.create_index(op.f("ix_invoices_team_id"), "invoices", ["team_id"], unique=False)
-    op.drop_constraint(
-        op.f("invoices_campaign_id_fkey"), "invoices", type_="foreignkey"
-    )
-    op.create_foreign_key(
-        None, "invoices", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
-    op.create_foreign_key(
-        None, "invoices", "campaigns", ["campaign_id"], ["id"], ondelete="RESTRICT"
-    )
+    op.drop_constraint(op.f("invoices_campaign_id_fkey"), "invoices", type_="foreignkey")
+    op.create_foreign_key(None, "invoices", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
+    op.create_foreign_key(None, "invoices", "campaigns", ["campaign_id"], ["id"], ondelete="RESTRICT")
     op.add_column("media", sa.Column("team_id", sa.Integer(), nullable=False))
     op.add_column("media", sa.Column("campaign_id", sa.Integer(), nullable=True))
-    op.add_column(
-        "media", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
-    op.create_index(
-        op.f("ix_media_campaign_id"), "media", ["campaign_id"], unique=False
-    )
+    op.add_column("media", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+    op.create_index(op.f("ix_media_campaign_id"), "media", ["campaign_id"], unique=False)
     op.create_index(op.f("ix_media_deleted_at"), "media", ["deleted_at"], unique=False)
     op.create_index(op.f("ix_media_team_id"), "media", ["team_id"], unique=False)
-    op.create_foreign_key(
-        None, "media", "campaigns", ["campaign_id"], ["id"], ondelete="RESTRICT"
-    )
-    op.create_foreign_key(
-        None, "media", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
+    op.create_foreign_key(None, "media", "campaigns", ["campaign_id"], ["id"], ondelete="RESTRICT")
+    op.create_foreign_key(None, "media", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
     op.add_column("posts", sa.Column("team_id", sa.Integer(), nullable=False))
-    op.add_column(
-        "posts", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
-    op.create_index(
-        op.f("ix_posts_campaign_id"), "posts", ["campaign_id"], unique=False
-    )
+    op.add_column("posts", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+    op.create_index(op.f("ix_posts_campaign_id"), "posts", ["campaign_id"], unique=False)
     op.create_index(op.f("ix_posts_deleted_at"), "posts", ["deleted_at"], unique=False)
     op.create_index(op.f("ix_posts_team_id"), "posts", ["team_id"], unique=False)
     op.drop_constraint(op.f("posts_campaign_id_fkey"), "posts", type_="foreignkey")
-    op.create_foreign_key(
-        None, "posts", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
-    op.create_foreign_key(
-        None, "posts", "campaigns", ["campaign_id"], ["id"], ondelete="RESTRICT"
-    )
-    op.add_column(
-        "roles", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
+    op.create_foreign_key(None, "posts", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
+    op.create_foreign_key(None, "posts", "campaigns", ["campaign_id"], ["id"], ondelete="RESTRICT")
+    op.add_column("roles", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
     op.create_index(op.f("ix_roles_deleted_at"), "roles", ["deleted_at"], unique=False)
     op.add_column("roster", sa.Column("team_id", sa.Integer(), nullable=False))
-    op.add_column(
-        "roster", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
-    op.create_index(
-        op.f("ix_roster_deleted_at"), "roster", ["deleted_at"], unique=False
-    )
+    op.add_column("roster", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+    op.create_index(op.f("ix_roster_deleted_at"), "roster", ["deleted_at"], unique=False)
     op.create_index(op.f("ix_roster_team_id"), "roster", ["team_id"], unique=False)
-    op.create_foreign_key(
-        None, "roster", "teams", ["team_id"], ["id"], ondelete="RESTRICT"
-    )
+    op.create_foreign_key(None, "roster", "teams", ["team_id"], ["id"], ondelete="RESTRICT")
     op.drop_column("sessions", "updated_at")
     op.drop_column("sessions", "id")
     op.drop_column("sessions", "created_at")
-    op.add_column(
-        "teams", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
+    op.add_column("teams", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
     op.create_index(op.f("ix_teams_deleted_at"), "teams", ["deleted_at"], unique=False)
-    op.add_column(
-        "users", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-    )
+    op.add_column("users", sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
     op.create_index(op.f("ix_users_deleted_at"), "users", ["deleted_at"], unique=False)
     op.add_column(
         "waitlist_entries",
@@ -246,9 +185,7 @@ def downgrade() -> None:
             nullable=False,
         ),
     )
-    op.add_column(
-        "sessions", sa.Column("id", sa.INTEGER(), autoincrement=True, nullable=False)
-    )
+    op.add_column("sessions", sa.Column("id", sa.INTEGER(), autoincrement=True, nullable=False))
     op.add_column(
         "sessions",
         sa.Column(
@@ -268,9 +205,7 @@ def downgrade() -> None:
     op.drop_column("roles", "deleted_at")
     op.drop_constraint(None, "posts", type_="foreignkey")
     op.drop_constraint(None, "posts", type_="foreignkey")
-    op.create_foreign_key(
-        op.f("posts_campaign_id_fkey"), "posts", "campaigns", ["campaign_id"], ["id"]
-    )
+    op.create_foreign_key(op.f("posts_campaign_id_fkey"), "posts", "campaigns", ["campaign_id"], ["id"])
     op.drop_index(op.f("ix_posts_team_id"), table_name="posts")
     op.drop_index(op.f("ix_posts_deleted_at"), table_name="posts")
     op.drop_index(op.f("ix_posts_campaign_id"), table_name="posts")
@@ -298,13 +233,9 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_invoices_campaign_id"), table_name="invoices")
     op.drop_column("invoices", "deleted_at")
     op.drop_column("invoices", "team_id")
-    op.drop_index(
-        op.f("ix_google_oauth_states_deleted_at"), table_name="google_oauth_states"
-    )
+    op.drop_index(op.f("ix_google_oauth_states_deleted_at"), table_name="google_oauth_states")
     op.drop_column("google_oauth_states", "deleted_at")
-    op.drop_index(
-        op.f("ix_google_oauth_accounts_deleted_at"), table_name="google_oauth_accounts"
-    )
+    op.drop_index(op.f("ix_google_oauth_accounts_deleted_at"), table_name="google_oauth_accounts")
     op.drop_column("google_oauth_accounts", "deleted_at")
     op.drop_constraint(None, "campaigns", type_="foreignkey")
     op.drop_index(op.f("ix_campaigns_team_id"), table_name="campaigns")

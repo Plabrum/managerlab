@@ -6,17 +6,18 @@ Create Date: 2025-09-27 16:03:01.185688
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision: str = "82cd4683f530"
-down_revision: Union[str, Sequence[str], None] = "bd79306238c3"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "bd79306238c3"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -95,9 +96,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_brand_contacts_email"), "brand_contacts", ["email"], unique=False
-    )
+    op.create_index(op.f("ix_brand_contacts_email"), "brand_contacts", ["email"], unique=False)
     op.create_table(
         "campaigns",
         sa.Column("name", sa.Text(), nullable=False),

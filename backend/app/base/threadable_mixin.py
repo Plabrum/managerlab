@@ -1,8 +1,9 @@
 """Mixin for models that can have threads."""
 
 from typing import TYPE_CHECKING, Any
+
 from sqlalchemy import and_
-from sqlalchemy.orm import Mapped, relationship, declared_attr
+from sqlalchemy.orm import Mapped, declared_attr, relationship
 
 if TYPE_CHECKING:
     from app.threads.models import Thread

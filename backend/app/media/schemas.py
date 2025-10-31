@@ -1,10 +1,13 @@
 from datetime import datetime
+
 from msgspec import UNSET, UnsetType
-from app.base.schemas import BaseSchema
-from app.utils.sqids import Sqid
-from app.media.models import Media
+
 from app.actions.schemas import ActionDTO
+from app.base.schemas import BaseSchema
+from app.client.s3_client import BaseS3Client
+from app.media.models import Media
 from app.threads.schemas import ThreadUnreadInfo
+from app.utils.sqids import Sqid
 
 
 class MediaSchema(BaseSchema):
@@ -39,8 +42,8 @@ class MediaResponseSchema(BaseSchema):
     thread: ThreadUnreadInfo | None = None
 
 
-def media_to_response(
-    media: Media, s3_client, actions: list[ActionDTO], thread=None
+def media_to_response_schema(
+    media: Media, s3_client: BaseS3Client, actions: list[ActionDTO], thread=None
 ) -> MediaResponseSchema:
     """Transform Media model to response schema with presigned URLs.
 
@@ -49,13 +52,9 @@ def media_to_response(
         s3_client: S3Client for generating presigned URLs
         actions: List of available actions for this media
     """
-    view_url = s3_client.generate_presigned_download_url(
-        key=media.file_key, expires_in=3600
-    )
+    view_url = s3_client.generate_presigned_download_url(key=media.file_key, expires_in=3600)
     thumbnail_url = (
-        s3_client.generate_presigned_download_url(
-            key=media.thumbnail_key, expires_in=3600
-        )
+        s3_client.generate_presigned_download_url(key=media.thumbnail_key, expires_in=3600)
         if media.thumbnail_key
         else None
     )

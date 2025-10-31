@@ -1,7 +1,8 @@
 """Thread models for threads and messages."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -80,9 +81,7 @@ class Message(
     user: Mapped["User | None"] = relationship("User")
 
     # Index for efficient message listing
-    __table_args__ = (
-        sa.Index("ix_messages_thread_created", "thread_id", "created_at"),
-    )
+    __table_args__ = (sa.Index("ix_messages_thread_created", "thread_id", "created_at"),)
 
 
 class ThreadReadStatus(BaseDBModel):
@@ -123,5 +122,51 @@ class ThreadReadStatus(BaseDBModel):
             "thread_id",
             "user_id",
             "read_at",
+        ),
+    )
+
+
+class ThreadViewerEvent(BaseDBModel):
+    """Log of thread viewer presence events (multi-server safe).
+
+    Append-only log tracking when users join/leave threads via WebSocket.
+    Used to reconstruct current viewer list across multiple app servers.
+    """
+
+    __tablename__ = "thread_viewer_events"
+
+    # Foreign keys
+    thread_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("threads.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    # Event type
+    event_type: Mapped[Literal["joined", "left"]] = mapped_column(
+        sa.String(10),
+        nullable=False,
+    )
+
+    # Denormalized user name for efficient reads (avoids JOIN on queries)
+    user_name: Mapped[str] = mapped_column(sa.Text, nullable=False)
+
+    # Relationships
+    thread: Mapped["Thread"] = relationship("Thread")
+    user: Mapped["User"] = relationship("User")
+
+    # Composite index for efficient "current viewers" queries
+    # Query pattern: "SELECT * FROM ... WHERE thread_id = X ORDER BY created_at DESC"
+    __table_args__ = (
+        sa.Index(
+            "ix_thread_viewer_events_lookup",
+            "thread_id",
+            "user_id",
+            "created_at",
         ),
     )

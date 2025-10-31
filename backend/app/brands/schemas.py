@@ -1,9 +1,11 @@
 from datetime import datetime
+
 from msgspec import UNSET, UnsetType
-from app.base.schemas import BaseSchema
-from app.utils.sqids import Sqid
+
 from app.actions.schemas import ActionDTO
+from app.base.schemas import BaseSchema
 from app.threads.schemas import ThreadUnreadInfo
+from app.utils.sqids import Sqid
 
 
 class BrandSchema(BaseSchema):

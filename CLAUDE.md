@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make dev-all` - Start frontend, backend, and async worker together
 - `make dev-worker` - Start SAQ async worker for background task processing
 - `make test` - Run backend pytest suite
-- `make backend-check` - Run backend type checking with basedpyright
+- `make check-backend` - Run backend type checking with basedpyright
 - `make check-frontend` - Run frontend type checking and linting
 - `make check-all` - Run all pre-release checks (backend + frontend)
 - `make codegen` - Generate TypeScript API client from backend OpenAPI schema
@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make db-migrate` - Auto-generate Alembic migration from model changes
 - `make db-upgrade` - Apply database migrations
 - `make test` - Run backend tests
-- `make backend-check` - Run type checking with basedpyright
+- `make check-backend` - Run type checking with basedpyright
 - `make lint-backend` - Lint and format Python code
 
 ### Frontend Development

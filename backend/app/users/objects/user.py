@@ -1,148 +1,76 @@
-from typing import Sequence
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func
-
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ActionDTO,
-    ObjectListDTO,
-    ObjectListRequest,
-    ObjectFieldDTO,
-    FieldType,
-    ColumnDefinitionDTO,
-    StringFieldValue,
-    EmailFieldValue,
     BoolFieldValue,
+    EmailFieldValue,
     EnumFieldValue,
+    FieldType,
+    ObjectColumn,
+    StringFieldValue,
 )
-from app.objects.services import get_filter_by_field_type
 from app.users.enums import UserStates
 from app.users.models import User
-from app.utils.sqids import sqid_encode
 
 
-class UserObject(BaseObject):
+class UserObject(BaseObject[User]):
     object_type = ObjectTypes.Users
-    model = User
+
+    @classmethod
+    def model(cls) -> type[User]:
+        return User
+
+    @classmethod
+    def title_field(cls, user: User) -> str:
+        return user.name
+
+    @classmethod
+    def subtitle_field(cls, user: User) -> str:
+        return user.email
+
+    @classmethod
+    def state_field(cls, user: User) -> str:
+        return user.state
+
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.name),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="email",
             label="Email",
-            type=FieldType.String,
+            type=FieldType.Email,
+            value=lambda obj: EmailFieldValue(value=obj.email),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="email_verified",
-            label="Email verified",
+            label="Email Verified",
             type=FieldType.Bool,
+            value=lambda obj: BoolFieldValue(value=obj.email_verified),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Bool),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="state",
             label="Status",
             type=FieldType.Enum,
+            value=lambda obj: EnumFieldValue(value=obj.state),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[e.name for e in UserStates],
+            editable=False,
+            include_in_list=True,
         ),
     ]
-
-    @classmethod
-    async def to_list_dto(cls, user: User) -> ObjectListDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=user.name),
-                label="Name",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="email",
-                value=EmailFieldValue(value=user.email),
-                label="Email",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="email_verified",
-                value=BoolFieldValue(value=user.email_verified),
-                label="Email Verified",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="state",
-                value=EnumFieldValue(value=user.state.name),
-                label="Status",
-                editable=False,
-            ),
-        ]
-
-        return ObjectListDTO(
-            id=sqid_encode(user.id),
-            object_type=ObjectTypes.Users,
-            title=user.name,
-            subtitle=user.email,
-            state=user.state.name,
-            actions=[
-                ActionDTO(action="edit", label="Edit", is_bulk_allowed=True),
-                ActionDTO(action="release", label="Release", is_bulk_allowed=True),
-            ],
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            fields=fields,
-        )
-
-    @classmethod
-    async def query_from_request(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ):
-        query = select(User)
-
-        # Apply structured filters and sorts using FilterMapper
-        query = cls.apply_request_to_query(query, User, request)
-
-        # Default sort if no sorts applied
-        if not request.sorts:
-            query = query.order_by(User.created_at.desc())
-
-        return query
-
-    @classmethod
-    async def get_by_id(cls, session: AsyncSession, object_id: int) -> User:
-        result = await session.get(User, object_id)
-        if not result:
-            raise ValueError(f"User with id {object_id} not found")
-        return result
-
-    @classmethod
-    async def get_list(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ) -> tuple[Sequence[User], int]:
-        query = await cls.query_from_request(session, request)
-        total_rows = await session.execute(
-            select(func.count()).select_from(query.subquery())
-        )
-        total = total_rows.scalar_one()
-
-        # Apply pagination
-        query = query.offset(request.offset).limit(request.limit)
-
-        # Execute query
-        result = await session.execute(query)
-        users = result.scalars().all()
-
-        return users, total

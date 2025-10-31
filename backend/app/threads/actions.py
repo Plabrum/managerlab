@@ -1,15 +1,16 @@
 """Message actions."""
 
+from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import BaseAction, action_group_factory, ActionGroupType
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
+from app.threads.enums import MessageActions, ThreadSocketMessageType
 from app.threads.models import Message
-from app.threads.enums import MessageActions
-from app.threads.schemas import MessageUpdateSchema
+from app.threads.schemas import MessageUpdateSchema, ServerMessage
 from app.threads.services import notify_thread
-
+from app.utils.sqids import sqid_encode
 
 # Create message action group
 message_actions = action_group_factory(
@@ -44,6 +45,7 @@ class UpdateMessage(BaseAction):
         obj: Message,
         data: MessageUpdateSchema,
         transaction: AsyncSession,
+        channels: ChannelsPlugin,
     ) -> ActionExecutionResponse:
         # Update content
         obj.content = data.content
@@ -52,12 +54,15 @@ class UpdateMessage(BaseAction):
 
         # Notify WebSocket subscribers
         await notify_thread(
-            transaction,
+            channels,
             obj.thread_id,
-            {
-                "type": "message_updated",
-                "message_id": obj.id,
-            },
+            ServerMessage(
+                message_type=ThreadSocketMessageType.MESSAGE_UPDATED,
+                message_id=sqid_encode(obj.id),
+                thread_id=sqid_encode(obj.thread_id),
+                user_id=sqid_encode(obj.user_id or 0),
+                viewers=[],  # Empty - actions don't have viewer_store access
+            ),
         )
 
         return ActionExecutionResponse(
@@ -92,6 +97,7 @@ class DeleteMessage(BaseAction):
         cls,
         obj: Message,
         transaction: AsyncSession,
+        channels: ChannelsPlugin,
     ) -> ActionExecutionResponse:
         # Soft delete
         obj.soft_delete()
@@ -99,12 +105,15 @@ class DeleteMessage(BaseAction):
 
         # Notify WebSocket subscribers
         await notify_thread(
-            transaction,
+            channels,
             obj.thread_id,
-            {
-                "type": "message_deleted",
-                "message_id": obj.id,
-            },
+            ServerMessage(
+                message_type=ThreadSocketMessageType.MESSAGE_DELETED,
+                message_id=sqid_encode(obj.id),
+                thread_id=sqid_encode(obj.thread_id),
+                user_id=sqid_encode(obj.user_id or 0),
+                viewers=[],  # Empty - actions don't have viewer_store access
+            ),
         )
 
         return ActionExecutionResponse(

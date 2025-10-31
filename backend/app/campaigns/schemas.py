@@ -1,10 +1,12 @@
-from datetime import datetime, date
+from datetime import date, datetime
+
 from msgspec import UNSET, UnsetType
+
+from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure, CounterpartyType, OwnershipMode
 from app.threads.schemas import ThreadUnreadInfo
 from app.utils.sqids import Sqid
-from app.actions.schemas import ActionDTO
 
 
 class CampaignSchema(BaseSchema):

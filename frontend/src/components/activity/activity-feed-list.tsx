@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ActivityFeedItem } from './activity-feed-item';
 import type {
   MessageSchema,
@@ -27,17 +25,6 @@ export function ActivityFeedList({
   onEditMessage,
   onDeleteMessage,
 }: ActivityFeedListProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const prevMessagesLengthRef = useRef(messages.length);
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messages.length > prevMessagesLengthRef.current) {
-      scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-    prevMessagesLengthRef.current = messages.length;
-  }, [messages.length]);
-
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -57,20 +44,17 @@ export function ActivityFeedList({
   }
 
   return (
-    <ScrollArea className="h-full flex-1 ">
-      <div className="space-y-0 p-2">
-        {messages.map((message, index) => (
-          <ActivityFeedItem
-            key={message.id as string}
-            message={message}
-            isCurrentUser={message.user_id === currentUserId}
-            isLast={index === messages.length - 1}
-            onEdit={onEditMessage}
-            onDelete={onDeleteMessage}
-          />
-        ))}
-        <div ref={scrollRef} />
-      </div>
-    </ScrollArea>
+    <div className="space-y-0 p-4">
+      {messages.map((message, index) => (
+        <ActivityFeedItem
+          key={message.id as string}
+          message={message}
+          isCurrentUser={message.user_id === currentUserId}
+          isLast={index === messages.length - 1}
+          onEdit={onEditMessage}
+          onDelete={onDeleteMessage}
+        />
+      ))}
+    </div>
   );
 }

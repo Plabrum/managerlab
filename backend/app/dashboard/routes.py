@@ -1,22 +1,21 @@
 """Dashboard routes for CRUD operations."""
 
-from typing import List
-from litestar import Router, Request, get, post, patch
+from litestar import Request, Router, get, patch, post
 from litestar.exceptions import NotFoundException, PermissionDeniedException
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dashboard.models import Dashboard
+from app.auth.guards import requires_user_scope
 from app.dashboard.enums import DashboardOwnerType
+from app.dashboard.models import Dashboard
 from app.dashboard.schemas import (
-    DashboardSchema,
     CreateDashboardSchema,
+    DashboardSchema,
     UpdateDashboardSchema,
 )
 from app.users.models import Role
 from app.utils.db import get_or_404
 from app.utils.sqids import Sqid
-from app.auth.guards import requires_user_scope
 
 
 @get("/")
@@ -24,13 +23,11 @@ async def list_dashboards(
     transaction: AsyncSession,
     request: Request,
     team_id: int,
-) -> List[DashboardSchema]:
+) -> list[DashboardSchema]:
     """List all dashboards accessible to the current user (personal + team dashboards)."""
 
     # Query for both user dashboards and team dashboards
-    stmt = select(Dashboard).where(
-        or_(Dashboard.user_id == request.user, Dashboard.team_id == team_id)
-    )
+    stmt = select(Dashboard).where(or_(Dashboard.user_id == request.user, Dashboard.team_id == team_id))
     result = await transaction.execute(stmt)
     dashboards = result.scalars().all()
 
@@ -68,9 +65,7 @@ async def get_dashboard(id: Sqid, transaction: AsyncSession) -> DashboardSchema:
 
 
 @post("/")
-async def create_dashboard(
-    data: CreateDashboardSchema, request: Request, transaction: AsyncSession
-) -> DashboardSchema:
+async def create_dashboard(data: CreateDashboardSchema, request: Request, transaction: AsyncSession) -> DashboardSchema:
     """Create a new dashboard."""
     user_id: int = request.user
 
@@ -84,9 +79,7 @@ async def create_dashboard(
             raise ValueError("team_id is required for team dashboards")
 
         # Verify user is member of the team
-        team_query = select(Role).where(
-            Role.user_id == user_id, Role.team_id == data.team_id
-        )
+        team_query = select(Role).where(Role.user_id == user_id, Role.team_id == data.team_id)
         team_result = await transaction.execute(team_query)
         if not team_result.scalar_one_or_none():
             raise PermissionDeniedException("You are not a member of this team")
@@ -139,9 +132,7 @@ async def update_dashboard(
     team_result = await transaction.execute(team_query)
     team_ids = [row[0] for row in team_result.all()]
 
-    has_access = dashboard.user_id == user_id or (
-        dashboard.team_id and dashboard.team_id in team_ids
-    )
+    has_access = dashboard.user_id == user_id or (dashboard.team_id and dashboard.team_id in team_ids)
 
     if not has_access:
         raise PermissionDeniedException("You don't have access to this dashboard")

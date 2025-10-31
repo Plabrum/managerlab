@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from typing import Any
+
 import sqids as _sqids
-from sqlalchemy import TypeDecorator, Integer
+from sqlalchemy import Integer, TypeDecorator
 
 __all__ = [
     "sqid_decode",
@@ -14,9 +15,7 @@ __all__ = [
     "sqid_dec_hook",
 ]
 
-sqid_encoder: _sqids.Sqids = _sqids.Sqids(
-    alphabet="abcdefghijklmnopqrstuvwxyz", min_length=8
-)
+sqid_encoder: _sqids.Sqids = _sqids.Sqids(alphabet="abcdefghijklmnopqrstuvwxyz", min_length=8)
 
 
 def sqid_decode(value: str) -> int:
@@ -50,6 +49,9 @@ class SqidType(TypeDecorator):
 
     impl = Integer
     cache_ok = True
+
+    # Tell Alembic to render this as Integer in migrations
+    __type_mapper__ = Integer
 
     def process_result_value(self, value: int | None, dialect) -> Sqid | None:
         """Convert int from DB to Sqid instance."""
@@ -86,7 +88,5 @@ def sqid_dec_hook(type_: type, obj: Any) -> Sqid:
             # Already an integer, wrap in Sqid
             return Sqid(obj)
         else:
-            raise TypeError(
-                f"Expected str or int for Sqid, got {type(obj).__name__}: {obj}"
-            )
+            raise TypeError(f"Expected str or int for Sqid, got {type(obj).__name__}: {obj}")
     raise NotImplementedError(f"Encountered unknown type: {type_}")

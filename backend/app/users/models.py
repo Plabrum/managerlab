@@ -1,10 +1,11 @@
-from sqlalchemy.orm import mapped_column, relationship, Mapped
-import sqlalchemy as sa
 from typing import TYPE_CHECKING
+
+import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.base.models import BaseDBModel
 from app.state_machine.models import StateMachineMixin
-from app.users.enums import UserStates, RoleLevel
-
+from app.users.enums import RoleLevel, UserStates
 
 if TYPE_CHECKING:
     from app.auth.google.models import GoogleOAuthAccount
@@ -20,9 +21,7 @@ class User(
 
     name: Mapped[str] = mapped_column(sa.Text, index=True, nullable=False)
     email: Mapped[str] = mapped_column(sa.Text, unique=True, index=True, nullable=False)
-    email_verified: Mapped[bool] = mapped_column(
-        sa.Boolean, default=False, nullable=False
-    )
+    email_verified: Mapped[bool] = mapped_column(sa.Boolean, default=False, nullable=False)
 
     # Relationship to Google OAuth accounts
     google_accounts: Mapped[list["GoogleOAuthAccount"]] = relationship(

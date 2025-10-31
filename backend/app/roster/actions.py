@@ -1,13 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import action_group_factory, ActionGroupType, BaseAction
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.roster.models import Roster
 from app.roster.enums import RosterActions
+from app.roster.models import Roster
 from app.roster.schemas import RosterUpdateSchema
 from app.utils.db import update_model
-
 
 # Create roster action group
 roster_actions = action_group_factory(

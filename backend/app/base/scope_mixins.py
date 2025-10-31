@@ -1,8 +1,9 @@
-from typing import Type, Any
 import os
+from typing import Any
+
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column
 from alembic_utils.pg_policy import PGPolicy
+from sqlalchemy.orm import Mapped, mapped_column
 
 # Global registry for RLS policies - consumed by alembic env.py
 RLS_POLICY_REGISTRY: list[PGPolicy] = []
@@ -11,7 +12,7 @@ RLS_POLICY_REGISTRY: list[PGPolicy] = []
 REGISTER_POLICIES = os.getenv("REGISTER_RLS_POLICIES", "true").lower() == "true"
 
 
-def RLSMixin(scope_with_campaign_id: bool = False) -> Type:
+def RLSMixin(scope_with_campaign_id: bool = False) -> type:
     if scope_with_campaign_id:
         # Dual-scoped mixin: Has both team_id and campaign_id
         class _DualScopedMixin:

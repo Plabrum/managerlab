@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+
 import sqids
 
 sqid_encoder = sqids.Sqids(alphabet="abcdefghijklmnopqrstuvwxyz", min_length=8)

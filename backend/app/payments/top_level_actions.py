@@ -2,14 +2,13 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import BaseAction, action_group_factory, ActionGroupType
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.payments.models import Invoice
 from app.payments.enums import InvoiceActions
+from app.payments.models import Invoice
 from app.payments.schemas import InvoiceCreateSchema
 from app.utils.db import create_model
-
 
 # Create invoice action group
 top_level_invoice_actions = action_group_factory(ActionGroupType.TopLevelInvoiceActions)

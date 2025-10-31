@@ -60,14 +60,16 @@ export function ObjectDetailTabs({
           <TabsTrigger key={tab.value} value={tab.value}>
             <span className="flex items-center gap-2">
               {tab.label}
-              {tab.unreadCount !== undefined && tab.unreadCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="h-5 min-w-5 px-1 text-xs"
-                >
-                  {tab.unreadCount > 99 ? '99+' : tab.unreadCount}
-                </Badge>
-              )}
+              {tab.unreadCount !== undefined &&
+                tab.unreadCount > 0 &&
+                currentTab !== tab.value && (
+                  <Badge
+                    variant="destructive"
+                    className="h-5 min-w-5 px-1 text-xs"
+                  >
+                    {tab.unreadCount > 99 ? '99+' : tab.unreadCount}
+                  </Badge>
+                )}
             </span>
           </TabsTrigger>
         ))}

@@ -28,9 +28,7 @@ class BaseS3Client(ABC):
         pass
 
     @abstractmethod
-    def generate_presigned_upload_url(
-        self, key: str, content_type: str, expires_in: int = 300
-    ) -> str:
+    def generate_presigned_upload_url(self, key: str, content_type: str, expires_in: int = 300) -> str:
         """Generate presigned URL for uploading a file."""
         pass
 
@@ -92,9 +90,7 @@ class LocalS3Client(BaseS3Client):
         storage_path.parent.mkdir(parents=True, exist_ok=True)
         storage_path.write_bytes(fileobj.read())
 
-    def generate_presigned_upload_url(
-        self, key: str, content_type: str, expires_in: int = 300
-    ) -> str:
+    def generate_presigned_upload_url(self, key: str, content_type: str, expires_in: int = 300) -> str:
         """Generate mock presigned URL for local development."""
         # In local mode, return a fake URL that includes the key
         # The frontend can use this to know where to "upload" (store the key)
@@ -140,9 +136,7 @@ class S3Client(BaseS3Client):
         """Upload file-like object to S3."""
         self.s3.upload_fileobj(fileobj, self.bucket_name, s3_key)
 
-    def generate_presigned_upload_url(
-        self, key: str, content_type: str, expires_in: int = 300
-    ) -> str:
+    def generate_presigned_upload_url(self, key: str, content_type: str, expires_in: int = 300) -> str:
         """Generate presigned URL for uploading a file to S3."""
         return self.s3.generate_presigned_url(
             "put_object",

@@ -5,12 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Image } from '@/components/ui/image';
 import { Loader2 } from 'lucide-react';
 import type {
-  ObjectListDTO,
+  ObjectListSchema,
   ImageFieldValue,
 } from '@/openapi/managerLab.schemas';
 
 interface MediaSelectorProps {
-  items: ObjectListDTO[];
+  items: ObjectListSchema[];
   selectedIds: string[];
   onToggle: (mediaId: string, checked: boolean) => void;
   isLoading?: boolean;
@@ -46,7 +46,7 @@ export function MediaSelector({
     <div className="space-y-2">
       <Label>Select media to add</Label>
       <div className="max-h-96 space-y-3 overflow-y-auto rounded-md border p-4">
-        {items.map((media: ObjectListDTO) => {
+        {items.map((media: ObjectListSchema) => {
           const mediaId = String(media.id);
           const isChecked = selectedIds.includes(mediaId);
 
@@ -56,7 +56,7 @@ export function MediaSelector({
               f.value &&
               typeof f.value === 'object' &&
               'type' in f.value &&
-              f.value.type === 'image'
+              (f.value as { type: string }).type === 'image'
           );
           const imageValue = imageField?.value as ImageFieldValue | undefined;
 

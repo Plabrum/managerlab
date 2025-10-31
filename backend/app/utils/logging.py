@@ -1,4 +1,5 @@
 from litestar.logging import LoggingConfig
+
 from app.utils.configure import config
 
 # Environment-aware logging configuration
