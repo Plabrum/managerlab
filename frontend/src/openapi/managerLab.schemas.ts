@@ -459,6 +459,8 @@ export interface CategoricalTimeSeriesData {
 
 export type ColumnDefinitionSchemaAvailableValues = string[] | null;
 
+export type ColumnDefinitionSchemaObjectType = ObjectTypes | null;
+
 export interface ColumnDefinitionSchema {
   key: string;
   label: string;
@@ -467,6 +469,7 @@ export interface ColumnDefinitionSchema {
   sortable?: boolean;
   default_visible?: boolean;
   available_values?: ColumnDefinitionSchemaAvailableValues;
+  object_type?: ColumnDefinitionSchemaObjectType;
 }
 
 export type CompensationStructure = typeof CompensationStructure[keyof typeof CompensationStructure];
@@ -876,6 +879,7 @@ export const FieldType = {
   url: 'url',
   text: 'text',
   image: 'image',
+  object: 'object',
 } as const;
 
 /**
@@ -891,6 +895,7 @@ export const FilterType = {
   date_filter: 'date_filter',
   boolean_filter: 'boolean_filter',
   enum_filter: 'enum_filter',
+  object_filter: 'object_filter',
   null_filter: 'null_filter',
 } as const;
 
@@ -1131,7 +1136,7 @@ export interface NumericalTimeSeriesData {
   type: 'numerical';
 }
 
-export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | TextFieldValue | ImageFieldValue | null;
+export type ObjectFieldDTOValue = StringFieldValue | IntFieldValue | FloatFieldValue | BoolFieldValue | EnumFieldValue | DateFieldValue | DatetimeFieldValue | USDFieldValue | EmailFieldValue | URLFieldValue | ObjectFieldValue | TextFieldValue | ImageFieldValue | null;
 
 export type ObjectFieldDTOLabel = string | null;
 
@@ -1142,7 +1147,22 @@ export interface ObjectFieldDTO {
   editable?: boolean;
 }
 
-export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition;
+export type ObjectFieldValueLabel = string | null;
+
+export interface ObjectFieldValue {
+  value: string;
+  object_type: ObjectTypes;
+  label?: ObjectFieldValueLabel;
+  type: 'object';
+}
+
+export interface ObjectFilterDefinition {
+  column: string;
+  values: string[];
+  type: 'object_filter';
+}
+
+export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition | ObjectFilterDefinition;
 
 export type ObjectListRequestSearch = string | null;
 
@@ -1520,7 +1540,7 @@ export type TimeSeriesDataRequestEndDate = string | null;
 
 export type TimeSeriesDataRequestAggregation = AggregationType | null;
 
-export type TimeSeriesDataRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition;
+export type TimeSeriesDataRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition | ObjectFilterDefinition;
 
 export interface TimeSeriesDataRequest {
   field: string;

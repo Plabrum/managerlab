@@ -76,6 +76,7 @@ class BaseObject[O: BaseDBModel](ABC):
                 sortable=col.sortable,
                 default_visible=col.default_visible,
                 available_values=col.available_values,
+                object_type=col.object_type,
                 filter_type=get_filter_by_field_type(col.type),
             )
             for col in cls.column_definitions

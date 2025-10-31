@@ -64,7 +64,7 @@ async def thread_connection_lifespan(
 
     async with (
         channels.start_subscription([get_thread_channel(thread.id)]) as subscriber,
-        subscriber.run_in_background(socket.send_text, join=False),
+        subscriber.run_in_background(socket.send_text),
     ):
         try:
             # Store connection state for handler

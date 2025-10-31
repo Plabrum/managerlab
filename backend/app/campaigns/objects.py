@@ -11,8 +11,8 @@ from app.objects.schemas import (
     FieldType,
     IntFieldValue,
     ObjectColumn,
+    ObjectFieldValue,
     StringFieldValue,
-    URLFieldValue,
 )
 from app.utils.sqids import sqid_encode
 
@@ -96,13 +96,14 @@ class CampaignObject(BaseObject[Campaign]):
             include_in_list=True,
         ),
         ObjectColumn(
-            key="brand",
+            key="brand_id",
             label="Brand",
-            type=FieldType.URL,
+            type=FieldType.Object,
             value=lambda campaign: (
-                URLFieldValue(
-                    value=f"brands/{sqid_encode(campaign.brand.id)}",
+                ObjectFieldValue(
+                    value=sqid_encode(campaign.brand.id),
                     label=campaign.brand.name,
+                    object_type=ObjectTypes.Brands,
                 )
                 if campaign.brand
                 else None
@@ -112,6 +113,7 @@ class CampaignObject(BaseObject[Campaign]):
             editable=False,
             nullable=True,
             include_in_list=True,
+            object_type=ObjectTypes.Brands,
         ),
         ObjectColumn(
             key="state",

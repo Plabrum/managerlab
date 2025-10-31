@@ -43,6 +43,7 @@ class FieldType(StrEnum):
     URL = auto()
     Text = auto()
     Image = auto()
+    Object = auto()
 
 
 class FilterType(StrEnum):
@@ -53,6 +54,7 @@ class FilterType(StrEnum):
     date_filter = auto()
     boolean_filter = auto()
     enum_filter = auto()
+    object_filter = auto()
     null_filter = auto()
 
 

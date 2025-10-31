@@ -1,9 +1,22 @@
 import type { NextConfig } from 'next';
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
-const nextConfig: NextConfig = {
+/**
+ * Base Next.js configuration.
+ * Add your rewrites, images, and other settings here.
+ */
+const baseConfig: NextConfig = {
   async rewrites() {
-    if (process.env.NODE_ENV === 'production')
-      return [{ source: '/api/:path*', destination: '/api/' }];
+    if (process.env.NODE_ENV === 'production') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: '/api/', // proxy to same origin in production
+        },
+      ];
+    }
+
+    // In development, proxy API requests to the backend
     return [
       {
         source: '/api/:path*',
@@ -11,7 +24,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
   reactStrictMode: true,
+
   images: {
     remotePatterns: [
       {
@@ -20,7 +35,7 @@ const nextConfig: NextConfig = {
         port: '8000',
         pathname: '/local-download/**',
       },
-      // Add your S3 bucket for production
+      // Uncomment and customize for production S3 bucket
       // {
       //   protocol: 'https',
       //   hostname: 'your-bucket.s3.amazonaws.com',
@@ -30,4 +45,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Wrap with bundle analyzer when ANALYZE=true
+ */
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+export default withAnalyzer(baseConfig);
