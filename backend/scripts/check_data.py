@@ -7,14 +7,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import select, func
-from app.utils.configure import config
-from app.campaigns.models import Campaign
-from app.users.models import Team, Role
-from app.roster.models import Roster
+
 from app.brands.models.brands import Brand
+from app.campaigns.models import Campaign
+from app.roster.models import Roster
+from app.users.models import Role, Team
+from app.utils.configure import config
 
 
 async def check_counts():

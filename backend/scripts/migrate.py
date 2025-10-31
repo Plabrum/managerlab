@@ -9,11 +9,11 @@ locking to prevent concurrent migrations from multiple containers.
 import sys
 import time
 
-from alembic import command
-from alembic.config import Config as AlembicConfig
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 
+from alembic import command
+from alembic.config import Config as AlembicConfig
 from app.utils.configure import config as app_config
 
 # Advisory lock ID for migrations (arbitrary constant)
@@ -56,9 +56,7 @@ def acquire_advisory_lock(engine, timeout_seconds: int = 300) -> bool:
 def release_advisory_lock(engine) -> None:
     """Release the PostgreSQL advisory lock."""
     with engine.connect() as conn:
-        conn.execute(
-            text("SELECT pg_advisory_unlock(:lock_id)"), {"lock_id": MIGRATION_LOCK_ID}
-        )
+        conn.execute(text("SELECT pg_advisory_unlock(:lock_id)"), {"lock_id": MIGRATION_LOCK_ID})
         print(f"✓ Released migration lock (ID: {MIGRATION_LOCK_ID})")
 
 

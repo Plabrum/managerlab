@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from app.actions.base import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.deliverables.enums import DeliverableStates, DeliverableActions
+from app.deliverables.enums import DeliverableActions, DeliverableStates
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.schemas import (
     AddMediaToDeliverableSchema,
@@ -14,9 +14,7 @@ from app.deliverables.schemas import (
 from app.media.models import Media
 from app.utils.db import update_model
 
-deliverable_actions = action_group_factory(
-    ActionGroupType.DeliverableActions, model_type=Deliverable
-)
+deliverable_actions = action_group_factory(ActionGroupType.DeliverableActions, model_type=Deliverable)
 
 
 @deliverable_actions
@@ -117,9 +115,7 @@ class AddMediaToDeliverable(BaseAction):
     ) -> ActionExecutionResponse:
         # media_ids are already decoded from SQID strings to ints by msgspec
         requested_media_ids = data.media_ids
-        result = await transaction.execute(
-            select(Media).where(Media.id.in_(requested_media_ids))
-        )
+        result = await transaction.execute(select(Media).where(Media.id.in_(requested_media_ids)))
         media_objects = result.scalars().all()
 
         # Check if all requested media were found
@@ -134,9 +130,7 @@ class AddMediaToDeliverable(BaseAction):
         # Add media to deliverable via association table (only add if not already associated)
         # Use set-based comparison to avoid N+1 queries
         existing_media_ids = {media.id for media in obj.media}
-        new_media_ids = [
-            media.id for media in media_objects if media.id not in existing_media_ids
-        ]
+        new_media_ids = [media.id for media in media_objects if media.id not in existing_media_ids]
 
         # Create DeliverableMedia association objects for new media
         for media_id in new_media_ids:

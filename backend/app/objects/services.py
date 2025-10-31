@@ -1,33 +1,32 @@
+from datetime import UTC, datetime, timedelta
 from typing import assert_never
-from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.base.models import BaseDBModel
 from app.objects.enums import (
+    AggregationType,
     FieldType,
     FilterType,
-    TimeRange,
     Granularity,
-    AggregationType,
+    TimeRange,
 )
 from app.objects.schemas import (
     BooleanFilterDefinition,
-    DateFilterDefinition,
-    FilterDefinition,
-    RangeFilterDefinition,
-    TextFilterDefinition,
-    ObjectListRequest,
-    SortDefinition,
-    EnumFilterDefinition,
-    NumericalDataPoint,
     CategoricalDataPoint,
+    DateFilterDefinition,
+    EnumFilterDefinition,
+    FilterDefinition,
+    NumericalDataPoint,
+    ObjectListRequest,
+    RangeFilterDefinition,
+    SortDefinition,
+    TextFilterDefinition,
 )
 
 
-def apply_filter(
-    query: Select, model_class: type[BaseDBModel], filter_def: FilterDefinition
-) -> Select:
+def apply_filter(query: Select, model_class: type[BaseDBModel], filter_def: FilterDefinition) -> Select:
     column = getattr(model_class, filter_def.column, None)
     if column is None:
         return query
@@ -92,9 +91,7 @@ def get_filter_by_field_type(field_type: FieldType) -> FilterType:
             assert_never(field_type)
 
 
-def apply_sorts(
-    query: Select, model_class: type[BaseDBModel], sorts: list[SortDefinition]
-) -> Select:
+def apply_sorts(query: Select, model_class: type[BaseDBModel], sorts: list[SortDefinition]) -> Select:
     """Apply sort definitions to a query."""
     for sort_def in sorts:
         column = getattr(model_class, sort_def.column, None)
@@ -129,6 +126,7 @@ async def export_to_csv(
     """
     import csv
     import io
+
     from sqlalchemy import select
 
     # Build base query
@@ -200,7 +198,7 @@ def resolve_time_range(
     Returns:
         Tuple of (start_datetime, end_datetime) in UTC
     """
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     # Explicit dates override time_range
     if start_date and end_date:
@@ -242,9 +240,7 @@ def _calculate_start_from_range(time_range: TimeRange, end_date: datetime) -> da
         case TimeRange.last_year:
             return end_date - timedelta(days=365)
         case TimeRange.year_to_date:
-            return end_date.replace(
-                month=1, day=1, hour=0, minute=0, second=0, microsecond=0
-            )
+            return end_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
         case TimeRange.month_to_date:
             return end_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         case TimeRange.all_time:
@@ -254,9 +250,7 @@ def _calculate_start_from_range(time_range: TimeRange, end_date: datetime) -> da
             assert_never(time_range)
 
 
-def determine_granularity(
-    granularity: Granularity, start_date: datetime, end_date: datetime
-) -> Granularity:
+def determine_granularity(granularity: Granularity, start_date: datetime, end_date: datetime) -> Granularity:
     """Determine appropriate granularity based on time range.
 
     Args:
@@ -303,9 +297,7 @@ def get_date_trunc_format(granularity: Granularity) -> str:
         case Granularity.year:
             return "year"
         case Granularity.automatic:
-            raise ValueError(
-                "Granularity must be resolved before getting date_trunc format"
-            )
+            raise ValueError("Granularity must be resolved before getting date_trunc format")
         case _:
             assert_never(granularity)
 
@@ -315,14 +307,7 @@ def get_default_aggregation(field_type: FieldType) -> AggregationType:
     match field_type:
         case FieldType.Int | FieldType.Float | FieldType.USD:
             return AggregationType.sum
-        case (
-            FieldType.String
-            | FieldType.Enum
-            | FieldType.Bool
-            | FieldType.Email
-            | FieldType.URL
-            | FieldType.Text
-        ):
+        case FieldType.String | FieldType.Enum | FieldType.Bool | FieldType.Email | FieldType.URL | FieldType.Text:
             return AggregationType.count_
         case FieldType.Date | FieldType.Datetime:
             return AggregationType.count_
@@ -358,9 +343,7 @@ def get_series_interval(granularity: Granularity) -> str:
         case Granularity.year:
             return "1 year"
         case Granularity.automatic:
-            raise ValueError(
-                "Granularity must be resolved before getting series interval"
-            )
+            raise ValueError("Granularity must be resolved before getting series interval")
         case _:
             assert_never(granularity)
 
@@ -528,9 +511,7 @@ async def query_time_series_data(
         # Join with time series to fill gaps using COALESCE
         # Only COALESCE the agg_value if it's numeric, otherwise leave as NULL
         if default_agg_value is not None:
-            agg_value_expr = func.coalesce(
-                agg_subquery.c.agg_value, default_agg_value
-            ).label("agg_value")
+            agg_value_expr = func.coalesce(agg_subquery.c.agg_value, default_agg_value).label("agg_value")
         else:
             agg_value_expr = agg_subquery.c.agg_value.label("agg_value")
 

@@ -10,13 +10,15 @@ import type {
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableSearch } from '@/components/data-table/data-table-search';
 import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
-import { useListObjectsSuspense } from '@/openapi/objects/objects';
+import {
+  useListObjectsSuspense,
+  useOObjectTypeSchemaGetObjectSchemaSuspense,
+} from '@/openapi/objects/objects';
 import {
   sortingStateToSortDefinitions,
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ColumnDefinitionDTO } from '@/openapi/managerLab.schemas';
 
 export default function BrandContactsPage() {
   // Table state
@@ -27,10 +29,12 @@ export default function BrandContactsPage() {
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
-  const [columnDefs, setColumnDefs] = useState<
-    ColumnDefinitionDTO[] | undefined
-  >(undefined);
   const [isPending, startTransition] = useTransition();
+
+  // Fetch schema for column definitions
+  const { data: schemaData } =
+    useOObjectTypeSchemaGetObjectSchemaSuspense('brandcontacts');
+  const columnDefs = schemaData.columns;
 
   // Wrap state updates in startTransition to prevent Suspense fallback
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
@@ -59,15 +63,7 @@ export default function BrandContactsPage() {
 
   const { data } = useListObjectsSuspense('brandcontacts', request);
 
-  // Store column definitions after first fetch
-  if (data.columns && !columnDefs) {
-    setColumnDefs(data.columns);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleBulkAction = (_action: string, _rows: typeof data.objects) => {
-    // TODO: Implement bulk action handling
-  };
+  // TODO: Implement bulk action handling
 
   return (
     <div className="space-y-4">
@@ -84,16 +80,14 @@ export default function BrandContactsPage() {
         />
         {/* TODO: Add ActionsMenu when brandcontact_actions ActionGroupType is added to backend */}
       </div>
-      {columnDefs && (
-        <DataTableAppliedFilters
-          filters={columnFilters}
-          columnDefs={columnDefs}
-          onUpdate={handleFiltersChange}
-        />
-      )}
+      <DataTableAppliedFilters
+        filters={columnFilters}
+        columnDefs={columnDefs}
+        onUpdate={handleFiltersChange}
+      />
       <DataTable
         isLoading={isPending}
-        columns={data.columns}
+        columns={columnDefs}
         data={data.objects}
         totalCount={data.total}
         enableRowSelection={true}
@@ -106,7 +100,6 @@ export default function BrandContactsPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
-        onBulkActionClick={handleBulkAction}
       />
     </div>
   );

@@ -35,6 +35,33 @@ dependencies = [
 [dependency-groups]
 dev = ["debugpy>=1.8.17", "basedpyright>=1.23.0", "watchdog>=6.0.0", "types-boto3>=1.0.2"]
 
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"app/index.py" = ["E402"]  # Allow imports after code for model discovery
+"alembic/env.py" = ["E402"]  # Allow imports after code for alembic setup
+"alembic/versions/*.py" = ["E501"]  # Allow long lines in migration files (SQL strings)
+"app/base/scope_mixins.py" = ["N802"]  # RLSMixin is a factory function (PascalCase is intentional)
+"app/state_machine/models.py" = ["N802", "N805"]  # Factory function + SQLAlchemy declared_attr uses cls
+"app/utils/configure.py" = ["N802"]  # Property names match environment variables (uppercase)
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+combine-as-imports = true
+
 [tool.basedpyright]
 typeCheckingMode = "basic"
 ignore = ["alembic/versions"]

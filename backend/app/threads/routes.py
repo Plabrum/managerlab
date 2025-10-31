@@ -13,20 +13,20 @@ from sqlalchemy.orm import joinedload
 from app.auth.guards import requires_user_scope
 from app.objects.enums import ObjectTypes
 from app.threads.enums import ThreadSocketMessageType
-from app.threads.models import Thread, Message
+from app.threads.models import Message, Thread
 from app.threads.schemas import (
-    MessageSchema,
-    MessageSenderSchema,
-    MessageCreateSchema,
-    MessageListResponse,
     BatchUnreadRequest,
     BatchUnreadResponse,
+    MessageCreateSchema,
+    MessageListResponse,
+    MessageSchema,
+    MessageSenderSchema,
     ServerMessage,
     ThreadUnreadInfo,
 )
 from app.threads.services import (
-    get_or_create_thread,
     get_batch_unread_counts,
+    get_or_create_thread,
     notify_thread,
 )
 from app.users.models import User
@@ -89,10 +89,7 @@ async def create_message(
         ),
     )
 
-    logger.info(
-        f"Created message {message.id} in thread {thread.id} "
-        f"({threadable_type}:{threadable_id})"
-    )
+    logger.info(f"Created message {message.id} in thread {thread.id} ({threadable_type}:{threadable_id})")
 
     user_schema = MessageSenderSchema(
         id=user.id,  # Already a Sqid

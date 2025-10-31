@@ -6,17 +6,17 @@ Create Date: 2025-10-22 13:16:01.016752
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "e8da4b2f4c09"
-down_revision: Union[str, Sequence[str], None] = "31e0afb7f242"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "31e0afb7f242"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -31,9 +31,7 @@ def upgrade() -> None:
         sa.Column("deliverable_id", sa.Integer(), nullable=False),
         sa.Column("media_id", sa.Integer(), nullable=False),
         sa.Column("approved_at", sa.DateTime(), nullable=True),
-        sa.Column(
-            "is_featured", sa.Boolean(), server_default=sa.false(), nullable=False
-        ),
+        sa.Column("is_featured", sa.Boolean(), server_default=sa.false(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -47,15 +45,11 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["deliverable_id"], ["deliverables.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["deliverable_id"], ["deliverables.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["media_id"], ["media.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_deliverable_media_deleted_at"), "deliverable_media", ["deleted_at"]
-    )
+    op.create_index(op.f("ix_deliverable_media_deleted_at"), "deliverable_media", ["deleted_at"])
 
 
 def downgrade() -> None:
@@ -70,9 +64,7 @@ def downgrade() -> None:
         sa.Column("deliverable_id", sa.Integer(), nullable=False),
         sa.Column("media_id", sa.Integer(), nullable=False),
         sa.Column("approved_at", sa.DateTime(), nullable=True),
-        sa.Column(
-            "is_featured", sa.Boolean(), server_default=sa.false(), nullable=False
-        ),
+        sa.Column("is_featured", sa.Boolean(), server_default=sa.false(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
@@ -87,12 +79,8 @@ def downgrade() -> None:
             nullable=False,
         ),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["deliverable_id"], ["deliverables.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["deliverable_id"], ["deliverables.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["media_id"], ["media.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("deliverable_id", "media_id"),
     )
-    op.create_index(
-        op.f("ix_deliverable_media_deleted_at"), "deliverable_media", ["deleted_at"]
-    )
+    op.create_index(op.f("ix_deliverable_media_deleted_at"), "deliverable_media", ["deleted_at"])

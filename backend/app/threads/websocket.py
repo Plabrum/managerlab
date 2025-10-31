@@ -1,24 +1,24 @@
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
+import msgspec
 from litestar import WebSocket
 from litestar.channels import ChannelsPlugin
 from litestar.exceptions import WebSocketDisconnect
 from litestar.handlers import websocket_listener
-import msgspec
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.guards import requires_user_scope
 from app.objects.enums import ObjectTypes
 from app.threads.enums import ThreadSocketMessageType
+from app.threads.schemas import ClientMessage, ServerMessage
 from app.threads.services import (
     ThreadViewerStore,
     get_or_create_thread,
     mark_thread_as_read,
     notify_thread,
 )
-from app.threads.schemas import ClientMessage, ServerMessage
 from app.threads.utils import get_thread_channel
 from app.utils.sqids import Sqid, sqid_encode
 
@@ -39,7 +39,7 @@ async def thread_connection_lifespan(
     transaction: AsyncSession,
     viewer_store: ThreadViewerStore,
     team_id: int,
-) -> AsyncGenerator[None, None]:
+) -> AsyncGenerator[None]:
     thread = await get_or_create_thread(
         transaction=transaction,
         threadable_type=threadable_type,
@@ -62,9 +62,7 @@ async def thread_connection_lifespan(
 
     logger.info(f"WebSocket connected: user {user_id} -> thread {thread.id}")
 
-    async with channels.start_subscription(
-        [get_thread_channel(thread.id)]
-    ) as subscriber:
+    async with channels.start_subscription([get_thread_channel(thread.id)]) as subscriber:
         try:
             # Background task sends all incoming messages to WebSocket
             async with subscriber.run_in_background(socket.send_text):
@@ -87,9 +85,7 @@ async def thread_connection_lifespan(
 
             await notify_thread(channels, thread.id, left_message)
 
-            logger.info(
-                f"WebSocket disconnected: user {user_id} from thread {thread.id}"
-            )
+            logger.info(f"WebSocket disconnected: user {user_id} from thread {thread.id}")
 
 
 @websocket_listener(

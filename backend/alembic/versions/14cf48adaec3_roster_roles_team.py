@@ -6,17 +6,17 @@ Create Date: 2025-09-30 12:46:04.137865
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "14cf48adaec3"
-down_revision: Union[str, Sequence[str], None] = "82cd4683f530"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "82cd4683f530"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -84,9 +84,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_roster_email"), "roster", ["email"], unique=False)
-    op.create_index(
-        op.f("ix_roster_instagram_handle"), "roster", ["instagram_handle"], unique=False
-    )
+    op.create_index(op.f("ix_roster_instagram_handle"), "roster", ["instagram_handle"], unique=False)
     op.create_index(op.f("ix_roster_name"), "roster", ["name"], unique=False)
     op.create_index(op.f("ix_roster_state"), "roster", ["state"], unique=False)
     op.create_index(op.f("ix_roster_user_id"), "roster", ["user_id"], unique=False)

@@ -1,267 +1,198 @@
-from typing import Any
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.actions.enums import ActionGroupType
-from app.actions.registry import ActionRegistry
+from app.brands.models.brands import Brand
+from app.brands.models.contacts import BrandContact
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectListDTO,
-    ObjectListRequest,
-    ObjectFieldDTO,
+    DatetimeFieldValue,
+    EmailFieldValue,
     FieldType,
-    ColumnDefinitionDTO,
+    IntFieldValue,
+    ObjectColumn,
     StringFieldValue,
     URLFieldValue,
-    EmailFieldValue,
 )
-from app.objects.services import get_filter_by_field_type
-from app.brands.models.brands import Brand
-from app.brands.models.contacts import BrandContact
-from app.utils.sqids import sqid_encode
 
 
-class BrandObject(BaseObject):
+class BrandObject(BaseObject[Brand]):
     object_type = ObjectTypes.Brands
-    model = Brand
+
+    @classmethod
+    def model(cls) -> type[Brand]:
+        return Brand
+
+    @classmethod
+    def title_field(cls, brand: Brand) -> str:
+        return brand.name
+
+    @classmethod
+    def subtitle_field(cls, brand: Brand) -> str:
+        return brand.description or ""
+
+    # Action groups
+    top_level_action_group = ActionGroupType.TopLevelBrandActions
+    action_group = ActionGroupType.BrandActions
+
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="id",
             label="ID",
             type=FieldType.Int,
+            value=lambda obj: IntFieldValue(value=obj.id),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
             default_visible=False,
+            include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="created_at",
             label="Created At",
             type=FieldType.Datetime,
+            value=lambda obj: DatetimeFieldValue(value=obj.created_at),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
+            include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="updated_at",
             label="Updated At",
             type=FieldType.Datetime,
+            value=lambda obj: DatetimeFieldValue(value=obj.updated_at),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
             default_visible=False,
+            include_in_list=False,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.name),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="description",
             label="Description",
-            type=FieldType.Text,
+            type=FieldType.String,
+            value=lambda obj: (StringFieldValue(value=obj.description) if obj.description else None),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Text),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="website",
             label="Website",
             type=FieldType.URL,
+            value=lambda obj: URLFieldValue(value=obj.website) if obj.website else None,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.URL),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
-            key="email",
-            label="Email",
-            type=FieldType.Email,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Email),
-            default_visible=True,
-        ),
-        ColumnDefinitionDTO(
-            key="created_at",
-            label="Created",
-            type=FieldType.Datetime,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
-            default_visible=False,
-        ),
-    ]
-
-    @classmethod
-    def get_top_level_action_group(cls):
-        return ActionGroupType.TopLevelBrandActions
-
-    @classmethod
-    def get_action_group(cls):
-        return ActionGroupType.BrandActions
-
-    @classmethod
-    def to_list_dto(cls, brand: Brand) -> ObjectListDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=brand.name),
-                label="Name",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="description",
-                value=(
-                    StringFieldValue(value=brand.description)
-                    if brand.description
-                    else None
-                ),
-                label="Description",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="website",
-                value=URLFieldValue(value=brand.website) if brand.website else None,
-                label="Website",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="phone",
-                value=StringFieldValue(value=brand.phone) if brand.phone else None,
-                label="Phone",
-                editable=True,
-            ),
-            ObjectFieldDTO(
-                key="email",
-                value=EmailFieldValue(value=brand.email) if brand.email else None,
-                label="Email",
-                editable=False,
-            ),
-        ]
-
-        # Get available actions for this brand
-        action_group = ActionRegistry().get_class(ActionGroupType.BrandActions)
-        actions = action_group.get_available_actions(obj=brand)
-
-        return ObjectListDTO(
-            id=sqid_encode(brand.id),
-            object_type=ObjectTypes.Brands,
-            title=brand.name,
-            subtitle=brand.description,
-            state="active",
-            actions=actions,
-            created_at=brand.created_at,
-            updated_at=brand.updated_at,
-            fields=fields,
-        )
-
-
-class BrandContactObject(BaseObject):
-    object_type = ObjectTypes.BrandContacts
-    model = BrandContact
-    column_definitions = [
-        ColumnDefinitionDTO(
-            key="first_name",
-            label="First Name",
-            type=FieldType.String,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
-            default_visible=True,
-        ),
-        ColumnDefinitionDTO(
-            key="last_name",
-            label="Last Name",
-            type=FieldType.String,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
-            default_visible=True,
-        ),
-        ColumnDefinitionDTO(
-            key="email",
-            label="Email",
-            type=FieldType.Email,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Email),
-            default_visible=True,
-        ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="phone",
             label="Phone",
             type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.phone) if obj.phone else None,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=True,
+            nullable=True,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
-            key="brand_id",
-            label="Brand ID",
-            type=FieldType.Int,
+        ObjectColumn(
+            key="email",
+            label="Email",
+            type=FieldType.Email,
+            value=lambda obj: EmailFieldValue(value=obj.email) if obj.email else None,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
-            default_visible=False,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
     ]
 
-    @classmethod
-    def to_list_dto(cls, contact: BrandContact) -> ObjectListDTO:
-        full_name = f"{contact.first_name} {contact.last_name}"
-        fields = [
-            ObjectFieldDTO(
-                key="first_name",
-                value=StringFieldValue(value=contact.first_name),
-                label="First Name",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="last_name",
-                value=StringFieldValue(value=contact.last_name),
-                label="Last Name",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="email",
-                value=EmailFieldValue(value=contact.email) if contact.email else None,
-                label="Email",
-                editable=False,
-            ),
-            ObjectFieldDTO(
-                key="phone",
-                value=StringFieldValue(value=contact.phone) if contact.phone else None,
-                label="Phone",
-                editable=False,
-            ),
-        ]
 
-        # BrandContactActions not implemented yet
-        actions: list[Any] = []
-
-        return ObjectListDTO(
-            id=sqid_encode(contact.id),
-            object_type=ObjectTypes.BrandContacts,
-            title=full_name,
-            subtitle=contact.email,
-            state="active",
-            actions=actions,
-            created_at=contact.created_at,
-            updated_at=contact.updated_at,
-            fields=fields,
-        )
+class BrandContactObject(BaseObject[BrandContact]):
+    object_type = ObjectTypes.BrandContacts
 
     @classmethod
-    async def query_from_request(
-        cls, session: AsyncSession, request: ObjectListRequest
-    ):
-        """Override default sorting for BrandContact."""
+    def model(cls) -> type[BrandContact]:
+        return BrandContact
 
-        query = select(cls.model)
+    @classmethod
+    def title_field(cls, contact: BrandContact) -> str:
+        return f"{contact.first_name} {contact.last_name}"
 
-        # Apply structured filters and sorts using helper method
-        query = cls.apply_request_to_query(query, cls.model, request)
+    @classmethod
+    def subtitle_field(cls, contact: BrandContact) -> str:
+        return contact.email or ""
 
-        # Custom default sort for contacts
-        if not request.sorts:
-            query = query.order_by(
-                BrandContact.last_name.asc(), BrandContact.first_name.asc()
-            )
-
-        return query
+    column_definitions = [
+        ObjectColumn(
+            key="full_name",
+            label="Name",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=f"{obj.first_name} {obj.last_name}"),
+            sortable=False,
+            default_visible=True,
+            editable=False,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="first_name",
+            label="First Name",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.first_name),
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="last_name",
+            label="Last Name",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.last_name),
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="email",
+            label="Email",
+            type=FieldType.Email,
+            value=lambda obj: EmailFieldValue(value=obj.email) if obj.email else None,
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="phone",
+            label="Phone",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.phone) if obj.phone else None,
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="brand_id",
+            label="Brand ID",
+            type=FieldType.Int,
+            value=lambda obj: IntFieldValue(value=obj.brand_id),
+            sortable=True,
+            default_visible=False,
+            include_in_list=False,
+        ),
+    ]

@@ -1,4 +1,5 @@
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
+
 import aiohttp
 from litestar import Litestar, Request
 from litestar.datastructures import State
@@ -7,19 +8,18 @@ from litestar.status_codes import HTTP_409_CONFLICT
 from litestar_saq import TaskQueues
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from app.actions.registry import ActionRegistry
+from app.client.s3_client import S3Dep
+from app.objects.base import ObjectRegistry
 from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
-from app.utils.configure import config, Config
+from app.utils.configure import Config, config
 from app.utils.db import set_rls_variables
 from app.utils.db_filters import apply_soft_delete_filter
-from app.actions.registry import ActionRegistry
-from app.objects.base import ObjectRegistry
-from app.client.s3_client import S3Dep
 
 
 def provide_viewer_store(request: Request) -> ThreadViewerStore:
@@ -27,9 +27,7 @@ def provide_viewer_store(request: Request) -> ThreadViewerStore:
     return ThreadViewerStore(store=request.app.stores.get("viewers"))
 
 
-async def provide_transaction(
-    db_session: AsyncSession, request: Request
-) -> AsyncGenerator[AsyncSession, None]:
+async def provide_transaction(db_session: AsyncSession, request: Request) -> AsyncGenerator[AsyncSession]:
     """Provide a database transaction with RLS session variables and soft delete filtering."""
 
     def _raiseload_listener(execute_state):
@@ -49,9 +47,7 @@ async def provide_transaction(
 
     finally:
         # --- Remove the same listener objects ---
-        event.remove(
-            db_session.sync_session, "do_orm_execute", apply_soft_delete_filter
-        )
+        event.remove(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
         event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
 

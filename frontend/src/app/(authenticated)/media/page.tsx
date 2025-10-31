@@ -19,7 +19,7 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ObjectListDTO } from '@/openapi/managerLab.schemas';
+import type { ObjectListSchema } from '@/openapi/managerLab.schemas';
 import { ActionGroupType } from '@/openapi/managerLab.schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageTopBar } from '@/components/page-topbar';
@@ -86,18 +86,17 @@ export default function MediaPage() {
     objectId: selectedObjectId,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleBulkAction = (_action: string, _rows: typeof data.objects) => {
-    // TODO: Implement bulk action handling
-  };
+  // TODO: Implement bulk action handling
 
   const handleRowActionClick = useCallback(
-    (actionName: string, row: ObjectListDTO) => {
+    (actionName: string, row: ObjectListSchema) => {
       // Set the selected object ID
       setSelectedObjectId(row.id);
 
       // Find the action from the row's actions
-      const action = row.actions?.find((a) => a.action === actionName);
+      const action = row.actions?.find(
+        (a: { action: string }) => a.action === actionName
+      );
       if (action) {
         // Use the row action executor to initiate the action
         rowActionExecutor.initiateAction(action);
@@ -150,7 +149,6 @@ export default function MediaPage() {
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
         onActionClick={handleRowActionClick}
-        onBulkActionClick={handleBulkAction}
       />
 
       {/* Row action dialogs */}

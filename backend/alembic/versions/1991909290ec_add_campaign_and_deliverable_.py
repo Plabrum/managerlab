@@ -6,18 +6,19 @@ Create Date: 2025-10-23 21:45:59.159978
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
 import app.utils.sqids
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "1991909290ec"
-down_revision: Union[str, Sequence[str], None] = "717e518ffc3a"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "717e518ffc3a"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -27,9 +28,7 @@ def upgrade() -> None:
     counterpartytype = sa.Enum("AGENCY", "BRAND", name="counterpartytype")
     counterpartytype.create(op.get_bind(), checkfirst=True)
 
-    ownershipmode = sa.Enum(
-        "BRAND_OWNED", "CREATOR_OWNED", "SHARED", name="ownershipmode"
-    )
+    ownershipmode = sa.Enum("BRAND_OWNED", "CREATOR_OWNED", "SHARED", name="ownershipmode")
     ownershipmode.create(op.get_bind(), checkfirst=True)
 
     deliverabletype = sa.Enum(
@@ -102,9 +101,7 @@ def upgrade() -> None:
         ["deleted_at"],
         unique=False,
     )
-    op.create_index(
-        op.f("ix_payment_blocks_team_id"), "payment_blocks", ["team_id"], unique=False
-    )
+    op.create_index(op.f("ix_payment_blocks_team_id"), "payment_blocks", ["team_id"], unique=False)
     op.drop_column("brands", "brand_values")
     op.drop_column("brands", "target_audience")
     op.drop_column("brands", "tone_of_voice")
@@ -124,36 +121,20 @@ def upgrade() -> None:
         "campaigns",
         sa.Column("counterparty_email", sa.String(length=255), nullable=True),
     )
-    op.add_column(
-        "campaigns", sa.Column("compensation_total_usd", sa.Float(), nullable=True)
-    )
-    op.add_column(
-        "campaigns", sa.Column("payment_terms_days", sa.Integer(), nullable=True)
-    )
+    op.add_column("campaigns", sa.Column("compensation_total_usd", sa.Float(), nullable=True))
+    op.add_column("campaigns", sa.Column("payment_terms_days", sa.Integer(), nullable=True))
     op.add_column("campaigns", sa.Column("flight_start_date", sa.Date(), nullable=True))
     op.add_column("campaigns", sa.Column("flight_end_date", sa.Date(), nullable=True))
-    op.add_column(
-        "campaigns", sa.Column("ftc_string", sa.String(length=255), nullable=True)
-    )
-    op.add_column(
-        "campaigns", sa.Column("usage_duration", sa.String(length=128), nullable=True)
-    )
-    op.add_column(
-        "campaigns", sa.Column("usage_territory", sa.String(length=128), nullable=True)
-    )
-    op.add_column(
-        "campaigns", sa.Column("usage_paid_media_option", sa.Boolean(), nullable=True)
-    )
+    op.add_column("campaigns", sa.Column("ftc_string", sa.String(length=255), nullable=True))
+    op.add_column("campaigns", sa.Column("usage_duration", sa.String(length=128), nullable=True))
+    op.add_column("campaigns", sa.Column("usage_territory", sa.String(length=128), nullable=True))
+    op.add_column("campaigns", sa.Column("usage_paid_media_option", sa.Boolean(), nullable=True))
     op.add_column(
         "campaigns",
         sa.Column("exclusivity_category", sa.String(length=128), nullable=True),
     )
-    op.add_column(
-        "campaigns", sa.Column("exclusivity_days_before", sa.Integer(), nullable=True)
-    )
-    op.add_column(
-        "campaigns", sa.Column("exclusivity_days_after", sa.Integer(), nullable=True)
-    )
+    op.add_column("campaigns", sa.Column("exclusivity_days_before", sa.Integer(), nullable=True))
+    op.add_column("campaigns", sa.Column("exclusivity_days_after", sa.Integer(), nullable=True))
     op.add_column(
         "campaigns",
         sa.Column(
@@ -162,12 +143,8 @@ def upgrade() -> None:
             nullable=True,
         ),
     )
-    op.add_column(
-        "campaigns", sa.Column("approval_rounds", sa.Integer(), nullable=True)
-    )
-    op.add_column(
-        "campaigns", sa.Column("approval_sla_hours", sa.Integer(), nullable=True)
-    )
+    op.add_column("campaigns", sa.Column("approval_rounds", sa.Integer(), nullable=True))
+    op.add_column("campaigns", sa.Column("approval_sla_hours", sa.Integer(), nullable=True))
     op.add_column(
         "deliverables",
         sa.Column(
@@ -197,12 +174,8 @@ def upgrade() -> None:
         "deliverables",
         sa.Column("count", sa.Integer(), nullable=False, server_default="1"),
     )
-    op.add_column(
-        "deliverables", sa.Column("posting_start_date", sa.Date(), nullable=True)
-    )
-    op.add_column(
-        "deliverables", sa.Column("posting_end_date", sa.Date(), nullable=True)
-    )
+    op.add_column("deliverables", sa.Column("posting_start_date", sa.Date(), nullable=True))
+    op.add_column("deliverables", sa.Column("posting_end_date", sa.Date(), nullable=True))
     op.add_column(
         "deliverables",
         sa.Column("handles", postgresql.ARRAY(sa.String()), nullable=True),
@@ -217,13 +190,9 @@ def upgrade() -> None:
     )
     op.add_column(
         "deliverables",
-        sa.Column(
-            "approval_required", sa.Boolean(), nullable=False, server_default="true"
-        ),
+        sa.Column("approval_required", sa.Boolean(), nullable=False, server_default="true"),
     )
-    op.add_column(
-        "deliverables", sa.Column("approval_rounds", sa.Integer(), nullable=True)
-    )
+    op.add_column("deliverables", sa.Column("approval_rounds", sa.Integer(), nullable=True))
     # ### end Alembic commands ###
 
 

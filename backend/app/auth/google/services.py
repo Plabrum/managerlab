@@ -1,16 +1,16 @@
 import logging
 import secrets
 import urllib.parse
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import aiohttp
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.users.models import User
 from app.auth.google.models import GoogleOAuthAccount, GoogleOAuthState
+from app.users.models import User
 from app.utils.configure import config
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class GoogleOAuthService:
         self.token_url = "https://oauth2.googleapis.com/token"
         self.userinfo_url = "https://www.googleapis.com/oauth2/v2/userinfo"
 
-    def generate_auth_url(self, redirect_uri: Optional[str] = None) -> tuple[str, str]:
+    def generate_auth_url(self, redirect_uri: str | None = None) -> tuple[str, str]:
         """Generate Google OAuth authorization URL and state token."""
         state = secrets.token_urlsafe(32)
 
@@ -53,24 +53,22 @@ class GoogleOAuthService:
         return auth_url, state
 
     async def store_oauth_state(
-        self, transaction: AsyncSession, state: str, redirect_uri: Optional[str] = None
+        self, transaction: AsyncSession, state: str, redirect_uri: str | None = None
     ) -> GoogleOAuthState:
         """Store OAuth state in database for CSRF protection."""
         oauth_state = GoogleOAuthState(
             state=state,
             redirect_uri=redirect_uri,
-            expires_at=datetime.now(tz=timezone.utc) + timedelta(minutes=10),
+            expires_at=datetime.now(tz=UTC) + timedelta(minutes=10),
         )
         transaction.add(oauth_state)
         return oauth_state
 
-    async def verify_oauth_state(
-        self, transaction: AsyncSession, state: str
-    ) -> Optional[GoogleOAuthState]:
+    async def verify_oauth_state(self, transaction: AsyncSession, state: str) -> GoogleOAuthState | None:
         """Verify OAuth state token and return stored state if valid."""
         stmt = select(GoogleOAuthState).where(
             GoogleOAuthState.state == state,
-            GoogleOAuthState.expires_at > datetime.now(tz=timezone.utc),
+            GoogleOAuthState.expires_at > datetime.now(tz=UTC),
         )
         result = await transaction.execute(stmt)
         oauth_state = result.scalar_one_or_none()
@@ -80,7 +78,7 @@ class GoogleOAuthService:
 
         return oauth_state
 
-    async def exchange_code_for_tokens(self, code: str) -> Dict[str, Any]:
+    async def exchange_code_for_tokens(self, code: str) -> dict[str, Any]:
         """Exchange authorization code for access and refresh tokens."""
         data = {
             "client_id": self.client_id,
@@ -95,7 +93,7 @@ class GoogleOAuthService:
             response.raise_for_status()
             return await response.json()
 
-    async def get_user_info(self, access_token: str) -> Dict[str, Any]:
+    async def get_user_info(self, access_token: str) -> dict[str, Any]:
         """Get user information from Google using access token."""
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -106,8 +104,8 @@ class GoogleOAuthService:
     async def create_or_update_user(
         self,
         transaction: AsyncSession,
-        google_user_info: Dict[str, Any],
-        tokens: Dict[str, Any],
+        google_user_info: dict[str, Any],
+        tokens: dict[str, Any],
     ) -> User:
         """Create or update user from Google OAuth information."""
         google_id = google_user_info["id"]
@@ -130,8 +128,7 @@ class GoogleOAuthService:
             google_account.access_token = tokens["access_token"]
             google_account.refresh_token = tokens.get("refresh_token")
             google_account.token_expires_at = (
-                datetime.now(tz=timezone.utc)
-                + timedelta(seconds=tokens.get("expires_in", 3600))
+                datetime.now(tz=UTC) + timedelta(seconds=tokens.get("expires_in", 3600))
                 if "expires_in" in tokens
                 else None
             )
@@ -166,8 +163,7 @@ class GoogleOAuthService:
                 access_token=tokens["access_token"],
                 refresh_token=tokens.get("refresh_token"),
                 token_expires_at=(
-                    datetime.now(tz=timezone.utc)
-                    + timedelta(seconds=tokens.get("expires_in", 3600))
+                    datetime.now(tz=UTC) + timedelta(seconds=tokens.get("expires_in", 3600))
                     if "expires_in" in tokens
                     else None
                 ),
@@ -176,9 +172,7 @@ class GoogleOAuthService:
 
         return user
 
-    async def refresh_access_token(
-        self, google_account: GoogleOAuthAccount
-    ) -> Optional[str]:
+    async def refresh_access_token(self, google_account: GoogleOAuthAccount) -> str | None:
         """Refresh access token using refresh token."""
         if not google_account.refresh_token:
             return None
@@ -197,8 +191,7 @@ class GoogleOAuthService:
 
             google_account.access_token = tokens["access_token"]
             google_account.token_expires_at = (
-                datetime.now(tz=timezone.utc)
-                + timedelta(seconds=tokens.get("expires_in", 3600))
+                datetime.now(tz=UTC) + timedelta(seconds=tokens.get("expires_in", 3600))
                 if "expires_in" in tokens
                 else None
             )

@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING
+
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -7,8 +8,8 @@ from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 from app.base.threadable_mixin import ThreadableMixin
 from app.campaigns.enums import (
-    CampaignStates,
     CampaignGuestAccessLevel,
+    CampaignStates,
     CompensationStructure,
     CounterpartyType,
     OwnershipMode,
@@ -16,12 +17,12 @@ from app.campaigns.enums import (
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
-    from app.deliverables.models import Deliverable
     from app.brands.models.brands import Brand
     from app.brands.models.contacts import BrandContact
+    from app.deliverables.models import Deliverable
     from app.payments.models import Invoice
-    from app.users.models import User
     from app.roster.models import Roster
+    from app.users.models import User
 
 
 class Campaign(
@@ -40,24 +41,16 @@ class Campaign(
     description: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
     # Counterparty information
-    counterparty_type: Mapped[CounterpartyType | None] = mapped_column(
-        sa.Enum(CounterpartyType), nullable=True
-    )
+    counterparty_type: Mapped[CounterpartyType | None] = mapped_column(sa.Enum(CounterpartyType), nullable=True)
     counterparty_name: Mapped[str | None] = mapped_column(sa.String(255), nullable=True)
-    counterparty_email: Mapped[str | None] = mapped_column(
-        sa.String(255), nullable=True
-    )
+    counterparty_email: Mapped[str | None] = mapped_column(sa.String(255), nullable=True)
 
     # Compensation
     compensation_structure: Mapped[CompensationStructure | None] = mapped_column(
         sa.Enum(CompensationStructure), nullable=True
     )
-    compensation_total_usd: Mapped[float | None] = mapped_column(
-        sa.Float, nullable=True
-    )
-    payment_terms_days: Mapped[int | None] = mapped_column(
-        sa.Integer, nullable=True, default=30
-    )
+    compensation_total_usd: Mapped[float | None] = mapped_column(sa.Float, nullable=True)
+    payment_terms_days: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=30)
 
     # Flight window
     flight_start_date: Mapped[sa.Date | None] = mapped_column(sa.Date, nullable=True)
@@ -67,20 +60,12 @@ class Campaign(
     ftc_string: Mapped[str | None] = mapped_column(sa.String(255), nullable=True)
     usage_duration: Mapped[str | None] = mapped_column(sa.String(128), nullable=True)
     usage_territory: Mapped[str | None] = mapped_column(sa.String(128), nullable=True)
-    usage_paid_media_option: Mapped[bool | None] = mapped_column(
-        sa.Boolean, nullable=True, default=False
-    )
+    usage_paid_media_option: Mapped[bool | None] = mapped_column(sa.Boolean, nullable=True, default=False)
 
     # Exclusivity
-    exclusivity_category: Mapped[str | None] = mapped_column(
-        sa.String(128), nullable=True
-    )
-    exclusivity_days_before: Mapped[int | None] = mapped_column(
-        sa.Integer, nullable=True, default=0
-    )
-    exclusivity_days_after: Mapped[int | None] = mapped_column(
-        sa.Integer, nullable=True, default=0
-    )
+    exclusivity_category: Mapped[str | None] = mapped_column(sa.String(128), nullable=True)
+    exclusivity_days_before: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=0)
+    exclusivity_days_after: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=0)
 
     # Ownership
     ownership_mode: Mapped[OwnershipMode | None] = mapped_column(
@@ -88,17 +73,11 @@ class Campaign(
     )
 
     # Global approval settings
-    approval_rounds: Mapped[int | None] = mapped_column(
-        sa.Integer, nullable=True, default=1
-    )
-    approval_sla_hours: Mapped[int | None] = mapped_column(
-        sa.Integer, nullable=True, default=48
-    )
+    approval_rounds: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=1)
+    approval_sla_hours: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=48)
 
     # Foreign keys - Campaign always has a Brand
-    assigned_roster_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("roster.id"), nullable=True
-    )
+    assigned_roster_id: Mapped[int | None] = mapped_column(sa.ForeignKey("roster.id"), nullable=True)
     brand_id: Mapped[int] = mapped_column(sa.ForeignKey("brands.id"), nullable=False)
 
     # Relationships
@@ -109,17 +88,13 @@ class Campaign(
         primaryjoin="Campaign.assigned_roster_id == Roster.id",
         foreign_keys="Campaign.assigned_roster_id",
     )
-    deliverables: Mapped[list["Deliverable"]] = relationship(
-        "Deliverable", back_populates="campaign"
-    )
+    deliverables: Mapped[list["Deliverable"]] = relationship("Deliverable", back_populates="campaign")
     lead_contacts: Mapped[list["BrandContact"]] = relationship(
         "BrandContact",
         secondary="campaign_lead_contacts",
         back_populates="campaigns_as_lead",
     )
-    invoices: Mapped[list["Invoice"]] = relationship(
-        "Invoice", back_populates="campaign"
-    )
+    invoices: Mapped[list["Invoice"]] = relationship("Invoice", back_populates="campaign")
     payment_blocks: Mapped[list["PaymentBlock"]] = relationship(
         "PaymentBlock",
         back_populates="campaign",
@@ -169,14 +144,10 @@ class CampaignGuest(BaseDBModel):
     # Relationships
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
     campaign: Mapped["Campaign"] = relationship("Campaign")
-    invited_by: Mapped["User | None"] = relationship(
-        "User", foreign_keys=[invited_by_user_id]
-    )
+    invited_by: Mapped["User | None"] = relationship("User", foreign_keys=[invited_by_user_id])
 
     # Unique constraint: a user can only have one access level per campaign
-    __table_args__ = (
-        sa.UniqueConstraint("user_id", "campaign_id", name="uq_user_campaign"),
-    )
+    __table_args__ = (sa.UniqueConstraint("user_id", "campaign_id", name="uq_user_campaign"),)
 
 
 class PaymentBlock(RLSMixin(), BaseDBModel):
@@ -206,9 +177,7 @@ class PaymentBlock(RLSMixin(), BaseDBModel):
 
     # Amount can be specified as either fixed USD or percentage
     amount_usd: Mapped[Decimal | None] = mapped_column(sa.Numeric(10, 2), nullable=True)
-    percent: Mapped[Decimal | None] = mapped_column(
-        sa.Numeric(5, 2), nullable=True
-    )  # 0.00 to 100.00
+    percent: Mapped[Decimal | None] = mapped_column(sa.Numeric(5, 2), nullable=True)  # 0.00 to 100.00
 
     # Payment terms in days (e.g., NET-30 = 30)
     net_days: Mapped[int | None] = mapped_column(sa.Integer, nullable=True)
@@ -217,9 +186,7 @@ class PaymentBlock(RLSMixin(), BaseDBModel):
     order_index: Mapped[int] = mapped_column(sa.Integer, default=0, nullable=False)
 
     # Relationships
-    campaign: Mapped["Campaign"] = relationship(
-        "Campaign", back_populates="payment_blocks"
-    )
+    campaign: Mapped["Campaign"] = relationship("Campaign", back_populates="payment_blocks")
 
     # Constraints
     __table_args__ = (

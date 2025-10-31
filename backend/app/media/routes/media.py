@@ -1,24 +1,25 @@
-from litestar import Request, Router, post, delete, get
-from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
+from litestar import Request, Router, delete, get, post
+from litestar_saq import TaskQueues
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
+from app.auth.guards import requires_user_id
+from app.client.s3_client import S3Dep
 from app.media.enums import MediaStates
 from app.media.models import Media
 from app.media.schemas import (
-    MediaSchema,
     MediaResponseSchema,
+    MediaSchema,
     PresignedUploadRequestSchema,
     PresignedUploadResponseSchema,
     RegisterMediaSchema,
-    media_to_response,
+    media_to_response_schema,
 )
-from app.utils.sqids import Sqid
-from app.auth.guards import requires_user_id
 from app.utils.db import get_or_404
-from app.client.s3_client import S3Dep
-from litestar_saq import TaskQueues
-from app.actions.registry import ActionRegistry
-from app.actions.enums import ActionGroupType
+from app.utils.sqids import Sqid
 
 
 @post("/presigned-upload")
@@ -26,22 +27,21 @@ async def request_presigned_upload(
     data: PresignedUploadRequestSchema, s3_client: S3Dep
 ) -> PresignedUploadResponseSchema:
     """Generate a presigned URL for uploading a file."""
-    from app.utils.configure import config
     from litestar.exceptions import ValidationException
+
+    from app.utils.configure import config
 
     # Validate file size
     if data.file_size > config.MAX_UPLOAD_SIZE:
-        raise ValidationException(
-            f"File size {data.file_size / (1024 * 1024):.1f}MB exceeds maximum allowed size of {config.MAX_UPLOAD_SIZE / (1024 * 1024):.0f}MB"
-        )
+        file_size_mb = data.file_size / (1024 * 1024)
+        max_size_mb = config.MAX_UPLOAD_SIZE / (1024 * 1024)
+        raise ValidationException(f"File size {file_size_mb:.1f}MB exceeds maximum allowed size of {max_size_mb:.0f}MB")
 
     # Generate unique file key
     file_key = f"media/{uuid.uuid4()}/{data.file_name}"
 
     # Generate presigned URL
-    upload_url = s3_client.generate_presigned_upload_url(
-        key=file_key, content_type=data.content_type, expires_in=300
-    )
+    upload_url = s3_client.generate_presigned_upload_url(key=file_key, content_type=data.content_type, expires_in=300)
 
     return PresignedUploadResponseSchema(upload_url=upload_url, file_key=file_key)
 
@@ -95,21 +95,17 @@ async def get_media(
     """Get a media item by SQID."""
     from sqlalchemy.orm import joinedload
 
-    media = await get_or_404(
-        transaction, Media, id, load_options=[joinedload(Media.thread)]
-    )
+    media = await get_or_404(transaction, Media, id, load_options=[joinedload(Media.thread)])
 
     # Compute actions for this media
     action_group = action_registry.get_class(ActionGroupType.MediaActions)
     actions = action_group.get_available_actions(obj=media)
 
-    return media_to_response(media, s3_client, actions)
+    return media_to_response_schema(media, s3_client, actions)
 
 
 @delete("/{id:str}", status_code=200)
-async def delete_media(
-    id: Sqid, transaction: AsyncSession, s3_client: S3Dep
-) -> dict[str, str]:
+async def delete_media(id: Sqid, transaction: AsyncSession, s3_client: S3Dep) -> dict[str, str]:
     """Delete a media item and its files from S3."""
     # id is already decoded from SQID string to int by msgspec
     media = await transaction.get(Media, id)

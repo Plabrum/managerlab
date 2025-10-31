@@ -1,7 +1,7 @@
 """Authentication guards for route protection."""
 
 from litestar.connection import ASGIConnection
-from litestar.exceptions import PermissionDeniedException, NotAuthorizedException
+from litestar.exceptions import NotAuthorizedException, PermissionDeniedException
 from litestar.handlers.base import BaseRouteHandler
 from sqlalchemy import select
 
@@ -43,9 +43,7 @@ def requires_user_scope(connection: ASGIConnection, _: BaseRouteHandler) -> None
 
     scope_type = connection.session.get("scope_type")
     if not scope_type:
-        raise NotAuthorizedException(
-            "No active scope. Please select a team or campaign to continue."
-        )
+        raise NotAuthorizedException("No active scope. Please select a team or campaign to continue.")
 
     # Validate that we have the corresponding ID
     if scope_type == ScopeType.TEAM.value:
@@ -55,9 +53,7 @@ def requires_user_scope(connection: ASGIConnection, _: BaseRouteHandler) -> None
     elif scope_type == ScopeType.CAMPAIGN.value:
         campaign_id = connection.session.get("campaign_id")
         if not campaign_id:
-            raise NotAuthorizedException(
-                "Campaign scope is set but campaign_id is missing"
-            )
+            raise NotAuthorizedException("Campaign scope is set but campaign_id is missing")
 
 
 async def requires_superuser(connection: ASGIConnection, _: BaseRouteHandler) -> None:

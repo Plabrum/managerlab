@@ -110,7 +110,5 @@ def discover_and_import(
                 logger.error(f"Failed to import {file_path}: {e}")
                 continue
 
-    logger.info(
-        f"Auto-discovery imported {len(imported_modules)} modules for patterns {patterns}"
-    )
+    logger.info(f"Auto-discovery imported {len(imported_modules)} modules for patterns {patterns}")
     return imported_modules

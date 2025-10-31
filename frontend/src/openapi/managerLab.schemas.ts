@@ -457,16 +457,16 @@ export interface CategoricalTimeSeriesData {
   type: 'categorical';
 }
 
-export type ColumnDefinitionDTOAvailableValues = string[] | null;
+export type ColumnDefinitionSchemaAvailableValues = string[] | null;
 
-export interface ColumnDefinitionDTO {
+export interface ColumnDefinitionSchema {
   key: string;
   label: string;
   type: FieldType;
   filter_type: FilterType;
   sortable?: boolean;
   default_visible?: boolean;
-  available_values?: ColumnDefinitionDTOAvailableValues;
+  available_values?: ColumnDefinitionSchemaAvailableValues;
 }
 
 export type CompensationStructure = typeof CompensationStructure[keyof typeof CompensationStructure];
@@ -1142,23 +1142,6 @@ export interface ObjectFieldDTO {
   editable?: boolean;
 }
 
-export type ObjectListDTOSubtitle = string | null;
-
-export type ObjectListDTOLink = string | null;
-
-export interface ObjectListDTO {
-  id: string;
-  object_type: ObjectTypes;
-  title: string;
-  state: string;
-  created_at: string;
-  updated_at: string;
-  subtitle?: ObjectListDTOSubtitle;
-  actions?: ActionDTO[];
-  fields?: ObjectFieldDTO[];
-  link?: ObjectListDTOLink;
-}
-
 export type ObjectListRequestFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition;
 
 export type ObjectListRequestSearch = string | null;
@@ -1175,16 +1158,34 @@ export interface ObjectListRequest {
 }
 
 export interface ObjectListResponse {
-  objects: ObjectListDTO[];
+  objects: ObjectListSchema[];
   total: number;
   limit: number;
   offset: number;
-  columns: ColumnDefinitionDTO[];
   actions?: ActionDTO[];
 }
 
+export type ObjectListSchemaState = string | null;
+
+export type ObjectListSchemaSubtitle = string | null;
+
+export type ObjectListSchemaLink = string | null;
+
+export interface ObjectListSchema {
+  id: string;
+  object_type: ObjectTypes;
+  title: string;
+  state?: ObjectListSchemaState;
+  created_at: string;
+  updated_at: string;
+  subtitle?: ObjectListSchemaSubtitle;
+  actions?: ActionDTO[];
+  fields?: ObjectFieldDTO[];
+  link?: ObjectListSchemaLink;
+}
+
 export interface ObjectSchemaResponse {
-  columns: ColumnDefinitionDTO[];
+  columns: ColumnDefinitionSchema[];
 }
 
 export type ObjectTypes = typeof ObjectTypes[keyof typeof ObjectTypes];
@@ -1545,8 +1546,11 @@ export interface TimeSeriesDataResponse {
   total_records: number;
 }
 
+export type URLFieldValueLabel = string | null;
+
 export interface URLFieldValue {
   value: string;
+  label?: URLFieldValueLabel;
   type: 'url';
 }
 

@@ -1,14 +1,15 @@
 """Background tasks for media processing."""
 
+import subprocess
 import tempfile
 from pathlib import Path
-from saq.types import Context
-from PIL import Image
-import subprocess
 
-from app.queue.registry import task
-from app.media.models import Media
+from PIL import Image
+from saq.types import Context
+
 from app.media.enums import MediaStates
+from app.media.models import Media
+from app.queue.registry import task
 
 
 @task
@@ -51,9 +52,7 @@ async def generate_thumbnail(ctx: Context, *, media_id: int) -> dict:
                             img.thumbnail((300, 300), Image.Resampling.LANCZOS)
 
                             # Save as JPEG
-                            thumbnail_filename = (
-                                f"thumb_{Path(media.file_name).stem}.jpg"
-                            )
+                            thumbnail_filename = f"thumb_{Path(media.file_name).stem}.jpg"
                             thumbnail_path = temp_path / thumbnail_filename
                             img.save(thumbnail_path, "JPEG", quality=85)
 

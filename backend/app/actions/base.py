@@ -1,22 +1,21 @@
+import inspect
 from abc import ABC
 from enum import StrEnum
-from typing import Type, ClassVar, Any, Dict
-import inspect
+from typing import Any, ClassVar
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
+from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import (
+    ActionDTO,
     ActionExecutionResponse,
 )
 from app.base.models import BaseDBModel
-from app.actions.enums import ActionIcon, ActionGroupType
-from app.actions.schemas import ActionDTO
 
 
-def _filter_kwargs_by_signature(
-    func: Any, available_kwargs: Dict[str, Any]
-) -> Dict[str, Any]:
+def _filter_kwargs_by_signature(func: Any, available_kwargs: dict[str, Any]) -> dict[str, Any]:
     """Filter kwargs to only include parameters that the function accepts.
 
     Args:
@@ -59,12 +58,10 @@ class BaseAction(ABC):
     priority: ClassVar[int] = 100  # Display priority (lower = higher priority)
     icon: ClassVar[ActionIcon] = ActionIcon.default
     confirmation_message: ClassVar[str | None] = None  # Optional confirmation message
-    should_redirect_to_parent: ClassVar[bool] = (
-        False  # Whether to redirect to parent after execution
-    )
+    should_redirect_to_parent: ClassVar[bool] = False  # Whether to redirect to parent after execution
 
     # Model and load options for default get_object implementation
-    model: ClassVar[Type[BaseDBModel] | None] = None
+    model: ClassVar[type[BaseDBModel] | None] = None
     load_options: ClassVar[list[ExecutableOption]] = []
 
     @classmethod
@@ -77,9 +74,7 @@ class BaseAction(ABC):
             return None
 
         result = await transaction.execute(
-            select(cls.model)
-            .where(cls.model.id == object_id)
-            .options(*cls.load_options)
+            select(cls.model).where(cls.model.id == object_id).options(*cls.load_options)
         )
         return result.scalar_one()
 
@@ -102,17 +97,17 @@ class ActionGroup:
         self,
         group_type: ActionGroupType,
         action_registry: Any,  # ActionRegistry - forward ref to avoid circular import
-        model_type: Type[BaseDBModel] | None,
+        model_type: type[BaseDBModel] | None,
         object_service: Any | None = None,  # BaseObject - forward ref
     ) -> None:
         self.group_type = group_type
-        self.actions: Dict[str, Type[BaseAction]] = {}
+        self.actions: dict[str, type[BaseAction]] = {}
         self.action_registry = action_registry
         self.model_type = model_type
         self.object_service = object_service
-        self._execute_union: Type | None = None
+        self._execute_union: type | None = None
 
-    def __call__(self, action_class: Type[BaseAction]) -> Type[BaseAction]:
+    def __call__(self, action_class: type[BaseAction]) -> type[BaseAction]:
         action_class.model = self.model_type
         action_key = action_class.action_key
         combined_key = self._get_action_key(action_key)
@@ -123,7 +118,7 @@ class ActionGroup:
     def _get_action_key(self, action_key: str) -> str:
         return f"{self.group_type.value}__{action_key.replace('.', '_')}"
 
-    def get_action(self, action_key: str) -> Type[BaseAction]:
+    def get_action(self, action_key: str) -> type[BaseAction]:
         if action_key not in self.actions:
             raise Exception("Unknown action type")
         return self.actions[action_key]
@@ -137,9 +132,7 @@ class ActionGroup:
         if transaction is None:
             return None
 
-        result = await transaction.execute(
-            select(self.model_type).where(self.model_type.id == object_id)
-        )
+        result = await transaction.execute(select(self.model_type).where(self.model_type.id == object_id))
         return result.scalar_one_or_none()
 
     async def trigger(
@@ -169,9 +162,7 @@ class ActionGroup:
         }
 
         # Filter only those accepted by the execute() signature
-        filtered_kwargs = {
-            name: val for name, val in candidate_args.items() if name in params
-        }
+        filtered_kwargs = {name: val for name, val in candidate_args.items() if name in params}
 
         # Execute action and get the resulting object
         return await action_class.execute(**filtered_kwargs)
@@ -183,9 +174,7 @@ class ActionGroup:
         available = []
         for action_key, action_class in self.actions.items():
             # Filter dependencies to only those accepted by is_available method
-            filtered_kwargs = _filter_kwargs_by_signature(
-                action_class.is_available, self.action_registry.dependencies
-            )
+            filtered_kwargs = _filter_kwargs_by_signature(action_class.is_available, self.action_registry.dependencies)
             if action_class.is_available(obj, **filtered_kwargs):
                 available.append((action_key, action_class))
 
@@ -209,7 +198,7 @@ class ActionGroup:
 
 def action_group_factory[T: BaseDBModel](
     group_type: ActionGroupType,
-    model_type: Type[T] | None = None,
+    model_type: type[T] | None = None,
     object_service: Any | None = None,
 ) -> ActionGroup:
     # Import here to avoid circular dependency

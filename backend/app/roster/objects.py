@@ -4,172 +4,133 @@ from app.actions.enums import ActionGroupType
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ActionDTO,
-    ObjectListDTO,
-    ObjectFieldDTO,
-    FieldType,
-    ColumnDefinitionDTO,
-    StringFieldValue,
     EmailFieldValue,
     EnumFieldValue,
-    ImageFieldValue,
+    FieldType,
+    ObjectColumn,
+    StringFieldValue,
+    media_to_image_field_value,
 )
-from app.objects.services import get_filter_by_field_type
 from app.roster.enums import RosterStates
 from app.roster.models import Roster
-from app.utils.sqids import sqid_encode
-from app.client.s3_client import S3Client
 
 
-class RosterObject(BaseObject):
+class RosterObject(BaseObject[Roster]):
     object_type = ObjectTypes.Roster
-    model = Roster
 
     @classmethod
-    def get_top_level_action_group(cls):
-        return ActionGroupType.TopLevelRosterActions
+    def model(cls) -> type[Roster]:
+        return Roster
+
+    @classmethod
+    def title_field(cls, roster: Roster) -> str:
+        return roster.name
+
+    @classmethod
+    def subtitle_field(cls, roster: Roster) -> str:
+        return roster.instagram_handle or ""
+
+    @classmethod
+    def state_field(cls, roster: Roster) -> str:
+        return roster.state
+
+    # Action groups
+    top_level_action_group = ActionGroupType.TopLevelRosterActions
+
+    # Load options
+    load_options = [joinedload(Roster.user), joinedload(Roster.profile_photo)]
 
     column_definitions = [
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="name",
             label="Name",
             type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.name),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="email",
             label="Email",
             type=FieldType.Email,
+            value=lambda obj: EmailFieldValue(value=obj.email) if obj.email else None,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="instagram_handle",
             label="Instagram",
             type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.instagram_handle) if obj.instagram_handle else None,
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
             default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
-        ColumnDefinitionDTO(
+        ObjectColumn(
             key="state",
             label="Status",
             type=FieldType.Enum,
+            value=lambda obj: EnumFieldValue(value=obj.state),
             sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
             default_visible=True,
             available_values=[e.name for e in RosterStates],
+            editable=False,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="profile_photo",
+            label="Profile Photo",
+            type=FieldType.Image,
+            value=lambda obj: media_to_image_field_value(
+                obj.profile_photo,
+                BaseObject.registry.dependencies["s3_client"],
+            )
+            if obj.profile_photo
+            else None,
+            sortable=False,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="facebook_handle",
+            label="Facebook",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.facebook_handle) if obj.facebook_handle else None,
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="tiktok_handle",
+            label="TikTok",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.tiktok_handle) if obj.tiktok_handle else None,
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="youtube_channel",
+            label="YouTube",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.youtube_channel) if obj.youtube_channel else None,
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
         ),
     ]
-
-    @classmethod
-    def get_load_options(cls):
-        """Return load options for eager loading relationships."""
-        return [joinedload(Roster.user), joinedload(Roster.profile_photo)]
-
-    @classmethod
-    def to_list_dto(cls, roster_member: Roster) -> ObjectListDTO:
-        # Generate profile photo URLs if available
-        profile_photo_field = None
-        if roster_member.profile_photo:
-            s3_client: S3Client = cls.registry.dependencies["s3_client"]
-            photo_url = s3_client.generate_presigned_download_url(
-                key=roster_member.profile_photo.file_key, expires_in=3600
-            )
-            thumbnail_url = (
-                s3_client.generate_presigned_download_url(
-                    key=roster_member.profile_photo.thumbnail_key, expires_in=3600
-                )
-                if roster_member.profile_photo.thumbnail_key
-                else None
-            )
-            profile_photo_field = ObjectFieldDTO(
-                key="profile_photo",
-                value=ImageFieldValue(url=photo_url, thumbnail_url=thumbnail_url),
-                label="Profile Photo",
-                editable=False,
-            )
-
-        fields = [
-            profile_photo_field,
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=roster_member.name),
-                label="Name",
-                editable=False,
-            ),
-            (
-                ObjectFieldDTO(
-                    key="email",
-                    value=(EmailFieldValue(value=roster_member.email)),
-                    label="Email",
-                    editable=False,
-                )
-                if roster_member.email
-                else None
-            ),
-            (
-                ObjectFieldDTO(
-                    key="instagram_handle",
-                    value=(StringFieldValue(value=roster_member.instagram_handle)),
-                    label="Instagram",
-                    editable=False,
-                )
-                if roster_member.instagram_handle
-                else None
-            ),
-            (
-                ObjectFieldDTO(
-                    key="facebook_handle",
-                    value=(StringFieldValue(value=roster_member.facebook_handle)),
-                    label="Facebook",
-                    editable=False,
-                )
-                if roster_member.facebook_handle
-                else None
-            ),
-            (
-                ObjectFieldDTO(
-                    key="tiktok_handle",
-                    value=(StringFieldValue(value=roster_member.tiktok_handle)),
-                    label="TikTok",
-                    editable=False,
-                )
-                if roster_member.tiktok_handle
-                else None
-            ),
-            (
-                ObjectFieldDTO(
-                    key="youtube_channel",
-                    value=(StringFieldValue(value=roster_member.youtube_channel)),
-                    label="YouTube",
-                    editable=False,
-                )
-                if roster_member.youtube_channel
-                else None
-            ),
-            ObjectFieldDTO(
-                key="state",
-                value=EnumFieldValue(value=roster_member.state.name),
-                label="Status",
-                editable=False,
-            ),
-        ]
-
-        return ObjectListDTO(
-            id=sqid_encode(roster_member.id),
-            object_type=ObjectTypes.Roster,
-            title=roster_member.name,
-            subtitle=roster_member.instagram_handle,
-            state=roster_member.state.name,
-            actions=[
-                ActionDTO(action="edit", label="Edit", is_bulk_allowed=False),
-                ActionDTO(action="archive", label="Archive", is_bulk_allowed=True),
-            ],
-            created_at=roster_member.created_at,
-            updated_at=roster_member.updated_at,
-            fields=[f for f in fields if f is not None],
-        )

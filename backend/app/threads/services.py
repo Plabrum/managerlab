@@ -1,18 +1,18 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import cast
 
-from litestar.stores.memory import MemoryStore
 from litestar.channels import ChannelsPlugin
 from litestar.stores.base import Store
-from sqlalchemy import select, func
+from litestar.stores.memory import MemoryStore
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.threads.models import Thread, Message, ThreadReadStatus
-from app.threads.utils import encode_server_message_str, get_thread_channel
+from app.threads.models import Message, Thread, ThreadReadStatus
 from app.threads.schemas import (
     ServerMessage,
 )
+from app.threads.utils import encode_server_message_str, get_thread_channel
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +72,7 @@ async def get_or_create_thread(
     transaction.add(thread)
     await transaction.flush()
 
-    logger.info(
-        f"Created new thread for {threadable_type}:{threadable_id} (thread_id={thread.id})"
-    )
+    logger.info(f"Created new thread for {threadable_type}:{threadable_id} (thread_id={thread.id})")
 
     return thread
 
@@ -159,8 +157,7 @@ async def get_batch_unread_counts(
             & (Message.deleted_at.is_(None))
             & (
                 # Message is unread if created after last_read_at OR never read
-                (max_read_subq.c.last_read_at.is_(None))
-                | (Message.created_at > max_read_subq.c.last_read_at)
+                (max_read_subq.c.last_read_at.is_(None)) | (Message.created_at > max_read_subq.c.last_read_at)
             ),
         )
         .where(
@@ -189,7 +186,7 @@ async def mark_thread_as_read(
         thread_id: Thread ID
         user_id: User ID
     """
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     # Simple INSERT - append-only log
     read_status = ThreadReadStatus(

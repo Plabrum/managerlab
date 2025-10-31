@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type {
-  ColumnDefinitionDTO,
+  ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
 } from '@/openapi/managerLab.schemas';
 import {
@@ -14,7 +14,7 @@ import {
 } from './filters';
 
 interface DataTableColumnFilterProps {
-  column: ColumnDefinitionDTO;
+  column: ColumnDefinitionSchema;
   filters: ObjectListRequestFiltersItem[];
   onFiltersChange: (filters: ObjectListRequestFiltersItem[]) => void;
 }

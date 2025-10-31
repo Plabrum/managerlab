@@ -1,168 +1,138 @@
 from sqlalchemy.orm import joinedload
+
 from app.actions.enums import ActionGroupType
-from app.actions.registry import ActionRegistry
+from app.campaigns.enums import CampaignStates
+from app.campaigns.models import Campaign
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
-    ObjectListDTO,
-    ObjectFieldDTO,
+    DatetimeFieldValue,
+    EnumFieldValue,
     FieldType,
-    ColumnDefinitionDTO,
+    IntFieldValue,
+    ObjectColumn,
     StringFieldValue,
     URLFieldValue,
-    EnumFieldValue,
 )
-from app.objects.services import get_filter_by_field_type
-from app.campaigns.models import Campaign
-from app.campaigns.enums import CampaignStates
 from app.utils.sqids import sqid_encode
 
 
-class CampaignObject(BaseObject):
+class CampaignObject(BaseObject[Campaign]):
     object_type = ObjectTypes.Campaigns
-    model = Campaign
 
-    column_definitions = [
-        ColumnDefinitionDTO(
-            key="id",
-            label="ID",
-            type=FieldType.Int,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
-            default_visible=False,
-        ),
-        ColumnDefinitionDTO(
-            key="created_at",
-            label="Created At",
-            type=FieldType.Datetime,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
-            default_visible=False,
-        ),
-        ColumnDefinitionDTO(
-            key="updated_at",
-            label="Updated At",
-            type=FieldType.Datetime,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
-            default_visible=False,
-        ),
-        ColumnDefinitionDTO(
-            key="name",
-            label="Name",
-            type=FieldType.String,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.String),
-            default_visible=True,
-        ),
-        ColumnDefinitionDTO(
-            key="description",
-            label="Description",
-            type=FieldType.Text,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Text),
-            default_visible=False,
-        ),
-        ColumnDefinitionDTO(
-            key="brand",
-            label="Brand",
-            type=FieldType.URL,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Int),
-            default_visible=True,
-        ),
-        ColumnDefinitionDTO(
-            key="created_at",
-            label="Created",
-            type=FieldType.Datetime,
-            sortable=False,
-            filter_type=get_filter_by_field_type(FieldType.Datetime),
-            default_visible=False,
-        ),
-        ColumnDefinitionDTO(
-            key="state",
-            label="Status",
-            type=FieldType.Enum,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
-            default_visible=False,
-            available_values=[state.value for state in CampaignStates],
-        ),
-        ColumnDefinitionDTO(
-            key="compensation_structure",
-            label="Compensation",
-            type=FieldType.Enum,
-            sortable=True,
-            filter_type=get_filter_by_field_type(FieldType.Enum),
-            default_visible=True,
-        ),
+    @classmethod
+    def model(cls) -> type[Campaign]:
+        return Campaign
+
+    # Action groups
+    top_level_action_group = ActionGroupType.TopLevelCampaignActions
+    action_group = ActionGroupType.CampaignActions
+
+    # Load options for eager loading relationships
+    load_options = [
+        joinedload(Campaign.brand),
+        joinedload(Campaign.thread),
     ]
 
     @classmethod
-    def get_top_level_action_group(cls):
-        return ActionGroupType.TopLevelCampaignActions
+    def title_field(cls, campaign: Campaign) -> str:
+        return campaign.name
 
     @classmethod
-    def get_load_options(cls):
-        """Return load options for eager loading relationships."""
-        return [
-            joinedload(Campaign.brand),
-            joinedload(Campaign.thread),
-        ]
+    def subtitle_field(cls, campaign: Campaign) -> str:
+        return campaign.description or ""
 
     @classmethod
-    def to_list_dto(cls, campaign: Campaign) -> ObjectListDTO:
-        fields = [
-            ObjectFieldDTO(
-                key="name",
-                value=StringFieldValue(value=campaign.name),
-                label="Name",
-                editable=False,
-            ),
-        ]
+    def state_field(cls, campaign: Campaign) -> str:
+        return campaign.state
 
-        if campaign.description:
-            fields.append(
-                ObjectFieldDTO(
-                    key="description",
-                    value=StringFieldValue(value=campaign.description),
-                    label="Description",
-                    editable=False,
-                )
-            )
-
-        if campaign.brand:
-            fields.append(
-                ObjectFieldDTO(
-                    key="brand",
-                    value=URLFieldValue(
-                        value=f"brands/{sqid_encode(campaign.brand.id)}"
-                    ),
+    column_definitions = [
+        ObjectColumn(
+            key="id",
+            label="ID",
+            type=FieldType.Int,
+            value=lambda obj: IntFieldValue(value=obj.id),
+            sortable=True,
+            default_visible=False,
+            include_in_list=False,
+        ),
+        ObjectColumn(
+            key="created_at",
+            label="Created At",
+            type=FieldType.Datetime,
+            value=lambda obj: DatetimeFieldValue(value=obj.created_at),
+            sortable=True,
+            default_visible=False,
+            include_in_list=False,
+        ),
+        ObjectColumn(
+            key="updated_at",
+            label="Updated At",
+            type=FieldType.Datetime,
+            value=lambda obj: DatetimeFieldValue(value=obj.updated_at),
+            sortable=True,
+            default_visible=False,
+            include_in_list=False,
+        ),
+        ObjectColumn(
+            key="name",
+            label="Name",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.name),
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="description",
+            label="Description",
+            type=FieldType.String,
+            value=lambda obj: StringFieldValue(value=obj.description) if obj.description else None,
+            sortable=True,
+            default_visible=False,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="brand",
+            label="Brand",
+            type=FieldType.URL,
+            value=lambda campaign: (
+                URLFieldValue(
+                    value=f"brands/{sqid_encode(campaign.brand.id)}",
                     label=campaign.brand.name,
-                    editable=False,
                 )
-            )
-
-        fields.append(
-            ObjectFieldDTO(
-                key="state",
-                value=EnumFieldValue(value=campaign.state.value),
-                label="Status",
-                editable=False,
-            )
-        )
-
-        action_group = ActionRegistry().get_class(ActionGroupType.CampaignActions)
-        actions = action_group.get_available_actions(obj=campaign)
-
-        return ObjectListDTO(
-            id=sqid_encode(campaign.id),
-            object_type=ObjectTypes.Campaigns,
-            title=campaign.name,
-            subtitle=campaign.description,
-            state="active",
-            actions=actions,
-            created_at=campaign.created_at,
-            updated_at=campaign.updated_at,
-            fields=fields,
-        )
+                if campaign.brand
+                else None
+            ),
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="state",
+            label="Status",
+            type=FieldType.Enum,
+            value=lambda obj: EnumFieldValue(value=obj.state),
+            sortable=True,
+            default_visible=False,
+            available_values=[state.value for state in CampaignStates],
+            editable=False,
+            include_in_list=True,
+        ),
+        ObjectColumn(
+            key="compensation_structure",
+            label="Compensation",
+            type=FieldType.Enum,
+            value=lambda obj: EnumFieldValue(value=obj.compensation_structure) if obj.compensation_structure else None,
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=False,  # Not shown in original to_list_dto
+        ),
+    ]

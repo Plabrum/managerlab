@@ -1,5 +1,3 @@
-from typing import List
-
 from litestar import Request, Router, get, post
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST
@@ -8,27 +6,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.users.models import User, WaitlistEntry, Team, Role
+from app.auth.enums import ScopeType
+from app.auth.guards import requires_superuser, requires_user_id
+from app.campaigns.models import Campaign
+from app.users.enums import RoleLevel, UserStates
+from app.users.models import Role, Team, User, WaitlistEntry
 from app.users.schemas import (
-    CreateUserSchema,
     CreateTeamSchema,
+    CreateUserSchema,
+    ListTeamsResponse,
+    SwitchTeamRequest,
+    TeamListItemSchema,
     TeamSchema,
     UserSchema,
     UserWaitlistFormSchema,
     WaitlistEntrySchema,
-    TeamListItemSchema,
-    ListTeamsResponse,
-    SwitchTeamRequest,
 )
-from app.auth.guards import requires_user_id, requires_superuser
-from app.auth.enums import ScopeType
-from app.users.enums import RoleLevel, UserStates
-from app.campaigns.models import Campaign
 from app.utils.sqids import sqid_encode
 
 
 @get("/", guards=[requires_superuser])
-async def list_users(transaction: AsyncSession) -> List[UserSchema]:
+async def list_users(transaction: AsyncSession) -> list[UserSchema]:
     """List all users - requires superuser privileges."""
     result = await transaction.execute(select(User))
     users = result.scalars().all()
@@ -168,9 +166,7 @@ async def create_team(
 
 
 @get("/teams", guards=[requires_user_id])
-async def list_teams(
-    request: Request, transaction: AsyncSession, action_registry: ActionRegistry
-) -> ListTeamsResponse:
+async def list_teams(request: Request, transaction: AsyncSession, action_registry: ActionRegistry) -> ListTeamsResponse:
     """List all teams for the current user.
 
     If user is in campaign scope, returns only the campaign's team (read-only).
@@ -251,9 +247,7 @@ async def list_teams(
 
 
 @post("/switch-team", guards=[requires_user_id])
-async def switch_team(
-    request: Request, data: SwitchTeamRequest, transaction: AsyncSession
-) -> dict:
+async def switch_team(request: Request, data: SwitchTeamRequest, transaction: AsyncSession) -> dict:
     """Switch to a different team.
 
     Only allowed when not in campaign scope. Validates user has access to the team.

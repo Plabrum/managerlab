@@ -1,12 +1,12 @@
 from litestar_saq import TaskQueues
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.actions import BaseAction, action_group_factory, ActionGroupType
+
+from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.media.models import Media
 from app.media.enums import MediaStates, TopLevelMediaActions
+from app.media.models import Media
 from app.media.schemas import RegisterMediaSchema
-
 
 top_level_media_actions = action_group_factory(ActionGroupType.TopLevelMediaActions)
 
