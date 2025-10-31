@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev -p 3000 --turbo",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "build": "next build",
@@ -80,6 +80,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@next/bundle-analyzer": "^16.0.1",
     "@next/eslint-plugin-next": "^15.5.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

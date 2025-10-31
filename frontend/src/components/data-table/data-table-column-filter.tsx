@@ -11,6 +11,7 @@ import {
   DateFilter,
   BooleanFilter,
   EnumFilter,
+  ObjectFilter,
 } from './filters';
 
 interface DataTableColumnFilterProps {
@@ -60,6 +61,20 @@ export function DataTableColumnFilter({
             column={column.key}
             onSubmit={handleSubmit}
             availableValues={column.available_values || []}
+          />
+        </DataTableColumnFilterWrapper>
+      );
+    case 'object_filter':
+      if (!column.object_type) {
+        console.error('object_filter requires object_type to be set');
+        return null;
+      }
+      return (
+        <DataTableColumnFilterWrapper label={column.label}>
+          <ObjectFilter
+            column={column.key}
+            objectType={column.object_type}
+            onSubmit={handleSubmit}
           />
         </DataTableColumnFilterWrapper>
       );

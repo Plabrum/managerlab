@@ -9,3 +9,4 @@ export {
   ObjectChildren,
 } from './object-relations';
 export { MediaGallery } from './media-gallery';
+export { ObjectChildList } from './object-child-list';

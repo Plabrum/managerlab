@@ -5,8 +5,9 @@ from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.enums import CampaignActions
 from app.campaigns.models import Campaign
-from app.campaigns.schemas import CampaignUpdateSchema
-from app.utils.db import update_model
+from app.campaigns.schemas import AddDeliverableToCampaignSchema, CampaignUpdateSchema
+from app.deliverables.models import Deliverable
+from app.utils.db import create_model, update_model
 
 campaign_actions = action_group_factory(
     ActionGroupType.CampaignActions,
@@ -62,4 +63,40 @@ class UpdateCampaign(BaseAction):
 
         return ActionExecutionResponse(
             message="Updated campaign",
+        )
+
+
+@campaign_actions
+class AddDeliverableToCampaign(BaseAction):
+    """Add a new deliverable to a campaign."""
+
+    action_key = CampaignActions.add_deliverable
+    label = "Add Deliverable"
+    is_bulk_allowed = False
+    priority = 10
+    icon = ActionIcon.add
+    model = Campaign
+
+    @classmethod
+    async def execute(
+        cls,
+        obj: Campaign,
+        data: AddDeliverableToCampaignSchema,
+        transaction: AsyncSession,
+        team_id: int,
+        user: int,
+    ) -> ActionExecutionResponse:
+        # Create a new deliverable associated with this campaign
+        await create_model(
+            session=transaction,
+            team_id=team_id,
+            campaign_id=obj.id,
+            model_class=Deliverable,
+            create_vals=data,
+            user_id=user,
+        )
+
+        return ActionExecutionResponse(
+            message=f"Added deliverable '{data.title}' to campaign",
+            invalidate_queries=["/o/deliverables"],
         )

@@ -20,8 +20,8 @@ This document outlines the plan to extend the current data table component to su
 
 - Built on TanStack Table v8
 - Server-side state management (pagination, sorting, filtering)
-- Generic data model via `ObjectListDTO[]`
-- Dynamic columns via `ColumnDefinitionDTO[]`
+- Generic data model via `ObjectListSchema[]`
+- Dynamic columns via `ColumnDefinitionSchema[]`
 - Features: row selection, bulk actions, column visibility, inline filtering
 - Action system with row-level and bulk operations
 
@@ -49,7 +49,7 @@ Page Component (e.g., posts/page.tsx)
 **Key Data Structures:**
 
 ```typescript
-interface ObjectListDTO {
+interface ObjectListSchema {
   id: string;
   object_type: string;
   title: string;
@@ -60,7 +60,7 @@ interface ObjectListDTO {
   link?: string;
 }
 
-interface ColumnDefinitionDTO {
+interface ColumnDefinitionSchema {
   key: string;
   label: string;
   type: FieldType; // string, int, bool, date, image, etc.
@@ -166,8 +166,8 @@ All three view components implement this common interface:
 ```typescript
 interface DataViewComponentProps {
   // Data (same for all views)
-  data: ObjectListDTO[];
-  columns: ColumnDefinitionDTO[];
+  data: ObjectListSchema[];
+  columns: ColumnDefinitionSchema[];
   totalCount: number;
 
   // State management (same for all views)
@@ -182,8 +182,8 @@ interface DataViewComponentProps {
   enableRowSelection?: boolean;
   enableSorting?: boolean;
   isLoading?: boolean;
-  onActionClick?: (action: string, row: ObjectListDTO) => void;
-  onBulkActionClick?: (action: string, rows: ObjectListDTO[]) => void;
+  onActionClick?: (action: string, row: ObjectListSchema) => void;
+  onBulkActionClick?: (action: string, rows: ObjectListSchema[]) => void;
 
   // View-specific config (optional per view)
   viewConfig?: DataViewConfig;
@@ -315,7 +315,7 @@ type ViewMode = 'table' | 'gallery' | 'kanban';
 // Determine which field drives columns:
 1. Explicit config: kanbanConfig.groupByField
 2. Auto-detect: First enum field with filter_type === 'enum_filter'
-3. Fallback: Use 'state' field (present in all ObjectListDTO)
+3. Fallback: Use 'state' field (present in all ObjectListSchema)
 
 // Get column values:
 const columnField = columns.find(col => col.key === groupByField);

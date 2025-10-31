@@ -58,8 +58,20 @@ class EnumFilterDefinition(BaseSchema, tag=FilterType.enum_filter.value):
     values: list[str]  # list of selected enum values
 
 
+class ObjectFilterDefinition(BaseSchema, tag=FilterType.object_filter.value):
+    """Object reference filter definition."""
+
+    column: str
+    values: list[str]  # list of SQIDs to filter by
+
+
 FilterDefinition = (
-    TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition
+    TextFilterDefinition
+    | RangeFilterDefinition
+    | DateFilterDefinition
+    | BooleanFilterDefinition
+    | EnumFilterDefinition
+    | ObjectFilterDefinition
 )
 
 
@@ -132,6 +144,14 @@ class URLFieldValue(BaseSchema, tag=FieldType.URL.value):
     label: str | None = None  # Display label for the URL (e.g., brand name)
 
 
+class ObjectFieldValue(BaseSchema, tag=FieldType.Object.value):
+    """Object reference field value with SQID and type information."""
+
+    value: str  # SQID of the referenced object
+    object_type: ObjectTypes  # Type of object being referenced
+    label: str | None = None  # Display label for the object (e.g., brand name)
+
+
 class TextFieldValue(BaseSchema, tag=FieldType.Text.value):
     """Text field value (long-form text)."""
 
@@ -175,6 +195,7 @@ FieldValue = (
     | USDFieldValue
     | EmailFieldValue
     | URLFieldValue
+    | ObjectFieldValue
     | TextFieldValue
     | ImageFieldValue
 )
@@ -197,13 +218,14 @@ class ObjectColumn:
     It includes internal metadata like accessor/formatter that are not exposed via API.
     """
 
-    key: str
+    key: str  # Internal identifier (e.g., database column name)
     label: str
     type: FieldType
     value: Callable[[Any], FieldValue | None]  # Returns wrapped FieldValue type
     sortable: bool = True
     default_visible: bool = True
     available_values: list[str] | None = None
+    object_type: ObjectTypes | None = None  # Type of referenced object (for Object field type)
 
     # Internal-only fields (not exposed via API)
     editable: bool = True  # Whether field can be edited
@@ -217,13 +239,14 @@ class ColumnDefinitionSchema(BaseSchema):
     This is returned by the schema endpoint and contains only serializable fields.
     """
 
-    key: str
+    key: str  # Column identifier (used for filtering/sorting)
     label: str
     type: FieldType
     filter_type: FilterType
     sortable: bool = True
     default_visible: bool = True
     available_values: list[str] | None = None
+    object_type: ObjectTypes | None = None
 
 
 class ObjectRelationGroup(BaseSchema):
@@ -257,7 +280,7 @@ class ObjectListSchema(BaseSchema):
     link: str | None = None
 
     def __post_init__(self) -> None:
-        self.link = f"{self.object_type}/{self.id}"
+        self.link = f"/{self.object_type}/{self.id}"
 
 
 class ObjectListRequest(BaseSchema):

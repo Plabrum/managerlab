@@ -12,8 +12,10 @@ from app.objects.schemas import (
     FieldType,
     IntFieldValue,
     ObjectColumn,
+    ObjectFieldValue,
     StringFieldValue,
 )
+from app.utils.sqids import sqid_encode
 
 
 class DeliverableObject(BaseObject[Deliverable]):
@@ -62,23 +64,6 @@ class DeliverableObject(BaseObject[Deliverable]):
             include_in_list=False,
         ),
         ObjectColumn(
-            key="content_preview",
-            label="Content Preview",
-            type=FieldType.String,
-            value=lambda obj: (
-                StringFieldValue(value=obj.content[:100] + "...")
-                if obj.content and len(obj.content) > 100
-                else StringFieldValue(value=obj.content)
-                if obj.content
-                else None
-            ),
-            sortable=False,
-            default_visible=False,
-            editable=False,
-            nullable=True,
-            include_in_list=False,
-        ),
-        ObjectColumn(
             key="created_at",
             label="Created At",
             type=FieldType.Datetime,
@@ -107,10 +92,29 @@ class DeliverableObject(BaseObject[Deliverable]):
             include_in_list=True,
         ),
         ObjectColumn(
+            key="campaign_id",
+            label="Campaign",
+            type=FieldType.Object,
+            value=lambda obj: (
+                ObjectFieldValue(
+                    value=sqid_encode(obj.campaign.id),
+                    object_type=ObjectTypes.Campaigns,
+                    label=obj.campaign.name,
+                )
+                if obj.campaign
+                else None
+            ),
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            include_in_list=True,
+            object_type=ObjectTypes.Campaigns,
+        ),
+        ObjectColumn(
             key="content",
             label="Content",
             type=FieldType.String,
-            value=lambda obj: StringFieldValue(value=obj.content) if obj.content else None,
+            value=lambda obj: (StringFieldValue(value=obj.content) if obj.content else None),
             sortable=True,
             default_visible=True,
             editable=False,
@@ -143,7 +147,7 @@ class DeliverableObject(BaseObject[Deliverable]):
             key="posting_date",
             label="Posting Date",
             type=FieldType.Datetime,
-            value=lambda obj: DatetimeFieldValue(value=obj.posting_date) if obj.posting_date else None,
+            value=lambda obj: (DatetimeFieldValue(value=obj.posting_date) if obj.posting_date else None),
             sortable=True,
             default_visible=True,
             editable=False,

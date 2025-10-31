@@ -94,6 +94,15 @@ export function columnFiltersToRequestFilters(
           type: 'enum_filter',
         } as ObjectListRequestFiltersItem;
 
+      case 'object_filter':
+        return {
+          column: filter.id,
+          values: Array.isArray(filter.value)
+            ? filter.value
+            : [String(filter.value)],
+          type: 'object_filter',
+        } as ObjectListRequestFiltersItem;
+
       case 'range_filter':
         if (typeof filter.value === 'object' && filter.value !== null) {
           const rangeValue = filter.value as RangeFilterValue;
@@ -165,6 +174,10 @@ export function requestFiltersToColumnFilters(
         break;
 
       case 'enum_filter':
+        value = filter.values;
+        break;
+
+      case 'object_filter':
         value = filter.values;
         break;
 
@@ -373,6 +386,20 @@ export function formatCellValue(
             onClick={(e) => e.stopPropagation()}
             target="_blank"
             rel="noopener noreferrer"
+          >
+            {value.label || String(value.value)}
+          </a>
+        );
+      }
+      return '-';
+
+    case 'object':
+      if (value.value) {
+        return (
+          <a
+            href={`/${value.object_type}/${value.value}`}
+            className="text-blue-600 hover:underline dark:text-blue-400"
+            onClick={(e) => e.stopPropagation()}
           >
             {value.label || String(value.value)}
           </a>

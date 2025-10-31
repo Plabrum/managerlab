@@ -1,7 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import { ObjectActions } from '@/components/object-detail';
+import { ObjectActions, ObjectChildList } from '@/components/object-detail';
 import { CampaignFields } from '@/components/campaign-detail';
 import { useCampaignsIdGetCampaignSuspense } from '@/openapi/campaigns/campaigns';
 import { PageTopBar } from '@/components/page-topbar';
@@ -51,6 +51,15 @@ export default function CampaignDetailPage({
               {/* Left Column - Fields */}
               <CampaignFields campaign={data} />
             </div>
+
+            {/* Deliverables Section */}
+            <ObjectChildList
+              objectType={ObjectTypes.deliverables}
+              filterColumn="campaign_id"
+              filterValue={id}
+              title="Deliverables"
+              displayFields={['platforms', 'posting_date', 'deliverable_type']}
+            />
           </div>
         </TabsContent>
 

@@ -19,11 +19,13 @@ from app.objects.schemas import (
     EnumFilterDefinition,
     FilterDefinition,
     NumericalDataPoint,
+    ObjectFilterDefinition,
     ObjectListRequest,
     RangeFilterDefinition,
     SortDefinition,
     TextFilterDefinition,
 )
+from app.utils.sqids import sqid_decode
 
 
 def apply_filter(query: Select, model_class: type[BaseDBModel], filter_def: FilterDefinition) -> Select:
@@ -68,6 +70,16 @@ def apply_filter(query: Select, model_class: type[BaseDBModel], filter_def: Filt
         case EnumFilterDefinition(values=vals):
             return query.where(column.in_(vals))
 
+        # ---------- Object Reference ----------
+        case ObjectFilterDefinition(values=sqids):
+            # Decode SQIDs to integer IDs
+            try:
+                decoded_ids = [sqid_decode(sqid) for sqid in sqids]
+                return query.where(column.in_(decoded_ids))
+            except ValueError as e:
+                # Invalid SQID - return query that matches nothing
+                raise ValueError(f"Invalid SQID in object filter: {e}") from e
+
         case _:
             raise ValueError(f"Unknown filter definition type: {type(filter_def)}")
 
@@ -85,6 +97,8 @@ def get_filter_by_field_type(field_type: FieldType) -> FilterType:
             return FilterType.boolean_filter
         case FieldType.Enum:
             return FilterType.enum_filter
+        case FieldType.Object:
+            return FilterType.object_filter
         case FieldType.Image:
             return FilterType.null_filter
         case _:
@@ -311,7 +325,7 @@ def get_default_aggregation(field_type: FieldType) -> AggregationType:
             return AggregationType.count_
         case FieldType.Date | FieldType.Datetime:
             return AggregationType.count_
-        case FieldType.Image:
+        case FieldType.Image | FieldType.Object:
             return AggregationType.count_
         case _:
             assert_never(field_type)

@@ -96,6 +96,19 @@ export function ObjectFields({ fields }: ObjectFieldsProps) {
           }
           return <span className="text-muted-foreground">—</span>;
 
+        case 'object':
+          if (fieldValue.value) {
+            return (
+              <a
+                href={`/${fieldValue.object_type}/${fieldValue.value}`}
+                className="text-primary hover:underline"
+              >
+                {fieldValue.label || String(fieldValue.value)}
+              </a>
+            );
+          }
+          return <span className="text-muted-foreground">—</span>;
+
         case 'usd':
           return new Intl.NumberFormat('en-US', {
             style: 'currency',

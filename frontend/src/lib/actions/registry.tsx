@@ -12,6 +12,7 @@ import { UpdateRosterForm } from '@/components/actions/update-roster-form';
 import { CreateCampaignForm } from '@/components/actions/create-campaign-form';
 import { CreateBrandForm } from '@/components/actions/create-brand-form';
 import { UpdateBrandForm } from '@/components/actions/update-brand-form';
+import { AddDeliverableToCampaignForm } from '@/components/actions/add-deliverable-to-campaign-form';
 import React from 'react';
 
 /**
@@ -205,6 +206,17 @@ export const actionRegistry: ActionRegistry = {
     render: ({ onSubmit, onCancel, isSubmitting }) => {
       return (
         <CreateCampaignForm
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+        />
+      );
+    },
+  },
+  campaign_actions__campaign_add_deliverable: {
+    render: ({ onSubmit, onCancel, isSubmitting }) => {
+      return (
+        <AddDeliverableToCampaignForm
           onSubmit={onSubmit}
           onCancel={onCancel}
           isSubmitting={isSubmitting}
