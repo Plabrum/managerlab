@@ -2,13 +2,14 @@
 
 import { useThreadConnection } from './useThreadConnection';
 import { useThreadMessages } from './useThreadMessages';
-import { ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ObjectTypes, UserSchema } from '@/openapi/managerLab.schemas';
 
 interface UseThreadSyncOptions {
   threadableType: ObjectTypes;
   threadableId: string;
   enabled?: boolean;
   currentUserId: string;
+  user: UserSchema;
 }
 
 /**
@@ -20,6 +21,7 @@ export function useThreadSync({
   threadableId,
   enabled = true,
   currentUserId,
+  user,
 }: UseThreadSyncOptions) {
   // Message management
   const {
@@ -34,10 +36,18 @@ export function useThreadSync({
     threadableType,
     threadableId,
     enabled,
+    user,
   });
 
   // WebSocket connection
-  const { viewers, isConnected, sendTypingIndicator } = useThreadConnection({
+  const {
+    viewers,
+    isConnected,
+    handleInputFocus,
+    handleInputBlur,
+    sendMarkRead,
+    updateUserName,
+  } = useThreadConnection({
     threadableType,
     threadableId,
     enabled,
@@ -66,6 +76,9 @@ export function useThreadSync({
     activeViewers,
     typingUsers,
     isConnected,
-    sendTypingIndicator,
+    handleInputFocus,
+    handleInputBlur,
+    sendMarkRead,
+    updateUserName,
   };
 }

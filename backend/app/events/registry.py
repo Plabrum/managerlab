@@ -16,8 +16,9 @@ from app.events.models import Event
 logger = logging.getLogger(__name__)
 
 # Type alias for consumer functions
-# Consumers receive: session, event, and the actual object that triggered the event
-EventConsumer = Callable[[AsyncSession, Event, BaseDBModel], Awaitable[None]]
+# Consumers receive: session, event, obj, and optionally other dependencies via DI
+# Using Callable[..., Awaitable[None]] to allow flexible signatures
+EventConsumer = Callable[..., Awaitable[None]]
 
 
 @dataclass
@@ -134,7 +135,7 @@ def event_consumer(
     return decorator
 
 
-async def trigger_consumers(session: AsyncSession, event: Event, obj: BaseDBModel) -> None:
+async def trigger_consumers(session: AsyncSession, event: Event, obj: BaseDBModel, **dependencies) -> None:
     """
     Trigger all registered consumers for an event.
 
@@ -145,7 +146,10 @@ async def trigger_consumers(session: AsyncSession, event: Event, obj: BaseDBMode
         session: Database session
         event: The event that was emitted
         obj: The actual object that triggered the event
+        **dependencies: Additional dependencies from DI (e.g., channels)
     """
+    import inspect
+
     consumers = _registry.get_consumers(event)
 
     if not consumers:
@@ -158,7 +162,22 @@ async def trigger_consumers(session: AsyncSession, event: Event, obj: BaseDBMode
 
     for consumer in consumers:
         try:
-            await consumer(session, event, obj)
+            # Inspect consumer signature to pass only accepted parameters
+            sig = inspect.signature(consumer)
+            params = sig.parameters
+
+            # Prepare candidate arguments (core + dependencies)
+            candidate_args = {
+                "session": session,
+                "event": event,
+                "obj": obj,
+                **dependencies,
+            }
+
+            # Filter to only parameters the consumer accepts
+            filtered_kwargs = {name: val for name, val in candidate_args.items() if name in params}
+
+            await consumer(**filtered_kwargs)
             logger.debug(f"Consumer '{consumer.__name__}' completed successfully")
         except Exception as e:
             logger.error(

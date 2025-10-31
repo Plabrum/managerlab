@@ -94,11 +94,11 @@ export function ActivityFeedItem({
           userName={message.user.name}
           className="bg-muted text-muted-foreground"
         />
-        {!isLast && <div className="bg-border mt-1 w-px flex-1" />}
+        {!isLast && <div className="bg-border my-2 w-px flex-1" />}
       </div>
 
       {/* Content column */}
-      <div className="flex-1 pb-2">
+      <div className="flex-1">
         {/* Header with name, timestamp, and actions */}
         <div className="flex items-center gap-2">
           <span className="text-foreground text-sm font-medium">

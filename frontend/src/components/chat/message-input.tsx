@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
 import type { MessageSchemaContent } from '@/openapi/managerLab.schemas';
 
 interface MessageInputProps {
   onSendMessage: (content: MessageSchemaContent) => Promise<void>;
-  onTypingChange?: (isTyping: boolean) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   disabled?: boolean;
   // Edit mode props
   mode?: 'new' | 'edit';
@@ -49,7 +50,8 @@ function hasContentText(content: MessageSchemaContent | null): boolean {
 
 export function MessageInput({
   onSendMessage,
-  onTypingChange,
+  onFocus,
+  onBlur,
   disabled = false,
   mode = 'new',
   initialContent,
@@ -59,39 +61,11 @@ export function MessageInput({
     initialContent || null
   );
   const [isSending, setIsSending] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isEditMode = mode === 'edit';
 
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const handleContentChange = (value: MessageSchemaContent) => {
     setContent(value);
-
-    // Send typing indicator (only in new message mode)
-    if (!isEditMode && onTypingChange) {
-      if (hasContentText(value)) {
-        onTypingChange(true);
-
-        // Clear existing timeout
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-        }
-
-        // Auto-clear typing after 3 seconds of inactivity
-        typingTimeoutRef.current = setTimeout(() => {
-          onTypingChange(false);
-        }, 3000);
-      } else {
-        onTypingChange(false);
-      }
-    }
   };
 
   const handleSend = async () => {
@@ -104,14 +78,6 @@ export function MessageInput({
       // Only clear content in new message mode
       if (!isEditMode) {
         setContent(null);
-        if (onTypingChange) {
-          onTypingChange(false);
-        }
-
-        // Clear typing timeout
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-        }
       }
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -132,6 +98,8 @@ export function MessageInput({
       isSending={isSending}
       mode={mode}
       onCancel={onCancel}
+      onFocus={onFocus}
+      onBlur={onBlur}
     />
   );
 }

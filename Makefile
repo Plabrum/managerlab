@@ -26,7 +26,7 @@ help:
 	@echo "  lint-backend     - Run backend linting with ruff"
 	@echo "  check-all        - Run all pre-release checks (backend lint, frontend checks)"
 	@echo "  test             - Run backend tests"
-	@echo "  backend-check    - Run backend type checking with basedpyright"
+	@echo "  check-backend    - Run backend type checking with basedpyright"
 	@echo "  docker-build     - Build backend Docker image locally"
 	@echo "  docker-test      - Test backend Docker image locally"
 	@echo "  docker-push      - Build and push backend Docker image to ECR"
@@ -162,8 +162,8 @@ codegen:
 test:
 	cd backend && uv run pytest -v
 
-.PHONY: backend-check
-backend-check:
+.PHONY: check-backend
+check-backend:
 	cd backend && uv run basedpyright
 
 # Docker targets

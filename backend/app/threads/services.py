@@ -1,16 +1,50 @@
-"""Thread service layer for business logic and WebSocket management."""
-
-import json
 import logging
 from datetime import UTC, datetime
-from typing import Any
+from typing import cast
 
-from sqlalchemy import func, select, text
+from litestar.channels import ChannelsPlugin
+from litestar.stores.base import Store
+from litestar.stores.memory import MemoryStore
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.threads.models import Message, Thread, ThreadReadStatus
+from app.threads.schemas import (
+    ServerMessage,
+)
+from app.threads.utils import encode_server_message_str, get_thread_channel
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# WebSocket Viewer Presence Management (In-Memory with MemoryStore)
+# ============================================================================
+
+
+class ThreadViewerStore:
+    def __init__(self, store: Store):
+        # N.B. When switching to use a redis backed store, we will have to handle serialization here
+        self.store: MemoryStore = cast(MemoryStore, store)
+
+    def get_key(self, thread_id: int) -> str:
+        return f"thread_id_{thread_id}"
+
+    async def get_viewers(self, thread_id: int) -> set[int]:
+        data = await self.store.get(self.get_key(thread_id))
+        return cast(set[int], data) if data else set()
+
+    async def add_viewer(self, thread_id: int, user_id: int) -> set[int]:
+        viewers = await self.get_viewers(thread_id)
+        viewers.add(user_id)
+        await self.store.set(self.get_key(thread_id), cast(bytes, viewers))
+        return viewers
+
+    async def remove_viewer(self, thread_id: int, user_id: int) -> set[int]:
+        viewers = await self.get_viewers(thread_id)
+        viewers.discard(user_id)
+        await self.store.set(self.get_key(thread_id), cast(bytes, viewers))
+        return viewers
 
 
 async def get_or_create_thread(
@@ -19,19 +53,6 @@ async def get_or_create_thread(
     threadable_id: int,
     team_id: int,
 ) -> Thread:
-    """Get existing thread or create a new one for the given object.
-
-    Args:
-        session: Database session
-        threadable_type: Type of object (e.g., "DeliverableMedia", "Campaign")
-        threadable_id: ID of the object
-        team_id: Team ID for RLS scoping
-        campaign_id: Optional campaign ID for dual-scoped objects
-
-    Returns:
-        Thread instance (existing or newly created)
-    """
-    # Try to find existing thread
     stmt = select(Thread).where(
         Thread.threadable_type == threadable_type,
         Thread.threadable_id == threadable_id,
@@ -61,19 +82,6 @@ async def get_unread_count(
     thread_id: int,
     user_id: int,
 ) -> int:
-    """Calculate unread message count for a user in a thread.
-
-    Messages are unread if they were created after the user's last read_at timestamp.
-    If user has never read the thread, all non-deleted messages are unread.
-
-    Args:
-        session: Database session
-        thread_id: Thread ID
-        user_id: User ID
-
-    Returns:
-        Count of unread messages
-    """
     # Get user's most recent read timestamp
     last_read_stmt = select(func.max(ThreadReadStatus.read_at)).where(
         ThreadReadStatus.thread_id == thread_id,
@@ -193,22 +201,15 @@ async def mark_thread_as_read(
 
 
 async def notify_thread(
-    session: AsyncSession,
+    channels: ChannelsPlugin,
     thread_id: int,
-    message: dict[str, Any],
+    message: ServerMessage,
 ) -> None:
-    """Broadcast a message to a thread via PostgreSQL NOTIFY.
-
-    Args:
-        session: Database session
-        thread_id: Thread ID to notify
-        message: Message payload (will be JSON-encoded)
-    """
-    channel = f"thread_{thread_id}"
-    payload = json.dumps(message)
-
-    # PostgreSQL NOTIFY doesn't support parameterized queries
-    # Use dollar-quoted strings to avoid escaping issues
-    await session.execute(text(f"NOTIFY {channel}, $${payload}$$"))
-
-    logger.debug(f"Notified thread {thread_id}: {message.get('type')}")
+    try:
+        channels.publish(
+            encode_server_message_str(message),
+            [get_thread_channel(thread_id)],
+        )
+        logger.debug(f"Notified thread {thread_id}: {message}")
+    except Exception as e:
+        logger.warning(f"Failed to notify thread {thread_id}: {e}")

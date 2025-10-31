@@ -1103,7 +1103,13 @@ export interface MessageSchema {
   content: MessageSchemaContent;
   created_at: string;
   updated_at: string;
-  user: ThreadsSchemasUserSchema;
+  user: MessageSenderSchema;
+}
+
+export interface MessageSenderSchema {
+  id: unknown;
+  email: string;
+  name: string;
 }
 
 export type MessageUpdateSchemaContent = {[key: string]: unknown};
@@ -1602,6 +1608,16 @@ export interface UpdateRosterAction {
   action: 'roster_actions__roster_update';
 }
 
+export interface UserSchema {
+  id: unknown;
+  name: string;
+  email: string;
+  email_verified: boolean;
+  state: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type UserWaitlistFormSchemaCompany = string | null;
 
 export type UserWaitlistFormSchemaMessage = string | null;
@@ -1623,22 +1639,6 @@ export interface WaitlistEntrySchema {
   email: string;
   company?: WaitlistEntrySchemaCompany;
   message?: WaitlistEntrySchemaMessage;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ThreadsSchemasUserSchema {
-  id: unknown;
-  email: string;
-  name: string;
-}
-
-export interface UsersSchemasUserSchema {
-  id: unknown;
-  name: string;
-  email: string;
-  email_verified: boolean;
-  state: string;
   created_at: string;
   updated_at: string;
 }

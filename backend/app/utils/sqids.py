@@ -50,6 +50,9 @@ class SqidType(TypeDecorator):
     impl = Integer
     cache_ok = True
 
+    # Tell Alembic to render this as Integer in migrations
+    __type_mapper__ = Integer
+
     def process_result_value(self, value: int | None, dialect) -> Sqid | None:
         """Convert int from DB to Sqid instance."""
         if value is not None:

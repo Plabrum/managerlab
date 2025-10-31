@@ -72,6 +72,11 @@ class Config:
         return self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
 
     @property
+    def PSYCOPG_DATABASE_URL(self) -> str:
+        """Plain psycopg database URL for psycopg-only clients (channels, direct connections)."""
+        return self.DATABASE_URL  # Plain postgresql:// format without SQLAlchemy driver
+
+    @property
     def QUEUE_DSN(self) -> str:
         """Queue DSN for SAQ (uses same database as application)."""
         # Check for override first

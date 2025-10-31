@@ -6,6 +6,8 @@ from typing import Any
 
 from advanced_alchemy.exceptions import RepositoryError
 from litestar import Litestar, Response, get
+from litestar.channels import ChannelsPlugin
+from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
 from litestar.config.cors import CORSConfig
 from litestar.contrib.sqlalchemy.plugins import (
     AsyncSessionConfig,
@@ -22,6 +24,7 @@ from litestar.middleware.session.server_side import (
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.plugins import ScalarRenderPlugin
 from litestar.security.session_auth import SessionAuth
+from litestar.stores.memory import MemoryStore
 from litestar_saq import SAQConfig, SAQPlugin
 from sqlalchemy.pool import NullPool
 
@@ -38,7 +41,8 @@ from app.objects.routes import object_router
 from app.payments.routes import invoice_router
 from app.queue.config import queue_config
 from app.roster.routes import roster_router
-from app.threads import ThreadWebSocketHandler, thread_router
+from app.threads import thread_router
+from app.threads.websocket import thread_handler
 from app.users.routes import public_user_router, user_router
 from app.utils import providers
 from app.utils.configure import config
@@ -90,7 +94,7 @@ route_handlers: list[Any] = [
     invoice_router,
     dashboard_router,
     thread_router,
-    ThreadWebSocketHandler,
+    thread_handler,
 ]
 
 # Only include local media router in development
@@ -116,7 +120,10 @@ app = Litestar(
         ApplicationError: exception_to_http_response,
         RepositoryError: exception_to_http_response,
     },
-    stores={"sessions": providers.create_postgres_session_store()},
+    stores={
+        "sessions": providers.create_postgres_session_store(),
+        "viewers": MemoryStore(),
+    },
     dependencies={
         "transaction": Provide(providers.provide_transaction),
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
@@ -126,6 +133,7 @@ app = Litestar(
         "object_registry": Provide(providers.provide_object_registry, sync_to_thread=False),
         "team_id": Provide(providers.provide_team_id, sync_to_thread=False),
         "campaign_id": Provide(providers.provide_campaign_id, sync_to_thread=False),
+        "viewer_store": Provide(providers.provide_viewer_store, sync_to_thread=False),
     },
     plugins=[
         SQLAlchemyPlugin(
@@ -154,6 +162,10 @@ app = Litestar(
                 web_enabled=config.IS_DEV,  # Enable web UI in development
                 use_server_lifespan=True,  # Integrate with Litestar lifecycle
             )
+        ),
+        ChannelsPlugin(
+            backend=PsycoPgChannelsBackend(config.PSYCOPG_DATABASE_URL),
+            arbitrary_channels_allowed=True,  # Allow dynamic thread channels
         ),
     ],
     openapi_config=OpenAPIConfig(

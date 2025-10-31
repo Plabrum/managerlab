@@ -3,12 +3,17 @@
 from datetime import datetime
 from typing import Any
 
+from msgspec import Struct
+
 from app.base.schemas import BaseSchema
+from app.threads.enums import (
+    ThreadSocketMessageType,
+)
 from app.utils.sqids import Sqid
 
 
 # Response schemas for models
-class UserSchema(BaseSchema):
+class MessageSenderSchema(BaseSchema):
     """User information embedded in messages."""
 
     id: Sqid
@@ -25,7 +30,7 @@ class MessageSchema(BaseSchema):
     content: dict[str, Any]
     created_at: datetime
     updated_at: datetime
-    user: UserSchema
+    user: MessageSenderSchema
 
 
 # Request schemas
@@ -77,3 +82,40 @@ class UserPresence(BaseSchema):
     user_id: Sqid
     name: str
     is_typing: bool
+
+
+# ============================================================================
+# Websocket Message Schemas
+# ============================================================================
+
+
+class ClientMessage(Struct, frozen=True):
+    """Single unified client message structure.
+
+    The message_type field determines which optional fields are relevant:
+    - USER_FOCUS: No additional fields
+    - USER_BLUR: No additional fields
+    - MARK_READ: No additional fields
+    """
+
+    message_type: ThreadSocketMessageType
+
+
+class ServerMessage(Struct, frozen=True):
+    """Single unified server message structure.
+
+    The type field determines which optional fields are relevant:
+    - USER_JOINED: user_id, viewers
+    - USER_LEFT: user_id, viewers
+    - USER_FOCUS: user_id, viewers
+    - USER_BLUR: user_id, viewers
+    - MESSAGE_CREATED: message_id, thread_id, user_id, viewers
+    - MESSAGE_UPDATED: message_id, thread_id, user_id, viewers
+    - MESSAGE_DELETED: message_id, thread_id, user_id, viewers
+    """
+
+    message_type: ThreadSocketMessageType
+    viewers: list[str]  # Always included - list of Sqid-encoded user IDs currently viewing
+    user_id: str | None = None  # Sqid-encoded user ID
+    message_id: str | None = None  # Sqid-encoded message ID
+    thread_id: str | None = None  # Sqid-encoded thread ID

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
+import { Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -55,7 +56,56 @@ interface MinimalTiptapProps {
   isSending?: boolean;
   mode?: 'new' | 'edit';
   onCancel?: () => void;
+  // Focus/blur handlers
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
+
+/**
+ * Custom TipTap extension to handle Enter key submission
+ * Uses keyboard shortcuts to properly integrate with TipTap's event system
+ */
+interface EnterKeySubmitOptions {
+  onSubmit: (() => void | Promise<void>) | null;
+}
+
+const EnterKeySubmit = Extension.create<EnterKeySubmitOptions>({
+  name: 'enterKeySubmit',
+
+  addOptions() {
+    return {
+      onSubmit: null,
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Enter: () => {
+        // Don't handle if no submit handler
+        if (!this.options.onSubmit) {
+          return false;
+        }
+
+        // Check if we're in a list item - allow normal behavior there
+        const { state } = this.editor;
+        const { $from } = state.selection;
+        const isInList = $from.node(-1)?.type.name === 'listItem';
+
+        if (isInList) {
+          return false; // Let default list behavior handle it
+        }
+
+        // Submit the form
+        this.options.onSubmit();
+        return true; // Prevent default Enter behavior
+      },
+      'Shift-Enter': () => {
+        // Always allow Shift-Enter to create a line break (default behavior)
+        return false;
+      },
+    };
+  },
+});
 
 /**
  * Helper to check if content has any non-empty text
@@ -91,8 +141,18 @@ function MinimalTiptap({
   isSending = false,
   mode = 'new',
   onCancel,
+  onFocus,
+  onBlur,
 }: MinimalTiptapProps) {
   const [showToolbar, setShowToolbar] = React.useState(initialShowToolbar);
+
+  // Use a ref to store the latest onSend callback to avoid closure issues
+  const onSendRef = React.useRef(onSend);
+
+  // Update ref when onSend changes
+  React.useEffect(() => {
+    onSendRef.current = onSend;
+  }, [onSend]);
 
   const isEditMode = mode === 'edit';
   const hasText = hasContentText(content);
@@ -110,6 +170,15 @@ function MinimalTiptap({
           keepAttributes: false,
         },
       }),
+      // Add custom Enter key extension that uses the ref
+      EnterKeySubmit.configure({
+        onSubmit: onSend
+          ? () => {
+              // Use the ref to get the latest callback
+              onSendRef.current?.();
+            }
+          : null,
+      }),
     ],
     content,
     editable,
@@ -117,12 +186,27 @@ function MinimalTiptap({
     onUpdate: ({ editor }) => {
       onChange?.(editor.getJSON());
     },
+    onFocus: () => {
+      onFocus?.();
+    },
+    onBlur: () => {
+      onBlur?.();
+    },
     editorProps: {
       attributes: {
         class: cn(
           'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
           'p-0 border-0'
         ),
+      },
+      handleKeyDown: (view, event) => {
+        // Prevent keyboard shortcuts from bubbling when editor is focused
+        // This prevents Cmd+B from toggling sidebar while editing
+        if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
+          event.stopPropagation();
+        }
+
+        return false;
       },
     },
   });
@@ -328,7 +412,7 @@ function MinimalTiptap({
     <div className={cn('overflow-hidden rounded-lg border', className)}>
       {editable && showToolbar && renderToolbar()}
 
-      <div className={cn(editorClassName)}>
+      <div className={cn('p-3', editorClassName)}>
         <EditorContent editor={editor} placeholder={placeholder} />
       </div>
 
