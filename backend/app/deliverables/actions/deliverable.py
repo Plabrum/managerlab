@@ -112,6 +112,7 @@ class AddMediaToDeliverable(BaseAction):
         obj: Deliverable,
         data: AddMediaToDeliverableSchema,
         transaction: AsyncSession,
+        team_id: int,
     ) -> ActionExecutionResponse:
         # media_ids are already decoded from SQID strings to ints by msgspec
         requested_media_ids = data.media_ids
@@ -135,6 +136,7 @@ class AddMediaToDeliverable(BaseAction):
         # Create DeliverableMedia association objects for new media
         for media_id in new_media_ids:
             association = DeliverableMedia(
+                team_id=team_id,
                 deliverable_id=obj.id,
                 media_id=media_id,
                 approved_at=None,

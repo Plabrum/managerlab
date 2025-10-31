@@ -19,7 +19,10 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ObjectListDTO, ObjectTypes } from '@/openapi/managerLab.schemas';
+import type {
+  ObjectListSchema,
+  ObjectTypes,
+} from '@/openapi/managerLab.schemas';
 
 interface ObjectListProps {
   objectType: ObjectTypes;
@@ -30,8 +33,8 @@ interface ObjectListProps {
   enableColumnVisibility?: boolean;
   enableColumnFilters?: boolean;
   searchPlaceholder?: string;
-  onRowClick?: (row: ObjectListDTO) => void;
-  onBulkAction?: (action: string, rows: ObjectListDTO[]) => void;
+  onRowClick?: (row: ObjectListSchema) => void;
+  onBulkAction?: (action: string, rows: ObjectListSchema[]) => void;
 }
 
 /**
@@ -103,7 +106,10 @@ export function ObjectList({
   const { data } = useListObjectsSuspense(objectType, request);
 
   // Default row action handler (no-op for now)
-  const handleRowActionClick = (_actionName: string, _row: ObjectListDTO) => {
+  const handleRowActionClick = (
+    _actionName: string,
+    _row: ObjectListSchema
+  ) => {
     // TODO: Implement row action handling with dynamic objectId
     if (onRowClick) {
       onRowClick(_row);
@@ -111,7 +117,7 @@ export function ObjectList({
   };
 
   // Default bulk action handler
-  const handleBulkAction = (action: string, rows: ObjectListDTO[]) => {
+  const handleBulkAction = (action: string, rows: ObjectListSchema[]) => {
     if (onBulkAction) {
       onBulkAction(action, rows);
     }

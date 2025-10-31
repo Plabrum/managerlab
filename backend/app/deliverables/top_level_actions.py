@@ -2,7 +2,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
-from app.base.models import BaseDBModel
 from app.deliverables.enums import TopLevelDeliverableActions
 from app.deliverables.models import Deliverable
 from app.deliverables.objects import DeliverableObject
@@ -16,17 +15,8 @@ top_level_deliverable_actions = action_group_factory(
 )
 
 
-class DeliverableTopLevelActionMixin:
-    """Mixin for deliverable top-level actions."""
-
-    @classmethod
-    def get_model(cls) -> type[BaseDBModel] | None:
-        """Top-level actions don't operate on specific instances."""
-        return None
-
-
 @top_level_deliverable_actions
-class CreateDeliverable(DeliverableTopLevelActionMixin, BaseAction):
+class CreateDeliverable(BaseAction):
     action_key = TopLevelDeliverableActions.create
     label = "Create Deliverable"
     is_bulk_allowed = False
