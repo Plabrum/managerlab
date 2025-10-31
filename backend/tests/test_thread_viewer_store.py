@@ -10,9 +10,7 @@ class TestThreadViewerStore:
     """High-value integration tests for ThreadViewerStore."""
 
     @pytest.mark.asyncio
-    async def test_add_and_remove_viewers_workflow(
-        self, memory_store: MemoryStore
-    ) -> None:
+    async def test_add_and_remove_viewers_workflow(self, memory_store: MemoryStore) -> None:
         """Test adding and removing viewers with state verification at each step."""
         store = ThreadViewerStore(store=memory_store)
         thread_id = 1
@@ -58,9 +56,7 @@ class TestThreadViewerStore:
         assert viewers == set()
 
     @pytest.mark.asyncio
-    async def test_edge_cases_and_graceful_handling(
-        self, memory_store: MemoryStore
-    ) -> None:
+    async def test_edge_cases_and_graceful_handling(self, memory_store: MemoryStore) -> None:
         """Test edge cases like removing non-existent viewers."""
         store = ThreadViewerStore(store=memory_store)
         thread_id = 1

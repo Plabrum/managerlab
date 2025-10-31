@@ -6,17 +6,18 @@ Create Date: 2025-10-28 11:31:10.750017
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from alembic_utils.pg_policy import PGPolicy
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision: str = "1b6e7f2a0a0b"
-down_revision: Union[str, Sequence[str], None] = "77b03a65ec08"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "77b03a65ec08"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -124,15 +125,9 @@ def downgrade() -> None:
     )
     op.drop_entity(public_deliverable_media_dual_scope_policy)
 
-    op.drop_index(
-        op.f("ix_thread_viewer_events_user_id"), table_name="thread_viewer_events"
-    )
-    op.drop_index(
-        op.f("ix_thread_viewer_events_thread_id"), table_name="thread_viewer_events"
-    )
+    op.drop_index(op.f("ix_thread_viewer_events_user_id"), table_name="thread_viewer_events")
+    op.drop_index(op.f("ix_thread_viewer_events_thread_id"), table_name="thread_viewer_events")
     op.drop_index("ix_thread_viewer_events_lookup", table_name="thread_viewer_events")
-    op.drop_index(
-        op.f("ix_thread_viewer_events_deleted_at"), table_name="thread_viewer_events"
-    )
+    op.drop_index(op.f("ix_thread_viewer_events_deleted_at"), table_name="thread_viewer_events")
     op.drop_table("thread_viewer_events")
     # ### end Alembic commands ###

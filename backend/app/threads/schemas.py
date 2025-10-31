@@ -115,9 +115,7 @@ class ServerMessage(Struct, frozen=True):
     """
 
     message_type: ThreadSocketMessageType
-    viewers: list[
-        str
-    ]  # Always included - list of Sqid-encoded user IDs currently viewing
+    viewers: list[str]  # Always included - list of Sqid-encoded user IDs currently viewing
     user_id: str | None = None  # Sqid-encoded user ID
     message_id: str | None = None  # Sqid-encoded message ID
     thread_id: str | None = None  # Sqid-encoded thread ID
