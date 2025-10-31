@@ -3,7 +3,7 @@ import type {
   SortDefinition,
   ObjectListRequestFiltersItem,
   ObjectListRequest,
-  ColumnDefinitionDTO,
+  ColumnDefinitionSchema,
   ObjectFieldDTO,
 } from '@/openapi/managerLab.schemas';
 import { humanizeEnumValue } from '@/lib/format';
@@ -56,7 +56,7 @@ export function paginationStateToRequest(paginationState: {
  */
 export function columnFiltersToRequestFilters(
   columnFilters: ColumnFiltersState,
-  columnDefs: ColumnDefinitionDTO[]
+  columnDefs: ColumnDefinitionSchema[]
 ): ObjectListRequestFiltersItem[] {
   return columnFilters.map((filter) => {
     const columnDef = columnDefs.find((def) => def.key === filter.id);
@@ -206,7 +206,7 @@ export function createObjectListRequest(
   sortingState: SortingState,
   columnFilters: ColumnFiltersState,
   options: {
-    columnDefs?: ColumnDefinitionDTO[];
+    columnDefs?: ColumnDefinitionSchema[];
     search?: string;
   } = {}
 ): ObjectListRequest {
@@ -311,7 +311,7 @@ function getStatusBadgeVariant(value: string) {
  */
 
 export function formatCellValue(
-  columnDef: ColumnDefinitionDTO,
+  columnDef: ColumnDefinitionSchema,
   field?: ObjectFieldDTO
 ): React.ReactNode {
   if (!field || field.value === null || field.value === undefined) {

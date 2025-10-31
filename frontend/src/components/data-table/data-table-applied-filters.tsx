@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import type { ColumnFiltersState } from '@tanstack/react-table';
 import type {
-  ColumnDefinitionDTO,
+  ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
 } from '@/openapi/managerLab.schemas';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { humanizeEnumValue } from '@/lib/format';
 
 type DataTableAppliedFiltersProps = {
   filters: ColumnFiltersState;
-  columnDefs: ColumnDefinitionDTO[];
+  columnDefs: ColumnDefinitionSchema[];
   onUpdate: (filters: ColumnFiltersState) => void;
 };
 
@@ -90,7 +90,7 @@ function isFilterComplete(filter?: ObjectListRequestFiltersItem) {
 
 function getFilterDisplayText(
   filter: ObjectListRequestFiltersItem,
-  columnDefs: ColumnDefinitionDTO[]
+  columnDefs: ColumnDefinitionSchema[]
 ) {
   const column = columnDefs.find((col) => col.key === filter.column);
   if (!column) return '';

@@ -15,9 +15,9 @@ import type {
   TimeRange,
   Granularity,
   AggregationType,
-  ColumnDefinitionDTO,
+  ColumnDefinitionSchema,
 } from '@/openapi/managerLab.schemas';
-import { listObjects } from '@/openapi/objects/objects';
+import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
 
 interface QueryBuilderFormProps {
   query: WidgetQuery;
@@ -63,9 +63,9 @@ const AGGREGATIONS: Array<{ value: AggregationType; label: string }> = [
 ];
 
 export function QueryBuilderForm({ query, onChange }: QueryBuilderFormProps) {
-  const [availableFields, setAvailableFields] = useState<ColumnDefinitionDTO[]>(
-    []
-  );
+  const [availableFields, setAvailableFields] = useState<
+    ColumnDefinitionSchema[]
+  >([]);
   const [loadingFields, setLoadingFields] = useState(false);
 
   useEffect(() => {
@@ -74,11 +74,10 @@ export function QueryBuilderForm({ query, onChange }: QueryBuilderFormProps) {
 
       try {
         setLoadingFields(true);
-        // Fetch the object list to get column definitions
-        const response = await listObjects(query.object_type, {
-          limit: 1,
-          offset: 0,
-        });
+        // Fetch the object schema to get column definitions
+        const response = await oObjectTypeSchemaGetObjectSchema(
+          query.object_type
+        );
         setAvailableFields(response.columns);
       } catch (error) {
         console.error('Failed to fetch fields:', error);

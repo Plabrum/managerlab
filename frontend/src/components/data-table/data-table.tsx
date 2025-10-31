@@ -46,8 +46,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type {
-  ColumnDefinitionDTO,
-  ObjectListDTO,
+  ColumnDefinitionSchema,
+  ObjectListSchema,
+  ActionDTO,
 } from '@/openapi/managerLab.schemas';
 import {
   formatCellValue,
@@ -58,16 +59,16 @@ import { DataTablePagination } from './data-table-pagination';
 import { DataTableColumnFilter } from './data-table-column-filter';
 
 interface DataTableProps {
-  columns: ColumnDefinitionDTO[];
-  data: ObjectListDTO[];
+  columns: ColumnDefinitionSchema[];
+  data: ObjectListSchema[];
   totalCount: number;
   enableRowSelection?: boolean;
   enableSorting?: boolean;
   enableColumnVisibility?: boolean;
   enableColumnFilters?: boolean; // Enable filter buttons in column headers
   showItemRange?: boolean; // Show "X-Y of Z" instead of "Page X of Y"
-  onActionClick?: (action: string, row: ObjectListDTO) => void; // Handler for action clicks
-  onBulkActionClick?: (action: string, rows: ObjectListDTO[]) => void; // Handler for bulk action clicks
+  onActionClick?: (action: string, row: ObjectListSchema) => void; // Handler for action clicks
+  onBulkActionClick?: (action: string, rows: ObjectListSchema[]) => void; // Handler for bulk action clicks
   isLoading?: boolean; // Loading state for data fetching
   // Server-side state
   paginationState: PaginationState;
@@ -90,8 +91,8 @@ const ColumnHeader = React.memo(
     sortingState,
     toggleSorting,
   }: {
-    columnDef: ColumnDefinitionDTO;
-    columnDefs: ColumnDefinitionDTO[];
+    columnDef: ColumnDefinitionSchema;
+    columnDefs: ColumnDefinitionSchema[];
     enableColumnFilters: boolean;
     columnFilters: ColumnFiltersState;
     onFiltersChange: OnChangeFn<ColumnFiltersState>;
@@ -194,12 +195,12 @@ const ColumnHeader = React.memo(
 ColumnHeader.displayName = 'ColumnHeader';
 
 function createColumnDef(
-  columnDef: ColumnDefinitionDTO,
-  columnDefs: ColumnDefinitionDTO[],
+  columnDef: ColumnDefinitionSchema,
+  columnDefs: ColumnDefinitionSchema[],
   enableColumnFilters: boolean,
   onFiltersChange: OnChangeFn<ColumnFiltersState>
-): ColumnDef<ObjectListDTO> {
-  const column: ColumnDef<ObjectListDTO> = {
+): ColumnDef<ObjectListSchema> {
+  const column: ColumnDef<ObjectListSchema> = {
     accessorKey: columnDef.key,
     header: ({ table, column }) => (
       <ColumnHeader
@@ -218,7 +219,9 @@ function createColumnDef(
     ),
     enableSorting: columnDef.sortable ?? true,
     cell: ({ row }) => {
-      const field = row.original.fields?.find((f) => f.key === columnDef.key);
+      const field = row.original.fields?.find(
+        (f: { key: string }) => f.key === columnDef.key
+      );
       return formatCellValue(columnDef, field);
     },
   };
@@ -257,7 +260,7 @@ export function DataTable({
 
   // Memoize individual column definitions to prevent recreation
   // Only recreate when column structure changes, not when filter values change
-  const dynamicColumns = React.useMemo<ColumnDef<ObjectListDTO>[]>(() => {
+  const dynamicColumns = React.useMemo<ColumnDef<ObjectListSchema>[]>(() => {
     return columnDefs.map((columnDef) =>
       createColumnDef(
         columnDef,
@@ -269,7 +272,7 @@ export function DataTable({
   }, [columnDefs, enableColumnFilters, onFiltersChange]);
 
   // Memoize selection column separately since it doesn't depend on columnDefs
-  const selectionColumn = React.useMemo<ColumnDef<ObjectListDTO>>(
+  const selectionColumn = React.useMemo<ColumnDef<ObjectListSchema>>(
     () => ({
       id: 'select',
       header: ({ table }) => (
@@ -309,7 +312,7 @@ export function DataTable({
 
   // Create actions column header component that can access table later
   const ActionsColumnHeader = React.useCallback(
-    ({ table }: { table: ReactTable<ObjectListDTO> }) => (
+    ({ table }: { table: ReactTable<ObjectListSchema> }) => (
       <div className="flex justify-end">
         {enableColumnVisibility && (
           <DropdownMenu>
@@ -354,7 +357,7 @@ export function DataTable({
   );
 
   // Memoize actions column
-  const actionsColumn = React.useMemo<ColumnDef<ObjectListDTO>>(
+  const actionsColumn = React.useMemo<ColumnDef<ObjectListSchema>>(
     () => ({
       id: 'actions',
       size: 60,
@@ -373,7 +376,7 @@ export function DataTable({
 
         // Filter available actions
         const availableActions = rowActions.filter(
-          (action) => action.available !== false
+          (action: ActionDTO) => action.available !== false
         );
         if (availableActions.length === 0) {
           return <div className="flex justify-end" />;
@@ -394,8 +397,11 @@ export function DataTable({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {availableActions
-                  .sort((a, b) => (a.priority || 0) - (b.priority || 0)) // Sort by priority
-                  .map((action, index) => (
+                  .sort(
+                    (a: ActionDTO, b: ActionDTO) =>
+                      (a.priority || 0) - (b.priority || 0)
+                  ) // Sort by priority
+                  .map((action: ActionDTO, index: number) => (
                     <DropdownMenuItem
                       key={`${action.action}-${index}`}
                       onClick={(e) => {
@@ -429,8 +435,8 @@ export function DataTable({
   const showActionsColumn = hasActions || enableColumnVisibility;
 
   // Combine columns with stable references
-  const columns = React.useMemo<ColumnDef<ObjectListDTO>[]>(() => {
-    const cols: ColumnDef<ObjectListDTO>[] = [];
+  const columns = React.useMemo<ColumnDef<ObjectListSchema>[]>(() => {
+    const cols: ColumnDef<ObjectListSchema>[] = [];
 
     if (enableRowSelection) {
       cols.push(selectionColumn);
@@ -463,7 +469,7 @@ export function DataTable({
       columnFilters,
       pagination: paginationState,
     },
-    getRowId: React.useCallback((row: ObjectListDTO) => String(row.id), []),
+    getRowId: React.useCallback((row: ObjectListSchema) => String(row.id), []),
     enableRowSelection,
     enableSorting,
     manualPagination: true,
@@ -491,14 +497,15 @@ export function DataTable({
     // Get all bulk-allowed actions from the first selected row
     const firstRowActions =
       selectedRowsData[0].actions?.filter(
-        (action) => action.is_bulk_allowed && action.available !== false
+        (action: ActionDTO) =>
+          action.is_bulk_allowed && action.available !== false
       ) || [];
 
     // Filter to only actions that exist in ALL selected rows
-    return firstRowActions.filter((action) =>
+    return firstRowActions.filter((action: ActionDTO) =>
       selectedRowsData.every((row) =>
         row.actions?.some(
-          (a) =>
+          (a: ActionDTO) =>
             a.action === action.action &&
             a.is_bulk_allowed &&
             a.available !== false
@@ -585,8 +592,11 @@ export function DataTable({
           </div>
           <div className="flex gap-2">
             {commonBulkActions
-              .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-              .map((action) => (
+              .sort(
+                (a: ActionDTO, b: ActionDTO) =>
+                  (a.priority || 0) - (b.priority || 0)
+              )
+              .map((action: ActionDTO) => (
                 <Button
                   key={action.action}
                   variant="default"

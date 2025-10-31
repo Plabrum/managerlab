@@ -74,10 +74,7 @@ export default function RosterPage() {
     });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleBulkAction = (_action: string, _rows: typeof data.objects) => {
-    // TODO: Implement bulk action handling
-  };
+  // TODO: Implement bulk action handling
 
   return (
     <PageTopBar
@@ -122,7 +119,6 @@ export default function RosterPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         onFiltersChange={handleFiltersChange}
-        onBulkActionClick={handleBulkAction}
       />
     </PageTopBar>
   );

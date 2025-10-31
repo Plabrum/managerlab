@@ -2,17 +2,17 @@
 
 import { Image } from '@/components/ui/image';
 import type {
-  ObjectListDTO,
+  ObjectListSchema,
   ImageFieldValue,
 } from '@/openapi/managerLab.schemas';
 import Link from 'next/link';
 
 interface MediaGalleryProps {
-  items: ObjectListDTO[];
+  items: ObjectListSchema[];
 }
 
 function getImageFromFields(
-  fields: ObjectListDTO['fields']
+  fields: ObjectListSchema['fields']
 ): ImageFieldValue | null {
   if (!fields) return null;
 
