@@ -63,6 +63,17 @@ export interface ActionListResponse {
   actions: ActionDTO[];
 }
 
+export interface AddDeliverableToCampaignAction {
+  data: AddDeliverableToCampaignSchema;
+  action: 'campaign_actions__campaign_add_deliverable';
+}
+
+export interface AddDeliverableToCampaignSchema {
+  title: string;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+}
+
 export interface AddMediaToDeliverableAction {
   data: AddMediaToDeliverableSchema;
   action: 'deliverable_actions__deliverable_add_media';
@@ -1848,7 +1859,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1876,7 +1887,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

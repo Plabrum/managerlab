@@ -14,6 +14,7 @@ class CampaignActions(StrEnum):
     create = "campaign.create"
     delete = "campaign.delete"
     update = "campaign.update"
+    add_deliverable = "campaign.add_deliverable"
 
 
 class CompensationStructure(StrEnum):

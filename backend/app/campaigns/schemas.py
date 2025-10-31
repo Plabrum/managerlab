@@ -5,6 +5,7 @@ from msgspec import UNSET, UnsetType
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure, CounterpartyType, OwnershipMode
+from app.deliverables.enums import SocialMediaPlatforms
 from app.threads.schemas import ThreadUnreadInfo
 from app.utils.sqids import Sqid
 
@@ -135,3 +136,11 @@ class CampaignCreateSchema(BaseSchema):
     # Approval
     approval_rounds: int | None = None
     approval_sla_hours: int | None = None
+
+
+class AddDeliverableToCampaignSchema(BaseSchema):
+    """Schema for adding a deliverable to a Campaign."""
+
+    title: str
+    platforms: SocialMediaPlatforms
+    posting_date: datetime

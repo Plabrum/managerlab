@@ -280,7 +280,7 @@ class ObjectListSchema(BaseSchema):
     link: str | None = None
 
     def __post_init__(self) -> None:
-        self.link = f"{self.object_type}/{self.id}"
+        self.link = f"/{self.object_type}/{self.id}"
 
 
 class ObjectListRequest(BaseSchema):
