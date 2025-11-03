@@ -5,17 +5,30 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Connection
 
 from alembic import context
+from alembic.autogenerate import render
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLS_POLICY_REGISTRY
 from app.utils.configure import config as app_config
 
 # Import your models and config
 from app.utils.discovery import discover_and_import
+from app.utils.sqids import SqidType
 
 discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
 # Register RLS policies for auto-diffing
 register_entities(RLS_POLICY_REGISTRY)
+
+
+# Custom type renderer for SqidType to ensure proper imports in migrations
+@render.renderers.dispatch_for(SqidType)
+def render_sqid_type(type_, autogen_context):
+    """Render SqidType with proper import in migration files."""
+    # Add the import to the migration file
+    autogen_context.imports.add("from app.utils.sqids import SqidType")
+    # Return the rendered type as a simple call
+    return "SqidType()"
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

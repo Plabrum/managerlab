@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any
 
 from sqlalchemy import types
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from app.base.models import BaseDBModel
@@ -41,6 +42,12 @@ class TextEnum[E: Enum](types.TypeDecorator[E]):
         if value is None:
             return None
         return self.enum_class[value]
+
+
+@compiles(TextEnum, "postgresql")
+def compile_text_enum(element: TextEnum, compiler: Any, **kw: Any) -> str:
+    """Compile TextEnum to TEXT for PostgreSQL."""
+    return "TEXT"
 
 
 class _StateMachineMixinBase[E: Enum](BaseDBModel):

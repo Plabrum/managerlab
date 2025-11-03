@@ -144,3 +144,15 @@ class AddDeliverableToCampaignSchema(BaseSchema):
     title: str
     platforms: SocialMediaPlatforms
     posting_date: datetime
+
+
+class AddContractToCampaignSchema(BaseSchema):
+    """Schema for adding initial contract to campaign."""
+
+    document_id: Sqid
+
+
+class ReplaceContractSchema(BaseSchema):
+    """Schema for replacing existing contract with new version."""
+
+    document_id: Sqid

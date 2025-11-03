@@ -15,6 +15,8 @@ class CampaignActions(StrEnum):
     delete = "campaign.delete"
     update = "campaign.update"
     add_deliverable = "campaign.add_deliverable"
+    add_contract = "campaign.add_contract"
+    replace_contract = "campaign.replace_contract"
 
 
 class CompensationStructure(StrEnum):

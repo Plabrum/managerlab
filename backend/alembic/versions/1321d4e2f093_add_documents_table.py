@@ -11,7 +11,6 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 
 from alembic import op
-from app.state_machine.models import TextEnum
 from app.utils.sqids import SqidType
 
 # revision identifiers, used by Alembic.
@@ -34,7 +33,7 @@ def upgrade() -> None:
         sa.Column("thumbnail_key", sa.Text(), nullable=True),
         sa.Column("team_id", SqidType(), nullable=False),
         sa.Column("campaign_id", SqidType(), nullable=True),
-        sa.Column("state", TextEnum(), server_default="PENDING", nullable=False),
+        sa.Column("state", sa.Text(), server_default="PENDING", nullable=False),
         sa.Column("id", SqidType(), autoincrement=True, nullable=False),
         sa.Column(
             "created_at",
