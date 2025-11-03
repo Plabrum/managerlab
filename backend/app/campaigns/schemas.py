@@ -137,6 +137,9 @@ class CampaignCreateSchema(BaseSchema):
     approval_rounds: int | None = None
     approval_sla_hours: int | None = None
 
+    # Contract (optional on create)
+    contract_document_id: Sqid | None = None
+
 
 class AddDeliverableToCampaignSchema(BaseSchema):
     """Schema for adding a deliverable to a Campaign."""

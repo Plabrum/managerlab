@@ -153,6 +153,7 @@ async def create_model[T: BaseDBModel](
     model_class: type[T],
     create_vals: BaseSchema,
     user_id: int,
+    ignore_fields: list[str] | None = None,
     should_track: bool = True,
     track_fields: list[str] | None = None,
 ) -> T:
@@ -172,8 +173,13 @@ async def create_model[T: BaseDBModel](
     Returns:
         The created model instance (after flush, with ID)
     """
+    ignore_fields = ignore_fields or []
     # Create the model instance
-    data = {field: value for field, value in structs.asdict(create_vals).items() if value is not None}
+    data = {
+        field: value
+        for field, value in structs.asdict(create_vals).items()
+        if value is not None and field not in ignore_fields
+    }
 
     # Add row-level security context
     rls_fields = {}

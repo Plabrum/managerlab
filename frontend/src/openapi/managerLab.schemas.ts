@@ -280,6 +280,8 @@ export type CampaignCreateSchemaApprovalRounds = number | null;
 
 export type CampaignCreateSchemaApprovalSlaHours = number | null;
 
+export type CampaignCreateSchemaContractDocumentId = unknown | null;
+
 export interface CampaignCreateSchema {
   name: string;
   brand_id: unknown;
@@ -302,6 +304,7 @@ export interface CampaignCreateSchema {
   ownership_mode?: CampaignCreateSchemaOwnershipMode;
   approval_rounds?: CampaignCreateSchemaApprovalRounds;
   approval_sla_hours?: CampaignCreateSchemaApprovalSlaHours;
+  contract_document_id?: CampaignCreateSchemaContractDocumentId;
 }
 
 /**
