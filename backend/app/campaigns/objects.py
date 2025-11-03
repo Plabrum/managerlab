@@ -1,8 +1,8 @@
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.campaigns.enums import CampaignStates
-from app.campaigns.models import Campaign, CampaignContract
+from app.campaigns.models import Campaign
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -32,7 +32,8 @@ class CampaignObject(BaseObject[Campaign]):
     load_options = [
         joinedload(Campaign.brand),
         joinedload(Campaign.thread),
-        joinedload(Campaign.campaign_contract_associations).joinedload(CampaignContract.document),
+        selectinload(Campaign.contract_versions),
+        joinedload(Campaign.contract),
     ]
 
     @classmethod
@@ -89,7 +90,7 @@ class CampaignObject(BaseObject[Campaign]):
             key="description",
             label="Description",
             type=FieldType.String,
-            value=lambda obj: StringFieldValue(value=obj.description) if obj.description else None,
+            value=lambda obj: (StringFieldValue(value=obj.description) if obj.description else None),
             sortable=True,
             default_visible=False,
             editable=False,
@@ -131,7 +132,9 @@ class CampaignObject(BaseObject[Campaign]):
             key="compensation_structure",
             label="Compensation",
             type=FieldType.Enum,
-            value=lambda obj: EnumFieldValue(value=obj.compensation_structure) if obj.compensation_structure else None,
+            value=lambda obj: (
+                EnumFieldValue(value=obj.compensation_structure) if obj.compensation_structure else None
+            ),
             sortable=True,
             default_visible=True,
             editable=False,

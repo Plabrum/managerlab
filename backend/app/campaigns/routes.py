@@ -1,19 +1,15 @@
 from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.auth.guards import requires_user_id
 from app.campaigns.models import Campaign
-from app.campaigns.objects import CampaignObject
 from app.campaigns.schemas import CampaignSchema, CampaignUpdateSchema
-from app.objects.base import ObjectRegistry
-from app.objects.enums import ObjectTypes
 from app.threads.models import Thread
 from app.utils.db import get_or_404, update_model
 from app.utils.sqids import Sqid
-
-ObjectRegistry().register(ObjectTypes.Campaigns, CampaignObject)
 
 
 @get("/{id:str}")
@@ -23,9 +19,6 @@ async def get_campaign(
     transaction: AsyncSession,
     action_registry: ActionRegistry,
 ) -> CampaignSchema:
-    """Get a campaign by SQID."""
-    from sqlalchemy.orm import joinedload, selectinload
-
     campaign = await get_or_404(
         transaction,
         Campaign,
@@ -34,7 +27,9 @@ async def get_campaign(
             joinedload(Campaign.thread).options(
                 selectinload(Thread.messages),
                 selectinload(Thread.read_statuses),
-            )
+            ),
+            joinedload(Campaign.contract),
+            selectinload(Campaign.contract_versions),
         ],
     )
 
