@@ -56,7 +56,7 @@ class Roster(
 
     # Profile photo
     profile_photo_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("media.id", ondelete="SET NULL"),
+        sa.ForeignKey("media.id", ondelete="SET NULL", use_alter=True, name="fk_roster_profile_photo"),
         nullable=True,
         index=True,
     )
