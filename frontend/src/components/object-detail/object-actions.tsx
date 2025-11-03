@@ -29,14 +29,6 @@ export function ObjectActions(props: ObjectActionsProps) {
   const actions = isObjectAction ? props.data.actions : (props.actions ?? []);
   const objectData = isObjectAction ? props.data : undefined;
 
-  // Determine invalidation callback
-  const onInvalidate =
-    isObjectAction && props.onRefetch
-      ? () => props.onRefetch?.()
-      : !isObjectAction && props.onInvalidate
-        ? props.onInvalidate
-        : undefined;
-
   // Use the centralized registry
   const formRenderer = useActionFormRenderer(objectData);
 
@@ -44,7 +36,12 @@ export function ObjectActions(props: ObjectActionsProps) {
     actionGroup,
     objectId,
     renderActionForm: formRenderer,
-    onInvalidate,
+    onInvalidate:
+      isObjectAction && props.onRefetch
+        ? () => props.onRefetch?.()
+        : !isObjectAction && props.onInvalidate
+          ? () => props.onInvalidate?.()
+          : undefined,
     onSuccess: (action, response) => {
       onActionComplete?.(action, response);
     },

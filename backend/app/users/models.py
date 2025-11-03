@@ -25,6 +25,7 @@ class User(
 
     # Relationship to Google OAuth accounts
     google_accounts: Mapped[list["GoogleOAuthAccount"]] = relationship(
+        "app.auth.google.models.GoogleOAuthAccount",
         back_populates="user",
         innerjoin=True,
     )

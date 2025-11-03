@@ -6,7 +6,6 @@ from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.brands.enums import BrandActions
 from app.brands.models.brands import Brand
-from app.brands.objects import BrandObject
 from app.brands.schemas import BrandCreateSchema
 from app.utils.db import create_model
 
@@ -14,7 +13,6 @@ from app.utils.db import create_model
 top_level_brand_actions = action_group_factory(
     ActionGroupType.TopLevelBrandActions,
     model_type=Brand,
-    object_service=BrandObject,
 )
 
 

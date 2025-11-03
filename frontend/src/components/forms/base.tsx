@@ -30,8 +30,33 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils'; // optional: your className helper
-import { Modal } from '../modal';
 import { Button } from '../ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type BaseFieldProps<
   TFieldValues extends FieldValues,
@@ -464,33 +489,135 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       submitText = 'Submit',
     } = props;
 
-    return (
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={title}
-        subTitle={subTitle}
-      >
-        <Form onSubmit={onSubmit} className="w-full space-y-4" mode="onSubmit">
-          {children}
+    const isMobile = useIsMobile();
 
-          <div className="flex gap-3 pt-6">
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? 'Please wait...' : submitText}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
+    // Desktop: Dialog
+    if (!isMobile) {
+      return (
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+              {subTitle && <DialogDescription>{subTitle}</DialogDescription>}
+            </DialogHeader>
+
+            <Form
+              onSubmit={onSubmit}
+              className="w-full space-y-4"
+              mode="onSubmit"
             >
-              Cancel
-            </Button>
-          </div>
-        </Form>
-      </Modal>
+              {children}
+
+              <DialogFooter className="pt-6">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
+                  {isSubmitting ? 'Please wait...' : submitText}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </DialogFooter>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+
+    // Mobile: Drawer
+    return (
+      <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DrawerContent>
+          <DrawerHeader className="text-left">
+            <DrawerTitle>{title}</DrawerTitle>
+            {subTitle && <DrawerDescription>{subTitle}</DrawerDescription>}
+          </DrawerHeader>
+
+          <Form
+            onSubmit={onSubmit}
+            className="w-full space-y-4 px-4"
+            mode="onSubmit"
+          >
+            {children}
+
+            <DrawerFooter className="pt-6">
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? 'Please wait...' : submitText}
+              </Button>
+              <DrawerClose asChild>
+                <Button type="button" variant="outline" className="flex-1">
+                  Cancel
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </Form>
+        </DrawerContent>
+      </Drawer>
     );
   }
+
+  function FormSheet(props: {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    title: string;
+    subTitle?: string | null;
+    onSubmit: SubmitHandler<TFieldValues>;
+    children: React.ReactNode;
+    isSubmitting?: boolean;
+    submitText?: string;
+    side?: 'top' | 'right' | 'bottom' | 'left';
+  }) {
+    const {
+      isOpen,
+      onOpenChange,
+      title,
+      subTitle,
+      onSubmit,
+      children,
+      isSubmitting = false,
+      submitText = 'Submit',
+      side = 'right',
+    } = props;
+
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent side={side}>
+          <SheetHeader>
+            <SheetTitle>{title}</SheetTitle>
+            {subTitle && <SheetDescription>{subTitle}</SheetDescription>}
+          </SheetHeader>
+
+          <Form onSubmit={onSubmit} className="flex h-full flex-col space-y-4">
+            <div className="flex-1 space-y-4 overflow-y-auto px-4">
+              {children}
+            </div>
+
+            <SheetFooter>
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? 'Please wait...' : submitText}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </SheetFooter>
+          </Form>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return {
     Form,
     FormString,
@@ -500,5 +627,6 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     FormDatetime,
     FormCustom,
     FormModal,
+    FormSheet,
   };
 }

@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 class ActionDTO(BaseSchema):
     action: str
     label: str
+    action_group_type: ActionGroupType
     is_bulk_allowed: bool = False
     available: bool = True
     priority: int = 100

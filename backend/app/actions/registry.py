@@ -1,15 +1,17 @@
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
-from app.actions.base import ActionGroup, BaseAction
 from app.actions.enums import ActionGroupType
 from app.base.registry import BaseRegistry
 
+if TYPE_CHECKING:
+    from app.actions.base import ActionGroup, BaseAction
+
 
 class ActionRegistry(
-    BaseRegistry[ActionGroupType, ActionGroup],
+    BaseRegistry[ActionGroupType, "ActionGroup"],
 ):
-    _flat_registry: dict[str, type[BaseAction]]
-    _struct_to_action: dict[type, type[BaseAction]]
+    _flat_registry: dict[str, type["BaseAction"]]
+    _struct_to_action: dict[type, type["BaseAction"]]
 
     def __new__(cls: type[Self], **dependencies: Any) -> Self:
         inst = super().__new__(cls, **dependencies)
@@ -23,9 +25,9 @@ class ActionRegistry(
     def register(
         self,
         action_group_type: ActionGroupType,
-        action_group: ActionGroup,
+        action_group: "ActionGroup",
     ) -> None:
         self._registry[action_group_type] = action_group
 
-    def register_action(self, action_key: str, action_class: type[BaseAction]) -> None:
+    def register_action(self, action_key: str, action_class: type["BaseAction"]) -> None:
         self._flat_registry[action_key] = action_class

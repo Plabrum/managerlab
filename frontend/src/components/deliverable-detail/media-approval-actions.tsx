@@ -20,7 +20,6 @@ export function MediaApprovalActions({
   const executor = useActionExecutor({
     actionGroup: ActionGroupType.deliverable_media_actions,
     objectId: String(mediaAssociation.id),
-    onInvalidate: onActionComplete,
     onSuccess: () => {
       onActionComplete?.();
     },
