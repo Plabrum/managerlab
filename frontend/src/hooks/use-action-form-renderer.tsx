@@ -16,7 +16,7 @@ export function useActionFormRenderer(
   objectData?: DomainObject
 ): ActionFormRenderer {
   return useCallback<ActionFormRenderer>(
-    ({ action, onSubmit, onCancel, isSubmitting }) => {
+    ({ action, onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       const actionType = action.action as ActionType;
       const render = getActionRenderer(actionType);
 
@@ -35,8 +35,10 @@ export function useActionFormRenderer(
             data,
           } as Parameters<typeof onSubmit>[0]);
         },
-        onCancel,
+        onClose,
         isSubmitting,
+        isOpen,
+        actionLabel,
       });
     },
     [objectData]

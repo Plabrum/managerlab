@@ -29,19 +29,23 @@ import React from 'react';
  */
 export interface ActionRegistryEntry<TData = unknown, TObject = DomainObject> {
   /**
-   * Render function that returns the form component for this action
+   * Render function that returns the self-contained modal form component for this action
    * If returns null, the action will be executed directly without a form
    *
    * @param objectData - Optional object data, strongly typed to the action's object type
    * @param onSubmit - Typed callback that receives the action's data schema
-   * @param onCancel - Callback to cancel the action
+   * @param onClose - Callback to close the modal
    * @param isSubmitting - Whether the action is currently submitting
+   * @param isOpen - Whether the modal should be open
+   * @param actionLabel - The label/title for the action
    */
   render: (params: {
     objectData?: TObject;
     onSubmit: (data: TData) => void;
-    onCancel: () => void;
+    onClose: () => void;
     isSubmitting: boolean;
+    isOpen: boolean;
+    actionLabel: string;
   }) => React.ReactElement | null;
 }
 
@@ -154,25 +158,36 @@ export type ActionRegistry = {
 export const actionRegistry: ActionRegistry = {
   // Deliverable actions
   deliverable_actions__deliverable_update: {
-    render: ({ objectData, onSubmit, onCancel, isSubmitting }) => {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
       // objectData is typed as DeliverableResponseSchema | undefined
       return (
         <UpdateDeliverableForm
+          isOpen={isOpen}
+          onClose={onClose}
           defaultValues={objectData}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
   },
   top_level_deliverable_actions__top_level_deliverable_create: {
-    render: ({ onSubmit, onCancel, isSubmitting }) => {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateDeliverableForm
+          isOpen={isOpen}
+          onClose={onClose}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
@@ -186,12 +201,14 @@ export const actionRegistry: ActionRegistry = {
     render: () => null,
   },
   deliverable_actions__deliverable_add_media: {
-    render: ({ onSubmit, onCancel, isSubmitting }) => {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <AddMediaToDeliverableForm
+          isOpen={isOpen}
+          onClose={onClose}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
@@ -199,12 +216,14 @@ export const actionRegistry: ActionRegistry = {
 
   // Media actions
   top_level_media_actions__top_level_media_create: {
-    render: ({ onSubmit, onCancel, isSubmitting }) => {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateMediaForm
+          isOpen={isOpen}
+          onClose={onClose}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
@@ -212,25 +231,36 @@ export const actionRegistry: ActionRegistry = {
 
   // Roster actions
   top_level_roster_actions__top_level_roster_create: {
-    render: ({ onSubmit, onCancel, isSubmitting }) => {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateRosterForm
+          isOpen={isOpen}
+          onClose={onClose}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
   },
   roster_actions__roster_update: {
-    render: ({ objectData, onSubmit, onCancel, isSubmitting }) => {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
       // objectData is typed as RosterSchema | undefined
       return (
         <UpdateRosterForm
+          isOpen={isOpen}
+          onClose={onClose}
           defaultValues={objectData}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
@@ -241,36 +271,49 @@ export const actionRegistry: ActionRegistry = {
 
   // Campaign actions
   top_level_campaign_actions__campaign_create: {
-    render: ({ onSubmit, onCancel, isSubmitting }) => {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateCampaignForm
+          isOpen={isOpen}
+          onClose={onClose}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
   },
   campaign_actions__campaign_add_deliverable: {
-    render: ({ onSubmit, onCancel, isSubmitting }) => {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <AddDeliverableToCampaignForm
+          isOpen={isOpen}
+          onClose={onClose}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
   },
   campaign_actions__campaign_update: {
-    render: ({ objectData, onSubmit, onCancel, isSubmitting }) => {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
       // objectData is typed as CampaignSchema | undefined
       return (
         <UpdateCampaignForm
+          isOpen={isOpen}
+          onClose={onClose}
           defaultValues={objectData}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
@@ -281,25 +324,36 @@ export const actionRegistry: ActionRegistry = {
 
   // Brand actions
   top_level_brand_actions__brand_create: {
-    render: ({ onSubmit, onCancel, isSubmitting }) => {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateBrandForm
+          isOpen={isOpen}
+          onClose={onClose}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
   },
   brand_actions__brand_update: {
-    render: ({ objectData, onSubmit, onCancel, isSubmitting }) => {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
       // objectData is typed as BrandSchema | undefined
       return (
         <UpdateBrandForm
+          isOpen={isOpen}
+          onClose={onClose}
           defaultValues={objectData}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
         />
       );
     },
@@ -361,6 +415,28 @@ export const actionRegistry: ActionRegistry = {
     render: () => null,
   },
   message_actions__update: {
+    render: () => null,
+  },
+
+  // Document actions
+  document_actions__document_update: {
+    render: () => null,
+  },
+  document_actions__document_delete: {
+    render: () => null,
+  },
+  document_actions__document_download: {
+    render: () => null,
+  },
+  top_level_document_actions__top_level_document_create: {
+    render: () => null,
+  },
+
+  // Campaign contract actions
+  campaign_actions__campaign_add_contract: {
+    render: () => null,
+  },
+  campaign_actions__campaign_replace_contract: {
     render: () => null,
   },
 };

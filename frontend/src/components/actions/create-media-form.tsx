@@ -15,11 +15,28 @@ import {
 import { RegisterMediaSchema } from '@/openapi/managerLab.schemas';
 import { Image } from '@/components/ui/image';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CreateMediaFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   onSubmit: (data: RegisterMediaSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
@@ -28,10 +45,13 @@ interface CreateMediaFormProps {
  * Calls onSubmit with file_key for the consumer to handle registration
  */
 export function CreateMediaForm({
+  isOpen,
+  onClose,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: CreateMediaFormProps) {
+  const isMobile = useIsMobile();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -109,7 +129,7 @@ export function CreateMediaForm({
   const isProcessing = uploadStatus === 'uploading' || isSubmitting;
   const isComplete = uploadStatus === 'complete';
 
-  return (
+  const formContent = (
     <form onSubmit={handleSubmit} className="space-y-4">
       {!selectedFile ? (
         <Dropzone
@@ -216,7 +236,7 @@ export function CreateMediaForm({
         <Button
           type="button"
           variant="outline"
-          onClick={onCancel}
+          onClick={onClose}
           disabled={isProcessing}
           className="flex-1"
         >
@@ -224,5 +244,45 @@ export function CreateMediaForm({
         </Button>
       </div>
     </form>
+  );
+
+  // Desktop: Dialog
+  if (!isMobile) {
+    return (
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => !open && !isProcessing && onClose()}
+      >
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle>{actionLabel}</DialogTitle>
+            <DialogDescription>
+              Upload a media file to create a new media asset.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            {formContent}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Mobile: Drawer
+  return (
+    <Drawer
+      open={isOpen}
+      onOpenChange={(open) => !open && !isProcessing && onClose()}
+    >
+      <DrawerContent className="max-h-[90vh]">
+        <DrawerHeader className="text-left">
+          <DrawerTitle>{actionLabel}</DrawerTitle>
+          <DrawerDescription>
+            Upload a media file to create a new media asset.
+          </DrawerDescription>
+        </DrawerHeader>
+        <div className="overflow-y-auto px-4 pb-4">{formContent}</div>
+      </DrawerContent>
+    </Drawer>
   );
 }

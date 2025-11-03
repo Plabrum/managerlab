@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { CampaignUpdateSchema } from '@/openapi/managerLab.schemas';
 import {
@@ -10,24 +9,34 @@ import {
 } from '@/openapi/managerLab.schemas';
 import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 
-const { Form, FormString, FormText, FormSelect, FormCustom, FormDatetime } =
-  createTypedForm<CampaignUpdateSchema>();
+const {
+  FormModal,
+  FormString,
+  FormText,
+  FormSelect,
+  FormCustom,
+  FormDatetime,
+} = createTypedForm<CampaignUpdateSchema>();
 
 interface UpdateCampaignFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   defaultValues?: Partial<CampaignUpdateSchema>;
   onSubmit: (data: CampaignUpdateSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
  * Form for updating an existing campaign
  */
 export function UpdateCampaignForm({
+  isOpen,
+  onClose,
   defaultValues,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: UpdateCampaignFormProps) {
   const compensationOptions = [
     { value: CompensationStructure.flat_fee, label: 'Flat Fee' },
@@ -53,7 +62,16 @@ export function UpdateCampaignForm({
   ];
 
   return (
-    <Form onSubmit={onSubmit} defaultValues={defaultValues}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Update the campaign information below."
+      onSubmit={onSubmit}
+      defaultValues={defaultValues}
+      isSubmitting={isSubmitting}
+      submitText="Update Campaign"
+    >
       {/* Basic Information */}
       <FormString
         name="name"
@@ -301,21 +319,6 @@ export function UpdateCampaignForm({
           )}
         </FormCustom>
       </div>
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Updating...' : 'Update Campaign'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }

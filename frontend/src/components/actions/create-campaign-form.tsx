@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { CampaignCreateSchema } from '@/openapi/managerLab.schemas';
 import {
@@ -14,23 +13,34 @@ import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
 import { UploadIcon, FileText, X } from 'lucide-react';
 import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 
-const { Form, FormString, FormText, FormSelect, FormCustom, FormDatetime } =
-  createTypedForm<CampaignCreateSchema>();
+const {
+  FormModal,
+  FormString,
+  FormText,
+  FormSelect,
+  FormCustom,
+  FormDatetime,
+} = createTypedForm<CampaignCreateSchema>();
 
 interface CreateCampaignFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   onSubmit: (data: CampaignCreateSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
  * Form for creating a new campaign
  */
 export function CreateCampaignForm({
+  isOpen,
+  onClose,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: CreateCampaignFormProps) {
   const [contractFile, setContractFile] = useState<File | null>(null);
   const { uploadFile, status: uploadStatus, progress } = useDocumentUpload();
@@ -93,7 +103,15 @@ export function CreateCampaignForm({
   ];
 
   return (
-    <Form onSubmit={handleFormSubmit}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Fill out the form below to create a new campaign."
+      onSubmit={handleFormSubmit}
+      isSubmitting={isSubmitting || isUploading}
+      submitText={isUploading ? 'Uploading contract...' : 'Create Campaign'}
+    >
       {/* Basic Information */}
       <FormString
         name="name"
@@ -312,29 +330,6 @@ export function CreateCampaignForm({
           </div>
         )}
       </div>
-
-      <div className="flex gap-3 pt-4">
-        <Button
-          type="submit"
-          disabled={isSubmitting || isUploading}
-          className="flex-1"
-        >
-          {isUploading
-            ? 'Uploading contract...'
-            : isSubmitting
-              ? 'Creating...'
-              : 'Create Campaign'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting || isUploading}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }

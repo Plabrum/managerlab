@@ -32,8 +32,10 @@ export type ActionFormRenderer = (props: {
       | ActionsActionGroupExecuteActionBody
       | ActionsActionGroupObjectIdExecuteObjectActionBody
   ) => void;
-  onCancel: () => void;
+  onClose: () => void;
   isSubmitting: boolean;
+  isOpen: boolean;
+  actionLabel: string;
 }) => React.ReactNode | null;
 
 export type ActionExecutorOptions = {
@@ -148,8 +150,10 @@ export function useActionExecutor({
       renderActionForm({
         action,
         onSubmit: () => {},
-        onCancel: () => {},
+        onClose: () => {},
         isSubmitting: false,
+        isOpen: false,
+        actionLabel: action.label,
       }) !== null
     );
   }

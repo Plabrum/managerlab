@@ -1,29 +1,41 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { RosterUpdateSchema } from '@/openapi/managerLab.schemas';
 
-const { Form, FormString } = createTypedForm<RosterUpdateSchema>();
+const { FormModal, FormString } = createTypedForm<RosterUpdateSchema>();
 
 interface UpdateRosterFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   defaultValues?: Partial<RosterUpdateSchema>;
   onSubmit: (data: RosterUpdateSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
  * Form for updating a roster member
  */
 export function UpdateRosterForm({
+  isOpen,
+  onClose,
   defaultValues,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: UpdateRosterFormProps) {
   return (
-    <Form onSubmit={onSubmit} defaultValues={defaultValues}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Update the roster member information below."
+      onSubmit={onSubmit}
+      defaultValues={defaultValues}
+      isSubmitting={isSubmitting}
+      submitText="Update Roster Member"
+    >
       <FormString name="name" label="Name" placeholder="Roster member name" />
 
       <FormString
@@ -63,21 +75,6 @@ export function UpdateRosterForm({
         label="YouTube Channel"
         placeholder="Channel name or URL"
       />
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Updating...' : 'Update Roster Member'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }

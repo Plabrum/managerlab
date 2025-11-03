@@ -1,17 +1,18 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { AddDeliverableToCampaignSchema } from '@/openapi/managerLab.schemas';
 import { SocialMediaPlatforms as SocialMediaPlatformsEnum } from '@/openapi/managerLab.schemas';
 
-const { Form, FormString, FormSelect, FormDatetime } =
+const { FormModal, FormString, FormSelect, FormDatetime } =
   createTypedForm<AddDeliverableToCampaignSchema>();
 
 interface AddDeliverableToCampaignFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   onSubmit: (data: AddDeliverableToCampaignSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
@@ -19,9 +20,11 @@ interface AddDeliverableToCampaignFormProps {
  * Only includes required fields: title, platforms, posting_date
  */
 export function AddDeliverableToCampaignForm({
+  isOpen,
+  onClose,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: AddDeliverableToCampaignFormProps) {
   const platformOptions = [
     { value: SocialMediaPlatformsEnum.instagram, label: 'Instagram' },
@@ -40,7 +43,15 @@ export function AddDeliverableToCampaignForm({
   };
 
   return (
-    <Form onSubmit={handleFormSubmit}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Add a deliverable to this campaign."
+      onSubmit={handleFormSubmit}
+      isSubmitting={isSubmitting}
+      submitText="Add Deliverable"
+    >
       <FormString
         name="title"
         label="Title"
@@ -63,21 +74,6 @@ export function AddDeliverableToCampaignForm({
         placeholder="Posting date"
         required="Posting date is required"
       />
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Adding...' : 'Add Deliverable'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }

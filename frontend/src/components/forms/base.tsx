@@ -49,7 +49,6 @@ import {
 } from '@/components/ui/dialog';
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
@@ -477,6 +476,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     children: React.ReactNode;
     isSubmitting?: boolean;
     submitText?: string;
+    defaultValues?: DefaultValues<TFieldValues>;
   }) {
     const {
       isOpen,
@@ -487,6 +487,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       children,
       isSubmitting = false,
       submitText = 'Submit',
+      defaultValues,
     } = props;
 
     const isMobile = useIsMobile();
@@ -494,8 +495,11 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     // Desktop: Dialog
     if (!isMobile) {
       return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-          <DialogContent>
+        <Dialog
+          open={isOpen}
+          onOpenChange={(open) => !open && !isSubmitting && onClose()}
+        >
+          <DialogContent className="flex max-h-[90vh] max-w-6xl flex-col">
             <DialogHeader>
               <DialogTitle>{title}</DialogTitle>
               {subTitle && <DialogDescription>{subTitle}</DialogDescription>}
@@ -503,12 +507,15 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
 
             <Form
               onSubmit={onSubmit}
-              className="w-full space-y-4"
+              defaultValues={defaultValues}
+              className="flex min-h-0 flex-1 flex-col"
               mode="onSubmit"
             >
-              {children}
+              <div className="flex-1 space-y-4 overflow-y-auto pr-2">
+                {children}
+              </div>
 
-              <DialogFooter className="pt-6">
+              <DialogFooter className="mb-0 flex-shrink-0 gap-3">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
@@ -520,6 +527,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
                   type="button"
                   variant="outline"
                   onClick={onClose}
+                  disabled={isSubmitting}
                   className="flex-1"
                 >
                   Cancel
@@ -533,29 +541,39 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
 
     // Mobile: Drawer
     return (
-      <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DrawerContent>
-          <DrawerHeader className="text-left">
+      <Drawer
+        open={isOpen}
+        onOpenChange={(open) => !open && !isSubmitting && onClose()}
+      >
+        <DrawerContent className="flex max-h-[90vh] flex-col">
+          <DrawerHeader className="flex-shrink-0 text-left">
             <DrawerTitle>{title}</DrawerTitle>
             {subTitle && <DrawerDescription>{subTitle}</DrawerDescription>}
           </DrawerHeader>
 
           <Form
             onSubmit={onSubmit}
-            className="w-full space-y-4 px-4"
+            defaultValues={defaultValues}
+            className="flex min-h-0 flex-1 flex-col"
             mode="onSubmit"
           >
-            {children}
+            <div className="flex-1 space-y-4 overflow-y-auto px-4">
+              {children}
+            </div>
 
-            <DrawerFooter className="pt-6">
+            <DrawerFooter className="flex flex-shrink-0 flex-row gap-3 border-t px-4 pt-3">
               <Button type="submit" disabled={isSubmitting} className="flex-1">
                 {isSubmitting ? 'Please wait...' : submitText}
               </Button>
-              <DrawerClose asChild>
-                <Button type="button" variant="outline" className="flex-1">
-                  Cancel
-                </Button>
-              </DrawerClose>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
             </DrawerFooter>
           </Form>
         </DrawerContent>

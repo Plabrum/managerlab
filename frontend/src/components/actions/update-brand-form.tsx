@@ -1,29 +1,42 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { BrandUpdateSchema } from '@/openapi/managerLab.schemas';
 
-const { Form, FormString, FormText } = createTypedForm<BrandUpdateSchema>();
+const { FormModal, FormString, FormText } =
+  createTypedForm<BrandUpdateSchema>();
 
 interface UpdateBrandFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   defaultValues?: Partial<BrandUpdateSchema>;
   onSubmit: (data: BrandUpdateSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
  * Form for updating a brand
  */
 export function UpdateBrandForm({
+  isOpen,
+  onClose,
   defaultValues,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: UpdateBrandFormProps) {
   return (
-    <Form onSubmit={onSubmit} defaultValues={defaultValues}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Update the brand information below."
+      onSubmit={onSubmit}
+      defaultValues={defaultValues}
+      isSubmitting={isSubmitting}
+      submitText="Update Brand"
+    >
       <FormString name="name" label="Brand Name" placeholder="Brand name" />
 
       <FormText
@@ -53,21 +66,6 @@ export function UpdateBrandForm({
         placeholder="Additional notes..."
         rows={4}
       />
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Updating...' : 'Update Brand'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }
