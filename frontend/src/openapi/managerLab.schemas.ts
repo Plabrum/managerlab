@@ -43,6 +43,8 @@ export type ActionGroupType = typeof ActionGroupType[keyof typeof ActionGroupTyp
 export const ActionGroupType = {
   media_actions: 'media_actions',
   top_level_media_actions: 'top_level_media_actions',
+  document_actions: 'document_actions',
+  top_level_document_actions: 'top_level_document_actions',
   deliverable_actions: 'deliverable_actions',
   deliverable_media_actions: 'deliverable_media_actions',
   top_level_deliverable_actions: 'top_level_deliverable_actions',
@@ -61,6 +63,15 @@ export const ActionGroupType = {
 
 export interface ActionListResponse {
   actions: ActionDTO[];
+}
+
+export interface AddContractToCampaignAction {
+  data: AddContractToCampaignSchema;
+  action: 'campaign_actions__campaign_add_contract';
+}
+
+export interface AddContractToCampaignSchema {
+  document_id: unknown;
 }
 
 export interface AddDeliverableToCampaignAction {
@@ -269,6 +280,8 @@ export type CampaignCreateSchemaApprovalRounds = number | null;
 
 export type CampaignCreateSchemaApprovalSlaHours = number | null;
 
+export type CampaignCreateSchemaContractDocumentId = unknown | null;
+
 export interface CampaignCreateSchema {
   name: string;
   brand_id: unknown;
@@ -291,6 +304,7 @@ export interface CampaignCreateSchema {
   ownership_mode?: CampaignCreateSchemaOwnershipMode;
   approval_rounds?: CampaignCreateSchemaApprovalRounds;
   approval_sla_hours?: CampaignCreateSchemaApprovalSlaHours;
+  contract_document_id?: CampaignCreateSchemaContractDocumentId;
 }
 
 /**
@@ -535,6 +549,11 @@ export interface CreateDeliverableAction {
   action: 'top_level_deliverable_actions__top_level_deliverable_create';
 }
 
+export interface CreateDocumentAction {
+  data: RegisterDocumentSchema;
+  action: 'top_level_document_actions__top_level_document_create';
+}
+
 export interface CreateInvoiceAction {
   data: InvoiceCreateSchema;
   action: 'top_level_invoice_actions__invoice_create';
@@ -632,6 +651,11 @@ export const DeleteDeliverableActionValue = {
   action: 'deliverable_actions__deliverable_delete',
 } as const;
 export type DeleteDeliverableAction = typeof DeleteDeliverableActionValue;
+
+export const DeleteDocumentActionValue = {
+  action: 'document_actions__document_delete',
+} as const;
+export type DeleteDocumentAction = typeof DeleteDocumentActionValue;
 
 export const DeleteInvoiceActionValue = {
   action: 'invoice_actions__invoice_delete',
@@ -837,6 +861,53 @@ export interface DeliverableUpdateSchema {
   notes?: DeliverableUpdateSchemaNotes;
   campaign_id?: DeliverableUpdateSchemaCampaignId;
 }
+
+export type DocumentResponseSchemaThumbnailUrl = string | null;
+
+export type DocumentResponseSchemaThread = ThreadUnreadInfo | null;
+
+export interface DocumentResponseSchema {
+  id: unknown;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  download_url: string;
+  thumbnail_url?: DocumentResponseSchemaThumbnailUrl;
+  actions: ActionDTO[];
+  thread?: DocumentResponseSchemaThread;
+}
+
+export type DocumentSchemaTeamId = number | null;
+
+export type DocumentSchemaCampaignId = number | null;
+
+export interface DocumentSchema {
+  id: unknown;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  mime_type: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  team_id?: DocumentSchemaTeamId;
+  campaign_id?: DocumentSchemaCampaignId;
+}
+
+export type DocumentUpdateSchemaFileName = string | null;
+
+export interface DocumentUpdateSchema {
+  file_name?: DocumentUpdateSchemaFileName;
+}
+
+export const DownloadDocumentActionValue = {
+  action: 'document_actions__document_download',
+} as const;
+export type DownloadDocumentAction = typeof DownloadDocumentActionValue;
 
 export interface DownloadFileActionResult {
   url: string;
@@ -1233,6 +1304,7 @@ export const ObjectTypes = {
   deliverables: 'deliverables',
   deliverablemedia: 'deliverablemedia',
   media: 'media',
+  documents: 'documents',
   invoices: 'invoices',
 } as const;
 
@@ -1248,17 +1320,6 @@ export const OwnershipMode = {
   creator_owned: 'creator_owned',
   shared: 'shared',
 } as const;
-
-export interface PresignedUploadRequestSchema {
-  file_name: string;
-  content_type: string;
-  file_size: number;
-}
-
-export interface PresignedUploadResponseSchema {
-  upload_url: string;
-  file_key: string;
-}
 
 export const PublishDeliverableActionValue = {
   action: 'deliverable_actions__deliverable_publish',
@@ -1281,6 +1342,13 @@ export interface RedirectActionResult {
   type: 'redirect';
 }
 
+export interface RegisterDocumentSchema {
+  file_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+}
+
 export interface RegisterMediaSchema {
   file_key: string;
   file_name: string;
@@ -1297,6 +1365,15 @@ export const RemoveMediaFromDeliverableActionValue = {
   action: 'deliverable_media_actions__deliverable_media_remove_media',
 } as const;
 export type RemoveMediaFromDeliverableAction = typeof RemoveMediaFromDeliverableActionValue;
+
+export interface ReplaceContractAction {
+  data: ReplaceContractSchema;
+  action: 'campaign_actions__campaign_replace_contract';
+}
+
+export interface ReplaceContractSchema {
+  document_id: unknown;
+}
 
 /**
  * Role levels for team membership.
@@ -1619,6 +1696,11 @@ export interface UpdateDashboardSchema {
   is_default?: UpdateDashboardSchemaIsDefault;
 }
 
+export interface UpdateDocumentAction {
+  data: DocumentUpdateSchema;
+  action: 'document_actions__document_update';
+}
+
 export interface UpdateInvoiceAction {
   data: InvoiceUpdateSchema;
   action: 'invoice_actions__invoice_update';
@@ -1672,6 +1754,28 @@ export interface WaitlistEntrySchema {
   message?: WaitlistEntrySchemaMessage;
   created_at: string;
   updated_at: string;
+}
+
+export interface DocumentsSchemasPresignedUploadRequestSchema {
+  file_name: string;
+  content_type: string;
+  file_size: number;
+}
+
+export interface DocumentsSchemasPresignedUploadResponseSchema {
+  upload_url: string;
+  file_key: string;
+}
+
+export interface MediaSchemasPresignedUploadRequestSchema {
+  file_name: string;
+  content_type: string;
+  file_size: number;
+}
+
+export interface MediaSchemasPresignedUploadResponseSchema {
+  upload_url: string;
+  file_key: string;
 }
 
 export type HealthHealthCheck200 = { [key: string]: unknown };
@@ -1859,7 +1963,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateDocumentAction | CreateMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1887,7 +1991,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateDocumentAction | CreateMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2062,6 +2166,60 @@ export type MediaIdDeleteMedia400 = {
   status_code: number;
   detail: string;
   extra?: MediaIdDeleteMedia400Extra;
+};
+
+export type DocumentsPresignedUploadRequestPresignedUpload400ExtraAnyOf = {[key: string]: unknown};
+
+export type DocumentsPresignedUploadRequestPresignedUpload400Extra = null | DocumentsPresignedUploadRequestPresignedUpload400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DocumentsPresignedUploadRequestPresignedUpload400 = {
+  status_code: number;
+  detail: string;
+  extra?: DocumentsPresignedUploadRequestPresignedUpload400Extra;
+};
+
+export type DocumentsRegisterRegisterDocument400ExtraAnyOf = {[key: string]: unknown};
+
+export type DocumentsRegisterRegisterDocument400Extra = null | DocumentsRegisterRegisterDocument400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DocumentsRegisterRegisterDocument400 = {
+  status_code: number;
+  detail: string;
+  extra?: DocumentsRegisterRegisterDocument400Extra;
+};
+
+export type DocumentsIdGetDocument400ExtraAnyOf = {[key: string]: unknown};
+
+export type DocumentsIdGetDocument400Extra = null | DocumentsIdGetDocument400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DocumentsIdGetDocument400 = {
+  status_code: number;
+  detail: string;
+  extra?: DocumentsIdGetDocument400Extra;
+};
+
+export type DocumentsIdDeleteDocument200 = {[key: string]: string};
+
+export type DocumentsIdDeleteDocument400ExtraAnyOf = {[key: string]: unknown};
+
+export type DocumentsIdDeleteDocument400Extra = null | DocumentsIdDeleteDocument400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type DocumentsIdDeleteDocument400 = {
+  status_code: number;
+  detail: string;
+  extra?: DocumentsIdDeleteDocument400Extra;
 };
 
 export type InvoicesIdGetInvoice400ExtraAnyOf = {[key: string]: unknown};

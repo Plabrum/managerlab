@@ -49,7 +49,8 @@ class Config:
     FRONTEND_ORIGIN: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 
     # Upload Configuration
-    MAX_UPLOAD_SIZE: int = 40 * 1024 * 1024  # 40MB in bytes
+    MAX_UPLOAD_SIZE: int = 40 * 1024 * 1024  # 40MB in bytes (for media files)
+    MAX_DOCUMENT_SIZE: int = 100 * 1024 * 1024  # 100MB in bytes (for documents)
 
     @property
     def DATABASE_URL(self) -> str:

@@ -74,6 +74,10 @@ const OBJECT_CREATE_ACTIONS: Record<
     actionGroup: 'top_level_media_actions',
     action: 'top_level_media_actions__top_level_media_create',
   },
+  documents: {
+    actionGroup: 'top_level_document_actions',
+    action: 'top_level_document_actions__top_level_document_create',
+  },
   deliverables: {
     actionGroup: 'top_level_deliverable_actions',
     action: 'top_level_deliverable_actions__top_level_deliverable_create',

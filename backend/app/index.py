@@ -36,6 +36,7 @@ from app.campaigns.routes import campaign_router
 from app.client.s3_client import provide_s3_client
 from app.dashboard.routes import dashboard_router
 from app.deliverables.routes import deliverable_router
+from app.documents.routes.documents import document_router
 from app.media.routes import local_media_router, media_router
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
@@ -91,6 +92,7 @@ route_handlers: list[Any] = [
     campaign_router,
     deliverable_router,
     media_router,
+    document_router,
     invoice_router,
     dashboard_router,
     thread_router,

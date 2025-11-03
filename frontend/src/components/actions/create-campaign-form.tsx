@@ -9,6 +9,11 @@ import {
   OwnershipMode,
 } from '@/openapi/managerLab.schemas';
 import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
+import { useState, useCallback } from 'react';
+import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
+import { UploadIcon, FileText, X } from 'lucide-react';
+import { useDocumentUpload } from '@/hooks/useDocumentUpload';
+import { Progress } from '@/components/ui/progress';
 
 const { Form, FormString, FormText, FormSelect, FormCustom, FormDatetime } =
   createTypedForm<CampaignCreateSchema>();
@@ -27,6 +32,43 @@ export function CreateCampaignForm({
   onCancel,
   isSubmitting,
 }: CreateCampaignFormProps) {
+  const [contractFile, setContractFile] = useState<File | null>(null);
+  const { uploadFile, status: uploadStatus, progress } = useDocumentUpload();
+
+  const handleFormSubmit = useCallback(
+    async (data: CampaignCreateSchema) => {
+      // If a contract file is selected, upload it first
+      if (contractFile) {
+        const result = await uploadFile(contractFile, {
+          autoRegister: true,
+        });
+
+        if (result) {
+          // Add the document ID to the form data
+          data.contract_document_id = result.documentId;
+        }
+      }
+
+      // Submit the form with the document ID (if uploaded)
+      onSubmit(data);
+    },
+    [contractFile, uploadFile, onSubmit]
+  );
+
+  const handleFileRemove = useCallback(() => {
+    setContractFile(null);
+  }, []);
+
+  const handleFileDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      setContractFile(file);
+    }
+  }, []);
+
+  const isUploading =
+    uploadStatus === 'uploading' || uploadStatus === 'registering';
+
   const compensationOptions = [
     { value: CompensationStructure.flat_fee, label: 'Flat Fee' },
     {
@@ -51,7 +93,7 @@ export function CreateCampaignForm({
   ];
 
   return (
-    <Form onSubmit={onSubmit}>
+    <Form onSubmit={handleFormSubmit}>
       {/* Basic Information */}
       <FormString
         name="name"
@@ -196,15 +238,98 @@ export function CreateCampaignForm({
         />
       </div>
 
+      {/* Contract Upload (Optional) */}
+      <div className="space-y-4 rounded-lg border p-4">
+        <h3 className="text-sm font-medium">Contract (Optional)</h3>
+        <p className="text-muted-foreground text-xs">
+          Upload a contract document to attach to this campaign
+        </p>
+        {!contractFile ? (
+          <Dropzone
+            onDrop={handleFileDrop}
+            accept={{
+              'application/pdf': ['.pdf'],
+              'application/msword': ['.doc'],
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                ['.docx'],
+              'application/vnd.ms-excel': ['.xls'],
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+                ['.xlsx'],
+              'text/plain': ['.txt'],
+              'text/markdown': ['.md'],
+              'text/csv': ['.csv'],
+            }}
+            maxFiles={1}
+            disabled={isUploading || isSubmitting}
+          >
+            <DropzoneEmptyState>
+              <div className="flex flex-col items-center justify-center py-6">
+                <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-md">
+                  <UploadIcon size={20} />
+                </div>
+                <p className="my-2 text-sm font-medium">
+                  Drop contract file or click to browse
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  PDF, Word, Excel, or text files
+                </p>
+              </div>
+            </DropzoneEmptyState>
+          </Dropzone>
+        ) : (
+          <div className="rounded-lg border p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FileText className="text-muted-foreground h-8 w-8" />
+                <div>
+                  <p className="text-sm font-medium">{contractFile.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {(contractFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+              {!isUploading && !isSubmitting && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFileRemove}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            {isUploading && (
+              <div className="mt-3">
+                <Progress value={progress} className="h-2" />
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {uploadStatus === 'uploading'
+                    ? 'Uploading...'
+                    : 'Registering...'}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Creating...' : 'Create Campaign'}
+        <Button
+          type="submit"
+          disabled={isSubmitting || isUploading}
+          className="flex-1"
+        >
+          {isUploading
+            ? 'Uploading contract...'
+            : isSubmitting
+              ? 'Creating...'
+              : 'Create Campaign'}
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isUploading}
           className="flex-1"
         >
           Cancel

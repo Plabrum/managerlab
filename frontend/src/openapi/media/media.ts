@@ -35,8 +35,8 @@ import type {
   MediaRegisterRegisterMedia400,
   MediaResponseSchema,
   MediaSchema,
-  PresignedUploadRequestSchema,
-  PresignedUploadResponseSchema,
+  MediaSchemasPresignedUploadRequestSchema,
+  MediaSchemasPresignedUploadResponseSchema,
   RegisterMediaSchema
 } from '../managerLab.schemas';
 
@@ -49,15 +49,15 @@ import { customInstance } from '.././custom-instance';
  * @summary RequestPresignedUpload
  */
 export const mediaPresignedUploadRequestPresignedUpload = (
-    presignedUploadRequestSchema: PresignedUploadRequestSchema,
+    mediaSchemasPresignedUploadRequestSchema: MediaSchemasPresignedUploadRequestSchema,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<PresignedUploadResponseSchema>(
+      return customInstance<MediaSchemasPresignedUploadResponseSchema>(
       {url: `/media/presigned-upload`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: presignedUploadRequestSchema, signal
+      data: mediaSchemasPresignedUploadRequestSchema, signal
     },
       );
     }
@@ -65,8 +65,8 @@ export const mediaPresignedUploadRequestPresignedUpload = (
 
 
 export const getMediaPresignedUploadRequestPresignedUploadMutationOptions = <TError = MediaPresignedUploadRequestPresignedUpload400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, TError,{data: PresignedUploadRequestSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, TError,{data: PresignedUploadRequestSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, TError,{data: MediaSchemasPresignedUploadRequestSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, TError,{data: MediaSchemasPresignedUploadRequestSchema}, TContext> => {
 
 const mutationKey = ['mediaPresignedUploadRequestPresignedUpload'];
 const {mutation: mutationOptions} = options ?
@@ -78,7 +78,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, {data: PresignedUploadRequestSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, {data: MediaSchemasPresignedUploadRequestSchema}> = (props) => {
           const {data} = props ?? {};
 
           return  mediaPresignedUploadRequestPresignedUpload(data,)
@@ -90,18 +90,18 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type MediaPresignedUploadRequestPresignedUploadMutationResult = NonNullable<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>>
-    export type MediaPresignedUploadRequestPresignedUploadMutationBody = PresignedUploadRequestSchema
+    export type MediaPresignedUploadRequestPresignedUploadMutationBody = MediaSchemasPresignedUploadRequestSchema
     export type MediaPresignedUploadRequestPresignedUploadMutationError = MediaPresignedUploadRequestPresignedUpload400
 
     /**
  * @summary RequestPresignedUpload
  */
 export const useMediaPresignedUploadRequestPresignedUpload = <TError = MediaPresignedUploadRequestPresignedUpload400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, TError,{data: PresignedUploadRequestSchema}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>, TError,{data: MediaSchemasPresignedUploadRequestSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof mediaPresignedUploadRequestPresignedUpload>>,
         TError,
-        {data: PresignedUploadRequestSchema},
+        {data: MediaSchemasPresignedUploadRequestSchema},
         TContext
       > => {
 

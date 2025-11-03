@@ -6,6 +6,8 @@ class ActionGroupType(StrEnum):
 
     MediaActions = "media_actions"
     TopLevelMediaActions = "top_level_media_actions"
+    DocumentActions = "document_actions"
+    TopLevelDocumentActions = "top_level_document_actions"
     DeliverableActions = "deliverable_actions"
     DeliverableMediaActions = "deliverable_media_actions"
     TopLevelDeliverableActions = "top_level_deliverable_actions"

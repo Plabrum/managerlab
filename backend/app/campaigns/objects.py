@@ -2,7 +2,7 @@ from sqlalchemy.orm import joinedload
 
 from app.actions.enums import ActionGroupType
 from app.campaigns.enums import CampaignStates
-from app.campaigns.models import Campaign
+from app.campaigns.models import Campaign, CampaignContract
 from app.objects.base import BaseObject
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import (
@@ -32,6 +32,7 @@ class CampaignObject(BaseObject[Campaign]):
     load_options = [
         joinedload(Campaign.brand),
         joinedload(Campaign.thread),
+        joinedload(Campaign.campaign_contract_associations).joinedload(CampaignContract.document),
     ]
 
     @classmethod

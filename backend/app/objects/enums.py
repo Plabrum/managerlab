@@ -11,6 +11,7 @@ class ObjectTypes(StrEnum):
     Deliverables = auto()
     DeliverableMedia = auto()
     Media = auto()
+    Documents = auto()
     Invoices = auto()
 
 

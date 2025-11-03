@@ -4,8 +4,13 @@ from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.enums import CampaignActions
-from app.campaigns.models import Campaign
-from app.campaigns.schemas import AddDeliverableToCampaignSchema, CampaignUpdateSchema
+from app.campaigns.models import Campaign, CampaignContract
+from app.campaigns.schemas import (
+    AddContractToCampaignSchema,
+    AddDeliverableToCampaignSchema,
+    CampaignUpdateSchema,
+    ReplaceContractSchema,
+)
 from app.deliverables.models import Deliverable
 from app.utils.db import create_model, update_model
 
@@ -100,3 +105,75 @@ class AddDeliverableToCampaign(BaseAction):
             message=f"Added deliverable '{data.title}' to campaign",
             invalidate_queries=["/o/deliverables"],
         )
+
+
+@campaign_actions
+class AddContractToCampaign(BaseAction):
+    """Add initial contract to a campaign."""
+
+    action_key = CampaignActions.add_contract
+    label = "Add Contract"
+    is_bulk_allowed = False
+    priority = 15
+    icon = ActionIcon.add
+
+    @classmethod
+    async def execute(
+        cls,
+        obj: Campaign,
+        data: AddContractToCampaignSchema,
+        transaction: AsyncSession,
+        team_id: int,
+    ) -> ActionExecutionResponse:
+        # Create association
+        association = CampaignContract(
+            campaign_id=obj.id,
+            document_id=data.document_id,
+            team_id=team_id,
+        )
+        transaction.add(association)
+
+        return ActionExecutionResponse(
+            message=f"Contract added to campaign '{obj.name}'",
+        )
+
+    @classmethod
+    def is_available(cls, obj: Campaign | None) -> bool:
+        # Only available if campaign has no contract
+        return obj is not None and obj.contract is None
+
+
+@campaign_actions
+class ReplaceContract(BaseAction):
+    """Replace existing contract with new version."""
+
+    action_key = CampaignActions.replace_contract
+    label = "Replace Contract"
+    is_bulk_allowed = False
+    priority = 16
+    icon = ActionIcon.refresh
+
+    @classmethod
+    async def execute(
+        cls,
+        obj: Campaign,
+        data: ReplaceContractSchema,
+        transaction: AsyncSession,
+        team_id: int,
+    ) -> ActionExecutionResponse:
+        # Create new association (becomes latest via created_at)
+        association = CampaignContract(
+            campaign_id=obj.id,
+            document_id=data.document_id,
+            team_id=team_id,
+        )
+        transaction.add(association)
+
+        return ActionExecutionResponse(
+            message=f"Contract replaced for campaign '{obj.name}'",
+        )
+
+    @classmethod
+    def is_available(cls, obj: Campaign | None) -> bool:
+        # Only available if campaign already has a contract
+        return obj is not None and obj.contract is not None

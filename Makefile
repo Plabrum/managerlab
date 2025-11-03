@@ -85,7 +85,7 @@ db-stop:
 db-migrate:
 	cd backend && \
 	read -p "Migration name: " msg; \
-	uv run alembic revision --autogenerate -m "$$msg"
+	REGISTER_RLS_POLICIES=false uv run alembic revision --autogenerate -m "$$msg"
 	
 .PHONY: db-upgrade
 db-upgrade:
