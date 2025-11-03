@@ -13,7 +13,6 @@ import type { DomainObject } from '@/types/domain-objects';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
-import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 interface ActionsMenuProps {
   actions: ActionDTO[];
@@ -87,23 +86,16 @@ export function ActionsMenu({
         onCancel={executor.cancelAction}
       />
 
-      {executor.showForm &&
-        executor.pendingAction &&
-        executor.renderActionForm && (
-          <ActionFormDialog
-            open={executor.showForm}
-            action={executor.pendingAction}
-            isExecuting={executor.isExecuting}
-            onCancel={executor.cancelAction}
-          >
-            {executor.renderActionForm({
-              action: executor.pendingAction,
-              onSubmit: executor.executeWithData,
-              onCancel: executor.cancelAction,
-              isSubmitting: executor.isExecuting,
-            })}
-          </ActionFormDialog>
-        )}
+      {executor.pendingAction &&
+        executor.renderActionForm &&
+        executor.renderActionForm({
+          action: executor.pendingAction,
+          onSubmit: executor.executeWithData,
+          onClose: executor.cancelAction,
+          isSubmitting: executor.isExecuting,
+          isOpen: executor.showForm,
+          actionLabel: executor.pendingAction.label,
+        })}
     </>
   );
 }

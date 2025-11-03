@@ -1,19 +1,13 @@
 'use client';
 
 import { createTypedForm } from '@/components/forms/base';
-import type { CampaignCreateSchema } from '@/openapi/managerLab.schemas';
+import type { CampaignUpdateSchema } from '@/openapi/managerLab.schemas';
 import {
   CompensationStructure,
   CounterpartyType,
   OwnershipMode,
 } from '@/openapi/managerLab.schemas';
 import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
-import { useState, useCallback } from 'react';
-import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
-import { UploadIcon, FileText, X } from 'lucide-react';
-import { useDocumentUpload } from '@/hooks/useDocumentUpload';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
 
 const {
   FormModal,
@@ -22,63 +16,28 @@ const {
   FormSelect,
   FormCustom,
   FormDatetime,
-} = createTypedForm<CampaignCreateSchema>();
+} = createTypedForm<CampaignUpdateSchema>();
 
-interface CreateCampaignFormProps {
+interface UpdateCampaignFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CampaignCreateSchema) => void;
+  defaultValues?: Partial<CampaignUpdateSchema>;
+  onSubmit: (data: CampaignUpdateSchema) => void;
   isSubmitting: boolean;
   actionLabel: string;
 }
 
 /**
- * Form for creating a new campaign
+ * Form for updating an existing campaign
  */
-export function CreateCampaignForm({
+export function UpdateCampaignForm({
   isOpen,
   onClose,
+  defaultValues,
   onSubmit,
   isSubmitting,
   actionLabel,
-}: CreateCampaignFormProps) {
-  const [contractFile, setContractFile] = useState<File | null>(null);
-  const { uploadFile, status: uploadStatus, progress } = useDocumentUpload();
-
-  const handleFormSubmit = useCallback(
-    async (data: CampaignCreateSchema) => {
-      // If a contract file is selected, upload it first
-      if (contractFile) {
-        const result = await uploadFile(contractFile, {
-          autoRegister: true,
-        });
-
-        if (result) {
-          // Add the document ID to the form data
-          data.contract_document_id = result.documentId;
-        }
-      }
-
-      // Submit the form with the document ID (if uploaded)
-      onSubmit(data);
-    },
-    [contractFile, uploadFile, onSubmit]
-  );
-
-  const handleFileRemove = useCallback(() => {
-    setContractFile(null);
-  }, []);
-
-  const handleFileDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      setContractFile(file);
-    }
-  }, []);
-
-  const isUploading =
-    uploadStatus === 'uploading' || uploadStatus === 'registering';
-
+}: UpdateCampaignFormProps) {
   const compensationOptions = [
     { value: CompensationStructure.flat_fee, label: 'Flat Fee' },
     {
@@ -107,17 +66,17 @@ export function CreateCampaignForm({
       isOpen={isOpen}
       onClose={onClose}
       title={actionLabel}
-      subTitle="Fill out the form below to create a new campaign."
-      onSubmit={handleFormSubmit}
-      isSubmitting={isSubmitting || isUploading}
-      submitText={isUploading ? 'Uploading contract...' : 'Create Campaign'}
+      subTitle="Update the campaign information below."
+      onSubmit={onSubmit}
+      defaultValues={defaultValues}
+      isSubmitting={isSubmitting}
+      submitText="Update Campaign"
     >
       {/* Basic Information */}
       <FormString
         name="name"
         label="Campaign Name"
         placeholder="Campaign name"
-        required="Campaign name is required"
         autoFocus
       />
 
@@ -125,10 +84,9 @@ export function CreateCampaignForm({
         {({ value, onChange }) => (
           <ObjectSearchCombobox
             objectType="brands"
-            value={(value as string) || null}
-            onValueChange={(id) => onChange(id)}
+            value={value ? String(value) : null}
+            onValueChange={(id) => onChange(id ? Number(id) : null)}
             label="Brand"
-            required
           />
         )}
       </FormCustom>
@@ -180,9 +138,7 @@ export function CreateCampaignForm({
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>
-                  onChange(
-                    e.target.value ? parseFloat(e.target.value) : undefined
-                  )
+                  onChange(e.target.value ? parseFloat(e.target.value) : null)
                 }
                 placeholder="0.00"
                 step="0.01"
@@ -202,9 +158,7 @@ export function CreateCampaignForm({
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>
-                  onChange(
-                    e.target.value ? parseInt(e.target.value) : undefined
-                  )
+                  onChange(e.target.value ? parseInt(e.target.value) : null)
                 }
                 placeholder="30"
                 min="0"
@@ -248,6 +202,25 @@ export function CreateCampaignForm({
           label="Usage Territory"
           placeholder="e.g., Worldwide, USA only"
         />
+        <FormCustom name="usage_paid_media_option">
+          {({ value, onChange }) => (
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="usage_paid_media_option"
+                checked={value as boolean | undefined}
+                onChange={(e) => onChange(e.target.checked ? true : null)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <label
+                htmlFor="usage_paid_media_option"
+                className="text-sm font-medium"
+              >
+                Paid Media Option
+              </label>
+            </div>
+          )}
+        </FormCustom>
         <FormSelect
           name="ownership_mode"
           label="Content Ownership"
@@ -256,79 +229,95 @@ export function CreateCampaignForm({
         />
       </div>
 
-      {/* Contract Upload (Optional) */}
+      {/* Exclusivity */}
       <div className="space-y-4 rounded-lg border p-4">
-        <h3 className="text-sm font-medium">Contract (Optional)</h3>
-        <p className="text-muted-foreground text-xs">
-          Upload a contract document to attach to this campaign
-        </p>
-        {!contractFile ? (
-          <Dropzone
-            onDrop={handleFileDrop}
-            accept={{
-              'application/pdf': ['.pdf'],
-              'application/msword': ['.doc'],
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-                ['.docx'],
-              'application/vnd.ms-excel': ['.xls'],
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-                ['.xlsx'],
-              'text/plain': ['.txt'],
-              'text/markdown': ['.md'],
-              'text/csv': ['.csv'],
-            }}
-            maxFiles={1}
-            disabled={isUploading || isSubmitting}
-          >
-            <DropzoneEmptyState>
-              <div className="flex flex-col items-center justify-center py-6">
-                <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-md">
-                  <UploadIcon size={20} />
-                </div>
-                <p className="my-2 text-sm font-medium">
-                  Drop contract file or click to browse
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  PDF, Word, Excel, or text files
-                </p>
-              </div>
-            </DropzoneEmptyState>
-          </Dropzone>
-        ) : (
-          <div className="rounded-lg border p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FileText className="text-muted-foreground h-8 w-8" />
-                <div>
-                  <p className="text-sm font-medium">{contractFile.name}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {(contractFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              </div>
-              {!isUploading && !isSubmitting && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleFileRemove}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+        <h3 className="text-sm font-medium">Exclusivity</h3>
+        <FormString
+          name="exclusivity_category"
+          label="Exclusivity Category"
+          placeholder="e.g., Beauty, Fashion"
+        />
+        <FormCustom name="exclusivity_days_before">
+          {({ value, onChange }) => (
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Days Before Campaign
+              </label>
+              <input
+                type="number"
+                value={value as number | undefined}
+                onChange={(e) =>
+                  onChange(e.target.value ? parseInt(e.target.value) : null)
+                }
+                placeholder="0"
+                min="0"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
             </div>
-            {isUploading && (
-              <div className="mt-3">
-                <Progress value={progress} className="h-2" />
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {uploadStatus === 'uploading'
-                    ? 'Uploading...'
-                    : 'Registering...'}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </FormCustom>
+        <FormCustom name="exclusivity_days_after">
+          {({ value, onChange }) => (
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Days After Campaign
+              </label>
+              <input
+                type="number"
+                value={value as number | undefined}
+                onChange={(e) =>
+                  onChange(e.target.value ? parseInt(e.target.value) : null)
+                }
+                placeholder="0"
+                min="0"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          )}
+        </FormCustom>
+      </div>
+
+      {/* Approval Process */}
+      <div className="space-y-4 rounded-lg border p-4">
+        <h3 className="text-sm font-medium">Approval Process</h3>
+        <FormCustom name="approval_rounds">
+          {({ value, onChange }) => (
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Number of Approval Rounds
+              </label>
+              <input
+                type="number"
+                value={value as number | undefined}
+                onChange={(e) =>
+                  onChange(e.target.value ? parseInt(e.target.value) : null)
+                }
+                placeholder="1"
+                min="1"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          )}
+        </FormCustom>
+        <FormCustom name="approval_sla_hours">
+          {({ value, onChange }) => (
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Approval SLA (Hours)
+              </label>
+              <input
+                type="number"
+                value={value as number | undefined}
+                onChange={(e) =>
+                  onChange(e.target.value ? parseInt(e.target.value) : null)
+                }
+                placeholder="24"
+                min="1"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          )}
+        </FormCustom>
       </div>
     </FormModal>
   );

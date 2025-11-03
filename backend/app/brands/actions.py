@@ -11,6 +11,7 @@ from app.utils.db import update_model
 # Create brand action group
 brand_actions = action_group_factory(
     ActionGroupType.BrandActions,
+    default_invalidation="/o/brands",
     model_type=Brand,
 )
 

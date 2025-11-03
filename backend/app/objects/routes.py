@@ -1,3 +1,6 @@
+from app.utils.discovery import discover_and_import
+
+discover_and_import(["objects.py", "objects/**/*.py"], base_path="app")
 from collections.abc import Sequence
 
 from litestar import Router, get, post
@@ -22,12 +25,10 @@ from app.objects.services import (
     query_time_series_data,
     resolve_time_range,
 )
-from app.utils.discovery import discover_and_import
 from app.utils.logging import logger
 
 # Auto-discover all object files to trigger registration with ObjectRegistry
 # This happens here (not in __init__.py) to avoid circular imports during module loading
-discover_and_import(["objects.py", "objects/**/*.py"], base_path="app")
 
 
 @get("/{object_type:str}/schema")

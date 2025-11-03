@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { DeliverableCreateSchema } from '@/openapi/managerLab.schemas';
 import {
@@ -9,22 +8,32 @@ import {
 } from '@/openapi/managerLab.schemas';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
 
-const { Form, FormString, FormText, FormSelect, FormCustom, FormDatetime } =
-  createTypedForm<DeliverableCreateSchema>();
+const {
+  FormModal,
+  FormString,
+  FormText,
+  FormSelect,
+  FormCustom,
+  FormDatetime,
+} = createTypedForm<DeliverableCreateSchema>();
 
 interface CreateDeliverableFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   onSubmit: (data: DeliverableCreateSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
  * Form for creating a new deliverable
  */
 export function CreateDeliverableForm({
+  isOpen,
+  onClose,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: CreateDeliverableFormProps) {
   // Fetch campaigns for the dropdown
   const { data: campaignsData } = useListObjectsSuspense('campaigns', {
@@ -91,7 +100,15 @@ export function CreateDeliverableForm({
   };
 
   return (
-    <Form onSubmit={handleFormSubmit}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Fill out the form below to create a new deliverable."
+      onSubmit={handleFormSubmit}
+      isSubmitting={isSubmitting}
+      submitText="Create Deliverable"
+    >
       {/* Basic Information */}
       <FormString
         name="title"
@@ -295,21 +312,6 @@ export function CreateDeliverableForm({
         placeholder="Select campaign (optional)"
         options={campaignOptions}
       />
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Creating...' : 'Create Deliverable'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }

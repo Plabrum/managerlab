@@ -17,6 +17,7 @@ export type ActionDTOConfirmationMessage = string | null;
 export interface ActionDTO {
   action: string;
   label: string;
+  action_group_type: ActionGroupType;
   is_bulk_allowed?: boolean;
   available?: boolean;
   priority?: number;

@@ -14,13 +14,13 @@ from app.campaigns.enums import (
     CounterpartyType,
     OwnershipMode,
 )
+from app.documents.models import Document
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
     from app.brands.models.brands import Brand
     from app.brands.models.contacts import BrandContact
     from app.deliverables.models import Deliverable
-    from app.documents.models import Document
     from app.payments.models import Invoice
     from app.roster.models import Roster
     from app.users.models import User
@@ -103,25 +103,27 @@ class Campaign(
         order_by="PaymentBlock.order_index",
     )
 
-    # Contract relationships
-    campaign_contract_associations: Mapped[list["CampaignContract"]] = relationship(
-        "CampaignContract",
-        back_populates="campaign",
-        cascade="all, delete-orphan",
-        order_by="CampaignContract.created_at.desc()",
+    contract: Mapped["Document | None"] = relationship(
+        "Document",
+        secondary="campaign_contracts",
+        primaryjoin="Campaign.id == CampaignContract.campaign_id",
+        secondaryjoin=lambda: sa.and_(
+            CampaignContract.document_id == Document.id,
+            CampaignContract.created_at == sa.select(sa.func.max(CampaignContract.created_at)).scalar_subquery(),
+        ),
+        uselist=False,
+        viewonly=True,
     )
 
-    @property
-    def contract(self) -> "Document | None":
-        """Get the latest contract version."""
-        if self.campaign_contract_associations:
-            return self.campaign_contract_associations[0].document
-        return None
-
-    @property
-    def contract_versions(self) -> list["Document"]:
-        """Get all contract versions ordered by created_at desc."""
-        return [assoc.document for assoc in self.campaign_contract_associations]
+    # All contract versions ordered by created_at desc
+    contract_versions: Mapped[list["Document"]] = relationship(
+        "Document",
+        secondary="campaign_contracts",
+        primaryjoin="Campaign.id == CampaignContract.campaign_id",
+        secondaryjoin="CampaignContract.document_id == Document.id",
+        order_by="CampaignContract.created_at.desc()",
+        viewonly=True,
+    )
 
 
 # Association table for many-to-many relationship between campaigns and lead brand contacts
@@ -240,7 +242,7 @@ class CampaignContract(RLSMixin(), BaseDBModel):
     )
 
     # Relationships
-    campaign: Mapped["Campaign"] = relationship("Campaign", back_populates="campaign_contract_associations")
+    campaign: Mapped["Campaign"] = relationship("Campaign")
     document: Mapped["Document"] = relationship("Document")
 
     # Indexes

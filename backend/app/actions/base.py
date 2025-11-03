@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
 from app.actions.enums import ActionGroupType, ActionIcon
+from app.actions.registry import ActionRegistry
 from app.actions.schemas import (
     ActionDTO,
     ActionExecutionResponse,
@@ -98,14 +99,14 @@ class ActionGroup:
         group_type: ActionGroupType,
         action_registry: Any,  # ActionRegistry - forward ref to avoid circular import
         model_type: type[BaseDBModel] | None,
-        object_service: Any | None = None,  # BaseObject - forward ref
+        default_invalidation: str | None = None,
     ) -> None:
         self.group_type = group_type
         self.actions: dict[str, type[BaseAction]] = {}
         self.action_registry = action_registry
         self.model_type = model_type
-        self.object_service = object_service
         self._execute_union: type | None = None
+        self.default_invalidation = default_invalidation
 
     def __call__(self, action_class: type[BaseAction]) -> type[BaseAction]:
         action_class.model = self.model_type
@@ -165,7 +166,10 @@ class ActionGroup:
         filtered_kwargs = {name: val for name, val in candidate_args.items() if name in params}
 
         # Execute action and get the resulting object
-        return await action_class.execute(**filtered_kwargs)
+        actions_execution_response = await action_class.execute(**filtered_kwargs)
+        if not actions_execution_response.invalidate_queries and self.default_invalidation:
+            actions_execution_response.invalidate_queries.append(self.default_invalidation)
+        return actions_execution_response
 
     def get_available_actions(
         self,
@@ -184,6 +188,7 @@ class ActionGroup:
         # Transform to DTOs
         return [
             ActionDTO(
+                action_group_type=self.group_type,
                 action=action_key,
                 label=action_class.label,
                 is_bulk_allowed=action_class.is_bulk_allowed,
@@ -198,14 +203,16 @@ class ActionGroup:
 
 def action_group_factory[T: BaseDBModel](
     group_type: ActionGroupType,
+    default_invalidation: str | None = None,
     model_type: type[T] | None = None,
-    object_service: Any | None = None,
 ) -> ActionGroup:
-    # Import here to avoid circular dependency
-    from app.actions.registry import ActionRegistry
-
     registry = ActionRegistry()
-    action_group = ActionGroup(group_type, registry, model_type, object_service)
+    action_group = ActionGroup(
+        group_type,
+        registry,
+        model_type,
+        default_invalidation,
+    )
     # Register the action group with the registry
     registry.register(group_type, action_group)
 

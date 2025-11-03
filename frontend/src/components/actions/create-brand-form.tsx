@@ -1,28 +1,39 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { BrandCreateSchema } from '@/openapi/managerLab.schemas';
 
-const { Form, FormString, FormText, FormEmail } =
+const { FormModal, FormString, FormText, FormEmail } =
   createTypedForm<BrandCreateSchema>();
 
 interface CreateBrandFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   onSubmit: (data: BrandCreateSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
  * Form for creating a new brand
  */
 export function CreateBrandForm({
+  isOpen,
+  onClose,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: CreateBrandFormProps) {
   return (
-    <Form onSubmit={onSubmit}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Fill out the form below to create a new brand."
+      onSubmit={onSubmit}
+      isSubmitting={isSubmitting}
+      submitText="Create Brand"
+    >
       <FormString
         name="name"
         label="Brand Name"
@@ -54,21 +65,6 @@ export function CreateBrandForm({
         placeholder="Additional notes..."
         rows={2}
       />
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Creating...' : 'Create Brand'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }

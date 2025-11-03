@@ -4,14 +4,12 @@ from app.actions import BaseAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.deliverables.enums import TopLevelDeliverableActions
 from app.deliverables.models import Deliverable
-from app.deliverables.objects import DeliverableObject
 from app.deliverables.schemas import DeliverableCreateSchema
 from app.utils.db import create_model
 
 top_level_deliverable_actions = action_group_factory(
     ActionGroupType.TopLevelDeliverableActions,
     model_type=Deliverable,
-    object_service=DeliverableObject,
 )
 
 

@@ -1,27 +1,39 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
 import type { RosterCreateSchema } from '@/openapi/managerLab.schemas';
 
-const { Form, FormString, FormEmail } = createTypedForm<RosterCreateSchema>();
+const { FormModal, FormString, FormEmail } =
+  createTypedForm<RosterCreateSchema>();
 
 interface CreateRosterFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   onSubmit: (data: RosterCreateSchema) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  actionLabel: string;
 }
 
 /**
  * Form for creating a new roster member (talent/influencer)
  */
 export function CreateRosterForm({
+  isOpen,
+  onClose,
   onSubmit,
-  onCancel,
   isSubmitting,
+  actionLabel,
 }: CreateRosterFormProps) {
   return (
-    <Form onSubmit={onSubmit}>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={actionLabel}
+      subTitle="Fill out the form below to create a new roster member."
+      onSubmit={onSubmit}
+      isSubmitting={isSubmitting}
+      submitText="Create Roster Member"
+    >
       <FormString
         name="name"
         label="Name"
@@ -39,21 +51,6 @@ export function CreateRosterForm({
         label="Instagram Handle"
         placeholder="@username"
       />
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Creating...' : 'Create Roster Member'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
-    </Form>
+    </FormModal>
   );
 }

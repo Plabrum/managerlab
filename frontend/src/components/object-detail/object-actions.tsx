@@ -13,7 +13,6 @@ import type { ActionDTO } from '@/openapi/managerLab.schemas';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
-import { ActionFormDialog } from '@/components/actions/action-form-dialog';
 
 type ObjectActionsProps = ObjectActionData | TopLevelActionData;
 
@@ -29,14 +28,6 @@ export function ObjectActions(props: ObjectActionsProps) {
   const actions = isObjectAction ? props.data.actions : (props.actions ?? []);
   const objectData = isObjectAction ? props.data : undefined;
 
-  // Determine invalidation callback
-  const onInvalidate =
-    isObjectAction && props.onRefetch
-      ? () => props.onRefetch?.()
-      : !isObjectAction && props.onInvalidate
-        ? props.onInvalidate
-        : undefined;
-
   // Use the centralized registry
   const formRenderer = useActionFormRenderer(objectData);
 
@@ -44,7 +35,12 @@ export function ObjectActions(props: ObjectActionsProps) {
     actionGroup,
     objectId,
     renderActionForm: formRenderer,
-    onInvalidate,
+    onInvalidate:
+      isObjectAction && props.onRefetch
+        ? () => props.onRefetch?.()
+        : !isObjectAction && props.onInvalidate
+          ? () => props.onInvalidate?.()
+          : undefined,
     onSuccess: (action, response) => {
       onActionComplete?.(action, response);
     },
@@ -107,23 +103,16 @@ export function ObjectActions(props: ObjectActionsProps) {
         onCancel={executor.cancelAction}
       />
 
-      {executor.showForm &&
-        executor.pendingAction &&
-        executor.renderActionForm && (
-          <ActionFormDialog
-            open={executor.showForm}
-            action={executor.pendingAction}
-            isExecuting={executor.isExecuting}
-            onCancel={executor.cancelAction}
-          >
-            {executor.renderActionForm({
-              action: executor.pendingAction,
-              onSubmit: executor.executeWithData,
-              onCancel: executor.cancelAction,
-              isSubmitting: executor.isExecuting,
-            })}
-          </ActionFormDialog>
-        )}
+      {executor.pendingAction &&
+        executor.renderActionForm &&
+        executor.renderActionForm({
+          action: executor.pendingAction,
+          onSubmit: executor.executeWithData,
+          onClose: executor.cancelAction,
+          isSubmitting: executor.isExecuting,
+          isOpen: executor.showForm,
+          actionLabel: executor.pendingAction.label,
+        })}
     </>
   );
 }

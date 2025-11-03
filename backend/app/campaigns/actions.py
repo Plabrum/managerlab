@@ -25,7 +25,7 @@ class DeleteCampaign(BaseAction):
     action_key = CampaignActions.delete
     label = "Delete"
     is_bulk_allowed = True
-    priority = 0
+    priority = 2
     icon = ActionIcon.trash
     confirmation_message = "Are you sure you want to delete this campaign?"
     should_redirect_to_parent = True
@@ -78,7 +78,7 @@ class AddDeliverableToCampaign(BaseAction):
     action_key = CampaignActions.add_deliverable
     label = "Add Deliverable"
     is_bulk_allowed = False
-    priority = 10
+    priority = 1
     icon = ActionIcon.add
     model = Campaign
 
