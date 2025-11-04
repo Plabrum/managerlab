@@ -230,7 +230,7 @@ output "alb_dns_name" {
 
 output "alb_url" {
   description = "The public URL of the Application Load Balancer"
-  value       = "https://api.managerlab.app"
+  value       = "https://api.tryarive.com"
 }
 
 output "ecs_cluster_name" {
@@ -1359,7 +1359,7 @@ resource "aws_lb_listener" "http" {
 
 # ACM certificate for custom domain
 resource "aws_acm_certificate" "managerlab_api" {
-  domain_name       = "api.managerlab.app"
+  domain_name       = "api.tryarive.com"
   validation_method = "DNS"
 
   lifecycle {
@@ -1369,5 +1369,5 @@ resource "aws_acm_certificate" "managerlab_api" {
   tags = local.common_tags
 }
 
-# Note: You'll need to create a Route53 record pointing api.managerlab.app to the ALB DNS name
+# Note: You'll need to create a Route53 record pointing api.tryarive.com to the ALB DNS name
 # Output: aws_lb.main.dns_name
