@@ -6,7 +6,7 @@ from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 from app.base.models import BaseDBModel
 
 
-class BaseFactory(SQLAlchemyFactory[BaseDBModel]):
+class BaseFactory[T: BaseDBModel](SQLAlchemyFactory[T]):
     """Base factory for all database models."""
 
     __is_base_factory__ = True
