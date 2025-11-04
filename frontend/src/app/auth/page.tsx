@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
-export default function AuthPage() {
+function AuthContent() {
   const searchParams = useSearchParams();
   const isSignUp = searchParams.get('sign-up') !== null;
 
@@ -240,5 +240,19 @@ export default function AuthPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-black">
+          <div className="text-white">Loading...</div>
+        </div>
+      }
+    >
+      <AuthContent />
+    </Suspense>
   );
 }
