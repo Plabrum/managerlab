@@ -58,18 +58,6 @@ export default function AuthenticatedLayout({
     }
   }, [userError, teamsError, router]);
 
-  // Handle onboarding redirect
-  useEffect(() => {
-    if (!teamsLoading && teams && !userLoading && user) {
-      const hasNoTeams = teams.teams.length === 0;
-      const isOnboardingPage = pathname.includes('/onboarding');
-
-      if (hasNoTeams && !isOnboardingPage) {
-        router.push('/onboarding');
-      }
-    }
-  }, [teams, teamsLoading, user, userLoading, pathname, router]);
-
   // Show loading state while fetching initial data
   // Don't show loading if there's an error (redirect will happen)
   if (

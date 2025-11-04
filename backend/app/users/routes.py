@@ -128,7 +128,7 @@ async def create_team(
 
     # Set the session to use this team as the active scope
     request.session["scope_type"] = ScopeType.TEAM.value
-    request.session["team_id"] = team.id
+    request.session["team_id"] = int(team.id)
 
     return TeamSchema(
         id=team.id,
