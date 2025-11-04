@@ -68,3 +68,14 @@ class InviteUserToTeamSchema(BaseSchema):
     """Schema for inviting a user to a team."""
 
     email: str
+class UserAndRoleSchema(BaseSchema):
+    """Schema for a user with their role in a specific team context."""
+
+    id: Sqid
+    name: str
+    email: str
+    email_verified: bool
+    state: str
+    role_level: RoleLevel
+    created_at: datetime
+    updated_at: datetime

@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.auth.enums import ScopeType
-from app.auth.guards import requires_superuser, requires_user_id
+from app.auth.guards import requires_superuser, requires_user_id, requires_user_scope
 from app.campaigns.models import Campaign
 from app.users.enums import RoleLevel, UserStates
 from app.users.models import Role, Team, User
@@ -19,27 +19,34 @@ from app.users.schemas import (
     SwitchTeamRequest,
     TeamListItemSchema,
     TeamSchema,
+    UserAndRoleSchema,
     UserSchema,
 )
 from app.utils.sqids import sqid_encode
 
 
-@get("/", guards=[requires_superuser])
-async def list_users(transaction: AsyncSession) -> list[UserSchema]:
-    """List all users - requires superuser privileges."""
-    result = await transaction.execute(select(User))
-    users = result.scalars().all()
+@get("/", guards=[requires_user_scope])
+async def list_users(
+    transaction: AsyncSession,
+    team_id: int,
+) -> list[UserAndRoleSchema]:
+    # Query users who are members of this team via Role table
+    stmt = select(User, Role).where(Role.team_id == team_id).join(Role, Role.user_id == User.id)
+    result = await transaction.execute(stmt)
+    rows = result.all()
+
     return [
-        UserSchema(
+        UserAndRoleSchema(
             id=user.id,
             name=user.name,
             email=user.email,
             email_verified=user.email_verified,
             state=user.state,
+            role_level=role.role_level,
             created_at=user.created_at,
             updated_at=user.updated_at,
         )
-        for user in users
+        for user, role in rows
     ]
 
 
