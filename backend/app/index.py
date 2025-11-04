@@ -44,7 +44,7 @@ from app.queue.config import queue_config
 from app.roster.routes import roster_router
 from app.threads import thread_router
 from app.threads.websocket import thread_handler
-from app.users.routes import public_user_router, user_router
+from app.users.routes import user_router
 from app.utils import providers
 from app.utils.configure import config
 from app.utils.exceptions import ApplicationError, exception_to_http_response
@@ -71,7 +71,6 @@ session_auth = SessionAuth[int, ServerSideSessionBackend](
     exclude=[
         "^/health",
         "^/auth/google/",
-        "^/users/signup",
         "^/schema",
         "^/local-upload/",
         "^/local-download/",
@@ -82,7 +81,6 @@ session_auth = SessionAuth[int, ServerSideSessionBackend](
 # Build route handlers list with conditional local media router
 route_handlers: list[Any] = [
     health_check,
-    public_user_router,
     user_router,
     roster_router,
     auth_router,

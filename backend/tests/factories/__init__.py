@@ -12,7 +12,6 @@ from .users import (
     RosterFactory,
     TeamFactory,
     UserFactory,
-    WaitlistEntryFactory,
 )
 
 __all__ = [
@@ -21,7 +20,6 @@ __all__ = [
     "TeamFactory",
     "RoleFactory",
     "RosterFactory",
-    "WaitlistEntryFactory",
     "BrandFactory",
     "BrandContactFactory",
     "CampaignFactory",

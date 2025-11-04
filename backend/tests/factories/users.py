@@ -7,7 +7,7 @@ from polyfactory import Use
 from app.roster.enums import RosterStates
 from app.roster.models import Roster
 from app.users.enums import RoleLevel, UserStates
-from app.users.models import Role, Team, User, WaitlistEntry
+from app.users.models import Role, Team, User
 
 from .base import BaseFactory
 
@@ -74,24 +74,6 @@ class RosterFactory(BaseFactory):
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
-        end_date="now",
-        tzinfo=UTC,
-    )
-    updated_at = Use(lambda: datetime.now(tz=UTC))
-
-
-class WaitlistEntryFactory(BaseFactory):
-    """Factory for creating WaitlistEntry instances."""
-
-    __model__ = WaitlistEntry
-
-    name = Use(BaseFactory.__faker__.name)
-    email = Use(BaseFactory.__faker__.email)
-    company = Use(BaseFactory.__faker__.company)
-    message = Use(BaseFactory.__faker__.text, max_nb_chars=200)
-    created_at = Use(
-        BaseFactory.__faker__.date_time_between,
-        start_date="-6m",
         end_date="now",
         tzinfo=UTC,
     )

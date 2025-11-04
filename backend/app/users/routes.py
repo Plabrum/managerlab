@@ -10,7 +10,7 @@ from app.auth.enums import ScopeType
 from app.auth.guards import requires_superuser, requires_user_id
 from app.campaigns.models import Campaign
 from app.users.enums import RoleLevel, UserStates
-from app.users.models import Role, Team, User, WaitlistEntry
+from app.users.models import Role, Team, User
 from app.users.schemas import (
     CreateTeamSchema,
     CreateUserSchema,
@@ -19,8 +19,6 @@ from app.users.schemas import (
     TeamListItemSchema,
     TeamSchema,
     UserSchema,
-    UserWaitlistFormSchema,
-    WaitlistEntrySchema,
 )
 from app.utils.sqids import sqid_encode
 
@@ -95,30 +93,6 @@ async def create_user(data: CreateUserSchema, transaction: AsyncSession) -> User
         state=user.state,
         created_at=user.created_at,
         updated_at=user.updated_at,
-    )
-
-
-@post("/signup", guards=[])
-async def add_user_to_waitlist(
-    data: UserWaitlistFormSchema,
-    transaction: AsyncSession,
-) -> WaitlistEntrySchema:
-    entry = WaitlistEntry(
-        email=data.email,
-        name=data.name,
-        company=data.company,
-        message=data.message,
-    )
-    transaction.add(entry)
-    await transaction.flush()
-    return WaitlistEntrySchema(
-        id=entry.id,
-        name=entry.name,
-        email=entry.email,
-        company=entry.company,
-        message=entry.message,
-        created_at=entry.created_at,
-        updated_at=entry.updated_at,
     )
 
 
@@ -280,13 +254,6 @@ async def switch_team(request: Request, data: SwitchTeamRequest, transaction: As
 
     return {"detail": "Switched to team", "team_id": data.team_id}
 
-
-# Public router for waitlist signup (no authentication required)
-public_user_router = Router(
-    path="/users",
-    route_handlers=[add_user_to_waitlist],
-    tags=["users"],
-)
 
 # Authenticated router for user management
 user_router = Router(

@@ -26,7 +26,6 @@ from tests.factories import (
     RosterFactory,
     TeamFactory,
     UserFactory,
-    WaitlistEntryFactory,
 )
 
 
@@ -84,13 +83,6 @@ async def create_fixtures():
                 roster_member = RosterFactory.build(user_id=user.id)
                 session.add(roster_member)
                 roster.append(roster_member)
-            await session.flush()
-
-            # Create waitlist entries
-            print("📋 Creating waitlist entries...")
-            for i in range(15):
-                waitlist_entry = WaitlistEntryFactory.build()
-                session.add(waitlist_entry)
             await session.flush()
 
             # Create brands
@@ -201,7 +193,6 @@ async def create_fixtures():
             print(f"   - {len(users)} users with OAuth accounts")
             print(f"   - {len(roles)} roles (user-team assignments)")
             print(f"   - {len(roster)} roster members (talent)")
-            print("   - 15 waitlist entries")
             print(f"   - {len(brands)} brands")
             print(f"   - {len(brand_contacts)} brand contacts")
             print(f"   - {len(campaigns)} campaigns")

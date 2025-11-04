@@ -78,11 +78,3 @@ class Role(BaseDBModel):
 
     # Unique constraint: a user can only have one role per team
     __table_args__ = (sa.UniqueConstraint("user_id", "team_id", name="uq_user_team"),)
-
-
-class WaitlistEntry(BaseDBModel):
-    __tablename__ = "waitlist_entries"
-    name = mapped_column(sa.Text, index=True, nullable=False)
-    email = mapped_column(sa.Text, index=True, nullable=False)
-    company = mapped_column(sa.Text, nullable=True)
-    message = mapped_column(sa.Text, nullable=True)

@@ -40,7 +40,7 @@ export function LandingPage() {
                 Sign In
               </Button>
             </Link>
-            <Link href="/signup">
+            <Link href="/auth?sign-up">
               <Button
                 size="sm"
                 className="bg-white text-black hover:bg-gray-200"
@@ -75,7 +75,7 @@ export function LandingPage() {
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/signup">
+                <Link href="/auth?sign-up">
                   <Button
                     size="lg"
                     className="bg-white px-8 py-6 text-lg text-black hover:bg-gray-200"
@@ -159,7 +159,7 @@ export function LandingPage() {
           <FooterLink href="#managers">For Managers</FooterLink>
           <FooterLink href="#creators">For Creators</FooterLink>
           <FooterLink href="#brands">For Brands</FooterLink>
-          <FooterLink href="/signup">Get Started</FooterLink>
+          <FooterLink href="/auth?sign-up">Get Started</FooterLink>
         </FooterSection>
         {/* <FooterSection title="Company"> */}
         {/*   <FooterLink href="/about">About</FooterLink> */}

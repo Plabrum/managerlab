@@ -18,18 +18,6 @@ class UserSchema(BaseSchema):
     updated_at: datetime
 
 
-class WaitlistEntrySchema(BaseSchema):
-    """Manual schema for WaitlistEntry model."""
-
-    id: Sqid
-    name: str
-    email: str
-    company: str | None
-    message: str | None
-    created_at: datetime
-    updated_at: datetime
-
-
 class TeamSchema(BaseSchema):
     """Manual schema for Team model."""
 
@@ -50,13 +38,6 @@ class CreateTeamSchema(BaseSchema):
 
     name: str
     description: str | None = None
-
-
-class UserWaitlistFormSchema(BaseSchema):
-    name: str
-    email: str
-    company: str | None = None
-    message: str | None = None
 
 
 class TeamListItemSchema(BaseSchema):

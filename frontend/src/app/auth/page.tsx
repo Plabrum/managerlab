@@ -3,6 +3,7 @@
 import type React from 'react';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,9 @@ import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AuthPage() {
+  const searchParams = useSearchParams();
+  const isSignUp = searchParams.get('sign-up') !== null;
+
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -101,9 +105,13 @@ export default function AuthPage() {
 
         <Card className="border-zinc-800 bg-zinc-900">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
+            <CardTitle className="text-2xl text-white">
+              {isSignUp ? 'Create your account' : 'Welcome back'}
+            </CardTitle>
             <CardDescription className="text-zinc-400">
-              Sign in to your Arive account
+              {isSignUp
+                ? 'Sign up for your Arive account'
+                : 'Sign in to your Arive account'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -205,6 +213,29 @@ export default function AuthPage() {
                 Privacy Policy
               </Link>
             </p>
+
+            {/* Sign up/Sign in link below form */}
+            {!isSignUp ? (
+              <p className="text-center text-sm text-zinc-400">
+                Don&apos;t have an account?{' '}
+                <Link
+                  href="/auth?sign-up"
+                  className="text-white underline hover:text-zinc-300"
+                >
+                  Sign up
+                </Link>
+              </p>
+            ) : (
+              <p className="text-center text-sm text-zinc-400">
+                Already have an account?{' '}
+                <Link
+                  href="/auth"
+                  className="text-white underline hover:text-zinc-300"
+                >
+                  Sign in
+                </Link>
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
