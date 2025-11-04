@@ -18,6 +18,7 @@ class CampaignFactory(BaseFactory):
     name = Use(BaseFactory.__faker__.catch_phrase)
     description = Use(BaseFactory.__faker__.text, max_nb_chars=500)
     state = CampaignStates.DRAFT
+    assigned_roster_id = None  # Must be explicitly set if needed
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
@@ -25,3 +26,4 @@ class CampaignFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None

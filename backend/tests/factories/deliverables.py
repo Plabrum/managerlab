@@ -36,6 +36,7 @@ class DeliverableFactory(BaseFactory):
     )
     compensation_structure = Use(BaseFactory.__faker__.random_element, elements=list(CompensationStructure))
     state = DeliverableStates.DRAFT
+    campaign_id = None  # Must be explicitly provided if needed
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-3m",
@@ -43,3 +44,4 @@ class DeliverableFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None

@@ -28,6 +28,7 @@ class UserFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None  # Ensure users are not soft-deleted by default
 
 
 class TeamFactory(BaseFactory):
@@ -44,6 +45,7 @@ class TeamFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None  # Ensure teams are not soft-deleted by default
 
 
 class RoleFactory(BaseFactory):
@@ -82,3 +84,4 @@ class RosterFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None  # Ensure roster members are not soft-deleted by default

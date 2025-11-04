@@ -24,3 +24,4 @@ class MediaFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None

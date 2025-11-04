@@ -47,7 +47,7 @@ from app.payments.routes import invoice_router
 from app.roster.routes import roster_router
 from app.threads import thread_router
 from app.threads.websocket import thread_handler
-from app.users.routes import public_user_router, user_router
+from app.users.routes import user_router
 from app.utils.configure import Config
 from app.utils.db_filters import apply_soft_delete_filter
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
@@ -222,7 +222,6 @@ def provide_test_campaign_id(campaign_id: int | None = None) -> int | None:
 def route_handlers() -> list:
     """Provide all route handlers for the test app."""
     return [
-        public_user_router,
         user_router,
         roster_router,
         auth_router,
@@ -406,6 +405,64 @@ async def authenticated_client(
     }
 
     yield test_client, user_data
+
+
+@pytest.fixture
+async def other_team_client(
+    test_client: AsyncTestClient[Litestar],
+    db_session: AsyncSession,
+) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]], None]:
+    """Provide an authenticated test client for a different team (for RLS isolation tests).
+
+    This fixture uses a separate test client instance to simulate a different user/team
+    accessing the same resources.
+
+    Returns:
+        Tuple of (client, user_data) where user_data contains user_id, team_id, etc.
+
+    Usage:
+        async def test_rls_isolation(authenticated_client, other_team_client):
+            client, user_data = authenticated_client
+            other_client, other_user_data = other_team_client
+            # Test that other_client cannot access user_data's resources
+    """
+    # Import factories here to avoid circular imports
+    from app.users.models import Role
+    from tests.factories.users import TeamFactory, UserFactory
+
+    # Create a separate user and team
+    other_team = await TeamFactory.create_async(session=db_session)
+    other_user = await UserFactory.create_async(
+        session=db_session,
+    )
+
+    # Create role to link user to team
+    role = Role(user_id=other_user.id, team_id=other_team.id, role_level="member")
+    db_session.add(role)
+
+    await db_session.commit()
+
+    # Set session data for the other team (reusing the same client but different session)
+    # Note: This simulates a different authenticated user making requests
+    await test_client.set_session_data(
+        {
+            "user_id": int(other_user.id),
+            "team_id": int(other_team.id),
+            "scope_type": ScopeType.TEAM.value,
+        }
+    )
+
+    other_user_data = {
+        "user_id": int(other_user.id),
+        "team_id": int(other_team.id),
+        "email": other_user.email,
+        "team": other_team,
+        "user": other_user,
+    }
+
+    yield test_client, other_user_data
+
+    # Note: The authenticated_client fixture will reset the session after this test
 
 
 @pytest.fixture
@@ -623,3 +680,145 @@ def create_deliverable_with_media(db_session: AsyncSession):
         return deliverable, campaign, media_list
 
     return _create
+
+
+# ============================================================================
+# Common Object Fixtures for Tests
+# ============================================================================
+
+
+@pytest.fixture
+async def team(
+    authenticated_client: tuple[AsyncTestClient, dict],
+):
+    """Get the team from the authenticated client.
+
+    Returns:
+        Team instance
+    """
+    client, user_data = authenticated_client
+    return user_data["team"]
+
+
+@pytest.fixture
+async def brand(
+    team,
+    db_session: AsyncSession,
+):
+    """Create a brand associated with the given team.
+
+    Returns:
+        Brand instance
+    """
+    from tests.factories.brands import BrandFactory
+
+    brand = await BrandFactory.create_async(
+        session=db_session,
+        team_id=team.id,
+    )
+    await db_session.commit()
+    return brand
+
+
+@pytest.fixture
+async def campaign(
+    team,
+    brand,
+    db_session: AsyncSession,
+):
+    """Create a campaign with a brand, associated with the given team.
+
+    Returns:
+        Campaign instance
+    """
+    from tests.factories.campaigns import CampaignFactory
+
+    campaign = await CampaignFactory.create_async(
+        session=db_session,
+        team_id=team.id,
+        brand_id=brand.id,
+    )
+    await db_session.commit()
+    return campaign
+
+
+@pytest.fixture
+async def roster(
+    team,
+    db_session: AsyncSession,
+):
+    """Create a roster member associated with the given team.
+
+    Returns:
+        Roster instance
+    """
+    from tests.factories.users import RosterFactory
+
+    roster = await RosterFactory.create_async(
+        session=db_session,
+        team_id=team.id,
+    )
+    await db_session.commit()
+    return roster
+
+
+@pytest.fixture
+async def deliverable(
+    team,
+    campaign,
+    db_session: AsyncSession,
+):
+    """Create a deliverable associated with the given campaign.
+
+    Returns:
+        Deliverable instance
+    """
+    from tests.factories.deliverables import DeliverableFactory
+
+    deliverable = await DeliverableFactory.create_async(
+        session=db_session,
+        team_id=team.id,
+        campaign_id=campaign.id,
+    )
+    await db_session.commit()
+    return deliverable
+
+
+@pytest.fixture
+async def document(
+    team,
+    db_session: AsyncSession,
+):
+    """Create a document associated with the given team.
+
+    Returns:
+        Document instance
+    """
+    from tests.factories.documents import DocumentFactory
+
+    document = await DocumentFactory.create_async(
+        session=db_session,
+        team_id=team.id,
+    )
+    await db_session.commit()
+    return document
+
+
+@pytest.fixture
+async def invoice(
+    team,
+    db_session: AsyncSession,
+):
+    """Create an invoice associated with the given team.
+
+    Returns:
+        Invoice instance
+    """
+    from tests.factories.payments import InvoiceFactory
+
+    invoice = await InvoiceFactory.create_async(
+        session=db_session,
+        team_id=team.id,
+    )
+    await db_session.commit()
+    return invoice
