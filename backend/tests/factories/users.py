@@ -62,7 +62,11 @@ class RoleFactory(BaseFactory):
 
 
 class RosterFactory(BaseFactory):
-    """Factory for creating RosterMember instances."""
+    """Factory for creating RosterMember instances.
+
+    Note: user_id must be provided when creating a Roster instance,
+    as it requires a valid foreign key to users table.
+    """
 
     __model__ = Roster
 

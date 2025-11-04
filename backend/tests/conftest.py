@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import NullPool, StaticPool
 
 # Import all route handlers
+from app.actions.registry import ActionRegistry
 from app.actions.routes import action_router
 from app.auth.enums import ScopeType
 from app.auth.routes import auth_router
@@ -40,6 +41,7 @@ from app.dashboard.routes import dashboard_router
 from app.deliverables.routes import deliverable_router
 from app.documents.routes.documents import document_router
 from app.media.routes import media_router
+from app.objects.base import ObjectRegistry
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
 from app.roster.routes import roster_router
@@ -48,6 +50,7 @@ from app.threads.websocket import thread_handler
 from app.users.routes import public_user_router, user_router
 from app.utils.configure import Config
 from app.utils.db_filters import apply_soft_delete_filter
+from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 
 
 @pytest.fixture
@@ -95,7 +98,11 @@ def setup_database(test_engine):
 
     async def _teardown():
         async with test_engine.begin() as conn:
-            await conn.run_sync(BaseDBModel.metadata.drop_all)
+            # Drop all tables with CASCADE to handle foreign key constraints
+            await conn.execute(text("DROP SCHEMA public CASCADE"))
+            await conn.execute(text("CREATE SCHEMA public"))
+            await conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
+            await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
         await test_engine.dispose()
 
     # Run setup
@@ -123,17 +130,16 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
     )
 
     async with session_maker() as session:
-        async with session.begin():
-            # Attach soft delete filter
-            event.listen(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        # Attach soft delete filter
+        event.listen(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
 
-            yield session
+        yield session
 
-            # Rollback happens automatically when context exits
-            await session.rollback()
+        # Rollback to clean up test data
+        await session.rollback()
 
-            # Remove listener
-            event.remove(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        # Remove listener
+        event.remove(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
 
 
 # ============================================================================
@@ -291,6 +297,8 @@ def test_app(
             "team_id": Provide(lambda: None, sync_to_thread=False),
             "campaign_id": Provide(lambda: None, sync_to_thread=False),
             "viewer_store": Provide(lambda: MemoryStore(), sync_to_thread=False),
+            "action_registry": Provide(lambda: ActionRegistry(), sync_to_thread=False),
+            "object_registry": Provide(lambda: ObjectRegistry(), sync_to_thread=False),
         },
         plugins=[
             SQLAlchemyPlugin(
@@ -313,6 +321,8 @@ def test_app(
                 arbitrary_channels_allowed=True,
             ),
         ],
+        type_encoders={Sqid: sqid_enc_hook},
+        type_decoders=[(sqid_type_predicate, sqid_dec_hook)],
         debug=True,  # Enable debug mode for better error messages in tests
     )
 
@@ -330,7 +340,14 @@ async def test_client(
             response = await test_client.get("/health")
             assert response.status_code == 200
     """
-    async with AsyncTestClient(app=test_app) as client:
+    # Create session config for the test client
+    session_config = ServerSideSessionConfig(
+        samesite="lax",
+        secure=False,
+        httponly=True,
+    )
+
+    async with AsyncTestClient(app=test_app, session_config=session_config) as client:
         yield client
 
 
@@ -356,30 +373,33 @@ async def authenticated_client(
             assert response.json()["id"] == user["user_id"]
     """
     # Import factories here to avoid circular imports
+    from app.users.models import Role
     from tests.factories.users import TeamFactory, UserFactory
 
     # Create test user and team
-    team = await TeamFactory.create_async(session=db_session, name="Test Team")
+    team = await TeamFactory.create_async(session=db_session)
     user = await UserFactory.create_async(
         session=db_session,
-        email="test@example.com",
-        team_id=team.id,
     )
+
+    # Create role to link user to team
+    role = Role(user_id=user.id, team_id=team.id, role_level="member")
+    db_session.add(role)
 
     await db_session.commit()
 
     # Set session data to authenticate
     await test_client.set_session_data(
         {
-            "user_id": user.id,
-            "team_id": team.id,
+            "user_id": int(user.id),  # Convert Sqid to int for session storage
+            "team_id": int(team.id),  # Convert Sqid to int for session storage
             "scope_type": ScopeType.TEAM.value,
         }
     )
 
     user_data = {
-        "user_id": user.id,
-        "team_id": team.id,
+        "user_id": int(user.id),  # Convert Sqid to int for route parameters
+        "team_id": int(team.id),  # Convert Sqid to int for route parameters
         "email": user.email,
         "team": team,
         "user": user,
@@ -394,29 +414,31 @@ async def admin_client(
     db_session: AsyncSession,
 ) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]], None]:
     """Provide an authenticated admin client for testing admin endpoints."""
+    from app.users.models import Role
     from tests.factories.users import TeamFactory, UserFactory
 
-    team = await TeamFactory.create_async(session=db_session, name="Admin Team")
+    team = await TeamFactory.create_async(session=db_session)
     admin = await UserFactory.create_async(
         session=db_session,
-        email="admin@example.com",
-        team_id=team.id,
-        is_admin=True,
     )
+
+    # Create admin role to link user to team
+    role = Role(user_id=admin.id, team_id=team.id, role_level="admin")
+    db_session.add(role)
 
     await db_session.commit()
 
     await test_client.set_session_data(
         {
-            "user_id": admin.id,
-            "team_id": team.id,
+            "user_id": int(admin.id),  # Convert Sqid to int for session storage
+            "team_id": int(team.id),  # Convert Sqid to int for session storage
             "scope_type": ScopeType.TEAM.value,
         }
     )
 
     admin_data = {
-        "user_id": admin.id,
-        "team_id": team.id,
+        "user_id": int(admin.id),  # Convert Sqid to int for route parameters
+        "team_id": int(team.id),  # Convert Sqid to int for route parameters
         "email": admin.email,
         "team": team,
         "user": admin,
@@ -439,6 +461,7 @@ async def multi_team_setup(
     Returns:
         Dict with team1, team2, user1, user2 for cross-team testing
     """
+    from app.users.models import Role
     from tests.factories.users import TeamFactory, UserFactory
 
     team1 = await TeamFactory.create_async(session=db_session, name="Team 1")
@@ -447,13 +470,17 @@ async def multi_team_setup(
     user1 = await UserFactory.create_async(
         session=db_session,
         email="user1@team1.com",
-        team_id=team1.id,
     )
     user2 = await UserFactory.create_async(
         session=db_session,
         email="user2@team2.com",
-        team_id=team2.id,
     )
+
+    # Create roles to link users to teams
+    role1 = Role(user_id=user1.id, team_id=team1.id, role_level="member")
+    role2 = Role(user_id=user2.id, team_id=team2.id, role_level="member")
+    db_session.add(role1)
+    db_session.add(role2)
 
     await db_session.commit()
 
@@ -463,3 +490,136 @@ async def multi_team_setup(
         "user1": user1,
         "user2": user2,
     }
+
+
+# ============================================================================
+# Factory Helper Fixtures
+# ============================================================================
+
+
+@pytest.fixture
+def create_complete_campaign(db_session: AsyncSession):
+    """Factory helper to create a campaign with all dependencies.
+
+    Creates: Brand, Roster, Campaign, and optionally Contract.
+
+    Usage:
+        async def test_example(create_complete_campaign):
+            campaign, brand, roster, contract = await create_complete_campaign(
+                add_contract=True
+            )
+    """
+
+    async def _create(
+        add_contract: bool = False,
+        campaign_kwargs: dict[str, Any] | None = None,
+        brand_kwargs: dict[str, Any] | None = None,
+        roster_kwargs: dict[str, Any] | None = None,
+        contract_kwargs: dict[str, Any] | None = None,
+    ):
+        from tests.factories.brands import BrandFactory
+        from tests.factories.campaigns import CampaignFactory
+        from tests.factories.users import RosterFactory
+
+        brand = await BrandFactory.create_async(session=db_session, **(brand_kwargs or {}))
+        roster = await RosterFactory.create_async(session=db_session, **(roster_kwargs or {}))
+        campaign = await CampaignFactory.create_async(session=db_session, brand_id=brand.id, **(campaign_kwargs or {}))
+
+        # Note: ContractFactory doesn't exist yet - contracts feature not implemented
+        contract = None
+        # if add_contract:
+        #     contract = await ContractFactory.create_async(
+        #         session=db_session,
+        #         campaign_id=campaign.id,
+        #         roster_id=roster.id,
+        #         **(contract_kwargs or {}),
+        #     )
+
+        await db_session.commit()
+        return campaign, brand, roster, contract
+
+    return _create
+
+
+@pytest.fixture
+def create_brand_with_contacts(db_session: AsyncSession):
+    """Factory helper to create a brand with multiple contacts.
+
+    Usage:
+        async def test_example(create_brand_with_contacts):
+            brand, contacts = await create_brand_with_contacts(num_contacts=3)
+    """
+
+    async def _create(
+        num_contacts: int = 2,
+        brand_kwargs: dict[str, Any] | None = None,
+        contact_kwargs: dict[str, Any] | None = None,
+    ):
+        from tests.factories.brands import BrandContactFactory, BrandFactory
+
+        brand = await BrandFactory.create_async(session=db_session, **(brand_kwargs or {}))
+
+        contacts = []
+        for i in range(num_contacts):
+            contact = await BrandContactFactory.create_async(
+                session=db_session,
+                brand_id=brand.id,
+                name=f"Contact {i + 1}",
+                email=f"contact{i + 1}@example.com",
+                **(contact_kwargs or {}),
+            )
+            contacts.append(contact)
+
+        await db_session.commit()
+        return brand, contacts
+
+    return _create
+
+
+@pytest.fixture
+def create_deliverable_with_media(db_session: AsyncSession):
+    """Factory helper to create a deliverable with media associations.
+
+    Usage:
+        async def test_example(create_deliverable_with_media):
+            deliverable, campaign, media_list = await create_deliverable_with_media(
+                num_media=2
+            )
+    """
+
+    async def _create(
+        num_media: int = 1,
+        deliverable_kwargs: dict[str, Any] | None = None,
+        campaign_kwargs: dict[str, Any] | None = None,
+        media_kwargs: dict[str, Any] | None = None,
+    ):
+        from tests.factories.brands import BrandFactory
+        from tests.factories.campaigns import CampaignFactory
+        from tests.factories.deliverables import DeliverableFactory
+        from tests.factories.media import MediaFactory
+
+        # Create campaign with brand
+        brand = await BrandFactory.create_async(session=db_session)
+        campaign = await CampaignFactory.create_async(session=db_session, brand_id=brand.id, **(campaign_kwargs or {}))
+
+        # Create deliverable
+        deliverable = await DeliverableFactory.create_async(
+            session=db_session, campaign_id=campaign.id, **(deliverable_kwargs or {})
+        )
+
+        # Create media and associations
+        media_list = []
+        for i in range(num_media):
+            media = await MediaFactory.create_async(session=db_session, **(media_kwargs or {}))
+            # Note: DeliverableMediaFactory doesn't exist yet - many-to-many not implemented
+            # await DeliverableMediaFactory.create_async(
+            #     session=db_session,
+            #     deliverable_id=deliverable.id,
+            #     media_id=media.id,
+            # )
+            media_list.append(media)
+
+        await db_session.commit()
+        return deliverable, campaign, media_list
+
+    return _create
