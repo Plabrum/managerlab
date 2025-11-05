@@ -6,23 +6,15 @@ from app.actions.registry import ActionRegistry
 from app.auth.guards import requires_user_id
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
-from app.brands.objects import BrandContactObject, BrandObject
 from app.brands.schemas import (
     BrandContactSchema,
     BrandContactUpdateSchema,
     BrandSchema,
     BrandUpdateSchema,
 )
-
-# Register BrandObject and BrandContactObject with the objects framework
-from app.objects.base import ObjectRegistry
-from app.objects.enums import ObjectTypes
 from app.threads.models import Thread
 from app.utils.db import get_or_404, update_model
 from app.utils.sqids import Sqid
-
-ObjectRegistry().register(ObjectTypes.Brands, BrandObject)
-ObjectRegistry().register(ObjectTypes.BrandContacts, BrandContactObject)
 
 
 @get("/{id:str}")

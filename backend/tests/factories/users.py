@@ -28,6 +28,7 @@ class UserFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None  # Ensure users are not soft-deleted by default
 
 
 class TeamFactory(BaseFactory):
@@ -44,6 +45,7 @@ class TeamFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None  # Ensure teams are not soft-deleted by default
 
 
 class RoleFactory(BaseFactory):
@@ -62,7 +64,11 @@ class RoleFactory(BaseFactory):
 
 
 class RosterFactory(BaseFactory):
-    """Factory for creating RosterMember instances."""
+    """Factory for creating RosterMember instances.
+
+    Note: user_id must be provided when creating a Roster instance,
+    as it requires a valid foreign key to users table.
+    """
 
     __model__ = Roster
 
@@ -78,3 +84,4 @@ class RosterFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None  # Ensure roster members are not soft-deleted by default

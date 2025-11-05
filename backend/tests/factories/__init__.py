@@ -5,6 +5,7 @@ from .base import BaseFactory
 from .brands import BrandContactFactory, BrandFactory
 from .campaigns import CampaignFactory
 from .deliverables import DeliverableFactory
+from .documents import DocumentFactory
 from .media import MediaFactory
 from .payments import InvoiceFactory
 from .users import (
@@ -24,6 +25,7 @@ __all__ = [
     "BrandContactFactory",
     "CampaignFactory",
     "DeliverableFactory",
+    "DocumentFactory",
     "MediaFactory",
     "InvoiceFactory",
     "GoogleOAuthAccountFactory",

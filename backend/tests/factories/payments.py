@@ -26,6 +26,7 @@ class InvoiceFactory(BaseFactory):
     description = Use(BaseFactory.__faker__.text, max_nb_chars=300)
     notes = Use(BaseFactory.__faker__.text, max_nb_chars=150)
     state = InvoiceStates.DRAFT
+    campaign_id = None  # Must be explicitly provided if needed
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-3m",
@@ -33,3 +34,4 @@ class InvoiceFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None

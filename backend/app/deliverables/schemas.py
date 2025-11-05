@@ -7,6 +7,7 @@ from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
+from app.client.s3_client import S3Dep
 from app.deliverables.enums import DeliverableType, SocialMediaPlatforms
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.media.schemas import MediaResponseSchema, media_to_response_schema
@@ -123,7 +124,12 @@ def roster_to_schema(roster: Roster) -> RosterInDeliverableSchema:
     )
 
 
-def deliverable_to_response(deliverable: Deliverable, s3_client, user_id: int) -> DeliverableResponseSchema:
+def deliverable_to_response(
+    deliverable: Deliverable,
+    s3_client: S3Dep,
+    actions: list[ActionDTO],
+    thread_info: ThreadUnreadInfo | None,
+) -> DeliverableResponseSchema:
     """Transform Deliverable model to response schema.
 
     Args:
@@ -132,11 +138,6 @@ def deliverable_to_response(deliverable: Deliverable, s3_client, user_id: int) -
         user_id: User ID for calculating unread count
     """
     # Compute available actions for this deliverable
-    action_group = ActionRegistry().get_class(ActionGroupType.DeliverableActions)
-    actions = action_group.get_available_actions(obj=deliverable)
-
-    # Convert thread to unread info using the mixin method
-    thread_info = deliverable.get_thread_unread_info(user_id)
 
     return DeliverableResponseSchema(
         id=deliverable.id,  # Already a Sqid from the model

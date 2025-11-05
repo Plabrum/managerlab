@@ -45,8 +45,7 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                             USING (
                                 (team_id = current_setting('app.team_id', true)::int)
                                 OR (campaign_id = current_setting('app.campaign_id', true)::int)
-                                OR (current_setting('app.team_id', true) IS NULL
-                                    AND current_setting('app.campaign_id', true) IS NULL)
+                                OR (current_setting('app.is_system_mode', true)::boolean IS TRUE)
                             )
                         """,
                     )
@@ -79,7 +78,7 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                             FOR ALL
                             USING (
                                 team_id = current_setting('app.team_id', true)::int
-                                OR current_setting('app.team_id', true) IS NULL
+                                OR current_setting('app.is_system_mode', true)::boolean IS TRUE
                             )
                         """,
                     )

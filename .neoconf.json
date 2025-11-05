@@ -1,8 +1,9 @@
 {
+  "lspconfig": {
+    "root_dir": "find_git_ancestor"
+  },
   "root_spec": [
-    [
-      ".git"
-    ],
+    ".git",
     "cwd"
   ]
 }

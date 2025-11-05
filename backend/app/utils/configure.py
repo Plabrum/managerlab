@@ -52,6 +52,8 @@ class Config:
     MAX_UPLOAD_SIZE: int = 40 * 1024 * 1024  # 40MB in bytes (for media files)
     MAX_DOCUMENT_SIZE: int = 100 * 1024 * 1024  # 100MB in bytes (for documents)
 
+    IS_SYSTEM_MODE: bool = os.getenv("SYSTEM_MODE", "false").lower() == "true"
+
     @property
     def DATABASE_URL(self) -> str:
         """Sync database URL for migrations and sync operations."""

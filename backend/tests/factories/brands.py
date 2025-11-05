@@ -50,6 +50,7 @@ class BrandFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None
 
 
 class BrandContactFactory(BaseFactory):
@@ -69,3 +70,4 @@ class BrandContactFactory(BaseFactory):
         tzinfo=UTC,
     )
     updated_at = Use(lambda: datetime.now(tz=UTC))
+    deleted_at = None

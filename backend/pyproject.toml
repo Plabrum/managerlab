@@ -33,7 +33,13 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["debugpy>=1.8.17", "basedpyright>=1.23.0", "watchdog>=6.0.0", "types-boto3>=1.0.2"]
+dev = [
+    "debugpy>=1.8.17",
+ "basedpyright>=1.23.0",
+ "watchdog>=6.0.0",
+ "types-boto3>=1.0.2",
+ "pytest-databases[postgres]>=0.15.0",
+]
 
 [tool.ruff]
 line-length = 120
@@ -67,3 +73,7 @@ typeCheckingMode = "basic"
 ignore = ["alembic/versions"]
 reportIncompatibleMethodOverride = "none"
 reportGeneralTypeIssues = "warning"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

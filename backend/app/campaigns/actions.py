@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.actions import ActionGroupType, BaseAction, action_group_factory
 from app.actions.enums import ActionIcon
@@ -17,6 +18,7 @@ from app.utils.db import create_model, update_model
 campaign_actions = action_group_factory(
     ActionGroupType.CampaignActions,
     model_type=Campaign,
+    load_options=[joinedload(Campaign.contract)],
 )
 
 

@@ -69,7 +69,7 @@ async def requires_superuser(connection: ASGIConnection, _: BaseRouteHandler) ->
         raise NotAuthorizedException("Authentication required")
 
     # Need to load user from database to check email
-    from litestar.contrib.sqlalchemy.plugins import SQLAlchemyPlugin
+    from litestar.plugins.sqlalchemy import SQLAlchemyPlugin
 
     sqlalchemy_plugin = connection.app.plugins.get(SQLAlchemyPlugin)
     if not sqlalchemy_plugin:
