@@ -141,19 +141,23 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
         autobegin=True,
     )
 
-    async with session_maker() as session:
+    session = session_maker()
+    try:
         # Attach listeners for soft delete filter and raiseload
         event.listen(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
         event.listen(session.sync_session, "do_orm_execute", _raiseload_listener)
 
         yield session
-
-        # Rollback to clean up test data
-        await session.rollback()
-
+    finally:
         # Remove listeners
         event.remove(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
         event.remove(session.sync_session, "do_orm_execute", _raiseload_listener)
+
+        # Rollback any pending transaction
+        await session.rollback()
+
+        # Explicitly close session to release connection back to pool
+        await session.close()
 
 
 # ============================================================================
@@ -326,11 +330,14 @@ def test_app(
     def provide_test_s3_client() -> Any:
         return mock_s3_client
 
-    # Create SAQ config for testing
-    # Tasks will use in-memory Redis (fakeredis) via the test database URL
-    from litestar_saq import SAQConfig, SAQPlugin
+    def provide_test_task_queues() -> Any:
+        """Provide a TaskQueues object for testing."""
+        # Import the real TaskQueues class and create an empty instance
+        # This satisfies Litestar's type checking without needing actual queues
+        from litestar_saq import TaskQueues
 
-    from app.queue.config import queue_config as prod_queue_config
+        # Create empty TaskQueues dict - tests don't actually enqueue tasks
+        return TaskQueues({})
 
     # Create app with test-specific overrides
     app = create_app(
@@ -341,8 +348,9 @@ def test_app(
             "transaction": Provide(provide_test_transaction, sync_to_thread=False),
             "http_client": Provide(provide_test_http_client, sync_to_thread=False),
             "s3_client": Provide(provide_test_s3_client, sync_to_thread=False),
+            "task_queues": Provide(provide_test_task_queues, sync_to_thread=False),
         },
-        # Override plugins for testing: StaticPool, SAQ with testing queue, memory channels
+        # Override plugins for testing: StaticPool DB, memory channels, no SAQ
         plugins_overrides=[
             SQLAlchemyPlugin(
                 config=SQLAlchemyAsyncConfig(
@@ -361,13 +369,7 @@ def test_app(
                     create_all=False,
                 )
             ),
-            SAQPlugin(
-                config=SAQConfig(
-                    queue_configs=prod_queue_config,  # Use production queue config
-                    web_enabled=False,
-                    use_server_lifespan=False,  # Don't start workers in tests
-                )
-            ),
+            # SAQ plugin removed for tests - background tasks not needed in unit tests
             ChannelsPlugin(
                 backend=MemoryChannelsBackend(),
                 arbitrary_channels_allowed=True,

@@ -42,6 +42,7 @@ class BaseFactory[T: BaseDBModel](SQLAlchemyFactory[T]):
     __check_model__ = False
     __set_relationships__ = False
     __set_association_proxy__ = False
+    __set_primary_key__ = False  # Let PostgreSQL sequences handle ID generation
 
     @classmethod
     async def create_async(cls, session: AsyncSession, **kwargs: Any) -> T:
