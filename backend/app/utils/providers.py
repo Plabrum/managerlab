@@ -117,7 +117,6 @@ def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:
 def provide_team_id(request: Request) -> int | None:
     """Provide the team ID from the session."""
     team_id = request.session.get("team_id")
-    breakpoint()
     return int(team_id) if team_id else None
 
 

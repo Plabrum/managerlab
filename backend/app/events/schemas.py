@@ -3,7 +3,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any
+
+
+def _serialize_value(value: Any) -> Any:
+    """Serialize a value for JSON storage in events.
+
+    Handles special types like Decimal that aren't JSON serializable.
+    """
+    if isinstance(value, Decimal):
+        return str(value)
+    return value
 
 
 def make_field_changes(old_values: dict[str, Any], new_values: dict[str, Any]) -> dict[str, FieldChange]:
@@ -28,7 +39,9 @@ def make_field_changes(old_values: dict[str, Any], new_values: dict[str, Any]) -
     changes = {}
     for field in old_values:
         if field in new_values and old_values[field] != new_values[field]:
-            changes[field] = FieldChange(old=old_values[field], new=new_values[field])
+            changes[field] = FieldChange(
+                old=_serialize_value(old_values[field]), new=_serialize_value(new_values[field])
+            )
     return changes
 
 

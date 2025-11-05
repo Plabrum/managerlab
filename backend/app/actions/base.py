@@ -100,6 +100,7 @@ class ActionGroup:
         action_registry: Any,  # ActionRegistry - forward ref to avoid circular import
         model_type: type[BaseDBModel] | None,
         default_invalidation: str | None = None,
+        load_options: list[ExecutableOption] | None = None,
     ) -> None:
         self.group_type = group_type
         self.actions: dict[str, type[BaseAction]] = {}
@@ -107,6 +108,7 @@ class ActionGroup:
         self.model_type = model_type
         self._execute_union: type | None = None
         self.default_invalidation = default_invalidation
+        self.load_options = load_options or []
 
     def __call__(self, action_class: type[BaseAction]) -> type[BaseAction]:
         action_class.model = self.model_type
@@ -127,14 +129,14 @@ class ActionGroup:
     async def get_object(self, object_id: int) -> BaseDBModel | None:
         """Get object by ID using the action group's model type."""
         if self.model_type is None:
-            return None
+            raise Exception("This action group has no associated model type")
 
-        transaction = self.action_registry.dependencies.get("transaction")
-        if transaction is None:
-            return None
+        transaction = self.action_registry.dependencies["transaction"]
 
-        result = await transaction.execute(select(self.model_type).where(self.model_type.id == object_id))
-        return result.scalar_one_or_none()
+        result = await transaction.execute(
+            select(self.model_type).where(self.model_type.id == object_id).options(*self.load_options)
+        )
+        return result.scalar_one()
 
     async def trigger(
         self,
@@ -205,13 +207,15 @@ def action_group_factory[T: BaseDBModel](
     group_type: ActionGroupType,
     default_invalidation: str | None = None,
     model_type: type[T] | None = None,
+    load_options: list[ExecutableOption] | None = None,
 ) -> ActionGroup:
     registry = ActionRegistry()
     action_group = ActionGroup(
-        group_type,
-        registry,
-        model_type,
-        default_invalidation,
+        group_type=group_type,
+        action_registry=registry,
+        model_type=model_type,
+        default_invalidation=default_invalidation,
+        load_options=load_options,
     )
     # Register the action group with the registry
     registry.register(group_type, action_group)

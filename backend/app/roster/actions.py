@@ -31,7 +31,11 @@ class DeleteRoster(BaseAction):
         obj: Roster,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
-        await transaction.delete(obj)
+        from datetime import datetime, timezone
+
+        # Soft delete by setting deleted_at
+        obj.deleted_at = datetime.now(tz=timezone.utc)
+        await transaction.flush()
         return ActionExecutionResponse(
             message="Deleted roster member",
         )

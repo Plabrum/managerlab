@@ -39,7 +39,6 @@ async def list_object_actions(
 ) -> ActionListResponse:
     """List available actions for a specific object within a group."""
     action_group_instance = action_registry.get_class(action_group)
-    # object_id is already decoded from SQID string to int by msgspec
     object = await action_group_instance.get_object(object_id)
     available_actions = action_group_instance.get_available_actions(object)
 

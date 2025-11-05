@@ -1,28 +1,29 @@
 """Pytest configuration and fixtures for backend tests."""
 
+import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
 
+# Silence httpx INFO logs during tests
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
+# Enable pytest-databases PostgreSQL plugin for CI/CD
+pytest_plugins = ["pytest_databases.docker.postgres"]
+
 # Import and discover all models before tests run
+from app.client.s3_client import S3Client
 from app.utils.discovery import discover_and_import
 
 discover_and_import(["models.py", "models/**/*.py"], base_path="app")
+
 from litestar import Litestar
-from litestar.channels import ChannelsPlugin
-from litestar.channels.backends.memory import MemoryChannelsBackend
-from litestar.config.cors import CORSConfig
-from litestar.contrib.sqlalchemy.plugins import (
-    AsyncSessionConfig,
-    EngineConfig,
-    SQLAlchemyAsyncConfig,
-    SQLAlchemyPlugin,
-)
+from litestar.connection import Request
 from litestar.di import Provide
 from litestar.middleware.session.server_side import ServerSideSessionConfig
-from litestar.security.session_auth import SessionAuth
+from litestar.stores.base import Store
 from litestar.stores.memory import MemoryStore
 from litestar.testing import AsyncTestClient
 from sqlalchemy import event, text
@@ -40,6 +41,7 @@ from app.campaigns.routes import campaign_router
 from app.dashboard.routes import dashboard_router
 from app.deliverables.routes import deliverable_router
 from app.documents.routes.documents import document_router
+from app.factory import create_app
 from app.media.routes import media_router
 from app.objects.base import ObjectRegistry
 from app.objects.routes import object_router
@@ -50,7 +52,6 @@ from app.threads.websocket import thread_handler
 from app.users.routes import user_router
 from app.utils.configure import Config
 from app.utils.db_filters import apply_soft_delete_filter
-from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 
 
 @pytest.fixture
@@ -65,12 +66,17 @@ def memory_store() -> MemoryStore:
 
 
 @pytest.fixture(scope="session")
-def test_db_url() -> str:
-    """Test database URL using PostgreSQL test database.
+def test_db_url(postgres_service) -> str:
+    """Test database URL using pytest-databases PostgreSQL service.
 
-    Uses the same database as development but with a test schema.
+    This works in both local development and CI/CD environments.
+    The postgres_service fixture is provided by pytest-databases and automatically
+    starts a Docker container with PostgreSQL.
     """
-    return "postgresql+psycopg://postgres:postgres@localhost:5432/manageros_dev"
+    return (
+        f"postgresql+psycopg://{postgres_service.user}:{postgres_service.password}@"
+        f"{postgres_service.host}:{postgres_service.port}/{postgres_service.database}"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -79,7 +85,7 @@ def test_engine(test_db_url: str):
     engine = create_async_engine(
         test_db_url,
         echo=False,
-        poolclass=StaticPool if ":memory:" in test_db_url else NullPool,
+        poolclass=NullPool,  # Don't use StaticPool with Docker postgres
     )
     return engine
 
@@ -121,6 +127,12 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
     Each test gets an isolated transaction that is rolled back after the test,
     ensuring no test pollution.
     """
+    from sqlalchemy.orm import raiseload
+
+    def _raiseload_listener(execute_state):
+        """Prevent lazy loading by raising an error when relationships are accessed without explicit loading."""
+        execute_state.statement = execute_state.statement.options(raiseload("*"))
+
     session_maker = async_sessionmaker(
         test_engine,
         class_=AsyncSession,
@@ -130,16 +142,18 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
     )
 
     async with session_maker() as session:
-        # Attach soft delete filter
+        # Attach listeners for soft delete filter and raiseload
         event.listen(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        event.listen(session.sync_session, "do_orm_execute", _raiseload_listener)
 
         yield session
 
         # Rollback to clean up test data
         await session.rollback()
 
-        # Remove listener
+        # Remove listeners
         event.remove(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        event.remove(session.sync_session, "do_orm_execute", _raiseload_listener)
 
 
 # ============================================================================
@@ -148,26 +162,60 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 
 
 @pytest.fixture
-def test_config() -> Config:
+def test_config(test_db_url: str, monkeypatch) -> Config:
     """Provide test configuration with safe defaults."""
+    import os
+
+    # Set environment variables before creating Config instance
+    # Config.DATABASE_URL reads from os.getenv("DATABASE_URL")
+    monkeypatch.setenv("ENV", "testing")
+    monkeypatch.setenv("DATABASE_URL", test_db_url.replace("postgresql+psycopg://", "postgresql://"))
+    monkeypatch.setenv("S3_BUCKET", "test-bucket")
+    monkeypatch.setenv("SESSION_COOKIE_DOMAIN", "localhost")
+    monkeypatch.setenv("FRONTEND_ORIGIN", "http://localhost:3000")
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "test-client-secret")
+
+    # Create config after environment variables are set
     config = Config()
-    config.ENV = "testing"
-    config.IS_DEV = False
-    config.S3_BUCKET = "test-bucket"
-    config.SESSION_COOKIE_DOMAIN = "localhost"
-    config.FRONTEND_ORIGIN = "http://localhost:3000"
-    config.GOOGLE_CLIENT_ID = "test-client-id"
-    config.GOOGLE_CLIENT_SECRET = "test-client-secret"
     return config
 
 
 @pytest.fixture
 def mock_s3_client():
     """Provide a mocked S3 client for testing."""
-    mock = AsyncMock()
-    mock.generate_presigned_url = AsyncMock(return_value="https://test-url.com/file")
-    mock.upload_file = AsyncMock(return_value={"key": "test-key"})
-    return mock
+    from pathlib import Path
+
+    from app.client.s3_client import BaseS3Client
+
+    class TestS3Client(BaseS3Client):
+        """Test S3 client that does nothing."""
+
+        def download(self, local_path: str | Path, s3_key: str) -> None:
+            pass
+
+        def upload(self, local_path: str | Path, s3_key: str) -> None:
+            pass
+
+        def upload_fileobj(self, fileobj, s3_key: str) -> None:
+            pass
+
+        def generate_presigned_upload_url(self, key: str, content_type: str, expires_in: int = 300) -> str:
+            return f"https://test-url.com/upload/{key}"
+
+        def generate_presigned_download_url(self, key: str, expires_in: int = 3600) -> str:
+            return f"https://test-url.com/download/{key}"
+
+        def delete_file(self, key: str) -> None:
+            pass
+
+        def file_exists(self, key: str) -> bool:
+            return True
+
+        def get_file_bytes(self, key: str) -> bytes:
+            return b"test file contents"
+
+    return TestS3Client()
 
 
 @pytest.fixture
@@ -246,73 +294,78 @@ def test_app(
     db_session: AsyncSession,
     mock_s3_client: Any,
     mock_http_client: Any,
-    test_db_url: str,
 ) -> Litestar:
     """Create a Litestar app configured for testing.
 
-    This fixture creates an app with:
-    - All route handlers
-    - Test database session
-    - Mocked external dependencies (S3, HTTP)
-    - Session authentication disabled by default (can be overridden)
-    - In-memory stores for sessions and viewers
+    The factory has production defaults. We override:
+    - Dependencies: transaction, http_client, s3_client (mocks)
+    - Plugins: StaticPool for DB, SAQ with in-memory queue, memory channels
+    - Stores: MemoryStore for sessions
+
+    SAQ tasks run synchronously and immediately during tests.
     """
-
-    # Create session auth with test config
-    session_auth = SessionAuth[int, Any](
-        session_backend_config=ServerSideSessionConfig(
-            samesite="lax",
-            secure=False,  # Disable for testing
-            httponly=True,
-        ),
-        retrieve_user_handler=lambda session, conn: session.get("user_id"),
-        exclude=[
-            "^/health",
-            "^/auth/google/",
-            "^/users/signup",
-            "^/schema",
-        ],
+    from litestar.channels import ChannelsPlugin
+    from litestar.channels.backends.memory import MemoryChannelsBackend
+    from litestar.plugins.sqlalchemy import (
+        AsyncSessionConfig,
+        EngineConfig,
+        SQLAlchemyAsyncConfig,
+        SQLAlchemyPlugin,
     )
+    from sqlalchemy.pool import StaticPool
 
-    app = Litestar(
+    from app.base.models import BaseDBModel
+
+    # Create provider functions that close over test fixtures
+    def provide_test_transaction() -> AsyncSession:
+        return db_session
+
+    def provide_test_http_client() -> Any:
+        return mock_http_client
+
+    def provide_test_s3_client() -> Any:
+        return mock_s3_client
+
+    # Create SAQ config for testing
+    # Tasks will use in-memory Redis (fakeredis) via the test database URL
+    from litestar_saq import SAQConfig, SAQPlugin
+
+    from app.queue.config import queue_config as prod_queue_config
+
+    # Create app with test-specific overrides
+    app = create_app(
         route_handlers=route_handlers,
-        middleware=[session_auth.middleware],
-        on_app_init=[session_auth.on_app_init],
-        cors_config=CORSConfig(
-            allow_origins=[test_config.FRONTEND_ORIGIN],
-            allow_credentials=True,
-            allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-            allow_headers=["Content-Type", "Authorization"],
-        ),
-        stores={
-            "sessions": MemoryStore(),
-            "viewers": MemoryStore(),
+        config=test_config,
+        # Override external service dependencies for testing
+        dependencies_overrides={
+            "transaction": Provide(provide_test_transaction, sync_to_thread=False),
+            "http_client": Provide(provide_test_http_client, sync_to_thread=False),
+            "s3_client": Provide(provide_test_s3_client, sync_to_thread=False),
         },
-        dependencies={
-            "transaction": Provide(lambda: db_session, sync_to_thread=False),
-            "http_client": Provide(lambda: mock_http_client, sync_to_thread=False),
-            "config": Provide(lambda: test_config, sync_to_thread=False),
-            "s3_client": Provide(lambda: mock_s3_client, sync_to_thread=False),
-            "team_id": Provide(lambda: None, sync_to_thread=False),
-            "campaign_id": Provide(lambda: None, sync_to_thread=False),
-            "viewer_store": Provide(lambda: MemoryStore(), sync_to_thread=False),
-            "action_registry": Provide(lambda: ActionRegistry(), sync_to_thread=False),
-            "object_registry": Provide(lambda: ObjectRegistry(), sync_to_thread=False),
-        },
-        plugins=[
+        # Override plugins for testing: StaticPool, SAQ with testing queue, memory channels
+        plugins_overrides=[
             SQLAlchemyPlugin(
                 config=SQLAlchemyAsyncConfig(
-                    connection_string=test_db_url,
+                    connection_string=test_config.ASYNC_DATABASE_URL,
                     metadata=BaseDBModel.metadata,
                     engine_config=EngineConfig(
-                        poolclass=StaticPool if ":memory:" in test_db_url else NullPool,
+                        poolclass=StaticPool,
+                        connect_args={},
+                        pool_pre_ping=False,
                     ),
                     session_config=AsyncSessionConfig(
                         expire_on_commit=False,
                         autoflush=False,
                         autobegin=True,
                     ),
-                    create_all=False,  # We handle this in setup_database
+                    create_all=False,
+                )
+            ),
+            SAQPlugin(
+                config=SAQConfig(
+                    queue_configs=prod_queue_config,  # Use production queue config
+                    web_enabled=False,
+                    use_server_lifespan=False,  # Don't start workers in tests
                 )
             ),
             ChannelsPlugin(
@@ -320,9 +373,10 @@ def test_app(
                 arbitrary_channels_allowed=True,
             ),
         ],
-        type_encoders={Sqid: sqid_enc_hook},
-        type_decoders=[(sqid_type_predicate, sqid_dec_hook)],
-        debug=True,  # Enable debug mode for better error messages in tests
+        # Override stores for testing: MemoryStore for sessions
+        stores_overrides={
+            "sessions": MemoryStore(),
+        },
     )
 
     return app
@@ -688,6 +742,19 @@ def create_deliverable_with_media(db_session: AsyncSession):
 
 
 @pytest.fixture
+async def user(
+    authenticated_client: tuple[AsyncTestClient, dict],
+):
+    """Get the user from the authenticated client.
+
+    Returns:
+        User instance
+    """
+    client, user_data = authenticated_client
+    return user_data["user"]
+
+
+@pytest.fixture
 async def team(
     authenticated_client: tuple[AsyncTestClient, dict],
 ):
@@ -745,6 +812,7 @@ async def campaign(
 @pytest.fixture
 async def roster(
     team,
+    user,
     db_session: AsyncSession,
 ):
     """Create a roster member associated with the given team.
@@ -757,6 +825,8 @@ async def roster(
     roster = await RosterFactory.create_async(
         session=db_session,
         team_id=team.id,
+        user_id=user.id,
+        profile_photo_id=None,  # Don't create a profile photo by default
     )
     await db_session.commit()
     return roster

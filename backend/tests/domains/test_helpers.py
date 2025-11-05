@@ -3,7 +3,14 @@
 import inspect
 from typing import Any
 
+import msgspec
 from litestar.testing import AsyncTestClient
+
+from app.actions.registry import ActionRegistry
+from app.actions.schemas import build_action_union
+
+# Build the Action union type from all registered actions
+Action = build_action_union(ActionRegistry())
 
 
 async def get_available_actions(
@@ -51,7 +58,7 @@ async def execute_action(
     Args:
         client: Authenticated test client
         action_group: Action group name (e.g., "brand_actions", "roster_actions")
-        action_key: Action key (e.g., "brand.create", "brand.delete", "brand.update")
+        action_key: Action key (e.g., "brand_actions__brand_update")
         data: Optional data payload for the action
         obj_id: Optional SQID-encoded object ID for object-specific actions
 
@@ -62,30 +69,16 @@ async def execute_action(
     if obj_id is not None:
         url = f"{url}/{obj_id}"
 
-    payload = {"action": action_key}
+    # Build the action payload using msgspec
+    payload_dict: dict[str, Any] = {"action": action_key}
     if data:
-        payload.update(data)
+        payload_dict["data"] = data
 
-    response = await client.post(url, json=payload)
+    # Encode to JSON using msgspec for proper serialization
+    json_bytes = msgspec.json.encode(payload_dict)
+
+    response = await client.post(url, content=json_bytes, headers={"Content-Type": "application/json"})
     return response
-
-
-async def assert_rls_isolated(
-    client: AsyncTestClient,
-    resource_path: str,
-    expected_status: int = 404,
-) -> None:
-    """Assert that a resource is properly isolated by RLS.
-
-    Args:
-        client: Authenticated test client (from team 1)
-        resource_path: Path to resource that should be isolated (e.g., "/brands/123")
-        expected_status: Expected status code for isolation (default: 404)
-    """
-    response = await client.get(resource_path)
-    assert (
-        response.status_code == expected_status
-    ), f"RLS leak detected! Expected {expected_status}, got {response.status_code}"
 
 
 def generate_minimal_action_data(action_class: type) -> dict[str, Any]:
