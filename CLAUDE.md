@@ -67,6 +67,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. Run `make db-migrate` to create migration
 3. Run `make db-upgrade` to apply migration
 
+**CRITICAL: Local Database Persistence**
+- The development database uses Docker volumes for persistence (`pgdata` volume)
+- `make db-stop` stops the container but **PRESERVES all data**
+- **NEVER** delete Docker volumes or run `docker compose down -v` in development
+- **NEVER** use commands that would delete the `pgdata` volume
+- Local database state should persist across container restarts
+- If database reset is absolutely necessary, explicitly confirm with the developer first
+
 ### Testing
 - Backend tests use pytest with asyncio support
 - Run tests with `make test`
