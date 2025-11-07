@@ -10,7 +10,7 @@ import {
 import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 
 const {
-  FormModal,
+  FormSheet,
   FormString,
   FormText,
   FormSelect,
@@ -62,15 +62,18 @@ export function UpdateCampaignForm({
   ];
 
   return (
-    <FormModal
+    <FormSheet
       isOpen={isOpen}
-      onClose={onClose}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
       title={actionLabel}
       subTitle="Update the campaign information below."
       onSubmit={onSubmit}
       defaultValues={defaultValues}
       isSubmitting={isSubmitting}
       submitText="Update Campaign"
+      side="right"
     >
       {/* Basic Information */}
       <FormString
@@ -319,6 +322,6 @@ export function UpdateCampaignForm({
           )}
         </FormCustom>
       </div>
-    </FormModal>
+    </FormSheet>
   );
 }
