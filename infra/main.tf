@@ -772,8 +772,8 @@ resource "aws_rds_cluster" "main" {
   deletion_protection = var.environment == "prod"
   storage_encrypted   = true
 
-  # Enable logging
-  enabled_cloudwatch_logs_exports = ["postgresql"]
+  # Disable CloudWatch log exports to reduce costs
+  # enabled_cloudwatch_logs_exports = ["postgresql"]
 
   tags = merge(local.common_tags, {
     Name = "${local.name}-aurora-cluster"
@@ -795,8 +795,8 @@ resource "aws_rds_cluster_instance" "main" {
   publicly_accessible  = false
 
   performance_insights_enabled = true
-  monitoring_interval          = 60
-  monitoring_role_arn          = aws_iam_role.rds_monitoring.arn
+  monitoring_interval          = 0
+  # monitoring_role_arn is not needed when monitoring_interval = 0
 
   tags = merge(local.common_tags, {
     Name = "${local.name}-aurora-instance"
@@ -1004,7 +1004,7 @@ resource "aws_iam_role_policy" "ecs_task_exec" {
 # CloudWatch log group for ECS
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${local.name}"
-  retention_in_days = 14
+  retention_in_days = 7
 
   tags = local.common_tags
 }
@@ -1015,7 +1015,7 @@ resource "aws_ecs_cluster" "main" {
 
   setting {
     name  = "containerInsights"
-    value = "enabled"
+    value = "disabled"
   }
 
   tags = local.common_tags
@@ -1185,7 +1185,7 @@ resource "aws_appautoscaling_policy" "ecs_memory" {
 # CloudWatch log group for worker
 resource "aws_cloudwatch_log_group" "worker" {
   name              = "/ecs/${local.name}-worker"
-  retention_in_days = 14
+  retention_in_days = 7
 
   tags = local.common_tags
 }
