@@ -1394,23 +1394,23 @@ resource "aws_route53_zone" "main" {
 }
 
 # Root domain A record -> Vercel
-# Vercel's global anycast IP for apex domains
+# Vercel-assigned IP for apex domain
 resource "aws_route53_record" "root" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "tryarive.com"
   type    = "A"
   ttl     = 300
-  records = ["76.76.21.21"]
+  records = ["216.198.79.1"]
 }
 
 # www subdomain CNAME -> Vercel
-# This allows Vercel to handle www.tryarive.com
+# Vercel-assigned CNAME for www subdomain
 resource "aws_route53_record" "www" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = 300
-  records = ["cname.vercel-dns.com"]
+  records = ["1c065b880be491b9.vercel-dns-017.com"]
 }
 
 # API subdomain -> AWS ALB (Application Load Balancer)
