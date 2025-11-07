@@ -41,6 +41,7 @@ Application code
 - ✅ **SAQ for async tasks** (reuse existing queue infrastructure)
 - ✅ **App-level templates** (Jinja2, not SES templates)
 - ✅ **Email client abstraction** (LocalEmailClient for dev, SESEmailClient for prod)
+- ✅ **DNS via Route53** - All email DNS records (DKIM, SPF, MX, DMARC) managed by Terraform
 
 ---
 
@@ -165,15 +166,66 @@ resource "aws_ses_receipt_rule" "contracts" {
   }
 }
 
-# Outputs for DNS configuration
-output "ses_dkim_tokens" {
-  description = "DKIM tokens to add to DNS"
-  value       = aws_ses_domain_dkim.main.dkim_tokens
+# Get Route53 hosted zone (managed in main.tf)
+data "aws_route53_zone" "main" {
+  name = "tryarive.com"
 }
 
-output "ses_verification_token" {
-  description = "Domain verification token"
-  value       = aws_ses_domain_identity.main.verification_token
+# DKIM DNS Records (automated via Route53)
+resource "aws_route53_record" "ses_dkim" {
+  count   = 3
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "${aws_ses_domain_dkim.main.dkim_tokens[count.index]}._domainkey"
+  type    = "CNAME"
+  ttl     = 600
+  records = ["${aws_ses_domain_dkim.main.dkim_tokens[count.index]}.dkim.amazonses.com"]
+}
+
+# SES Domain Verification Record (automated via Route53)
+resource "aws_route53_record" "ses_verification" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "_amazonses.${aws_ses_domain_identity.main.domain}"
+  type    = "TXT"
+  ttl     = 600
+  records = [aws_ses_domain_identity.main.verification_token]
+}
+
+# SPF Record for SES
+resource "aws_route53_record" "ses_spf" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "tryarive.com"
+  type    = "TXT"
+  ttl     = 600
+  records = ["v=spf1 include:amazonses.com ~all"]
+}
+
+# DMARC Record
+resource "aws_route53_record" "ses_dmarc" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "_dmarc.tryarive.com"
+  type    = "TXT"
+  ttl     = 600
+  records = ["v=DMARC1; p=none; rua=mailto:dmarc@tryarive.com"]
+}
+
+# MX Record for Inbound Email
+resource "aws_route53_record" "ses_mx" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "tryarive.com"
+  type    = "MX"
+  ttl     = 600
+  records = ["10 inbound-smtp.${var.aws_region}.amazonaws.com"]
+}
+
+# Outputs for verification
+output "ses_domain_verification_status" {
+  description = "SES domain verification status (check after apply)"
+  value       = "Check AWS SES Console for verification status"
+}
+
+output "ses_dkim_status" {
+  description = "SES DKIM status (check after apply)"
+  value       = "Check AWS SES Console for DKIM verification status"
 }
 ```
 
@@ -416,15 +468,25 @@ variable "webhook_secret" {
 }
 ```
 
-### 1.6 DNS Configuration (Manual)
+### 1.6 DNS Configuration (Automated via Route53)
 
-After `terraform apply`, you'll need to add these DNS records to `tryarive.com`:
+**All DNS records are now managed via Terraform in `infra/ses.tf`:**
 
-1. **DKIM Records** (3 CNAME records from `ses_dkim_tokens` output)
-2. **Domain Verification** (TXT record from `ses_verification_token` output)
-3. **SPF Record**: `v=spf1 include:amazonses.com ~all`
-4. **DMARC Record** (optional): `v=DMARC1; p=none; rua=mailto:dmarc@tryarive.com`
-5. **MX Record** (for inbound): `10 inbound-smtp.us-east-1.amazonaws.com`
+With DNS now hosted on AWS Route53 (managed in `infra/main.tf`), all email-related DNS records are automatically created by Terraform:
+
+- ✅ **DKIM Records** (3 CNAME records) - Auto-created from `aws_ses_domain_dkim.main.dkim_tokens`
+- ✅ **Domain Verification** (TXT record) - Auto-created from `aws_ses_domain_identity.main.verification_token`
+- ✅ **SPF Record** - Hardcoded: `v=spf1 include:amazonses.com ~all`
+- ✅ **DMARC Record** - Hardcoded: `v=DMARC1; p=none; rua=mailto:dmarc@tryarive.com`
+- ✅ **MX Record** - Auto-created for inbound email: `10 inbound-smtp.${var.aws_region}.amazonaws.com`
+
+**After `terraform apply`:**
+1. DNS records are automatically created in Route53
+2. SES verification happens automatically (may take a few minutes)
+3. Verify status in AWS SES Console → Identities → tryarive.com
+4. Check DKIM status shows "Successful"
+
+No manual DNS configuration needed!
 
 ---
 
@@ -1363,15 +1425,27 @@ terraform output ses_dkim_tokens
 terraform output ses_verification_token
 ```
 
-### 8.4 Configure DNS
+### 8.4 Verify DNS Configuration
 
-Add the following DNS records to `tryarive.com`:
+**DNS is now automatically configured via Terraform (no manual steps required).**
 
-1. **DKIM** (3 CNAME records)
-2. **Domain verification** (TXT record)
-3. **SPF**: `v=spf1 include:amazonses.com ~all`
-4. **MX**: `10 inbound-smtp.us-east-1.amazonaws.com`
-5. **DMARC** (optional): `v=DMARC1; p=none; rua=mailto:dmarc@tryarive.com`
+After `terraform apply`, verify that all DNS records were created successfully:
+
+```bash
+# Check DKIM records
+dig +short _domainkey.tryarive.com CNAME
+
+# Check SPF record
+dig +short tryarive.com TXT
+
+# Check MX record
+dig +short tryarive.com MX
+
+# Check DMARC record
+dig +short _dmarc.tryarive.com TXT
+```
+
+All records should resolve immediately after Terraform apply completes.
 
 ### 8.5 Verify SES in AWS Console
 
@@ -1411,7 +1485,7 @@ await service.send_contract_email(
 ### New Files
 
 **Infrastructure:**
-- `infra/ses.tf` - SES resources (domain, identities, receipt rules, S3 bucket)
+- `infra/ses.tf` - SES resources (domain, identities, receipt rules, S3 bucket, Route53 DNS records)
 - `infra/lambda.tf` - Lambda function and IAM roles
 - `infra/lambda/email_webhook/handler.py` - Lambda handler code
 - `infra/lambda/email_webhook/build.sh` - Build script
@@ -1492,9 +1566,10 @@ await service.send_contract_email(
 - [ ] Build Lambda package: `cd infra/lambda/email_webhook && ./build.sh`
 - [ ] Set `webhook_secret` in Terraform variables (or Secrets Manager)
 - [ ] Run `terraform plan` to review changes
-- [ ] Run `terraform apply` to deploy infrastructure
-- [ ] Add DNS records (DKIM, SPF, MX, DMARC) to `tryarive.com`
-- [ ] Verify SES domain in AWS Console
+- [ ] Run `terraform apply` to deploy infrastructure (DNS records auto-created)
+- [ ] Verify DNS records created: `dig tryarive.com MX` and `dig tryarive.com TXT`
+- [ ] Verify SES domain verification status in AWS Console (may take a few minutes)
+- [ ] Verify DKIM status shows "Successful" in AWS Console
 - [ ] Test outbound email via console/API
 - [ ] Send test email to `contracts@tryarive.com`
 - [ ] Verify Lambda execution in CloudWatch
@@ -1554,7 +1629,10 @@ await service.send_contract_email(
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2025-01-06
+**Document Version**: 1.1
+**Last Updated**: 2025-11-07
 **Author**: Claude Code
 **Status**: Ready for Implementation
+**Changelog**:
+- v1.1 (2025-11-07): Updated DNS configuration to use Route53 (automated via Terraform)
+- v1.0 (2025-01-06): Initial version
