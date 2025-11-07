@@ -293,6 +293,17 @@ output "worker_service_name" {
   value       = aws_ecs_service.worker.name
 }
 
+# Route53 DNS outputs
+output "route53_nameservers" {
+  description = "AWS Route53 nameservers - update these at Namecheap"
+  value       = aws_route53_zone.main.name_servers
+}
+
+output "route53_zone_id" {
+  description = "Route53 hosted zone ID"
+  value       = aws_route53_zone.main.zone_id
+}
+
 # ================================
 # VPC and Networking
 # ================================
@@ -1332,7 +1343,7 @@ resource "aws_lb_listener" "https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = aws_acm_certificate.managerlab_api.arn
+  certificate_arn   = aws_acm_certificate_validation.api.certificate_arn
 
   default_action {
     type             = "forward"
@@ -1369,5 +1380,73 @@ resource "aws_acm_certificate" "managerlab_api" {
   tags = local.common_tags
 }
 
-# Note: You'll need to create a Route53 record pointing api.tryarive.com to the ALB DNS name
-# Output: aws_lb.main.dns_name
+# ================================
+# Route53 DNS Configuration
+# ================================
+
+# Hosted zone for tryarive.com
+resource "aws_route53_zone" "main" {
+  name = "tryarive.com"
+
+  tags = merge(local.common_tags, {
+    Name = "tryarive.com"
+  })
+}
+
+# Root domain A record -> Vercel
+# Vercel's global anycast IP for apex domains
+resource "aws_route53_record" "root" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "tryarive.com"
+  type    = "A"
+  ttl     = 300
+  records = ["76.76.21.21"]
+}
+
+# www subdomain CNAME -> Vercel
+# This allows Vercel to handle www.tryarive.com
+resource "aws_route53_record" "www" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["cname.vercel-dns.com"]
+}
+
+# API subdomain -> AWS ALB (Application Load Balancer)
+resource "aws_route53_record" "api" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "api"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.main.dns_name
+    zone_id                = aws_lb.main.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# ACM certificate validation records
+# These are automatically created by ACM and need to be added to Route53
+resource "aws_route53_record" "api_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.managerlab_api.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = aws_route53_zone.main.zone_id
+}
+
+# ACM certificate validation waiter
+resource "aws_acm_certificate_validation" "api" {
+  certificate_arn         = aws_acm_certificate.managerlab_api.arn
+  validation_record_fqdns = [for record in aws_route53_record.api_cert_validation : record.fqdn]
+}

@@ -45,7 +45,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Queue**: SAQ (Simple Async Queue) with PostgreSQL backing for background tasks
 - **Package Managers**: pnpm (frontend), uv (backend)
 - **Database**: PostgreSQL with Alembic migrations
-- **Infrastructure**: AWS (App Runner, Aurora Serverless v2, ECR) managed via Terraform
+- **Infrastructure**: AWS (ECS Fargate, ALB, Aurora Serverless v2, ECR, S3, Route53) managed via Terraform
 
 ### Key Directories
 - `frontend/src/app/` - Next.js App Router pages
@@ -88,8 +88,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Deployment
 - CI/CD via GitHub Actions with smart change detection
 - Infrastructure deployed via Terraform to AWS
-- Backend deployed to AWS App Runner via Docker
-- Frontend deployed separately (not currently automated)
+- Backend API deployed to AWS ECS Fargate behind Application Load Balancer (ALB)
+- Worker service deployed to AWS ECS Fargate for background task processing (SAQ)
+- Frontend deployed to Vercel (not currently automated via Terraform)
+- Custom domain managed via Route53 (api.tryarive.com for backend, tryarive.com for frontend)
 
 ## Litestar Best Practices & Patterns
 
