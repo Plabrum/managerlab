@@ -24,6 +24,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.base.models import BaseDBModel
 from app.client.s3_client import provide_s3_client
+from app.emails.dependencies import provide_email_client, provide_email_service
 from app.queue.config import queue_config
 from app.utils import providers
 from app.utils.configure import Config
@@ -85,6 +86,8 @@ def create_app(
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
         "config": Provide(lambda: config, sync_to_thread=False),
         "s3_client": Provide(provide_s3_client, sync_to_thread=False),
+        "email_client": Provide(provide_email_client, sync_to_thread=False),
+        "email_service": Provide(provide_email_service, sync_to_thread=False),
         "action_registry": Provide(providers.provide_action_registry, sync_to_thread=False),
         "object_registry": Provide(providers.provide_object_registry, sync_to_thread=False),
         "team_id": Provide(providers.provide_team_id, sync_to_thread=False),

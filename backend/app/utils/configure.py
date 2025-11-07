@@ -43,6 +43,13 @@ class Config:
     SUCCESS_REDIRECT_URL: str = os.getenv("SUCCESS_REDIRECT_URL", "http://localhost:3000/")
     S3_BUCKET: str = os.getenv("S3_BUCKET", "")
 
+    # Email Configuration (AWS SES)
+    SES_REGION: str = os.getenv("SES_REGION", "us-east-1")
+    SES_FROM_EMAIL: str = os.getenv("SES_FROM_EMAIL", "noreply@tryarive.com")
+    SES_REPLY_TO_EMAIL: str = os.getenv("SES_REPLY_TO_EMAIL", "support@tryarive.com")
+    SES_CONFIGURATION_SET: str = os.getenv("SES_CONFIGURATION_SET", "manageros-dev")
+    EMAIL_TEMPLATES_DIR: str = "templates/emails"
+
     # Session Configuration
     SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
 
