@@ -14,6 +14,7 @@ from sqlalchemy.pool import NullPool
 
 from app.actions.registry import ActionRegistry
 from app.client.s3_client import S3Dep
+from app.emails.service import EmailService
 from app.objects.base import ObjectRegistry
 from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
@@ -96,6 +97,7 @@ def provide_action_registry(
     request: Request,
     team_id: int | None,
     campaign_id: int | None,
+    email_service: EmailService,
 ) -> ActionRegistry:
     return ActionRegistry(
         s3_client=s3_client,
@@ -106,6 +108,7 @@ def provide_action_registry(
         team_id=team_id,
         campaign_id=campaign_id,
         user=request.user,
+        email_service=email_service,
     )
 
 

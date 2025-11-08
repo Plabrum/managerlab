@@ -3,6 +3,7 @@ from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
@@ -169,6 +170,7 @@ async def list_teams(request: Request, transaction: AsyncSession, action_registr
             select(Campaign, Team)
             .join(Team, Campaign.team_id == Team.id)
             .where(Campaign.id == campaign_id, Team.deleted_at.is_(None))
+            .options(selectinload(Team.roles))
         )
         result = await transaction.execute(stmt)
         row = result.one_or_none()
@@ -197,6 +199,7 @@ async def list_teams(request: Request, transaction: AsyncSession, action_registr
             select(Role, Team)
             .join(Team, Role.team_id == Team.id)
             .where(Role.user_id == user_id, Team.deleted_at.is_(None))
+            .options(selectinload(Team.roles))
         )
         team_result = await transaction.execute(team_stmt)
         rows = team_result.all()

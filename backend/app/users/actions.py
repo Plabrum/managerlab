@@ -40,9 +40,7 @@ class DeleteTeam(BaseAction):
         **kwargs,
     ) -> bool:
         """Action is available if team exists and is not already deleted."""
-        if obj is None or obj.is_deleted:
-            return False
-        return True
+        return obj is None or obj.is_deleted
 
     @classmethod
     async def execute(
@@ -87,29 +85,23 @@ class InviteUserToTeam(BaseAction):
     should_redirect_to_parent = False
 
     @classmethod
-    async def is_available(
+    def is_available(
         cls,
         obj: Team | None,
         request: Request,
-        transaction: AsyncSession,
         **kwargs,
     ) -> bool:
-        """Action is available if team exists, is not deleted, and user is ADMIN or OWNER."""
         if obj is None or obj.is_deleted:
             return False
 
         user_id = request.user
 
-        # Query the user's role for this team
-        stmt = select(Role).where(
-            Role.user_id == user_id,
-            Role.team_id == obj.id,
-        )
-        result = await transaction.execute(stmt)
-        role = result.scalar_one()
+        # Find the user's role from the loaded roles relationship
+        # (Team must be loaded with selectinload(Team.roles) in the query)
+        user_role = next((role for role in obj.roles if role.user_id == user_id), None)
 
         # Only ADMIN or OWNER can see this action
-        return role is not None and role.role_level in (
+        return user_role is not None and user_role.role_level in (
             RoleLevel.ADMIN,
             RoleLevel.OWNER,
         )
@@ -123,7 +115,6 @@ class InviteUserToTeam(BaseAction):
         transaction: AsyncSession,
         email_service: EmailService,
     ) -> ActionExecutionResponse:
-        """Send team invitation email."""
         user_id = request.user
 
         # Query the user's role for this team (with user relationship eager-loaded for inviter name)
