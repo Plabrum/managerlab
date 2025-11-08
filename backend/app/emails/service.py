@@ -101,3 +101,27 @@ class EmailService:
             template_name="magic_link",
             context=context,
         )
+
+    async def send_team_invitation_email(
+        self,
+        to_email: str,
+        team_name: str,
+        inviter_name: str,
+        invitation_link: str,
+        expires_hours: int = 72,
+    ) -> str:
+        """Send team invitation email."""
+        context = {
+            "invitee_email": to_email,
+            "team_name": team_name,
+            "inviter_name": inviter_name,
+            "invitation_link": invitation_link,
+            "expires_hours": expires_hours,
+        }
+
+        return await self.send_email(
+            to=to_email,
+            subject=f"You're invited to join {team_name} on Arive",
+            template_name="team_invitation",
+            context=context,
+        )

@@ -3,8 +3,11 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Annotated
 
+import aioboto3
 from litestar.params import Dependency
 
 from app.utils.configure import Config
@@ -62,10 +65,6 @@ class SESEmailClient(BaseEmailClient):
 
     async def send_email(self, message: EmailMessage) -> str:
         """Send email via AWS SES."""
-        from email.mime.multipart import MIMEMultipart
-        from email.mime.text import MIMEText
-
-        import aioboto3
 
         session = aioboto3.Session()
 

@@ -1,8 +1,104 @@
 # AWS SES Email Platform Implementation Plan
 
+## Implementation Status
+
+**Last Updated**: 2025-11-07
+
+### ✅ Phase 1: Outbound Email (COMPLETED)
+
+**Status**: Production-ready, awaiting infrastructure deployment
+
+**What's Been Built**:
+- Backend email module with client abstraction (LocalEmailClient for dev, SESEmailClient for prod)
+- EmailMessage model with state machine tracking (PENDING → SENT → FAILED)
+- EmailService with Jinja2 template rendering
+- SAQ task for async email sending (`send_email_task`)
+- Magic link email template (base.html + magic_link.html)
+- Terraform configuration for SES (domain identity, DKIM, DNS automation)
+- IAM permissions for ECS tasks to send via SES
+- Database migration for email_messages table
+
+**Key Learnings & Adjustments**:
+
+1. **Model Pattern Correction**: Original plan referenced `SMMixin` which doesn't exist. Actual pattern uses:
+   ```python
+   StateMachineMixin(state_enum=EmailState, initial_state=EmailState.PENDING)
+   ```
+
+2. **Import Path Fix**: Use `from app.base.models import BaseDBModel` (not `Base`)
+
+3. **RLS Pattern**: Use factory function `RLSMixin()` that returns a class to inherit from
+
+4. **Task Context Pattern**: Tasks must use `db_sessionmaker` context manager:
+   ```python
+   db_sessionmaker = ctx["db_sessionmaker"]
+   async with db_sessionmaker() as db_session:
+       # use session
+   ```
+
+5. **Import Order in client.py**: Linter moved `import aioboto3` after standard library imports (intentional)
+
+6. **First Use Case**: Changed from contract emails to magic link authentication emails
+
+7. **SES Configuration**: Using `noreply@tryarive.com` as default from_email (more appropriate than contracts@)
+
+**Files Created** (11 new files):
+- `backend/app/emails/__init__.py`
+- `backend/app/emails/enums.py`
+- `backend/app/emails/client.py`
+- `backend/app/emails/models.py`
+- `backend/app/emails/service.py`
+- `backend/app/emails/tasks.py`
+- `backend/app/emails/dependencies.py`
+- `backend/templates/emails/base.html`
+- `backend/templates/emails/magic_link.html`
+- `infra/ses.tf`
+- `backend/alembic/versions/738c65a4ebae_[migration].py`
+
+**Files Updated** (4 files):
+- `backend/pyproject.toml` - Added aioboto3, email-validator, html2text
+- `backend/app/utils/configure.py` - Added SES config fields
+- `backend/app/factory.py` - Registered email_client and email_service in DI
+- `infra/main.tf` - Added SES IAM permissions to ECS task role
+
+### ⏸️ Phase 2: Inbound Email (NOT IMPLEMENTED)
+
+**Status**: Deferred - outbound-only implementation prioritized for production
+
+**What's NOT Built**:
+- Lambda function for webhook forwarding
+- S3 bucket for inbound emails
+- Webhook handlers with HMAC signature verification
+- InboundEmail model
+- Email parsing tasks
+- MX DNS records
+- SES receipt rules
+
+**Reason for Deferral**: Production priority on magic link authentication requires outbound only. Inbound email can be added later without affecting current implementation.
+
+### 🔮 Future: Communications Platform Evolution
+
+**Planned Evolution to SMS**:
+When adding SMS support (Twilio/AWS SNS):
+1. Rename `backend/app/emails/` → `backend/app/communications/`
+2. Create abstract `BaseMessageClient` class
+3. Implement `EmailClient` and `SMSClient`
+4. Add `message_type` field to models (EMAIL/SMS)
+5. Update service to route based on channel
+
+**Design Decisions Supporting Future Evolution**:
+- Client abstraction pattern is channel-agnostic
+- State machine pattern works for any message type
+- Templates directory structure can expand (templates/emails/, templates/sms/)
+- Service layer can easily route to different clients
+
+---
+
 ## Overview
 
 This document outlines the implementation plan for a bidirectional email communications platform using AWS SES for the ManagerOS/Arive application.
+
+**NOTE**: Only outbound email has been implemented. See "Implementation Status" above for current state.
 
 ### Architecture Summary
 
@@ -1559,80 +1655,99 @@ await service.send_contract_email(
 
 ---
 
-## Deployment Checklist
+## Deployment Checklist (Outbound Email Only)
 
-- [ ] Run `cd backend && uv sync` to install dependencies
-- [ ] Run `make db-migrate` and `make db-upgrade` to apply migrations
-- [ ] Build Lambda package: `cd infra/lambda/email_webhook && ./build.sh`
-- [ ] Set `webhook_secret` in Terraform variables (or Secrets Manager)
-- [ ] Run `terraform plan` to review changes
-- [ ] Run `terraform apply` to deploy infrastructure (DNS records auto-created)
-- [ ] Verify DNS records created: `dig tryarive.com MX` and `dig tryarive.com TXT`
-- [ ] Verify SES domain verification status in AWS Console (may take a few minutes)
+**Completed** ✅:
+- [x] Backend code implementation (email module, models, tasks, templates)
+- [x] Terraform SES configuration created
+- [x] IAM permissions added to ECS task role
+- [x] Database migration generated and applied
+- [x] Dependencies added to pyproject.toml
+
+**Ready for Deployment**:
+- [ ] Run `cd backend && uv sync` to install dependencies (aioboto3, email-validator, html2text)
+- [ ] Test locally with LocalEmailClient (run `make dev` and trigger magic link email)
+- [ ] Verify local email logs show proper HTML/text formatting
+- [ ] Run `cd infra && terraform plan` to review SES infrastructure changes
+- [ ] Run `terraform apply` to deploy infrastructure (SES + DNS records auto-created)
+- [ ] Verify DNS records propagated: `dig tryarive.com TXT` (should show SPF record)
+- [ ] Verify SES domain verification in AWS Console (may take 5-10 minutes)
 - [ ] Verify DKIM status shows "Successful" in AWS Console
-- [ ] Test outbound email via console/API
-- [ ] Send test email to `contracts@tryarive.com`
-- [ ] Verify Lambda execution in CloudWatch
-- [ ] Verify webhook receipt in application logs
-- [ ] Verify SAQ task processing in worker logs
-- [ ] Check database for `InboundEmail` records
+- [ ] Deploy backend code to production (ECS)
+- [ ] Send test magic link email to real email address
+- [ ] Monitor CloudWatch logs: `/ecs/manageros-dev` for any errors
+- [ ] Verify SAQ worker processes email task successfully
+- [ ] Check `email_messages` table for SENT status
+
+**NOT NEEDED (Outbound Only)**:
+- ~~Build Lambda package~~ (inbound only, not implemented)
+- ~~Set webhook_secret~~ (inbound only, not implemented)
+- ~~Verify MX records~~ (inbound only, not implemented)
+- ~~Test inbound email~~ (not implemented)
 
 ---
 
-## Cost Estimates
+## Cost Estimates (Outbound Only)
 
 **AWS SES:**
 - First 62,000 emails/month: Free (AWS Free Tier)
 - After: $0.10 per 1,000 emails
 
-**Lambda:**
-- 1M requests/month: Free
-- After: $0.20 per 1M requests
+**Total estimated cost**: < $1/month for moderate usage (outbound email only)
 
-**S3:**
-- Storage: ~$0.023/GB/month
-- 30-day lifecycle = minimal storage
-
-**Total estimated cost**: < $5/month for moderate usage
+**NOT APPLICABLE (Outbound Only)**:
+- ~~Lambda costs~~ (no Lambda function, inbound only)
+- ~~S3 storage costs~~ (no inbound email storage)
 
 ---
 
-## Support & Troubleshooting
+## Support & Troubleshooting (Outbound Only)
 
 ### Common Issues
 
 **Email not sending:**
-- Check SES sending limits (sandbox vs. production)
-- Verify email identities in SES console
-- Check CloudWatch logs for SES errors
-- Verify IAM permissions on ECS task role
-
-**Inbound email not received:**
-- Check SES receipt rule is active
-- Verify MX record points to SES
-- Check Lambda CloudWatch logs
-- Verify webhook signature is correct
-- Check application logs for 401 errors
+- Check SES sending limits (sandbox vs. production - may need to request production access)
+- Verify email identities in SES console (domain should show "Verified")
+- Check CloudWatch logs for SES errors: `/ecs/manageros-dev`
+- Verify IAM permissions on ECS task role (ses:SendRawEmail)
+- Check EmailMessage table for error_message field
+- Verify LocalEmailClient is logging in development (check console output)
 
 **Task not processing:**
-- Check SAQ worker is running (`make dev-worker`)
-- Check worker logs for errors
-- Verify database connection
-- Check S3 permissions for ECS task role
+- Check SAQ worker is running (`make dev-worker` or verify worker ECS service)
+- Check worker logs for errors in CloudWatch
+- Verify database connection is healthy
+- Check email_messages table - state should transition from PENDING → SENT
+- Verify task is registered in SAQ (check `/saq` UI in dev mode)
+
+**Template rendering errors:**
+- Check templates exist: `backend/templates/emails/base.html` and `magic_link.html`
+- Verify template context variables match what's passed in service methods
+- Check for Jinja2 syntax errors in templates
 
 ### Monitoring
 
-- **CloudWatch Logs**: `/aws/lambda/manageros-email-webhook-dev`, `/ecs/manageros-dev`
-- **SES Metrics**: SES console → Reputation Dashboard
-- **Database**: Query `email_messages` and `inbound_emails` tables
-- **SAQ**: Web UI at `/saq` (dev only)
+- **CloudWatch Logs**: `/ecs/manageros-dev` (both API and worker services)
+- **SES Metrics**: SES console → Reputation Dashboard (track sending reputation)
+- **Database**: Query `email_messages` table to see email status and errors
+- **SAQ Web UI**: Available at `/saq` in development mode only
+- **Local Development**: Check console logs for LocalEmailClient output
+
+### Production Access
+
+**SES Sandbox Limitations**:
+- By default, SES accounts are in sandbox mode
+- Can only send TO verified email addresses
+- Limited to 200 emails/day
+- **To send to any email**: Request production access via AWS Console → SES → Account Dashboard
 
 ---
 
-**Document Version**: 1.1
+**Document Version**: 2.0
 **Last Updated**: 2025-11-07
 **Author**: Claude Code
-**Status**: Ready for Implementation
+**Status**: ✅ Outbound Email Implemented - Production Ready (Inbound Email Deferred)
 **Changelog**:
+- v2.0 (2025-11-07): **Implemented outbound email only**. Added implementation status section with learnings, updated all sections to reflect outbound-only scope, removed inbound-specific content, added magic link template. Deferred inbound email implementation.
 - v1.1 (2025-11-07): Updated DNS configuration to use Route53 (automated via Terraform)
 - v1.0 (2025-01-06): Initial version
