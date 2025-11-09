@@ -1,8 +1,17 @@
 'use client';
 
-import { Building2, ChevronsUpDown, LogOut, User } from 'lucide-react';
+import {
+  Building2,
+  ChevronsUpDown,
+  LogOut,
+  User,
+  Monitor,
+  Moon,
+  Sun,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -21,6 +30,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuthLogoutLogoutUser } from '@/openapi/auth/auth';
+import { useAuth } from '@/components/providers/auth-provider';
 
 export function NavUser({
   user,
@@ -34,6 +44,17 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  const authContext = useAuth();
+  const currentUser = authContext.user;
+  const { teams, currentTeamId } = authContext;
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { mutate: logout } = useAuthLogoutLogoutUser({
     mutation: {
@@ -55,6 +76,20 @@ export function NavUser({
   const handleLogout = () => {
     setIsSigningOut(true);
     logout();
+  };
+
+  // Get current team's public_id for navigation
+  const currentTeam = teams.find((t) => t.team_id === currentTeamId);
+  const teamPublicId = currentTeam?.public_id;
+
+  const handleUserSettings = () => {
+    router.push(`/settings/user/${currentUser.id}`);
+  };
+
+  const handleTeamSettings = () => {
+    if (teamPublicId) {
+      router.push(`/settings/team/${teamPublicId}`);
+    }
   };
 
   return (
@@ -101,13 +136,54 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <DropdownMenuItem onClick={handleUserSettings}>
                 <User />
                 User Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleTeamSettings}
+                disabled={!teamPublicId}
+              >
                 <Building2 />
                 Team Settings
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="text-muted-foreground px-2 py-1.5 text-xs">
+                Theme
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={() => setTheme('light')}
+                disabled={!mounted}
+              >
+                <Sun />
+                <span className="flex-1">Light</span>
+                {mounted && theme === 'light' && (
+                  <span className="text-muted-foreground text-xs">✓</span>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setTheme('dark')}
+                disabled={!mounted}
+              >
+                <Moon />
+                <span className="flex-1">Dark</span>
+                {mounted && theme === 'dark' && (
+                  <span className="text-muted-foreground text-xs">✓</span>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setTheme('system')}
+                disabled={!mounted}
+              >
+                <Monitor />
+                <span className="flex-1">System</span>
+                {mounted && theme === 'system' && (
+                  <span className="text-muted-foreground text-xs">✓</span>
+                )}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
