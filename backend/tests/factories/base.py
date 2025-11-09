@@ -45,7 +45,7 @@ class BaseFactory[T: BaseDBModel](SQLAlchemyFactory[T]):
     __set_primary_key__ = False  # Let PostgreSQL sequences handle ID generation
 
     @classmethod
-    async def create_async(cls, session: AsyncSession, **kwargs: Any) -> T:
+    async def create_async(cls, session: AsyncSession, **kwargs: Any) -> T:  # type: ignore[override]
         """Build and persist a single model instance asynchronously."""
         # Build the instance
         instance = cls.build(**kwargs)
@@ -58,7 +58,7 @@ class BaseFactory[T: BaseDBModel](SQLAlchemyFactory[T]):
         return instance
 
     @classmethod
-    async def create_batch_async(cls, session: AsyncSession, size: int, **kwargs: Any) -> list[T]:
+    async def create_batch_async(cls, session: AsyncSession, size: int, **kwargs: Any) -> list[T]:  # type: ignore[override]
         """Build and persist multiple model instances asynchronously."""
         instances = [cls.build(**kwargs) for _ in range(size)]
 

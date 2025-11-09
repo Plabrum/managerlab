@@ -16,12 +16,12 @@ class TeamObject(BaseObject[Team]):
         return Team
 
     @classmethod
-    def title_field(cls, team: Team) -> str:
-        return team.name
+    def title_field(cls, obj: Team) -> str:
+        return obj.name
 
     @classmethod
-    def subtitle_field(cls, team: Team) -> str:
-        return team.description or ""
+    def subtitle_field(cls, obj: Team) -> str:
+        return obj.description or ""
 
     column_definitions = [
         ObjectColumn(

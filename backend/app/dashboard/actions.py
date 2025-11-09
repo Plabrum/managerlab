@@ -19,7 +19,7 @@ dashboard_actions = action_group_factory(
 
 
 @dashboard_actions
-class DeleteDashboard(BaseObjectAction):
+class DeleteDashboard(BaseObjectAction[Dashboard]):
     """Delete a dashboard."""
 
     action_key = DashboardActions.delete
@@ -39,7 +39,7 @@ class DeleteDashboard(BaseObjectAction):
 
 
 @dashboard_actions
-class UpdateDashboard(BaseObjectAction):
+class UpdateDashboard(BaseObjectAction[Dashboard]):
     """Update a dashboard."""
 
     action_key = DashboardActions.update

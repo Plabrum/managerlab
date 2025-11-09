@@ -23,16 +23,16 @@ class RosterObject(BaseObject[Roster]):
         return Roster
 
     @classmethod
-    def title_field(cls, roster: Roster) -> str:
-        return roster.name
+    def title_field(cls, obj: Roster) -> str:
+        return obj.name
 
     @classmethod
-    def subtitle_field(cls, roster: Roster) -> str:
-        return roster.instagram_handle or ""
+    def subtitle_field(cls, obj: Roster) -> str:
+        return obj.instagram_handle or ""
 
     @classmethod
-    def state_field(cls, roster: Roster) -> str:
-        return roster.state
+    def state_field(cls, obj: Roster) -> str:
+        return obj.state
 
     # Action groups
     top_level_action_group = ActionGroupType.RosterActions

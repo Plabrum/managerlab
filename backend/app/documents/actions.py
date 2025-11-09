@@ -19,7 +19,7 @@ document_actions = action_group_factory(
 
 
 @document_actions
-class DeleteDocument(BaseObjectAction):
+class DeleteDocument(BaseObjectAction[Document]):
     action_key = DocumentActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -37,7 +37,7 @@ class DeleteDocument(BaseObjectAction):
 
 
 @document_actions
-class UpdateDocument(BaseObjectAction):
+class UpdateDocument(BaseObjectAction[Document]):
     action_key = DocumentActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -65,7 +65,7 @@ class UpdateDocument(BaseObjectAction):
 
 
 @document_actions
-class DownloadDocument(BaseObjectAction):
+class DownloadDocument(BaseObjectAction[Document]):
     action_key = DocumentActions.download
     label = "Download"
     is_bulk_allowed = False
@@ -73,8 +73,8 @@ class DownloadDocument(BaseObjectAction):
     icon = ActionIcon.download
 
     @classmethod
-    async def execute(cls, obj: Document, s3_client: S3Client) -> ActionExecutionResponse:
-        download_url = s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
+    async def execute(cls, obj: Document, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+        download_url = cls.deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
 
         return ActionExecutionResponse(
             message="Download ready",
@@ -85,7 +85,7 @@ class DownloadDocument(BaseObjectAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Document | None) -> bool:
+    def is_available(cls, obj: Document | None, **kwargs: Any) -> bool:
         return obj is not None and obj.state == DocumentStates.READY
 
 

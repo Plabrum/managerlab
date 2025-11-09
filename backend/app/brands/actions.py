@@ -19,7 +19,7 @@ brand_actions = action_group_factory(
 
 
 @brand_actions
-class DeleteBrand(BaseObjectAction):
+class DeleteBrand(BaseObjectAction[Brand]):
     action_key = BrandActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -37,7 +37,7 @@ class DeleteBrand(BaseObjectAction):
 
 
 @brand_actions
-class UpdateBrand(BaseObjectAction):
+class UpdateBrand(BaseObjectAction[Brand]):
     action_key = BrandActions.update
     label = "Update"
     is_bulk_allowed = True

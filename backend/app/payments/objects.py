@@ -22,16 +22,16 @@ class InvoiceObject(BaseObject[Invoice]):
         return Invoice
 
     @classmethod
-    def title_field(cls, invoice: Invoice) -> str:
-        return f"Invoice #{invoice.invoice_number}"
+    def title_field(cls, obj: Invoice) -> str:
+        return f"Invoice #{obj.invoice_number}"
 
     @classmethod
-    def subtitle_field(cls, invoice: Invoice) -> str:
-        return f"{invoice.customer_name} - ${invoice.amount_due}"
+    def subtitle_field(cls, obj: Invoice) -> str:
+        return f"{obj.customer_name} - ${obj.amount_due}"
 
     @classmethod
-    def state_field(cls, invoice: Invoice) -> str:
-        return invoice.state
+    def state_field(cls, obj: Invoice) -> str:
+        return obj.state
 
     # Action groups
     action_group = ActionGroupType.InvoiceActions

@@ -18,7 +18,7 @@ roster_actions = action_group_factory(
 
 
 @roster_actions
-class DeleteRoster(BaseObjectAction):
+class DeleteRoster(BaseObjectAction[Roster]):
     action_key = RosterActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -40,7 +40,7 @@ class DeleteRoster(BaseObjectAction):
 
 
 @roster_actions
-class UpdateRoster(BaseObjectAction):
+class UpdateRoster(BaseObjectAction[Roster]):
     action_key = RosterActions.update
     label = "Edit"
     is_bulk_allowed = True

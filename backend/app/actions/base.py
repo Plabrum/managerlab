@@ -49,7 +49,7 @@ def _filter_kwargs_by_signature(func: Any, available_kwargs: dict[str, Any]) -> 
     return {k: v for k, v in available_kwargs.items() if k in accepted_params}
 
 
-class BaseAction(ABC):
+class BaseAction[O: BaseDBModel](ABC):
     """Base class for all actions - shared attributes and methods.
 
     Use BaseObjectAction for actions that operate on existing objects.
@@ -77,25 +77,25 @@ class BaseAction(ABC):
         cls,
         object_id: int,
         transaction: AsyncSession,
-    ) -> BaseDBModel | None:
+    ) -> O | None:
         if cls.model is None:
             return None
 
         result = await transaction.execute(
             select(cls.model).where(cls.model.id == object_id).options(*cls.load_options)
         )
-        return result.scalar_one()
+        return result.scalar_one()  # type: ignore[return-value]
 
     @classmethod
-    def is_available(  # type: ignore[override]
+    def is_available(
         cls,
-        obj: BaseDBModel | None,
+        obj: O | None,
         **kwargs: Any,
     ) -> bool:
         return True
 
 
-class BaseObjectAction(BaseAction):
+class BaseObjectAction[O: BaseDBModel](BaseAction[O]):
     """Base class for actions that operate on existing database objects.
 
     Example: DeleteBrand, UpdateCampaign, PublishDeliverable
@@ -107,7 +107,7 @@ class BaseObjectAction(BaseAction):
     @classmethod
     async def execute(
         cls,
-        obj: BaseDBModel,
+        obj: O,
         data: Any,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:

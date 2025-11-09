@@ -24,10 +24,10 @@ class ActionRegistry(
 
     def register(
         self,
-        action_group_type: ActionGroupType,
-        action_group: "ActionGroup",
+        key: ActionGroupType,
+        value: "ActionGroup",
     ) -> None:
-        self._registry[action_group_type] = action_group
+        self._registry[key] = value
 
     def register_action(self, action_key: str, action_class: type["BaseAction"]) -> None:
         self._flat_registry[action_key] = action_class

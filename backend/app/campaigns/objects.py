@@ -37,16 +37,16 @@ class CampaignObject(BaseObject[Campaign]):
     ]
 
     @classmethod
-    def title_field(cls, campaign: Campaign) -> str:
-        return campaign.name
+    def title_field(cls, obj: Campaign) -> str:
+        return obj.name
 
     @classmethod
-    def subtitle_field(cls, campaign: Campaign) -> str:
-        return campaign.description or ""
+    def subtitle_field(cls, obj: Campaign) -> str:
+        return obj.description or ""
 
     @classmethod
-    def state_field(cls, campaign: Campaign) -> str:
-        return campaign.state
+    def state_field(cls, obj: Campaign) -> str:
+        return obj.state
 
     column_definitions = [
         ObjectColumn(

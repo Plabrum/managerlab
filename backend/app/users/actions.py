@@ -23,7 +23,7 @@ team_actions = action_group_factory(
 
 
 @team_actions
-class DeleteTeam(BaseObjectAction):
+class DeleteTeam(BaseObjectAction[Team]):
     action_key = TeamActions.delete
     label = "Delete Team"
     is_bulk_allowed = False

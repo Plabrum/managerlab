@@ -26,7 +26,7 @@ campaign_actions = action_group_factory(
 
 
 @campaign_actions
-class DeleteCampaign(BaseObjectAction):
+class DeleteCampaign(BaseObjectAction[Campaign]):
     action_key = CampaignActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -44,7 +44,7 @@ class DeleteCampaign(BaseObjectAction):
 
 
 @campaign_actions
-class UpdateCampaign(BaseObjectAction):
+class UpdateCampaign(BaseObjectAction[Campaign]):
     action_key = CampaignActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -72,7 +72,7 @@ class UpdateCampaign(BaseObjectAction):
 
 
 @campaign_actions
-class AddDeliverableToCampaign(BaseObjectAction):
+class AddDeliverableToCampaign(BaseObjectAction[Campaign]):
     """Add a new deliverable to a campaign."""
 
     action_key = CampaignActions.add_deliverable
@@ -106,7 +106,7 @@ class AddDeliverableToCampaign(BaseObjectAction):
 
 
 @campaign_actions
-class AddContractToCampaign(BaseObjectAction):
+class AddContractToCampaign(BaseObjectAction[Campaign]):
     """Add initial contract to a campaign."""
 
     action_key = CampaignActions.add_contract
@@ -135,13 +135,13 @@ class AddContractToCampaign(BaseObjectAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Campaign | None) -> bool:
+    def is_available(cls, obj: Campaign | None, **kwargs: Any) -> bool:
         # Only available if campaign has no contract
         return obj is not None and obj.contract is None
 
 
 @campaign_actions
-class ReplaceContract(BaseObjectAction):
+class ReplaceContract(BaseObjectAction[Campaign]):
     """Replace existing contract with new version."""
 
     action_key = CampaignActions.replace_contract
@@ -170,7 +170,7 @@ class ReplaceContract(BaseObjectAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Campaign | None) -> bool:
+    def is_available(cls, obj: Campaign | None, **kwargs: Any) -> bool:
         # Only available if campaign already has a contract
         return obj is not None and obj.contract is not None
 

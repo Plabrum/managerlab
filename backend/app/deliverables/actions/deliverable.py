@@ -21,7 +21,7 @@ deliverable_actions = action_group_factory(ActionGroupType.DeliverableActions, m
 
 
 @deliverable_actions
-class DeleteDeliverable(BaseObjectAction):
+class DeleteDeliverable(BaseObjectAction[Deliverable]):
     action_key = DeliverableActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -39,7 +39,7 @@ class DeleteDeliverable(BaseObjectAction):
 
 
 @deliverable_actions
-class EditDeliverable(BaseObjectAction):
+class EditDeliverable(BaseObjectAction[Deliverable]):
     action_key = DeliverableActions.update
     label = "Edit"
     is_bulk_allowed = True
@@ -67,7 +67,7 @@ class EditDeliverable(BaseObjectAction):
 
 
 @deliverable_actions
-class PublishDeliverable(BaseObjectAction):
+class PublishDeliverable(BaseObjectAction[Deliverable]):
     """Publish a draft deliverable."""
 
     action_key = DeliverableActions.publish
@@ -77,7 +77,7 @@ class PublishDeliverable(BaseObjectAction):
     icon = ActionIcon.send
 
     @classmethod
-    async def execute(cls, obj: Deliverable) -> ActionExecutionResponse:
+    async def execute(cls, obj: Deliverable, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         obj.state = DeliverableStates.POSTED
 
         return ActionExecutionResponse(
@@ -85,12 +85,12 @@ class PublishDeliverable(BaseObjectAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Deliverable | None) -> bool:
+    def is_available(cls, obj: Deliverable | None, **kwargs: Any) -> bool:
         return obj is not None and obj.state == DeliverableStates.DRAFT
 
 
 @deliverable_actions
-class AddMediaToDeliverable(BaseObjectAction):
+class AddMediaToDeliverable(BaseObjectAction[Deliverable]):
     """Add media files to a deliverable."""
 
     action_key = DeliverableActions.add_media

@@ -22,7 +22,7 @@ message_actions = action_group_factory(
 
 
 @message_actions
-class UpdateMessage(BaseObjectAction):
+class UpdateMessage(BaseObjectAction[Message]):
     action_key = MessageActions.update
     label = "Edit"
     is_bulk_allowed = False
@@ -33,8 +33,9 @@ class UpdateMessage(BaseObjectAction):
     def is_available(
         cls,
         obj: Message | None,
+        *,
         user_id: int,
-        **kwargs,
+        **kwargs: Any,
     ) -> bool:
         """Only message author can edit their message."""
         if not obj:
@@ -72,7 +73,7 @@ class UpdateMessage(BaseObjectAction):
 
 
 @message_actions
-class DeleteMessage(BaseObjectAction):
+class DeleteMessage(BaseObjectAction[Message]):
     action_key = MessageActions.delete
     label = "Delete"
     is_bulk_allowed = False
@@ -85,8 +86,9 @@ class DeleteMessage(BaseObjectAction):
     def is_available(
         cls,
         obj: Message | None,
+        *,
         user_id: int,
-        **kwargs,
+        **kwargs: Any,
     ) -> bool:
         """Only message author can delete their message."""
         if not obj:

@@ -21,16 +21,16 @@ class MediaObject(BaseObject[Media]):
         return Media
 
     @classmethod
-    def title_field(cls, media: Media) -> str:
-        return media.file_name
+    def title_field(cls, obj: Media) -> str:
+        return obj.file_name
 
     @classmethod
-    def subtitle_field(cls, media: Media) -> str:
-        return f"{media.file_type} - {media.mime_type}"
+    def subtitle_field(cls, obj: Media) -> str:
+        return f"{obj.file_type} - {obj.mime_type}"
 
     @classmethod
-    def state_field(cls, media: Media) -> str:
-        return media.state
+    def state_field(cls, obj: Media) -> str:
+        return obj.state
 
     # Action groups
     top_level_action_group = ActionGroupType.MediaActions

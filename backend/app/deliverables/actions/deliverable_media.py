@@ -17,7 +17,7 @@ deliverable_media_actions = action_group_factory(
 
 
 @deliverable_media_actions
-class RemoveMediaFromDeliverable(BaseObjectAction):
+class RemoveMediaFromDeliverable(BaseObjectAction[DeliverableMedia]):
     """Remove media files from a deliverable."""
 
     action_key = DeliverableMediaActions.remove_media
@@ -41,7 +41,7 @@ class RemoveMediaFromDeliverable(BaseObjectAction):
 
 
 @deliverable_media_actions
-class AcceptDeliverableMedia(BaseObjectAction):
+class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia]):
     """Accept/approve a media file in a deliverable."""
 
     action_key = DeliverableMediaActions.accept
@@ -64,13 +64,13 @@ class AcceptDeliverableMedia(BaseObjectAction):
         )
 
     @classmethod
-    def is_available(cls, obj: DeliverableMedia | None) -> bool:
+    def is_available(cls, obj: DeliverableMedia | None, **kwargs: Any) -> bool:
         # Only available if not already approved
         return obj is not None and obj.approved_at is None
 
 
 @deliverable_media_actions
-class RejectDeliverableMedia(BaseObjectAction):
+class RejectDeliverableMedia(BaseObjectAction[DeliverableMedia]):
     """Reject/unapprove a media file in a deliverable."""
 
     action_key = DeliverableMediaActions.reject
@@ -93,6 +93,6 @@ class RejectDeliverableMedia(BaseObjectAction):
         )
 
     @classmethod
-    def is_available(cls, obj: DeliverableMedia | None) -> bool:
+    def is_available(cls, obj: DeliverableMedia | None, **kwargs: Any) -> bool:
         # Only available if already approved
         return obj is not None and obj.approved_at is not None

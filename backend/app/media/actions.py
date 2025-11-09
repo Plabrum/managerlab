@@ -19,7 +19,7 @@ media_actions = action_group_factory(
 
 
 @media_actions
-class DeleteMedia(BaseObjectAction):
+class DeleteMedia(BaseObjectAction[Media]):
     action_key = MediaActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -37,7 +37,7 @@ class DeleteMedia(BaseObjectAction):
 
 
 @media_actions
-class UpdateMedia(BaseObjectAction):
+class UpdateMedia(BaseObjectAction[Media]):
     action_key = MediaActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -65,7 +65,7 @@ class UpdateMedia(BaseObjectAction):
 
 
 @media_actions
-class DownloadMedia(BaseObjectAction):
+class DownloadMedia(BaseObjectAction[Media]):
     action_key = MediaActions.download
     label = "Download"
     is_bulk_allowed = False
@@ -73,8 +73,8 @@ class DownloadMedia(BaseObjectAction):
     icon = ActionIcon.download
 
     @classmethod
-    async def execute(cls, obj: Media, s3_client: S3Client) -> ActionExecutionResponse:
-        download_url = s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
+    async def execute(cls, obj: Media, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+        download_url = cls.deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
 
         return ActionExecutionResponse(
             message="Download ready",
@@ -85,7 +85,7 @@ class DownloadMedia(BaseObjectAction):
         )
 
     @classmethod
-    def is_available(cls, obj: Media | None) -> bool:
+    def is_available(cls, obj: Media | None, **kwargs: Any) -> bool:
         return obj is not None and obj.state == MediaStates.READY
 
 

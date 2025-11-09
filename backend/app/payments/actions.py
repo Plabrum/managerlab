@@ -14,7 +14,7 @@ invoice_actions = action_group_factory(ActionGroupType.InvoiceActions, model_typ
 
 
 @invoice_actions
-class DeleteInvoice(BaseObjectAction):
+class DeleteInvoice(BaseObjectAction[Invoice]):
     action_key = InvoiceActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -32,7 +32,7 @@ class DeleteInvoice(BaseObjectAction):
 
 
 @invoice_actions
-class UpdateInvoice(BaseObjectAction):
+class UpdateInvoice(BaseObjectAction[Invoice]):
     action_key = InvoiceActions.update
     label = "Update"
     is_bulk_allowed = True
