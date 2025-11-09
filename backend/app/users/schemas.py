@@ -62,3 +62,9 @@ class SwitchTeamRequest(BaseSchema):
     """Request to switch team."""
 
     team_id: int
+
+
+class InviteUserToTeamSchema(BaseSchema):
+    """Schema for inviting a user to a team."""
+
+    email: str

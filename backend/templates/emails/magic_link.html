@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 style="color: #333; margin-top: 0;">Sign in to Arive</h2>
+
+<p>Hello,</p>
+
+<p>Click the button below to sign in to your Arive account. This link will expire in {{ expires_minutes }} minutes.</p>
+
+<p style="text-align: center;">
+    <a href="{{ magic_link_url }}" class="button">Sign In to Arive</a>
+</p>
+
+<p>Or copy and paste this URL into your browser:</p>
+<p style="word-break: break-all; color: #666; font-size: 14px;">{{ magic_link_url }}</p>
+
+<p style="margin-top: 30px; color: #666; font-size: 14px;">
+    <strong>Didn't request this email?</strong><br>
+    If you didn't request this sign-in link, you can safely ignore this email.
+    Someone may have entered your email address by mistake.
+</p>
+{% endblock %}
