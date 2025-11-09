@@ -218,5 +218,5 @@ class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
 
         return ActionExecutionResponse(
             message=f"Created campaign '{new_campaign.name}'",
-            action_result=RedirectActionResult(path=f"/campaigns/{new_campaign.id}?edit"),
+            action_result=RedirectActionResult(path=f"/campaigns/{new_campaign.id}?edit=true"),
         )
