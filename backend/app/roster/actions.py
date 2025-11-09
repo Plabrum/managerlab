@@ -1,11 +1,13 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import ActionGroupType, BaseAction, action_group_factory
+from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.roster.enums import RosterActions
 from app.roster.models import Roster
-from app.roster.schemas import RosterUpdateSchema
+from app.roster.schemas import RosterCreateSchema, RosterUpdateSchema
 from app.utils.db import update_model
 
 # Create roster action group
@@ -16,7 +18,7 @@ roster_actions = action_group_factory(
 
 
 @roster_actions
-class DeleteRoster(BaseAction):
+class DeleteRoster(BaseObjectAction):
     action_key = RosterActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -26,11 +28,7 @@ class DeleteRoster(BaseAction):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(
-        cls,
-        obj: Roster,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: Roster, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         from datetime import datetime, timezone
 
         # Soft delete by setting deleted_at
@@ -42,7 +40,7 @@ class DeleteRoster(BaseAction):
 
 
 @roster_actions
-class UpdateRoster(BaseAction):
+class UpdateRoster(BaseObjectAction):
     action_key = RosterActions.update
     label = "Edit"
     is_bulk_allowed = True
@@ -55,16 +53,51 @@ class UpdateRoster(BaseAction):
         obj: Roster,
         data: RosterUpdateSchema,
         transaction: AsyncSession,
-        user: int,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=user,
+            user_id=cls.deps.user,
             team_id=obj.team_id,
         )
 
         return ActionExecutionResponse(
             message="Updated roster member",
+        )
+
+
+@roster_actions
+class CreateRoster(BaseTopLevelAction):
+    action_key = RosterActions.create
+    label = "Create Roster Member"
+    is_bulk_allowed = False
+    priority = 1
+    icon = ActionIcon.add
+
+    @classmethod
+    async def execute(
+        cls,
+        data: RosterCreateSchema,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        # Get user_id from session
+        user_id = cls.deps.request.session.get("user_id")
+        if not user_id:
+            return ActionExecutionResponse(
+                message="User not authenticated",
+            )
+
+        # Create roster member
+        roster = Roster(
+            user_id=user_id,
+            team_id=cls.deps.team_id,
+            name=data.name,
+            email=data.email,
+            phone=data.phone,
+            instagram_handle=data.instagram_handle,
+        )
+        transaction.add(roster)
+        return ActionExecutionResponse(
+            message="Created roster member",
         )

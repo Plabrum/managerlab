@@ -1,7 +1,7 @@
 import inspect
 from abc import ABC
 from enum import StrEnum
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +14,9 @@ from app.actions.schemas import (
     ActionExecutionResponse,
 )
 from app.base.models import BaseDBModel
+
+if TYPE_CHECKING:
+    from app.actions.deps import ActionDeps
 
 
 def _filter_kwargs_by_signature(func: Any, available_kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -47,10 +50,10 @@ def _filter_kwargs_by_signature(func: Any, available_kwargs: dict[str, Any]) -> 
 
 
 class BaseAction(ABC):
-    """Base class for all actions in the platform.
+    """Base class for all actions - shared attributes and methods.
 
-    Subclasses must implement an execute() classmethod with their specific signature.
-    The execute method will be called with filtered kwargs based on its signature.
+    Use BaseObjectAction for actions that operate on existing objects.
+    Use BaseTopLevelAction for actions that don't require an existing object (e.g., create).
     """
 
     action_key: ClassVar[StrEnum]
@@ -64,6 +67,10 @@ class BaseAction(ABC):
     # Model and load options for default get_object implementation
     model: ClassVar[type[BaseDBModel] | None] = None
     load_options: ClassVar[list[ExecutableOption]] = []
+
+    # Injected dependencies (set by ActionGroup.trigger before execute)
+    # Note: This is set dynamically per-request, not a ClassVar
+    deps: "ActionDeps"
 
     @classmethod
     async def get_object(
@@ -87,9 +94,66 @@ class BaseAction(ABC):
     ) -> bool:
         return True
 
+
+class BaseObjectAction(BaseAction):
+    """Base class for actions that operate on existing database objects.
+
+    Example: DeleteBrand, UpdateCampaign, PublishDeliverable
+
+    Subclasses must implement:
+        async def execute(cls, obj: ModelType, data: Any, transaction: AsyncSession)
+    """
+
     @classmethod
-    async def execute(cls, obj, **kwargs: Any) -> ActionExecutionResponse:
-        """Execute the action and return the affected database model object."""
+    async def execute(
+        cls,
+        obj: BaseDBModel,
+        data: Any,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        """Execute the action on an existing object.
+
+        Args:
+            obj: The database object this action operates on (never None)
+            data: The action's input data (msgspec struct from discriminated union)
+            transaction: Database session for this request
+
+        Returns:
+            ActionExecutionResponse with result metadata
+
+        Note:
+            Access injected dependencies via cls.deps (user, team_id, s3_client, etc.)
+        """
+        raise NotImplementedError(f"{cls.__name__} must implement execute()")
+
+
+class BaseTopLevelAction(BaseAction):
+    """Base class for actions that don't operate on existing objects.
+
+    Example: CreateBrand, CreateCampaign, RegisterMedia
+
+    Subclasses must implement:
+        async def execute(cls, data: CreateSchema, transaction: AsyncSession)
+    """
+
+    @classmethod
+    async def execute(
+        cls,
+        data: Any,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        """Execute the action without an existing object.
+
+        Args:
+            data: The action's input data (msgspec struct from discriminated union)
+            transaction: Database session for this request
+
+        Returns:
+            ActionExecutionResponse with result metadata
+
+        Note:
+            Access injected dependencies via cls.deps (user, team_id, s3_client, etc.)
+        """
         raise NotImplementedError(f"{cls.__name__} must implement execute()")
 
 
@@ -143,34 +207,34 @@ class ActionGroup:
         data: Any,  # Discriminated union instance
         object_id: int | None = None,
     ) -> ActionExecutionResponse:
-        action_class: BaseAction = self.action_registry._struct_to_action[type(data)]
-        obj = (
-            await action_class.get_object(
-                object_id=object_id,
-                transaction=self.action_registry.dependencies["transaction"],
-            )
-            if object_id
-            else None
-        )
+        from app.actions.deps import ActionDeps
 
-        # Inspect the signature once
-        sig = inspect.signature(action_class.execute)
-        params = sig.parameters
+        action_class: type[BaseAction] = self.action_registry._struct_to_action[type(data)]
+        transaction = self.action_registry.dependencies["transaction"]
 
-        # Prepare possible arguments
-        candidate_args = {
-            "obj": obj,
-            "data": getattr(data, "data", data),
-            **self.action_registry.dependencies,
-        }
+        # Inject dependencies via deps property
+        action_class.deps = ActionDeps(**self.action_registry.dependencies)
 
-        # Filter only those accepted by the execute() signature
-        filtered_kwargs = {name: val for name, val in candidate_args.items() if name in params}
+        # Extract data from discriminated union wrapper
+        action_data = getattr(data, "data", data)
 
-        # Execute action and get the resulting object
-        actions_execution_response = await action_class.execute(**filtered_kwargs)
+        # Execute with appropriate signature based on action type
+        if issubclass(action_class, BaseObjectAction):
+            # Instance action - requires object
+            obj = await action_class.get_object(object_id=object_id, transaction=transaction) if object_id else None
+            if obj is None:
+                raise ValueError(f"Object action {action_class.__name__} requires object_id")
+            actions_execution_response = await action_class.execute(obj, action_data, transaction)
+        elif issubclass(action_class, BaseTopLevelAction):
+            # Top-level action - no object needed
+            actions_execution_response = await action_class.execute(action_data, transaction)
+        else:
+            raise TypeError(f"Action {action_class.__name__} must inherit from BaseObjectAction or BaseTopLevelAction")
+
+        # Add default invalidation if not specified
         if not actions_execution_response.invalidate_queries and self.default_invalidation:
             actions_execution_response.invalidate_queries.append(self.default_invalidation)
+
         return actions_execution_response
 
     def get_available_actions(

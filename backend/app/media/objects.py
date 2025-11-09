@@ -33,7 +33,7 @@ class MediaObject(BaseObject[Media]):
         return media.state
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelMediaActions
+    top_level_action_group = ActionGroupType.MediaActions
     action_group = ActionGroupType.MediaActions
 
     column_definitions = [

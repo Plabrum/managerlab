@@ -35,7 +35,7 @@ class RosterObject(BaseObject[Roster]):
         return roster.state
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelRosterActions
+    top_level_action_group = ActionGroupType.RosterActions
 
     # Load options
     load_options = [joinedload(Roster.user), joinedload(Roster.profile_photo)]

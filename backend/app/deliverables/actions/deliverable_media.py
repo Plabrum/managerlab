@@ -1,9 +1,10 @@
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.actions.base import BaseAction, action_group_factory
+from app.actions.base import BaseObjectAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.deliverables.enums import DeliverableMediaActions
@@ -16,7 +17,7 @@ deliverable_media_actions = action_group_factory(
 
 
 @deliverable_media_actions
-class RemoveMediaFromDeliverable(BaseAction):
+class RemoveMediaFromDeliverable(BaseObjectAction):
     """Remove media files from a deliverable."""
 
     action_key = DeliverableMediaActions.remove_media
@@ -30,11 +31,7 @@ class RemoveMediaFromDeliverable(BaseAction):
     ]
 
     @classmethod
-    async def execute(
-        cls,
-        obj: DeliverableMedia,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: DeliverableMedia, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         # Delete the DeliverableMedia association object
         await transaction.delete(obj)
 
@@ -44,7 +41,7 @@ class RemoveMediaFromDeliverable(BaseAction):
 
 
 @deliverable_media_actions
-class AcceptDeliverableMedia(BaseAction):
+class AcceptDeliverableMedia(BaseObjectAction):
     """Accept/approve a media file in a deliverable."""
 
     action_key = DeliverableMediaActions.accept
@@ -58,11 +55,7 @@ class AcceptDeliverableMedia(BaseAction):
     ]
 
     @classmethod
-    async def execute(
-        cls,
-        obj: DeliverableMedia,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: DeliverableMedia, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         # Set approved_at to current time
         obj.approved_at = datetime.now(tz=UTC)
 
@@ -77,7 +70,7 @@ class AcceptDeliverableMedia(BaseAction):
 
 
 @deliverable_media_actions
-class RejectDeliverableMedia(BaseAction):
+class RejectDeliverableMedia(BaseObjectAction):
     """Reject/unapprove a media file in a deliverable."""
 
     action_key = DeliverableMediaActions.reject
@@ -91,11 +84,7 @@ class RejectDeliverableMedia(BaseAction):
     ]
 
     @classmethod
-    async def execute(
-        cls,
-        obj: DeliverableMedia,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: DeliverableMedia, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         # Set approved_at to None
         obj.approved_at = None
 

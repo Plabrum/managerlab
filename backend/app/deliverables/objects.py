@@ -41,7 +41,7 @@ class DeliverableObject(BaseObject[Deliverable]):
         return deliverable.state
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelDeliverableActions
+    top_level_action_group = ActionGroupType.DeliverableActions
     action_group = ActionGroupType.DeliverableActions
 
     # Load options for eager loading relationships

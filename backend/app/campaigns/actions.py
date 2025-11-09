@@ -1,7 +1,9 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.actions import ActionGroupType, BaseAction, action_group_factory
+from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.enums import CampaignActions
@@ -9,6 +11,7 @@ from app.campaigns.models import Campaign, CampaignContract
 from app.campaigns.schemas import (
     AddContractToCampaignSchema,
     AddDeliverableToCampaignSchema,
+    CampaignCreateSchema,
     CampaignUpdateSchema,
     ReplaceContractSchema,
 )
@@ -23,7 +26,7 @@ campaign_actions = action_group_factory(
 
 
 @campaign_actions
-class DeleteCampaign(BaseAction):
+class DeleteCampaign(BaseObjectAction):
     action_key = CampaignActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -33,11 +36,7 @@ class DeleteCampaign(BaseAction):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(
-        cls,
-        obj: Campaign,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: Campaign, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted campaign",
@@ -45,7 +44,7 @@ class DeleteCampaign(BaseAction):
 
 
 @campaign_actions
-class UpdateCampaign(BaseAction):
+class UpdateCampaign(BaseObjectAction):
     action_key = CampaignActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -58,13 +57,12 @@ class UpdateCampaign(BaseAction):
         obj: Campaign,
         data: CampaignUpdateSchema,
         transaction: AsyncSession,
-        user: int,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=user,
+            user_id=cls.deps.user,
             team_id=obj.team_id,
         )
 
@@ -74,7 +72,7 @@ class UpdateCampaign(BaseAction):
 
 
 @campaign_actions
-class AddDeliverableToCampaign(BaseAction):
+class AddDeliverableToCampaign(BaseObjectAction):
     """Add a new deliverable to a campaign."""
 
     action_key = CampaignActions.add_deliverable
@@ -90,17 +88,15 @@ class AddDeliverableToCampaign(BaseAction):
         obj: Campaign,
         data: AddDeliverableToCampaignSchema,
         transaction: AsyncSession,
-        team_id: int,
-        user: int,
     ) -> ActionExecutionResponse:
         # Create a new deliverable associated with this campaign
         await create_model(
             session=transaction,
-            team_id=team_id,
+            team_id=cls.deps.team_id,
             campaign_id=obj.id,
             model_class=Deliverable,
             create_vals=data,
-            user_id=user,
+            user_id=cls.deps.user,
         )
 
         return ActionExecutionResponse(
@@ -110,7 +106,7 @@ class AddDeliverableToCampaign(BaseAction):
 
 
 @campaign_actions
-class AddContractToCampaign(BaseAction):
+class AddContractToCampaign(BaseObjectAction):
     """Add initial contract to a campaign."""
 
     action_key = CampaignActions.add_contract
@@ -125,13 +121,12 @@ class AddContractToCampaign(BaseAction):
         obj: Campaign,
         data: AddContractToCampaignSchema,
         transaction: AsyncSession,
-        team_id: int,
     ) -> ActionExecutionResponse:
         # Create association
         association = CampaignContract(
             campaign_id=obj.id,
             document_id=data.document_id,
-            team_id=team_id,
+            team_id=cls.deps.team_id,
         )
         transaction.add(association)
 
@@ -146,7 +141,7 @@ class AddContractToCampaign(BaseAction):
 
 
 @campaign_actions
-class ReplaceContract(BaseAction):
+class ReplaceContract(BaseObjectAction):
     """Replace existing contract with new version."""
 
     action_key = CampaignActions.replace_contract
@@ -161,13 +156,12 @@ class ReplaceContract(BaseAction):
         obj: Campaign,
         data: ReplaceContractSchema,
         transaction: AsyncSession,
-        team_id: int,
     ) -> ActionExecutionResponse:
         # Create new association (becomes latest via created_at)
         association = CampaignContract(
             campaign_id=obj.id,
             document_id=data.document_id,
-            team_id=team_id,
+            team_id=cls.deps.team_id,
         )
         transaction.add(association)
 
@@ -179,3 +173,45 @@ class ReplaceContract(BaseAction):
     def is_available(cls, obj: Campaign | None) -> bool:
         # Only available if campaign already has a contract
         return obj is not None and obj.contract is not None
+
+
+@campaign_actions
+class CreateCampaign(BaseTopLevelAction):
+    action_key = CampaignActions.create
+    label = "Create Campaign"
+    is_bulk_allowed = False
+    priority = 1
+    icon = ActionIcon.add
+
+    @classmethod
+    async def execute(
+        cls,
+        data: CampaignCreateSchema,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        # Extract contract_document_id before creating campaign
+        contract_document_id = data.contract_document_id
+
+        # brand_id is already decoded from SQID string to int by msgspec
+        new_campaign = await create_model(
+            session=transaction,
+            team_id=cls.deps.team_id,
+            campaign_id=None,
+            model_class=Campaign,
+            create_vals=data,
+            user_id=cls.deps.user,
+            ignore_fields=["contract_document_id"],
+        )
+
+        # If a contract document was provided, create the association
+        if contract_document_id is not None:
+            contract_association = CampaignContract(
+                campaign_id=new_campaign.id,
+                document_id=contract_document_id,
+                team_id=cls.deps.team_id,
+            )
+            transaction.add(contract_association)
+
+        return ActionExecutionResponse(
+            message=f"Created campaign '{new_campaign.name}'",
+        )

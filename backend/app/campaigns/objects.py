@@ -25,7 +25,7 @@ class CampaignObject(BaseObject[Campaign]):
         return Campaign
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelCampaignActions
+    top_level_action_group = ActionGroupType.CampaignActions
     action_group = ActionGroupType.CampaignActions
 
     # Load options for eager loading relationships

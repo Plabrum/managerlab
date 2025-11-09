@@ -1,24 +1,27 @@
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.actions.base import BaseAction, action_group_factory
+from app.actions.base import BaseObjectAction, BaseTopLevelAction, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.deliverables.enums import DeliverableActions, DeliverableStates
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.schemas import (
     AddMediaToDeliverableSchema,
+    DeliverableCreateSchema,
     DeliverableUpdateSchema,
 )
 from app.media.models import Media
-from app.utils.db import update_model
+from app.utils.db import create_model, update_model
 
 deliverable_actions = action_group_factory(ActionGroupType.DeliverableActions, model_type=Deliverable)
 
 
 @deliverable_actions
-class DeleteDeliverable(BaseAction):
+class DeleteDeliverable(BaseObjectAction):
     action_key = DeliverableActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -28,11 +31,7 @@ class DeleteDeliverable(BaseAction):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(
-        cls,
-        obj: Deliverable,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: Deliverable, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted deliverable",
@@ -40,7 +39,7 @@ class DeleteDeliverable(BaseAction):
 
 
 @deliverable_actions
-class EditDeliverable(BaseAction):
+class EditDeliverable(BaseObjectAction):
     action_key = DeliverableActions.update
     label = "Edit"
     is_bulk_allowed = True
@@ -53,13 +52,12 @@ class EditDeliverable(BaseAction):
         obj: Deliverable,
         data: DeliverableUpdateSchema,
         transaction: AsyncSession,
-        user: int,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=user,
+            user_id=cls.deps.user,
             team_id=obj.team_id,
         )
 
@@ -69,7 +67,7 @@ class EditDeliverable(BaseAction):
 
 
 @deliverable_actions
-class PublishDeliverable(BaseAction):
+class PublishDeliverable(BaseObjectAction):
     """Publish a draft deliverable."""
 
     action_key = DeliverableActions.publish
@@ -79,10 +77,7 @@ class PublishDeliverable(BaseAction):
     icon = ActionIcon.send
 
     @classmethod
-    async def execute(
-        cls,
-        obj: Deliverable,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: Deliverable) -> ActionExecutionResponse:
         obj.state = DeliverableStates.POSTED
 
         return ActionExecutionResponse(
@@ -95,7 +90,7 @@ class PublishDeliverable(BaseAction):
 
 
 @deliverable_actions
-class AddMediaToDeliverable(BaseAction):
+class AddMediaToDeliverable(BaseObjectAction):
     """Add media files to a deliverable."""
 
     action_key = DeliverableActions.add_media
@@ -112,7 +107,6 @@ class AddMediaToDeliverable(BaseAction):
         obj: Deliverable,
         data: AddMediaToDeliverableSchema,
         transaction: AsyncSession,
-        team_id: int,
     ) -> ActionExecutionResponse:
         # media_ids are already decoded from SQID strings to ints by msgspec
         requested_media_ids = data.media_ids
@@ -136,7 +130,7 @@ class AddMediaToDeliverable(BaseAction):
         # Create DeliverableMedia association objects for new media
         for media_id in new_media_ids:
             association = DeliverableMedia(
-                team_id=team_id,
+                team_id=cls.deps.team_id,
                 deliverable_id=obj.id,
                 media_id=media_id,
                 approved_at=None,
@@ -146,4 +140,31 @@ class AddMediaToDeliverable(BaseAction):
 
         return ActionExecutionResponse(
             message=f"Added {len(new_media_ids)} media file(s) to deliverable",
+        )
+
+
+@deliverable_actions
+class CreateDeliverable(BaseTopLevelAction):
+    action_key = DeliverableActions.create
+    label = "Create Deliverable"
+    is_bulk_allowed = False
+    priority = 1
+    icon = ActionIcon.add
+
+    @classmethod
+    async def execute(
+        cls,
+        data: DeliverableCreateSchema,
+        transaction: AsyncSession,
+    ) -> ActionExecutionResponse:
+        deliverable = await create_model(
+            session=transaction,
+            team_id=cls.deps.team_id,
+            campaign_id=None,
+            model_class=Deliverable,
+            create_vals=data,
+            user_id=cls.deps.user,
+        )
+        return ActionExecutionResponse(
+            message=f"Created deliverable '{deliverable.title}'",
         )

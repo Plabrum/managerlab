@@ -32,7 +32,7 @@ class DocumentObject(BaseObject[Document]):
         return document.state
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelDocumentActions
+    top_level_action_group = ActionGroupType.DocumentActions
     action_group = ActionGroupType.DocumentActions
 
     column_definitions = [

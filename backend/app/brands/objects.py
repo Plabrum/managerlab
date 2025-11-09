@@ -30,7 +30,7 @@ class BrandObject(BaseObject[Brand]):
         return brand.description or ""
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelBrandActions
+    top_level_action_group = ActionGroupType.BrandActions
     action_group = ActionGroupType.BrandActions
 
     column_definitions = [

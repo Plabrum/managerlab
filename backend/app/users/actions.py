@@ -1,3 +1,5 @@
+from typing import Any
+
 from litestar import Request
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_403_FORBIDDEN
@@ -5,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.actions import ActionGroupType, BaseAction, action_group_factory
+from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.emails.service import EmailService
@@ -21,7 +23,7 @@ team_actions = action_group_factory(
 
 
 @team_actions
-class DeleteTeam(BaseAction):
+class DeleteTeam(BaseObjectAction):
     action_key = TeamActions.delete
     label = "Delete Team"
     is_bulk_allowed = False
@@ -43,14 +45,9 @@ class DeleteTeam(BaseAction):
         return obj is None or obj.is_deleted
 
     @classmethod
-    async def execute(
-        cls,
-        obj: Team,
-        request: Request,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: Team, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         """Execute team deletion. Only owners can delete teams."""
-        user_id = request.user
+        user_id = cls.deps.request.user
 
         # Query the user's role for this team
         stmt = select(Role).where(

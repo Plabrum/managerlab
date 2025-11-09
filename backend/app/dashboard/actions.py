@@ -1,8 +1,10 @@
 """Dashboard actions for update and delete operations."""
 
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import ActionGroupType, BaseAction, action_group_factory
+from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.dashboard.enums import DashboardActions
@@ -17,7 +19,7 @@ dashboard_actions = action_group_factory(
 
 
 @dashboard_actions
-class DeleteDashboard(BaseAction):
+class DeleteDashboard(BaseObjectAction):
     """Delete a dashboard."""
 
     action_key = DashboardActions.delete
@@ -29,11 +31,7 @@ class DeleteDashboard(BaseAction):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(
-        cls,
-        obj: Dashboard,
-        transaction: AsyncSession,
-    ) -> ActionExecutionResponse:
+    async def execute(cls, obj: Dashboard, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Dashboard deleted successfully",
@@ -41,7 +39,7 @@ class DeleteDashboard(BaseAction):
 
 
 @dashboard_actions
-class UpdateDashboard(BaseAction):
+class UpdateDashboard(BaseObjectAction):
     """Update a dashboard."""
 
     action_key = DashboardActions.update
@@ -56,13 +54,12 @@ class UpdateDashboard(BaseAction):
         obj: Dashboard,
         data: UpdateDashboardSchema,
         transaction: AsyncSession,
-        user: int,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=user,
+            user_id=cls.deps.user,
             team_id=obj.team_id,
         )
 
