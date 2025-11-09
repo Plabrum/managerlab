@@ -1,5 +1,3 @@
-from typing import Any
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -136,7 +134,7 @@ class AddContractToCampaign(BaseObjectAction[Campaign, AddContractToCampaignSche
         )
 
     @classmethod
-    def is_available(cls, obj: Campaign | None, **kwargs: Any) -> bool:
+    def is_available(cls, obj: Campaign | None) -> bool:
         # Only available if campaign has no contract
         return obj is not None and obj.contract is None
 
@@ -171,7 +169,7 @@ class ReplaceContract(BaseObjectAction[Campaign, ReplaceContractSchema]):
         )
 
     @classmethod
-    def is_available(cls, obj: Campaign | None, **kwargs: Any) -> bool:
+    def is_available(cls, obj: Campaign | None) -> bool:
         # Only available if campaign already has a contract
         return obj is not None and obj.contract is not None
 

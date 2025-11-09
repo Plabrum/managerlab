@@ -1,7 +1,5 @@
 """Message actions."""
 
-from typing import Any
-
 from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,14 +32,11 @@ class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
     def is_available(
         cls,
         obj: Message | None,
-        *,
-        user_id: int,
-        **kwargs: Any,
     ) -> bool:
         """Only message author can edit their message."""
         if not obj:
             return False
-        return obj.user_id == user_id
+        return obj.user_id == cls.deps.user
 
     @classmethod
     async def execute(
@@ -87,14 +82,11 @@ class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
     def is_available(
         cls,
         obj: Message | None,
-        *,
-        user_id: int,
-        **kwargs: Any,
     ) -> bool:
         """Only message author can delete their message."""
         if not obj:
             return False
-        return obj.user_id == user_id
+        return obj.user_id == cls.deps.user
 
     @classmethod
     async def execute(

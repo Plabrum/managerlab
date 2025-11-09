@@ -36,7 +36,6 @@ class DeleteTeam(BaseObjectAction[Team, EmptyActionData]):
     def is_available(
         cls,
         obj: Team | None,
-        **kwargs,
     ) -> bool:
         """Action is available if team exists and is not already deleted."""
         return obj is None or obj.is_deleted
@@ -82,7 +81,6 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
     def is_available(
         cls,
         obj: Team | None,
-        **kwargs,
     ) -> bool:
         if obj is None or obj.is_deleted:
             return False

@@ -1,5 +1,4 @@
 from datetime import UTC, datetime
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -68,7 +67,7 @@ class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]
         )
 
     @classmethod
-    def is_available(cls, obj: DeliverableMedia | None, **kwargs: Any) -> bool:
+    def is_available(cls, obj: DeliverableMedia | None) -> bool:
         # Only available if not already approved
         return obj is not None and obj.approved_at is None
 
@@ -99,6 +98,6 @@ class RejectDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]
         )
 
     @classmethod
-    def is_available(cls, obj: DeliverableMedia | None, **kwargs: Any) -> bool:
+    def is_available(cls, obj: DeliverableMedia | None) -> bool:
         # Only available if already approved
         return obj is not None and obj.approved_at is not None

@@ -1,5 +1,3 @@
-from typing import Any
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
@@ -86,7 +84,7 @@ class DownloadMedia(BaseObjectAction[Media, EmptyActionData]):
         )
 
     @classmethod
-    def is_available(cls, obj: Media | None, **kwargs: Any) -> bool:
+    def is_available(cls, obj: Media | None) -> bool:
         return obj is not None and obj.state == MediaStates.READY
 
 

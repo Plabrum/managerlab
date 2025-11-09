@@ -1,4 +1,3 @@
-import inspect
 from abc import ABC
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, ClassVar
@@ -24,36 +23,6 @@ class EmptyActionData(Struct):
     """Empty struct for actions that don't require any data."""
 
     pass
-
-
-def _filter_kwargs_by_signature(func: Any, available_kwargs: dict[str, Any]) -> dict[str, Any]:
-    """Filter kwargs to only include parameters that the function accepts.
-
-    Args:
-        func: The function/method to inspect
-        available_kwargs: Dict of all available keyword arguments
-
-    Returns:
-        Dict containing only the kwargs that the function accepts
-    """
-    # Handle classmethods by unwrapping to get the actual function
-    if isinstance(func, classmethod):
-        func = func.__func__
-
-    sig = inspect.signature(func)
-    accepted_params = set(sig.parameters.keys())
-
-    # Remove 'cls' or 'self' from accepted params as they're implicit
-    accepted_params.discard("cls")
-    accepted_params.discard("self")
-
-    # If function accepts **kwargs, return all available kwargs
-    for param in sig.parameters.values():
-        if param.kind == inspect.Parameter.VAR_KEYWORD:
-            return available_kwargs
-
-    # Otherwise, filter to only accepted parameters
-    return {k: v for k, v in available_kwargs.items() if k in accepted_params}
 
 
 class BaseAction[O: BaseDBModel, D: Struct](ABC):
@@ -101,7 +70,6 @@ class BaseAction[O: BaseDBModel, D: Struct](ABC):
     def is_available(
         cls,
         obj: O | None,
-        **kwargs: Any,
     ) -> bool:
         return True
 
@@ -259,11 +227,14 @@ class ActionGroup:
         self,
         obj: BaseDBModel | None = None,
     ) -> list[ActionDTO]:
+        from app.actions.deps import ActionDeps
+
         available = []
         for action_key, action_class in self.actions.items():
-            # Filter dependencies to only those accepted by is_available method
-            filtered_kwargs = _filter_kwargs_by_signature(action_class.is_available, self.action_registry.dependencies)
-            if action_class.is_available(obj, **filtered_kwargs):
+            # Inject dependencies via deps property (same as trigger method)
+            action_class.deps = ActionDeps(**self.action_registry.dependencies)
+
+            if action_class.is_available(obj):
                 available.append((action_key, action_class))
 
         # Sort by priority

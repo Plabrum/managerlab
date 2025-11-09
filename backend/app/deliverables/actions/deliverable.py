@@ -1,5 +1,3 @@
-from typing import Any
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -89,7 +87,7 @@ class PublishDeliverable(BaseObjectAction[Deliverable, EmptyActionData]):
         )
 
     @classmethod
-    def is_available(cls, obj: Deliverable | None, **kwargs: Any) -> bool:
+    def is_available(cls, obj: Deliverable | None) -> bool:
         return obj is not None and obj.state == DeliverableStates.DRAFT
 
 
