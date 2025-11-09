@@ -1,10 +1,15 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions import (
+    ActionGroupType,
+    BaseObjectAction,
+    BaseTopLevelAction,
+    action_group_factory,
+)
 from app.actions.base import EmptyActionData
 from app.actions.enums import ActionIcon
-from app.actions.schemas import ActionExecutionResponse
+from app.actions.schemas import ActionExecutionResponse, RedirectActionResult
 from app.campaigns.enums import CampaignActions
 from app.campaigns.models import Campaign, CampaignContract
 from app.campaigns.schemas import (
@@ -213,4 +218,5 @@ class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
 
         return ActionExecutionResponse(
             message=f"Created campaign '{new_campaign.name}'",
+            action_result=RedirectActionResult(path=f"/campaigns/{new_campaign.id}?edit"),
         )

@@ -154,6 +154,8 @@ class ActionGroup:
     ) -> None:
         self.group_type = group_type
         self.actions: dict[str, type[BaseAction]] = {}
+        self.object_actions: dict[str, type[BaseObjectAction]] = {}
+        self.top_level_actions: dict[str, type[BaseTopLevelAction]] = {}
         self.action_registry = action_registry
         self.model_type = model_type
         self._execute_union: type | None = None
@@ -164,7 +166,16 @@ class ActionGroup:
         action_class.model = self.model_type
         action_key = action_class.action_key
         combined_key = self._get_action_key(action_key)
+
+        # Register in main actions dict
         self.actions[combined_key] = action_class
+
+        # Classify into appropriate type-specific dictionary
+        if issubclass(action_class, BaseObjectAction):
+            self.object_actions[combined_key] = action_class  # type: ignore[assignment]
+        elif issubclass(action_class, BaseTopLevelAction):
+            self.top_level_actions[combined_key] = action_class  # type: ignore[assignment]
+
         self.action_registry.register_action(combined_key, action_class)
         return action_class
 
@@ -229,8 +240,11 @@ class ActionGroup:
     ) -> list[ActionDTO]:
         from app.actions.deps import ActionDeps
 
+        # Select the appropriate pre-sorted dictionary
+        actions_dict = self.top_level_actions if obj is None else self.object_actions
+
         available = []
-        for action_key, action_class in self.actions.items():
+        for action_key, action_class in actions_dict.items():
             # Inject dependencies via deps property (same as trigger method)
             action_class.deps = ActionDeps(**self.action_registry.dependencies)
 
