@@ -608,7 +608,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
 
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side={side}>
+        <SheetContent side={side} className="flex flex-col">
           <SheetHeader>
             <SheetTitle>{title}</SheetTitle>
             {subTitle && <SheetDescription>{subTitle}</SheetDescription>}
@@ -617,13 +617,13 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
           <Form
             onSubmit={onSubmit}
             defaultValues={defaultValues}
-            className="flex h-full flex-col space-y-4"
+            className="flex min-h-0 flex-1 flex-col"
           >
             <div className="flex-1 space-y-4 overflow-y-auto px-4">
               {children}
             </div>
 
-            <SheetFooter>
+            <SheetFooter className="mb-0 flex flex-row pt-0">
               <Button type="submit" disabled={isSubmitting} className="flex-1">
                 {isSubmitting ? 'Please wait...' : submitText}
               </Button>
