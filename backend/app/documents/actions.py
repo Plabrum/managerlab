@@ -3,6 +3,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions.base import EmptyActionData
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
 from app.client.s3_client import S3Client
@@ -19,7 +20,7 @@ document_actions = action_group_factory(
 
 
 @document_actions
-class DeleteDocument(BaseObjectAction[Document]):
+class DeleteDocument(BaseObjectAction[Document, EmptyActionData]):
     action_key = DocumentActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -29,7 +30,7 @@ class DeleteDocument(BaseObjectAction[Document]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Document, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(cls, obj: Document, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted document",
@@ -37,7 +38,7 @@ class DeleteDocument(BaseObjectAction[Document]):
 
 
 @document_actions
-class UpdateDocument(BaseObjectAction[Document]):
+class UpdateDocument(BaseObjectAction[Document, DocumentUpdateSchema]):
     action_key = DocumentActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -65,7 +66,7 @@ class UpdateDocument(BaseObjectAction[Document]):
 
 
 @document_actions
-class DownloadDocument(BaseObjectAction[Document]):
+class DownloadDocument(BaseObjectAction[Document, EmptyActionData]):
     action_key = DocumentActions.download
     label = "Download"
     is_bulk_allowed = False
@@ -73,7 +74,7 @@ class DownloadDocument(BaseObjectAction[Document]):
     icon = ActionIcon.download
 
     @classmethod
-    async def execute(cls, obj: Document, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(cls, obj: Document, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
         download_url = cls.deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
 
         return ActionExecutionResponse(
@@ -90,7 +91,7 @@ class DownloadDocument(BaseObjectAction[Document]):
 
 
 @document_actions
-class CreateDocument(BaseTopLevelAction):
+class CreateDocument(BaseTopLevelAction[RegisterDocumentSchema]):
     action_key = DocumentActions.register
     label = "Create Document"
     is_bulk_allowed = False

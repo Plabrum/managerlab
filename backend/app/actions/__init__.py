@@ -5,6 +5,7 @@ from app.actions.base import (
     BaseAction,
     BaseObjectAction,
     BaseTopLevelAction,
+    EmptyActionData,
     action_group_factory,
 )
 from app.actions.enums import ActionGroupType
@@ -19,6 +20,7 @@ __all__ = [
     "BaseAction",
     "BaseObjectAction",
     "BaseTopLevelAction",
+    "EmptyActionData",
     "ActionRegistry",
     "ActionGroup",
     "action_group_factory",

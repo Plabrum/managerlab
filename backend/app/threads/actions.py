@@ -6,6 +6,7 @@ from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
+from app.actions.base import EmptyActionData
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.threads.enums import MessageActions, ThreadSocketMessageType
@@ -22,7 +23,7 @@ message_actions = action_group_factory(
 
 
 @message_actions
-class UpdateMessage(BaseObjectAction[Message]):
+class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
     action_key = MessageActions.update
     label = "Edit"
     is_bulk_allowed = False
@@ -73,7 +74,7 @@ class UpdateMessage(BaseObjectAction[Message]):
 
 
 @message_actions
-class DeleteMessage(BaseObjectAction[Message]):
+class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
     action_key = MessageActions.delete
     label = "Delete"
     is_bulk_allowed = False
@@ -99,7 +100,7 @@ class DeleteMessage(BaseObjectAction[Message]):
     async def execute(
         cls,
         obj: Message,
-        data: Any,
+        data: EmptyActionData,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         # Soft delete

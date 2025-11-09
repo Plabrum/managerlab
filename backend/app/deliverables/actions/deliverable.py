@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.actions.base import BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions.base import BaseObjectAction, BaseTopLevelAction, EmptyActionData, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.deliverables.enums import DeliverableActions, DeliverableStates
@@ -21,7 +21,7 @@ deliverable_actions = action_group_factory(ActionGroupType.DeliverableActions, m
 
 
 @deliverable_actions
-class DeleteDeliverable(BaseObjectAction[Deliverable]):
+class DeleteDeliverable(BaseObjectAction[Deliverable, EmptyActionData]):
     action_key = DeliverableActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -31,7 +31,9 @@ class DeleteDeliverable(BaseObjectAction[Deliverable]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Deliverable, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Deliverable, data: EmptyActionData, transaction: AsyncSession
+    ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted deliverable",
@@ -39,7 +41,7 @@ class DeleteDeliverable(BaseObjectAction[Deliverable]):
 
 
 @deliverable_actions
-class EditDeliverable(BaseObjectAction[Deliverable]):
+class EditDeliverable(BaseObjectAction[Deliverable, DeliverableUpdateSchema]):
     action_key = DeliverableActions.update
     label = "Edit"
     is_bulk_allowed = True
@@ -67,7 +69,7 @@ class EditDeliverable(BaseObjectAction[Deliverable]):
 
 
 @deliverable_actions
-class PublishDeliverable(BaseObjectAction[Deliverable]):
+class PublishDeliverable(BaseObjectAction[Deliverable, EmptyActionData]):
     """Publish a draft deliverable."""
 
     action_key = DeliverableActions.publish
@@ -77,7 +79,9 @@ class PublishDeliverable(BaseObjectAction[Deliverable]):
     icon = ActionIcon.send
 
     @classmethod
-    async def execute(cls, obj: Deliverable, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Deliverable, data: EmptyActionData, transaction: AsyncSession
+    ) -> ActionExecutionResponse:
         obj.state = DeliverableStates.POSTED
 
         return ActionExecutionResponse(
@@ -90,7 +94,7 @@ class PublishDeliverable(BaseObjectAction[Deliverable]):
 
 
 @deliverable_actions
-class AddMediaToDeliverable(BaseObjectAction[Deliverable]):
+class AddMediaToDeliverable(BaseObjectAction[Deliverable, AddMediaToDeliverableSchema]):
     """Add media files to a deliverable."""
 
     action_key = DeliverableActions.add_media
@@ -144,7 +148,7 @@ class AddMediaToDeliverable(BaseObjectAction[Deliverable]):
 
 
 @deliverable_actions
-class CreateDeliverable(BaseTopLevelAction):
+class CreateDeliverable(BaseTopLevelAction[DeliverableCreateSchema]):
     action_key = DeliverableActions.create
     label = "Create Deliverable"
     is_bulk_allowed = False

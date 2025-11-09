@@ -1,3 +1,6 @@
 """Email module for sending emails via AWS SES."""
 
-__all__ = ["EmailClient", "LocalEmailClient", "SESEmailClient", "EmailService"]
+from app.emails.client import BaseEmailClient, LocalEmailClient, SESEmailClient
+from app.emails.service import EmailService
+
+__all__ = ["BaseEmailClient", "LocalEmailClient", "SESEmailClient", "EmailService"]

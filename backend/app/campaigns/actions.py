@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions.base import EmptyActionData
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.campaigns.enums import CampaignActions
@@ -26,7 +27,7 @@ campaign_actions = action_group_factory(
 
 
 @campaign_actions
-class DeleteCampaign(BaseObjectAction[Campaign]):
+class DeleteCampaign(BaseObjectAction[Campaign, EmptyActionData]):
     action_key = CampaignActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -36,7 +37,7 @@ class DeleteCampaign(BaseObjectAction[Campaign]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Campaign, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(cls, obj: Campaign, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted campaign",
@@ -44,7 +45,7 @@ class DeleteCampaign(BaseObjectAction[Campaign]):
 
 
 @campaign_actions
-class UpdateCampaign(BaseObjectAction[Campaign]):
+class UpdateCampaign(BaseObjectAction[Campaign, CampaignUpdateSchema]):
     action_key = CampaignActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -72,7 +73,7 @@ class UpdateCampaign(BaseObjectAction[Campaign]):
 
 
 @campaign_actions
-class AddDeliverableToCampaign(BaseObjectAction[Campaign]):
+class AddDeliverableToCampaign(BaseObjectAction[Campaign, AddDeliverableToCampaignSchema]):
     """Add a new deliverable to a campaign."""
 
     action_key = CampaignActions.add_deliverable
@@ -106,7 +107,7 @@ class AddDeliverableToCampaign(BaseObjectAction[Campaign]):
 
 
 @campaign_actions
-class AddContractToCampaign(BaseObjectAction[Campaign]):
+class AddContractToCampaign(BaseObjectAction[Campaign, AddContractToCampaignSchema]):
     """Add initial contract to a campaign."""
 
     action_key = CampaignActions.add_contract
@@ -141,7 +142,7 @@ class AddContractToCampaign(BaseObjectAction[Campaign]):
 
 
 @campaign_actions
-class ReplaceContract(BaseObjectAction[Campaign]):
+class ReplaceContract(BaseObjectAction[Campaign, ReplaceContractSchema]):
     """Replace existing contract with new version."""
 
     action_key = CampaignActions.replace_contract
@@ -176,7 +177,7 @@ class ReplaceContract(BaseObjectAction[Campaign]):
 
 
 @campaign_actions
-class CreateCampaign(BaseTopLevelAction):
+class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
     action_key = CampaignActions.create
     label = "Create Campaign"
     is_bulk_allowed = False

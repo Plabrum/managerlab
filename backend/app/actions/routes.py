@@ -76,7 +76,6 @@ async def execute_object_action(
     action_registry: ActionRegistry,
 ) -> ActionExecutionResponse:
     action_group_instance = action_registry.get_class(action_group)
-    # object_id is already decoded from SQID string to int by msgspec
     return await action_group_instance.trigger(
         object_id=object_id,
         data=data,

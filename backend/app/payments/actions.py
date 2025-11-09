@@ -1,8 +1,7 @@
-from typing import Any
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions.base import EmptyActionData
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.payments.enums import InvoiceActions
@@ -14,7 +13,7 @@ invoice_actions = action_group_factory(ActionGroupType.InvoiceActions, model_typ
 
 
 @invoice_actions
-class DeleteInvoice(BaseObjectAction[Invoice]):
+class DeleteInvoice(BaseObjectAction[Invoice, EmptyActionData]):
     action_key = InvoiceActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -24,7 +23,7 @@ class DeleteInvoice(BaseObjectAction[Invoice]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Invoice, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(cls, obj: Invoice, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted invoice",
@@ -32,7 +31,7 @@ class DeleteInvoice(BaseObjectAction[Invoice]):
 
 
 @invoice_actions
-class UpdateInvoice(BaseObjectAction[Invoice]):
+class UpdateInvoice(BaseObjectAction[Invoice, InvoiceUpdateSchema]):
     action_key = InvoiceActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -60,7 +59,7 @@ class UpdateInvoice(BaseObjectAction[Invoice]):
 
 
 @invoice_actions
-class CreateInvoice(BaseTopLevelAction):
+class CreateInvoice(BaseTopLevelAction[InvoiceCreateSchema]):
     action_key = InvoiceActions.create
     label = "Create Invoice"
     is_bulk_allowed = False

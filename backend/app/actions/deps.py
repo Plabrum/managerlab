@@ -8,6 +8,7 @@ from litestar_saq import TaskQueues
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.client.s3_client import S3Client
+from app.emails.service import EmailService
 from app.utils.configure import Config
 
 
@@ -33,3 +34,4 @@ class ActionDeps:
     task_queues: TaskQueues
     channels: ChannelsPlugin
     config: Config
+    email_service: EmailService

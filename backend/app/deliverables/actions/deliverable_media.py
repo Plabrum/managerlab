@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.actions.base import BaseObjectAction, action_group_factory
+from app.actions.base import BaseObjectAction, EmptyActionData, action_group_factory
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.deliverables.enums import DeliverableMediaActions
@@ -17,7 +17,7 @@ deliverable_media_actions = action_group_factory(
 
 
 @deliverable_media_actions
-class RemoveMediaFromDeliverable(BaseObjectAction[DeliverableMedia]):
+class RemoveMediaFromDeliverable(BaseObjectAction[DeliverableMedia, EmptyActionData]):
     """Remove media files from a deliverable."""
 
     action_key = DeliverableMediaActions.remove_media
@@ -31,7 +31,9 @@ class RemoveMediaFromDeliverable(BaseObjectAction[DeliverableMedia]):
     ]
 
     @classmethod
-    async def execute(cls, obj: DeliverableMedia, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession
+    ) -> ActionExecutionResponse:
         # Delete the DeliverableMedia association object
         await transaction.delete(obj)
 
@@ -41,7 +43,7 @@ class RemoveMediaFromDeliverable(BaseObjectAction[DeliverableMedia]):
 
 
 @deliverable_media_actions
-class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia]):
+class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]):
     """Accept/approve a media file in a deliverable."""
 
     action_key = DeliverableMediaActions.accept
@@ -55,7 +57,9 @@ class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia]):
     ]
 
     @classmethod
-    async def execute(cls, obj: DeliverableMedia, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession
+    ) -> ActionExecutionResponse:
         # Set approved_at to current time
         obj.approved_at = datetime.now(tz=UTC)
 
@@ -70,7 +74,7 @@ class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia]):
 
 
 @deliverable_media_actions
-class RejectDeliverableMedia(BaseObjectAction[DeliverableMedia]):
+class RejectDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]):
     """Reject/unapprove a media file in a deliverable."""
 
     action_key = DeliverableMediaActions.reject
@@ -84,7 +88,9 @@ class RejectDeliverableMedia(BaseObjectAction[DeliverableMedia]):
     ]
 
     @classmethod
-    async def execute(cls, obj: DeliverableMedia, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession
+    ) -> ActionExecutionResponse:
         # Set approved_at to None
         obj.approved_at = None
 

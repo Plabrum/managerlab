@@ -1,8 +1,7 @@
-from typing import Any
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions.base import EmptyActionData
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.roster.enums import RosterActions
@@ -18,7 +17,7 @@ roster_actions = action_group_factory(
 
 
 @roster_actions
-class DeleteRoster(BaseObjectAction[Roster]):
+class DeleteRoster(BaseObjectAction[Roster, EmptyActionData]):
     action_key = RosterActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -28,7 +27,7 @@ class DeleteRoster(BaseObjectAction[Roster]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Roster, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(cls, obj: Roster, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
         from datetime import datetime, timezone
 
         # Soft delete by setting deleted_at
@@ -40,7 +39,7 @@ class DeleteRoster(BaseObjectAction[Roster]):
 
 
 @roster_actions
-class UpdateRoster(BaseObjectAction[Roster]):
+class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
     action_key = RosterActions.update
     label = "Edit"
     is_bulk_allowed = True
@@ -68,7 +67,7 @@ class UpdateRoster(BaseObjectAction[Roster]):
 
 
 @roster_actions
-class CreateRoster(BaseTopLevelAction):
+class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
     action_key = RosterActions.create
     label = "Create Roster Member"
     is_bulk_allowed = False

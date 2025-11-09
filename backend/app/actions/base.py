@@ -3,6 +3,7 @@ from abc import ABC
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, ClassVar
 
+from msgspec import Struct
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
@@ -17,6 +18,12 @@ from app.base.models import BaseDBModel
 
 if TYPE_CHECKING:
     from app.actions.deps import ActionDeps
+
+
+class EmptyActionData(Struct):
+    """Empty struct for actions that don't require any data."""
+
+    pass
 
 
 def _filter_kwargs_by_signature(func: Any, available_kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -49,8 +56,12 @@ def _filter_kwargs_by_signature(func: Any, available_kwargs: dict[str, Any]) -> 
     return {k: v for k, v in available_kwargs.items() if k in accepted_params}
 
 
-class BaseAction[O: BaseDBModel](ABC):
+class BaseAction[O: BaseDBModel, D: Struct](ABC):
     """Base class for all actions - shared attributes and methods.
+
+    Type parameters:
+        O: The database model type this action operates on
+        D: The msgspec Struct type for action data/schema
 
     Use BaseObjectAction for actions that operate on existing objects.
     Use BaseTopLevelAction for actions that don't require an existing object (e.g., create).
@@ -95,20 +106,24 @@ class BaseAction[O: BaseDBModel](ABC):
         return True
 
 
-class BaseObjectAction[O: BaseDBModel](BaseAction[O]):
+class BaseObjectAction[O: BaseDBModel, D: Struct](BaseAction[O, D]):
     """Base class for actions that operate on existing database objects.
+
+    Type parameters:
+        O: The database model type this action operates on
+        D: The msgspec Struct type for action data/schema
 
     Example: DeleteBrand, UpdateCampaign, PublishDeliverable
 
     Subclasses must implement:
-        async def execute(cls, obj: ModelType, data: Any, transaction: AsyncSession)
+        async def execute(cls, obj: O, data: D, transaction: AsyncSession)
     """
 
     @classmethod
     async def execute(
         cls,
         obj: O,
-        data: Any,
+        data: D,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         """Execute the action on an existing object.
@@ -127,19 +142,22 @@ class BaseObjectAction[O: BaseDBModel](BaseAction[O]):
         raise NotImplementedError(f"{cls.__name__} must implement execute()")
 
 
-class BaseTopLevelAction(BaseAction):
+class BaseTopLevelAction[D: Struct](BaseAction[BaseDBModel, D]):
     """Base class for actions that don't operate on existing objects.
+
+    Type parameters:
+        D: The msgspec Struct type for action data/schema
 
     Example: CreateBrand, CreateCampaign, RegisterMedia
 
     Subclasses must implement:
-        async def execute(cls, data: CreateSchema, transaction: AsyncSession)
+        async def execute(cls, data: D, transaction: AsyncSession)
     """
 
     @classmethod
     async def execute(
         cls,
-        data: Any,
+        data: D,
         transaction: AsyncSession,
     ) -> ActionExecutionResponse:
         """Execute the action without an existing object.

@@ -3,6 +3,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions.base import EmptyActionData
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
 from app.client.s3_client import S3Client
@@ -19,7 +20,7 @@ media_actions = action_group_factory(
 
 
 @media_actions
-class DeleteMedia(BaseObjectAction[Media]):
+class DeleteMedia(BaseObjectAction[Media, EmptyActionData]):
     action_key = MediaActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -29,7 +30,7 @@ class DeleteMedia(BaseObjectAction[Media]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Media, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(cls, obj: Media, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted media",
@@ -37,7 +38,7 @@ class DeleteMedia(BaseObjectAction[Media]):
 
 
 @media_actions
-class UpdateMedia(BaseObjectAction[Media]):
+class UpdateMedia(BaseObjectAction[Media, MediaUpdateSchema]):
     action_key = MediaActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -65,7 +66,7 @@ class UpdateMedia(BaseObjectAction[Media]):
 
 
 @media_actions
-class DownloadMedia(BaseObjectAction[Media]):
+class DownloadMedia(BaseObjectAction[Media, EmptyActionData]):
     action_key = MediaActions.download
     label = "Download"
     is_bulk_allowed = False
@@ -73,7 +74,7 @@ class DownloadMedia(BaseObjectAction[Media]):
     icon = ActionIcon.download
 
     @classmethod
-    async def execute(cls, obj: Media, data: Any, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(cls, obj: Media, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
         download_url = cls.deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
 
         return ActionExecutionResponse(
@@ -90,7 +91,7 @@ class DownloadMedia(BaseObjectAction[Media]):
 
 
 @media_actions
-class CreateMedia(BaseTopLevelAction):
+class CreateMedia(BaseTopLevelAction[RegisterMediaSchema]):
     action_key = MediaActions.register
     label = "Create Media"
     is_bulk_allowed = False
