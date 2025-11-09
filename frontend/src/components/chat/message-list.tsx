@@ -7,7 +7,7 @@ import { MessageItem } from './message-item';
 import type {
   MessageSchema,
   MessageSchemaContent,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface MessageListProps {
   messages: MessageSchema[];

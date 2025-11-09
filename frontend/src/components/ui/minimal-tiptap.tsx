@@ -29,7 +29,7 @@ import {
   Redo,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { MessageSchemaContent } from '@/openapi/managerLab.schemas';
+import type { MessageSchemaContent } from '@/openapi/ariveAPI.schemas';
 
 interface TiptapNode {
   type?: string;

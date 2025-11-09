@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Pie, PieChart, Cell, Legend } from 'recharts';
 import type { WidgetQuery } from '@/types/dashboard';
 import { getTimeSeriesData } from '@/openapi/objects/objects';
-import type { TimeSeriesDataResponse } from '@/openapi/managerLab.schemas';
+import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 import {
   ChartConfig,
   ChartContainer,

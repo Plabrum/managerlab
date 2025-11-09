@@ -4,7 +4,7 @@ import * as React from 'react';
 import type {
   ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import {
   TextFilter,
   RangeFilter,

@@ -591,6 +591,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     isSubmitting?: boolean;
     submitText?: string;
     side?: 'top' | 'right' | 'bottom' | 'left';
+    defaultValues?: DefaultValues<TFieldValues>;
   }) {
     const {
       isOpen,
@@ -602,6 +603,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       isSubmitting = false,
       submitText = 'Submit',
       side = 'right',
+      defaultValues,
     } = props;
 
     return (
@@ -612,7 +614,11 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
             {subTitle && <SheetDescription>{subTitle}</SheetDescription>}
           </SheetHeader>
 
-          <Form onSubmit={onSubmit} className="flex h-full flex-col space-y-4">
+          <Form
+            onSubmit={onSubmit}
+            defaultValues={defaultValues}
+            className="flex h-full flex-col space-y-4"
+          >
             <div className="flex-1 space-y-4 overflow-y-auto px-4">
               {children}
             </div>

@@ -1,7 +1,7 @@
 import type {
   ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 // Re-export the API types for backward compatibility
 export type DataTableColumn = ColumnDefinitionSchema;

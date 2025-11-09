@@ -4,7 +4,7 @@ import { Image } from '@/components/ui/image';
 import type {
   ObjectListSchema,
   ImageFieldValue,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import Link from 'next/link';
 
 interface MediaGalleryProps {

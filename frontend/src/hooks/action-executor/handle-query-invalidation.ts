@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import type { ActionExecutionResponse } from '@/openapi/managerLab.schemas';
+import type { ActionExecutionResponse } from '@/openapi/ariveAPI.schemas';
 
 /**
  * Handle query invalidation after action execution

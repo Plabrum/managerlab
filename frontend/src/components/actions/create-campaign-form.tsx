@@ -1,12 +1,12 @@
 'use client';
 
 import { createTypedForm } from '@/components/forms/base';
-import type { CampaignCreateSchema } from '@/openapi/managerLab.schemas';
+import type { CampaignCreateSchema } from '@/openapi/ariveAPI.schemas';
 import {
   CompensationStructure,
   CounterpartyType,
   OwnershipMode,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 import { useState, useCallback } from 'react';
 import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';

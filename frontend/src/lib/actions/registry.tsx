@@ -7,7 +7,7 @@ import type {
   MediaResponseSchema,
   RosterSchema,
   InvoiceSchema,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from '@/types/domain-objects';
 import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
 import { CreateDeliverableForm } from '@/components/actions/create-deliverable-form';
@@ -89,35 +89,35 @@ export type ActionToObjectMap = {
   campaign_actions__campaign_update: CampaignSchema;
   campaign_actions__campaign_delete: CampaignSchema;
   campaign_actions__campaign_add_deliverable: CampaignSchema;
-  top_level_campaign_actions__campaign_create: never; // Top-level, no object
+  campaign_actions__campaign_create: never; // Top-level, no object
 
   // Brand actions
   brand_actions__brand_update: BrandSchema;
   brand_actions__brand_delete: BrandSchema;
-  top_level_brand_actions__brand_create: never;
+  brand_actions__brand_create: never;
 
   // Deliverable actions
   deliverable_actions__deliverable_update: DeliverableResponseSchema;
   deliverable_actions__deliverable_delete: DeliverableResponseSchema;
   deliverable_actions__deliverable_publish: DeliverableResponseSchema;
   deliverable_actions__deliverable_add_media: DeliverableResponseSchema;
-  top_level_deliverable_actions__top_level_deliverable_create: never;
+  deliverable_actions__deliverable_create: never;
 
   // Media actions
   media_actions__media_update: MediaResponseSchema;
   media_actions__media_delete: MediaResponseSchema;
   media_actions__media_download: MediaResponseSchema;
-  top_level_media_actions__top_level_media_create: never;
+  media_actions__media_register: never;
 
   // Roster actions
   roster_actions__roster_update: RosterSchema;
   roster_actions__roster_delete: RosterSchema;
-  top_level_roster_actions__top_level_roster_create: never;
+  roster_actions__roster_create: never;
 
   // Invoice actions
   invoice_actions__invoice_update: InvoiceSchema;
   invoice_actions__invoice_delete: InvoiceSchema;
-  top_level_invoice_actions__invoice_create: never;
+  invoice_actions__invoice_create: never;
 
   // Deliverable media actions
   deliverable_media_actions__deliverable_media_accept: never; // No object, operates on association
@@ -130,10 +130,21 @@ export type ActionToObjectMap = {
 
   // Team actions
   team_actions__team_delete: never;
+  team_actions__team_invite_user: never;
 
   // Message actions
   message_actions__delete: never;
   message_actions__update: never;
+
+  // Document actions
+  document_actions__document_update: never;
+  document_actions__document_delete: never;
+  document_actions__document_download: never;
+  document_actions__document_register: never;
+
+  // Campaign contract actions
+  campaign_actions__campaign_add_contract: never;
+  campaign_actions__campaign_replace_contract: never;
 };
 
 /**
@@ -179,7 +190,7 @@ export const actionRegistry: ActionRegistry = {
       );
     },
   },
-  top_level_deliverable_actions__top_level_deliverable_create: {
+  deliverable_actions__deliverable_create: {
     render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateDeliverableForm
@@ -215,7 +226,7 @@ export const actionRegistry: ActionRegistry = {
   },
 
   // Media actions
-  top_level_media_actions__top_level_media_create: {
+  media_actions__media_register: {
     render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateMediaForm
@@ -230,7 +241,7 @@ export const actionRegistry: ActionRegistry = {
   },
 
   // Roster actions
-  top_level_roster_actions__top_level_roster_create: {
+  roster_actions__roster_create: {
     render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateRosterForm
@@ -270,7 +281,7 @@ export const actionRegistry: ActionRegistry = {
   },
 
   // Campaign actions
-  top_level_campaign_actions__campaign_create: {
+  campaign_actions__campaign_create: {
     render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateCampaignForm
@@ -323,7 +334,7 @@ export const actionRegistry: ActionRegistry = {
   },
 
   // Brand actions
-  top_level_brand_actions__brand_create: {
+  brand_actions__brand_create: {
     render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
       return (
         <CreateBrandForm
@@ -365,7 +376,7 @@ export const actionRegistry: ActionRegistry = {
   // Campaign actions (additional)
 
   // Invoice actions
-  top_level_invoice_actions__invoice_create: {
+  invoice_actions__invoice_create: {
     render: () => null, // TODO: Implement CreateInvoiceForm
   },
   invoice_actions__invoice_update: {
@@ -409,6 +420,9 @@ export const actionRegistry: ActionRegistry = {
   team_actions__team_delete: {
     render: () => null,
   },
+  team_actions__team_invite_user: {
+    render: () => null,
+  },
 
   // Message actions
   message_actions__delete: {
@@ -428,7 +442,7 @@ export const actionRegistry: ActionRegistry = {
   document_actions__document_download: {
     render: () => null,
   },
-  top_level_document_actions__top_level_document_create: {
+  document_actions__document_register: {
     render: () => null,
   },
 

@@ -5,7 +5,7 @@ import type { ColumnFiltersState } from '@tanstack/react-table';
 import type {
   ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';

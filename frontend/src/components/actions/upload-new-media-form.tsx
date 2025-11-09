@@ -13,7 +13,7 @@ import {
   AlertCircle,
   X,
 } from 'lucide-react';
-import { AddMediaToDeliverableSchema } from '@/openapi/managerLab.schemas';
+import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
 
 interface UploadNewMediaFormProps {

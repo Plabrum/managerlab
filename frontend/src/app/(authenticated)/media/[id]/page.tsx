@@ -6,7 +6,7 @@ import { MediaFields } from '@/components/media-detail';
 import { MediaViewer } from '@/components/media-viewer';
 import { useMediaIdGetMediaSuspense } from '@/openapi/media/media';
 import { PageTopBar } from '@/components/page-topbar';
-import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 
 export default function MediaDetailPage({
   params,

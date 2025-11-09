@@ -12,7 +12,7 @@ import {
   UploadIcon,
   X,
 } from 'lucide-react';
-import { RegisterMediaSchema } from '@/openapi/managerLab.schemas';
+import { RegisterMediaSchema } from '@/openapi/ariveAPI.schemas';
 import { Image } from '@/components/ui/image';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
 import {

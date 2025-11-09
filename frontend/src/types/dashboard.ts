@@ -4,7 +4,7 @@ import type {
   Granularity,
   AggregationType,
   ObjectTypes,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 export type WidgetType =
   | 'bar_chart'

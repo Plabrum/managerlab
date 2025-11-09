@@ -12,7 +12,7 @@ import {
   MessageSchema,
   UserSchema,
   MessageListResponse,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface UseThreadMessagesOptions {
   threadableType: ObjectTypes;

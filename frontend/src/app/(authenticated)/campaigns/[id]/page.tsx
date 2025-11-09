@@ -5,7 +5,7 @@ import { ObjectActions, ObjectChildList } from '@/components/object-detail';
 import { CampaignFields } from '@/components/campaign-detail';
 import { useCampaignsIdGetCampaignSuspense } from '@/openapi/campaigns/campaigns';
 import { PageTopBar } from '@/components/page-topbar';
-import { ActionGroupType, ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useAuth } from '@/components/providers/auth-provider';
 import { ObjectDetailTabs } from '@/components/object-detail-tabs';
 import { TabsContent } from '@/components/ui/tabs';

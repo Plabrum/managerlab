@@ -1,7 +1,7 @@
 'use client';
 
 import { Image } from '@/components/ui/image';
-import type { MediaResponseSchema } from '@/openapi/managerLab.schemas';
+import type { MediaResponseSchema } from '@/openapi/ariveAPI.schemas';
 import { cn } from '@/lib/utils';
 
 interface SimpleMediaGalleryProps {

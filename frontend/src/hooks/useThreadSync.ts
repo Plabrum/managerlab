@@ -2,7 +2,7 @@
 
 import { useThreadConnection } from './useThreadConnection';
 import { useThreadMessages } from './useThreadMessages';
-import { ObjectTypes, UserSchema } from '@/openapi/managerLab.schemas';
+import { ObjectTypes, UserSchema } from '@/openapi/ariveAPI.schemas';
 
 interface UseThreadSyncOptions {
   threadableType: ObjectTypes;

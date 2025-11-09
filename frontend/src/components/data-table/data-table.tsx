@@ -49,7 +49,7 @@ import type {
   ColumnDefinitionSchema,
   ObjectListSchema,
   ActionDTO,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import {
   formatCellValue,
   columnFiltersToRequestFilters,

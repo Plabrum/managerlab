@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
-import type { ActionDTO } from '@/openapi/managerLab.schemas';
+import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 
 /**
  * Hook to manage edit mode via URL parameters with permission checking

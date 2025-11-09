@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import type { ObjectActionData, TopLevelActionData } from '@/types/actions';
-import type { ActionDTO } from '@/openapi/managerLab.schemas';
+import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';

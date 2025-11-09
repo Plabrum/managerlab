@@ -8,7 +8,7 @@ import type {
   ActionExecutionResponse,
   ActionsActionGroupExecuteActionBody,
   ActionsActionGroupObjectIdExecuteObjectActionBody,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import {
   useActionsActionGroupExecuteAction,
   useActionsActionGroupObjectIdExecuteObjectAction,

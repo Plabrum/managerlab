@@ -1,4 +1,4 @@
-import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import { PageTopBar } from '@/components/page-topbar';
 import { ObjectList, TopLevelActions } from '@/components/object-list';
 
@@ -7,9 +7,7 @@ export default function CampaignsPage() {
     <PageTopBar
       title="Campaigns"
       actions={
-        <TopLevelActions
-          actionGroup={ActionGroupType.top_level_campaign_actions}
-        />
+        <TopLevelActions actionGroup={ActionGroupType.campaign_actions} />
       }
     >
       <ObjectList objectType="campaigns" />

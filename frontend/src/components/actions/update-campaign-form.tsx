@@ -1,12 +1,12 @@
 'use client';
 
 import { createTypedForm } from '@/components/forms/base';
-import type { CampaignUpdateSchema } from '@/openapi/managerLab.schemas';
+import type { CampaignUpdateSchema } from '@/openapi/ariveAPI.schemas';
 import {
   CompensationStructure,
   CounterpartyType,
   OwnershipMode,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 
 const {

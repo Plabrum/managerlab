@@ -7,7 +7,7 @@ import { TypingIndicator } from '@/components/chat/typing-indicator';
 import { ThreadViewers } from '@/components/chat/thread-viewers';
 import { useThreadSync } from '@/hooks/useThreadSync';
 import { useAuth } from '@/components/providers/auth-provider';
-import { ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 
 interface ActivityFeedProps {
   threadableType: ObjectTypes;

@@ -1,7 +1,7 @@
 'use client';
 
 import { createTypedForm } from '@/components/forms/base';
-import type { RosterUpdateSchema } from '@/openapi/managerLab.schemas';
+import type { RosterUpdateSchema } from '@/openapi/ariveAPI.schemas';
 
 const { FormModal, FormString } = createTypedForm<RosterUpdateSchema>();
 

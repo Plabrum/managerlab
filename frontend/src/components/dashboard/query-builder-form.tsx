@@ -16,7 +16,7 @@ import type {
   Granularity,
   AggregationType,
   ColumnDefinitionSchema,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
 
 interface QueryBuilderFormProps {

@@ -26,7 +26,7 @@ import {
   dashboardsIdGetDashboard,
 } from '@/openapi/dashboards/dashboards';
 import type { DashboardConfig, WidgetConfig } from '@/types/dashboard';
-import type { DashboardSchema } from '@/openapi/managerLab.schemas';
+import type { DashboardSchema } from '@/openapi/ariveAPI.schemas';
 import { toast } from 'sonner';
 import { PageTopBar } from '@/components/page-topbar';
 

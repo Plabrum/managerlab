@@ -4,7 +4,7 @@ import { use } from 'react';
 import { ObjectActions } from '@/components/object-detail';
 import { useInvoicesIdGetInvoiceSuspense } from '@/openapi/invoices/invoices';
 import { PageTopBar } from '@/components/page-topbar';
-import { ActionGroupType } from '@/openapi/managerLab.schemas';
+import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function InvoiceDetailPage({

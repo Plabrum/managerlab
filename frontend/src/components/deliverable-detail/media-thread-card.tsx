@@ -14,8 +14,8 @@ import { MessageInput } from '@/components/chat/message-input';
 import { TypingIndicator } from '@/components/chat/typing-indicator';
 import { useThreadSync } from '@/hooks/useThreadSync';
 import { useAuth } from '@/components/providers/auth-provider';
-import { ObjectTypes } from '@/openapi/managerLab.schemas';
-import type { DeliverableMediaAssociationSchema } from '@/openapi/managerLab.schemas';
+import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
+import type { DeliverableMediaAssociationSchema } from '@/openapi/ariveAPI.schemas';
 import { cn } from '@/lib/utils';
 
 interface MediaThreadCardProps {

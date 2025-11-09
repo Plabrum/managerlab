@@ -3,7 +3,7 @@
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { CampaignSchema } from '@/openapi/managerLab.schemas';
+import type { CampaignSchema } from '@/openapi/ariveAPI.schemas';
 
 interface CampaignFieldsProps {
   campaign: CampaignSchema;

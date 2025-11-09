@@ -2,7 +2,7 @@
  * Shared utilities for message components
  */
 
-import type { MessageSchemaContent } from '@/openapi/managerLab.schemas';
+import type { MessageSchemaContent } from '@/openapi/ariveAPI.schemas';
 
 interface TiptapNode {
   type?: string;

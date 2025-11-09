@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { BrandSchema } from '@/openapi/managerLab.schemas';
+import type { BrandSchema } from '@/openapi/ariveAPI.schemas';
 
 interface BrandFieldsProps {
   brand: BrandSchema;

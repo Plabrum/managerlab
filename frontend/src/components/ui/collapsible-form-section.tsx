@@ -20,7 +20,6 @@ interface CollapsibleFormSectionProps {
  */
 export function CollapsibleFormSection({
   title,
-  description,
   defaultOpen = false,
   children,
 }: CollapsibleFormSectionProps) {

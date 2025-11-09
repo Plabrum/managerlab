@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { RosterSchema } from '@/openapi/managerLab.schemas';
+import type { RosterSchema } from '@/openapi/ariveAPI.schemas';
 
 interface RosterFieldsProps {
   roster: RosterSchema;

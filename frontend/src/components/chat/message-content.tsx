@@ -1,6 +1,6 @@
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
 import { cn } from '@/lib/utils';
-import type { MessageSchemaContent } from '@/openapi/managerLab.schemas';
+import type { MessageSchemaContent } from '@/openapi/ariveAPI.schemas';
 
 interface MessageContentProps {
   content: MessageSchemaContent;

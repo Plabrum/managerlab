@@ -1,11 +1,11 @@
 'use client';
 
 import { createTypedForm } from '@/components/forms/base';
-import type { DeliverableCreateSchema } from '@/openapi/managerLab.schemas';
+import type { DeliverableCreateSchema } from '@/openapi/ariveAPI.schemas';
 import {
   SocialMediaPlatforms as SocialMediaPlatformsEnum,
   DeliverableType,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
 
 const {

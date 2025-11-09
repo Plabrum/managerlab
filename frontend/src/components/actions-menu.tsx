@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { ActionDTO, ActionGroupType } from '@/openapi/managerLab.schemas';
+import type { ActionDTO, ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from '@/types/domain-objects';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';

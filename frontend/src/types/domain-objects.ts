@@ -12,7 +12,7 @@ import type {
   BrandSchema,
   InvoiceSchema,
   RosterSchema,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 /**
  * Domain object type - represents any object with an id and actions

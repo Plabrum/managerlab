@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type {
   MessageSchema,
   MessageSchemaContent,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { MessageAvatar } from './message-avatar';
 import { MessageContent } from './message-content';
 import { MessageInput } from './message-input';

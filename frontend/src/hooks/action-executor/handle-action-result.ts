@@ -1,5 +1,5 @@
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import type { ActionExecutionResponse } from '@/openapi/managerLab.schemas';
+import type { ActionExecutionResponse } from '@/openapi/ariveAPI.schemas';
 
 /**
  * Handle action result based on response metadata

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/components/providers/auth-provider';
 import { dashboardsListDashboards } from '@/openapi/dashboards/dashboards';
-import type { DashboardSchema } from '@/openapi/managerLab.schemas';
+import type { DashboardSchema } from '@/openapi/ariveAPI.schemas';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();

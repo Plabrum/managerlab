@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import type {
   ObjectListSchema,
   ImageFieldValue,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface MediaSelectorProps {
   items: ObjectListSchema[];
