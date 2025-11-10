@@ -1,53 +1,31 @@
 'use client';
 
-import { use } from 'react';
-import { useUsersListUsers } from '@/openapi/users/users';
+import { useUsersListUsersSuspense } from '@/openapi/users/users';
 import { PageTopBar } from '@/components/page-topbar';
 import { TeamMembersCard } from '@/components/settings/team-members-card';
-import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { ObjectActions } from '@/components/object-detail';
 import { useAuth } from '@/components/providers/auth-provider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 
-export default function TeamSettingsPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  const router = useRouter();
-  const { teams } = useAuth();
+export default function TeamSettingsPage() {
+  const { data: users } = useUsersListUsersSuspense();
+  const { teams, refetchTeams } = useAuth();
 
-  const { data: users, isLoading } = useUsersListUsers();
-
-  // Find the current team to verify the ID matches
   const currentTeam = teams.find((t) => t.is_selected);
 
-  // Redirect if the ID in the URL doesn't match the current team's id
-  useEffect(() => {
-    if (currentTeam && currentTeam.id !== id) {
-      router.push(`/settings/team/${currentTeam.id}`);
-    }
-  }, [currentTeam, id, router]);
-
-  if (isLoading || !users) {
+  if (!currentTeam) {
     return null;
   }
-
-  const handleInviteUser = () => {
-    // TODO: Implement user invitation flow
-    console.log('Invite user clicked');
-  };
 
   return (
     <PageTopBar
       title="Team Settings"
       actions={
-        <Button onClick={handleInviteUser} size="sm">
-          <UserPlus className="mr-2 h-4 w-4" />
-          Invite User
-        </Button>
+        <ObjectActions
+          data={currentTeam}
+          actionGroup={ActionGroupType.team_actions}
+          onRefetch={refetchTeams}
+        />
       }
     >
       <TeamMembersCard users={users} />
