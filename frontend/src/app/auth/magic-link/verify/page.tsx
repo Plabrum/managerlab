@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function MagicLinkVerifyPage() {
+function MagicLinkVerifyContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -31,5 +31,22 @@ export default function MagicLinkVerifyPage() {
         <p className="text-white">Verifying your magic link...</p>
       </div>
     </div>
+  );
+}
+
+export default function MagicLinkVerifyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-black">
+          <div className="text-center">
+            <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-white border-r-transparent" />
+            <p className="text-white">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <MagicLinkVerifyContent />
+    </Suspense>
   );
 }
