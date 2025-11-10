@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/components/providers/auth-provider';
 import { ActionsMenu } from '@/components/actions-menu';
-import type { ActionDTO } from '@/openapi/managerLab.schemas';
+import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 
 export function TeamSwitcher({
   onAddTeamClick,

@@ -11,7 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { DateFilterDefinition } from '@/openapi/managerLab.schemas';
+import type { DateFilterDefinition } from '@/openapi/ariveAPI.schemas';
 
 interface DatePickerProps {
   date?: Date;

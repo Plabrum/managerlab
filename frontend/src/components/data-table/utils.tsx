@@ -5,7 +5,7 @@ import type {
   ObjectListRequest,
   ColumnDefinitionSchema,
   ObjectFieldDTO,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { humanizeEnumValue } from '@/lib/format';
 
 // Type definitions for filter values

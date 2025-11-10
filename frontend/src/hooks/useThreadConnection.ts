@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useWebSocket } from './useWebSocket';
 import {
   ThreadSocketMessageType,

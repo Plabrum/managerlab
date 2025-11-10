@@ -13,12 +13,7 @@ class MediaStates(StrEnum):
 class MediaActions(StrEnum):
     """Actions for Media objects."""
 
+    register = "media.register"
     download = "media.download"
     delete = "media.delete"
     update = "media.update"
-
-
-class TopLevelMediaActions(StrEnum):
-    """Top-level Media actions (no object context)."""
-
-    create = "top_level_media.create"

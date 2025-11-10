@@ -1,9 +1,9 @@
-"""Message actions."""
-
 from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import ActionGroupType, BaseAction, action_group_factory
+from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
+from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.threads.enums import MessageActions, ThreadSocketMessageType
@@ -20,7 +20,7 @@ message_actions = action_group_factory(
 
 
 @message_actions
-class UpdateMessage(BaseAction):
+class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
     action_key = MessageActions.update
     label = "Edit"
     is_bulk_allowed = False
@@ -31,13 +31,12 @@ class UpdateMessage(BaseAction):
     def is_available(
         cls,
         obj: Message | None,
-        user_id: int,
-        **kwargs,
+        deps: ActionDeps,
     ) -> bool:
         """Only message author can edit their message."""
         if not obj:
             return False
-        return obj.user_id == user_id
+        return obj.user_id == deps.user
 
     @classmethod
     async def execute(
@@ -45,7 +44,7 @@ class UpdateMessage(BaseAction):
         obj: Message,
         data: MessageUpdateSchema,
         transaction: AsyncSession,
-        channels: ChannelsPlugin,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Update content
         obj.content = data.content
@@ -54,7 +53,7 @@ class UpdateMessage(BaseAction):
 
         # Notify WebSocket subscribers
         await notify_thread(
-            channels,
+            deps.channels,
             obj.thread_id,
             ServerMessage(
                 message_type=ThreadSocketMessageType.MESSAGE_UPDATED,
@@ -71,7 +70,7 @@ class UpdateMessage(BaseAction):
 
 
 @message_actions
-class DeleteMessage(BaseAction):
+class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
     action_key = MessageActions.delete
     label = "Delete"
     is_bulk_allowed = False
@@ -84,20 +83,20 @@ class DeleteMessage(BaseAction):
     def is_available(
         cls,
         obj: Message | None,
-        user_id: int,
-        **kwargs,
+        deps: ActionDeps,
     ) -> bool:
         """Only message author can delete their message."""
         if not obj:
             return False
-        return obj.user_id == user_id
+        return obj.user_id == deps.user
 
     @classmethod
     async def execute(
         cls,
         obj: Message,
+        data: EmptyActionData,
         transaction: AsyncSession,
-        channels: ChannelsPlugin,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Soft delete
         obj.soft_delete()
@@ -105,7 +104,7 @@ class DeleteMessage(BaseAction):
 
         # Notify WebSocket subscribers
         await notify_thread(
-            channels,
+            deps.channels,
             obj.thread_id,
             ServerMessage(
                 message_type=ThreadSocketMessageType.MESSAGE_DELETED,

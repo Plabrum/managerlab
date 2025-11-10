@@ -18,6 +18,7 @@ class SocialMediaPlatforms(StrEnum):
 class DeliverableActions(StrEnum):
     """Actions for Deliverable objects."""
 
+    create = "deliverable.create"
     publish = "deliverable.publish"
     delete = "deliverable.delete"
     update = "deliverable.update"
@@ -30,12 +31,6 @@ class DeliverableMediaActions(StrEnum):
     remove_media = "deliverable_media.remove_media"
     accept = "deliverable_media.accept"
     reject = "deliverable_media.reject"
-
-
-class TopLevelDeliverableActions(StrEnum):
-    """Top-level Deliverable actions (no object context)."""
-
-    create = "top_level_deliverable.create"
 
 
 class DeliverableType(StrEnum):

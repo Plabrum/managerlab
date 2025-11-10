@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { MediaResponseSchema } from '@/openapi/managerLab.schemas';
+import type { MediaResponseSchema } from '@/openapi/ariveAPI.schemas';
 
 interface MediaFieldsProps {
   media: MediaResponseSchema;

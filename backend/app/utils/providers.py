@@ -5,16 +5,13 @@ from litestar import Litestar, Request
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
-from litestar_saq import TaskQueues
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
-from app.actions.registry import ActionRegistry
 from app.client.s3_client import S3Dep
-from app.emails.service import EmailService
 from app.objects.base import ObjectRegistry
 from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
@@ -87,29 +84,6 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
     )
 
     return PostgreSQLSessionStore(session_factory)
-
-
-def provide_action_registry(
-    s3_client: S3Dep,
-    config: Config,
-    transaction: AsyncSession,
-    task_queues: TaskQueues,
-    request: Request,
-    team_id: int | None,
-    campaign_id: int | None,
-    email_service: EmailService,
-) -> ActionRegistry:
-    return ActionRegistry(
-        s3_client=s3_client,
-        config=config,
-        transaction=transaction,
-        task_queues=task_queues,
-        request=request,
-        team_id=team_id,
-        campaign_id=campaign_id,
-        user=request.user,
-        email_service=email_service,
-    )
 
 
 def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:

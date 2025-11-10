@@ -26,22 +26,22 @@ class DeliverableObject(BaseObject[Deliverable]):
         return Deliverable
 
     @classmethod
-    def title_field(cls, deliverable: Deliverable) -> str:
-        return deliverable.title
+    def title_field(cls, obj: Deliverable) -> str:
+        return obj.title
 
     @classmethod
-    def subtitle_field(cls, deliverable: Deliverable) -> str:
-        content = deliverable.content
+    def subtitle_field(cls, obj: Deliverable) -> str:
+        content = obj.content
         if content and len(content) > 100:
             return content[:100] + "..."
         return content or ""
 
     @classmethod
-    def state_field(cls, deliverable: Deliverable) -> str:
-        return deliverable.state
+    def state_field(cls, obj: Deliverable) -> str:
+        return obj.state
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelDeliverableActions
+    top_level_action_group = ActionGroupType.DeliverableActions
     action_group = ActionGroupType.DeliverableActions
 
     # Load options for eager loading relationships

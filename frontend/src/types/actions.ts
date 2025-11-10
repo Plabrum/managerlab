@@ -1,4 +1,4 @@
-import type { ActionDTO, ActionGroupType } from '@/openapi/managerLab.schemas';
+import type { ActionDTO, ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from './domain-objects';
 
 /**

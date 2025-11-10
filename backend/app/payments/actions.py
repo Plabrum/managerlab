@@ -1,18 +1,20 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import BaseAction, action_group_factory
+from app.actions import BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.payments.enums import InvoiceActions
 from app.payments.models import Invoice
-from app.payments.schemas import InvoiceUpdateSchema
-from app.utils.db import update_model
+from app.payments.schemas import InvoiceCreateSchema, InvoiceUpdateSchema
+from app.utils.db import create_model, update_model
 
 invoice_actions = action_group_factory(ActionGroupType.InvoiceActions, model_type=Invoice)
 
 
 @invoice_actions
-class DeleteInvoice(BaseAction):
+class DeleteInvoice(BaseObjectAction[Invoice, EmptyActionData]):
     action_key = InvoiceActions.delete
     label = "Delete"
     is_bulk_allowed = True
@@ -23,9 +25,7 @@ class DeleteInvoice(BaseAction):
 
     @classmethod
     async def execute(
-        cls,
-        obj: Invoice,
-        transaction: AsyncSession,
+        cls, obj: Invoice, data: EmptyActionData, transaction: AsyncSession, deps
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
@@ -34,7 +34,7 @@ class DeleteInvoice(BaseAction):
 
 
 @invoice_actions
-class UpdateInvoice(BaseAction):
+class UpdateInvoice(BaseObjectAction[Invoice, InvoiceUpdateSchema]):
     action_key = InvoiceActions.update
     label = "Update"
     is_bulk_allowed = True
@@ -47,16 +47,44 @@ class UpdateInvoice(BaseAction):
         obj: Invoice,
         data: InvoiceUpdateSchema,
         transaction: AsyncSession,
-        user: int,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
         return ActionExecutionResponse(
             message="Updated invoice",
+        )
+
+
+@invoice_actions
+class CreateInvoice(BaseTopLevelAction[InvoiceCreateSchema]):
+    action_key = InvoiceActions.create
+    label = "Create Invoice"
+    is_bulk_allowed = False
+    priority = 1
+    icon = ActionIcon.add
+
+    @classmethod
+    async def execute(
+        cls,
+        data: InvoiceCreateSchema,
+        transaction: AsyncSession,
+        deps: ActionDeps,
+    ) -> ActionExecutionResponse:
+        new_invoice = await create_model(
+            session=transaction,
+            team_id=deps.team_id,
+            campaign_id=None,
+            model_class=Invoice,
+            create_vals=data,
+            user_id=deps.user,
+        )
+        return ActionExecutionResponse(
+            message=f"Created invoice #{new_invoice.invoice_number}",
         )

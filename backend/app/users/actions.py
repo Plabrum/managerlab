@@ -1,14 +1,14 @@
-from litestar import Request
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_403_FORBIDDEN
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.actions import ActionGroupType, BaseAction, action_group_factory
+from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
+from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.emails.service import EmailService
 from app.users.enums import RoleLevel, TeamActions
 from app.users.models import Role, Team
 from app.users.schemas import InviteUserToTeamSchema
@@ -21,7 +21,7 @@ team_actions = action_group_factory(
 
 
 @team_actions
-class DeleteTeam(BaseAction):
+class DeleteTeam(BaseObjectAction[Team, EmptyActionData]):
     action_key = TeamActions.delete
     label = "Delete Team"
     is_bulk_allowed = False
@@ -37,20 +37,17 @@ class DeleteTeam(BaseAction):
     def is_available(
         cls,
         obj: Team | None,
-        **kwargs,
+        deps: ActionDeps,
     ) -> bool:
         """Action is available if team exists and is not already deleted."""
         return obj is None or obj.is_deleted
 
     @classmethod
     async def execute(
-        cls,
-        obj: Team,
-        request: Request,
-        transaction: AsyncSession,
+        cls, obj: Team, data: EmptyActionData, transaction: AsyncSession, deps
     ) -> ActionExecutionResponse:
         """Execute team deletion. Only owners can delete teams."""
-        user_id = request.user
+        user_id = deps.request.user
 
         # Query the user's role for this team
         stmt = select(Role).where(
@@ -75,7 +72,7 @@ class DeleteTeam(BaseAction):
 
 
 @team_actions
-class InviteUserToTeam(BaseAction):
+class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
     action_key = TeamActions.invite_user
     label = "Invite User"
     is_bulk_allowed = False
@@ -88,13 +85,12 @@ class InviteUserToTeam(BaseAction):
     def is_available(
         cls,
         obj: Team | None,
-        request: Request,
-        **kwargs,
+        deps: ActionDeps,
     ) -> bool:
         if obj is None or obj.is_deleted:
             return False
 
-        user_id = request.user
+        user_id = deps.request.user
 
         # Find the user's role from the loaded roles relationship
         # (Team must be loaded with selectinload(Team.roles) in the query)
@@ -111,11 +107,10 @@ class InviteUserToTeam(BaseAction):
         cls,
         obj: Team,
         data: InviteUserToTeamSchema,
-        request: Request,
         transaction: AsyncSession,
-        email_service: EmailService,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
-        user_id = request.user
+        user_id = deps.request.user
 
         # Query the user's role for this team (with user relationship eager-loaded for inviter name)
         stmt = (
@@ -137,7 +132,7 @@ class InviteUserToTeam(BaseAction):
         )
 
         # Send invitation email
-        await email_service.send_team_invitation_email(
+        await deps.email_service.send_team_invitation_email(
             to_email=data.email,
             team_name=obj.name,
             inviter_name=role.user.name,

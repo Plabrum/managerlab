@@ -6,7 +6,7 @@ import { SimpleMediaGallery } from '@/components/deliverable-preview/media-galle
 import { MediaApprovalActions } from './media-approval-actions';
 import { MediaThreadList } from './media-thread-list';
 import { useAuth } from '@/components/providers/auth-provider';
-import type { DeliverableResponseSchema } from '@/openapi/managerLab.schemas';
+import type { DeliverableResponseSchema } from '@/openapi/ariveAPI.schemas';
 
 interface DeliverableMediaApprovalProps {
   deliverable: DeliverableResponseSchema;

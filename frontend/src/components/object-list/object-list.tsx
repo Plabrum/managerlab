@@ -19,10 +19,7 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type {
-  ObjectListSchema,
-  ObjectTypes,
-} from '@/openapi/managerLab.schemas';
+import type { ObjectListSchema, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 
 interface ObjectListProps {
   objectType: ObjectTypes;

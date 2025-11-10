@@ -4,18 +4,18 @@ import logging
 from datetime import datetime, timezone
 
 import sqlalchemy as sa
-from saq.types import Context
 
 from app.emails.client import EmailMessage as ClientEmailMessage, SESEmailClient
 from app.emails.enums import EmailState
 from app.emails.models import EmailMessage
 from app.queue.registry import task
+from app.queue.types import AppContext
 
 logger = logging.getLogger(__name__)
 
 
 @task
-async def send_email_task(ctx: Context, *, email_message_id: int) -> dict:
+async def send_email_task(ctx: AppContext, *, email_message_id: int) -> dict:
     """
     SAQ task to send an email via SES.
 

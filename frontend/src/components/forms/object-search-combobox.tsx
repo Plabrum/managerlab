@@ -19,10 +19,7 @@ import {
 } from '@/components/ui/popover';
 import { useListObjects } from '@/openapi/objects/objects';
 import { useActionsActionGroupExecuteAction } from '@/openapi/actions/actions';
-import type {
-  ObjectTypes,
-  ActionGroupType,
-} from '@/openapi/managerLab.schemas';
+import type { ObjectTypes, ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import { Label } from '@/components/ui/label';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -59,28 +56,28 @@ const OBJECT_CREATE_ACTIONS: Record<
   { actionGroup: ActionGroupType; action: string } | null
 > = {
   brands: {
-    actionGroup: 'top_level_brand_actions',
-    action: 'top_level_brand_actions__brand_create',
+    actionGroup: 'brand_actions',
+    action: 'brand_actions__brand_create',
   },
   campaigns: {
-    actionGroup: 'top_level_campaign_actions',
-    action: 'top_level_campaign_actions__campaign_create',
+    actionGroup: 'campaign_actions',
+    action: 'campaign_actions__campaign_create',
   },
   roster: {
-    actionGroup: 'top_level_roster_actions',
-    action: 'top_level_roster_actions__top_level_roster_create',
+    actionGroup: 'roster_actions',
+    action: 'roster_actions__roster_create',
   },
   media: {
-    actionGroup: 'top_level_media_actions',
-    action: 'top_level_media_actions__top_level_media_create',
+    actionGroup: 'media_actions',
+    action: 'media_actions__media_register',
   },
   documents: {
-    actionGroup: 'top_level_document_actions',
-    action: 'top_level_document_actions__top_level_document_create',
+    actionGroup: 'document_actions',
+    action: 'document_actions__document_register',
   },
   deliverables: {
-    actionGroup: 'top_level_deliverable_actions',
-    action: 'top_level_deliverable_actions__top_level_deliverable_create',
+    actionGroup: 'deliverable_actions',
+    action: 'deliverable_actions__deliverable_create',
   },
   deliverablemedia: null, // No create action defined
   brandcontacts: null, // No create action defined

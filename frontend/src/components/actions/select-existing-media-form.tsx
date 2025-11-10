@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { createTypedForm } from '@/components/forms/base';
-import { AddMediaToDeliverableSchema } from '@/openapi/managerLab.schemas';
+import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
 import { useListObjects } from '@/openapi/objects/objects';
 import { MediaSelector } from '@/components/media/MediaSelector';
 import { toast } from 'sonner';

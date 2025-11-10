@@ -5,10 +5,10 @@
  * Arive API with OpenAPI documentation
  * OpenAPI spec version: 0.0.2
  */
-export const AcceptDeliverableMediaActionValue = {
-  action: 'deliverable_media_actions__deliverable_media_accept',
-} as const;
-export type AcceptDeliverableMediaAction = typeof AcceptDeliverableMediaActionValue;
+export interface AcceptDeliverableMediaAction {
+  data: EmptyActionData;
+  action: 'deliverable_media_actions__deliverable_media_accept';
+}
 
 export type ActionDTOIcon = string | null;
 
@@ -43,20 +43,13 @@ export type ActionGroupType = typeof ActionGroupType[keyof typeof ActionGroupTyp
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ActionGroupType = {
   media_actions: 'media_actions',
-  top_level_media_actions: 'top_level_media_actions',
   document_actions: 'document_actions',
-  top_level_document_actions: 'top_level_document_actions',
   deliverable_actions: 'deliverable_actions',
   deliverable_media_actions: 'deliverable_media_actions',
-  top_level_deliverable_actions: 'top_level_deliverable_actions',
   brand_actions: 'brand_actions',
-  top_level_brand_actions: 'top_level_brand_actions',
   campaign_actions: 'campaign_actions',
-  top_level_campaign_actions: 'top_level_campaign_actions',
   invoice_actions: 'invoice_actions',
-  top_level_invoice_actions: 'top_level_invoice_actions',
   roster_actions: 'roster_actions',
-  top_level_roster_actions: 'top_level_roster_actions',
   dashboard_actions: 'dashboard_actions',
   team_actions: 'team_actions',
   message_actions: 'message_actions',
@@ -522,12 +515,12 @@ export const CounterpartyType = {
 
 export interface CreateBrandAction {
   data: BrandCreateSchema;
-  action: 'top_level_brand_actions__brand_create';
+  action: 'brand_actions__brand_create';
 }
 
 export interface CreateCampaignAction {
   data: CampaignCreateSchema;
-  action: 'top_level_campaign_actions__campaign_create';
+  action: 'campaign_actions__campaign_create';
 }
 
 export type CreateDashboardSchemaConfig = {[key: string]: unknown};
@@ -547,27 +540,27 @@ export interface CreateDashboardSchema {
 
 export interface CreateDeliverableAction {
   data: DeliverableCreateSchema;
-  action: 'top_level_deliverable_actions__top_level_deliverable_create';
+  action: 'deliverable_actions__deliverable_create';
 }
 
 export interface CreateDocumentAction {
   data: RegisterDocumentSchema;
-  action: 'top_level_document_actions__top_level_document_create';
+  action: 'document_actions__document_register';
 }
 
 export interface CreateInvoiceAction {
   data: InvoiceCreateSchema;
-  action: 'top_level_invoice_actions__invoice_create';
+  action: 'invoice_actions__invoice_create';
 }
 
 export interface CreateMediaAction {
   data: RegisterMediaSchema;
-  action: 'top_level_media_actions__top_level_media_create';
+  action: 'media_actions__media_register';
 }
 
 export interface CreateRosterAction {
   data: RosterCreateSchema;
-  action: 'top_level_roster_actions__top_level_roster_create';
+  action: 'roster_actions__roster_create';
 }
 
 export type CreateTeamSchemaDescription = string | null;
@@ -633,55 +626,55 @@ export interface DatetimeFieldValue {
   type: 'datetime';
 }
 
-export const DeleteBrandActionValue = {
-  action: 'brand_actions__brand_delete',
-} as const;
-export type DeleteBrandAction = typeof DeleteBrandActionValue;
+export interface DeleteBrandAction {
+  data: EmptyActionData;
+  action: 'brand_actions__brand_delete';
+}
 
-export const DeleteCampaignActionValue = {
-  action: 'campaign_actions__campaign_delete',
-} as const;
-export type DeleteCampaignAction = typeof DeleteCampaignActionValue;
+export interface DeleteCampaignAction {
+  data: EmptyActionData;
+  action: 'campaign_actions__campaign_delete';
+}
 
-export const DeleteDashboardActionValue = {
-  action: 'dashboard_actions__delete',
-} as const;
-export type DeleteDashboardAction = typeof DeleteDashboardActionValue;
+export interface DeleteDashboardAction {
+  data: EmptyActionData;
+  action: 'dashboard_actions__delete';
+}
 
-export const DeleteDeliverableActionValue = {
-  action: 'deliverable_actions__deliverable_delete',
-} as const;
-export type DeleteDeliverableAction = typeof DeleteDeliverableActionValue;
+export interface DeleteDeliverableAction {
+  data: EmptyActionData;
+  action: 'deliverable_actions__deliverable_delete';
+}
 
-export const DeleteDocumentActionValue = {
-  action: 'document_actions__document_delete',
-} as const;
-export type DeleteDocumentAction = typeof DeleteDocumentActionValue;
+export interface DeleteDocumentAction {
+  data: EmptyActionData;
+  action: 'document_actions__document_delete';
+}
 
-export const DeleteInvoiceActionValue = {
-  action: 'invoice_actions__invoice_delete',
-} as const;
-export type DeleteInvoiceAction = typeof DeleteInvoiceActionValue;
+export interface DeleteInvoiceAction {
+  data: EmptyActionData;
+  action: 'invoice_actions__invoice_delete';
+}
 
-export const DeleteMediaActionValue = {
-  action: 'media_actions__media_delete',
-} as const;
-export type DeleteMediaAction = typeof DeleteMediaActionValue;
+export interface DeleteMediaAction {
+  data: EmptyActionData;
+  action: 'media_actions__media_delete';
+}
 
-export const DeleteMessageActionValue = {
-  action: 'message_actions__delete',
-} as const;
-export type DeleteMessageAction = typeof DeleteMessageActionValue;
+export interface DeleteMessageAction {
+  data: EmptyActionData;
+  action: 'message_actions__delete';
+}
 
-export const DeleteRosterActionValue = {
-  action: 'roster_actions__roster_delete',
-} as const;
-export type DeleteRosterAction = typeof DeleteRosterActionValue;
+export interface DeleteRosterAction {
+  data: EmptyActionData;
+  action: 'roster_actions__roster_delete';
+}
 
-export const DeleteTeamActionValue = {
-  action: 'team_actions__team_delete',
-} as const;
-export type DeleteTeamAction = typeof DeleteTeamActionValue;
+export interface DeleteTeamAction {
+  data: EmptyActionData;
+  action: 'team_actions__team_delete';
+}
 
 export type DeliverableCreateSchemaDeliverableType = DeliverableType | null;
 
@@ -905,10 +898,10 @@ export interface DocumentUpdateSchema {
   file_name?: DocumentUpdateSchemaFileName;
 }
 
-export const DownloadDocumentActionValue = {
-  action: 'document_actions__document_download',
-} as const;
-export type DownloadDocumentAction = typeof DownloadDocumentActionValue;
+export interface DownloadDocumentAction {
+  data: EmptyActionData;
+  action: 'document_actions__document_download';
+}
 
 export interface DownloadFileActionResult {
   url: string;
@@ -916,10 +909,10 @@ export interface DownloadFileActionResult {
   type: 'download_file';
 }
 
-export const DownloadMediaActionValue = {
-  action: 'media_actions__media_download',
-} as const;
-export type DownloadMediaAction = typeof DownloadMediaActionValue;
+export interface DownloadMediaAction {
+  data: EmptyActionData;
+  action: 'media_actions__media_download';
+}
 
 export interface EditDeliverableAction {
   data: DeliverableUpdateSchema;
@@ -930,6 +923,8 @@ export interface EmailFieldValue {
   value: string;
   type: 'email';
 }
+
+export interface EmptyActionData { [key: string]: unknown }
 
 export interface EnumFieldValue {
   value: string;
@@ -1331,10 +1326,10 @@ export const OwnershipMode = {
   shared: 'shared',
 } as const;
 
-export const PublishDeliverableActionValue = {
-  action: 'deliverable_actions__deliverable_publish',
-} as const;
-export type PublishDeliverableAction = typeof PublishDeliverableActionValue;
+export interface PublishDeliverableAction {
+  data: EmptyActionData;
+  action: 'deliverable_actions__deliverable_publish';
+}
 
 export type RangeFilterDefinitionStart = number | number | null;
 
@@ -1366,15 +1361,15 @@ export interface RegisterMediaSchema {
   mime_type: string;
 }
 
-export const RejectDeliverableMediaActionValue = {
-  action: 'deliverable_media_actions__deliverable_media_reject',
-} as const;
-export type RejectDeliverableMediaAction = typeof RejectDeliverableMediaActionValue;
+export interface RejectDeliverableMediaAction {
+  data: EmptyActionData;
+  action: 'deliverable_media_actions__deliverable_media_reject';
+}
 
-export const RemoveMediaFromDeliverableActionValue = {
-  action: 'deliverable_media_actions__deliverable_media_remove_media',
-} as const;
-export type RemoveMediaFromDeliverableAction = typeof RemoveMediaFromDeliverableActionValue;
+export interface RemoveMediaFromDeliverableAction {
+  data: EmptyActionData;
+  action: 'deliverable_media_actions__deliverable_media_remove_media';
+}
 
 export interface ReplaceContractAction {
   data: ReplaceContractSchema;
@@ -1935,7 +1930,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateDocumentAction | CreateMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -1963,7 +1958,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | DeleteRosterAction | UpdateRosterAction | DeleteBrandAction | UpdateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction | CreateInvoiceAction | CreateRosterAction | CreateBrandAction | CreateDeliverableAction | CreateCampaignAction | CreateDocumentAction | CreateMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

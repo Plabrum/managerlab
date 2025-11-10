@@ -22,15 +22,15 @@ class BrandObject(BaseObject[Brand]):
         return Brand
 
     @classmethod
-    def title_field(cls, brand: Brand) -> str:
-        return brand.name
+    def title_field(cls, obj: Brand) -> str:
+        return obj.name
 
     @classmethod
-    def subtitle_field(cls, brand: Brand) -> str:
-        return brand.description or ""
+    def subtitle_field(cls, obj: Brand) -> str:
+        return obj.description or ""
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelBrandActions
+    top_level_action_group = ActionGroupType.BrandActions
     action_group = ActionGroupType.BrandActions
 
     column_definitions = [
@@ -126,12 +126,12 @@ class BrandContactObject(BaseObject[BrandContact]):
         return BrandContact
 
     @classmethod
-    def title_field(cls, contact: BrandContact) -> str:
-        return f"{contact.first_name} {contact.last_name}"
+    def title_field(cls, obj: BrandContact) -> str:
+        return f"{obj.first_name} {obj.last_name}"
 
     @classmethod
-    def subtitle_field(cls, contact: BrandContact) -> str:
-        return contact.email or ""
+    def subtitle_field(cls, obj: BrandContact) -> str:
+        return obj.email or ""
 
     column_definitions = [
         ObjectColumn(

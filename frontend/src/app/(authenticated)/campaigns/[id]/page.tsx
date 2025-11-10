@@ -5,11 +5,12 @@ import { ObjectActions, ObjectChildList } from '@/components/object-detail';
 import { CampaignFields } from '@/components/campaign-detail';
 import { useCampaignsIdGetCampaignSuspense } from '@/openapi/campaigns/campaigns';
 import { PageTopBar } from '@/components/page-topbar';
-import { ActionGroupType, ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useAuth } from '@/components/providers/auth-provider';
 import { ObjectDetailTabs } from '@/components/object-detail-tabs';
 import { TabsContent } from '@/components/ui/tabs';
 import { ActivityFeed } from '@/components/activity/activity-feed';
+import { useEditAction } from '@/hooks/use-edit-action';
 
 export default function CampaignDetailPage({
   params,
@@ -18,8 +19,12 @@ export default function CampaignDetailPage({
 }) {
   const { id } = use(params);
   const { user } = useAuth();
-
   const { data, refetch } = useCampaignsIdGetCampaignSuspense(id);
+
+  // URL parameter-based edit mode with permission checking
+  const { isEditMode, openEdit, closeEdit } = useEditAction({
+    actions: data.actions || [],
+  });
 
   return (
     <PageTopBar
@@ -30,6 +35,11 @@ export default function CampaignDetailPage({
           data={data}
           actionGroup={ActionGroupType.campaign_actions}
           onRefetch={refetch}
+          editMode={{
+            isOpen: isEditMode,
+            onOpen: openEdit,
+            onClose: closeEdit,
+          }}
         />
       }
     >

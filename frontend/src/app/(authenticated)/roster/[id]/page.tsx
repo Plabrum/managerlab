@@ -5,7 +5,7 @@ import { ObjectActions } from '@/components/object-detail';
 import { RosterFields } from '@/components/roster-detail';
 import { useRosterIdGetRosterSuspense } from '@/openapi/roster/roster';
 import { PageTopBar } from '@/components/page-topbar';
-import { ActionGroupType, ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useAuth } from '@/components/providers/auth-provider';
 import { ObjectDetailTabs } from '@/components/object-detail-tabs';
 import { TabsContent } from '@/components/ui/tabs';

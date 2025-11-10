@@ -20,19 +20,19 @@ class DocumentObject(BaseObject[Document]):
         return Document
 
     @classmethod
-    def title_field(cls, document: Document) -> str:
-        return document.file_name
+    def title_field(cls, obj: Document) -> str:
+        return obj.file_name
 
     @classmethod
-    def subtitle_field(cls, document: Document) -> str:
-        return f"{document.file_type} - {document.mime_type}"
+    def subtitle_field(cls, obj: Document) -> str:
+        return f"{obj.file_type} - {obj.mime_type}"
 
     @classmethod
-    def state_field(cls, document: Document) -> str:
-        return document.state
+    def state_field(cls, obj: Document) -> str:
+        return obj.state
 
     # Action groups
-    top_level_action_group = ActionGroupType.TopLevelDocumentActions
+    top_level_action_group = ActionGroupType.DocumentActions
     action_group = ActionGroupType.DocumentActions
 
     column_definitions = [

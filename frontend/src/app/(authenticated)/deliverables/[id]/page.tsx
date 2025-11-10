@@ -5,7 +5,7 @@ import { useDeliverablesIdGetDeliverableSuspense } from '@/openapi/deliverables/
 import { PageTopBar } from '@/components/page-topbar';
 import { ObjectActions } from '@/components/object-detail';
 import { useAuth } from '@/components/providers/auth-provider';
-import { ActionGroupType, ObjectTypes } from '@/openapi/managerLab.schemas';
+import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { ObjectDetailTabs } from '@/components/object-detail-tabs';
 import { TabsContent } from '@/components/ui/tabs';
 import { ActivityFeed } from '@/components/activity/activity-feed';

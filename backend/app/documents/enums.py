@@ -13,12 +13,7 @@ class DocumentStates(StrEnum):
 class DocumentActions(StrEnum):
     """Actions for Document objects."""
 
+    register = "document.register"
     download = "document.download"
     delete = "document.delete"
     update = "document.update"
-
-
-class TopLevelDocumentActions(StrEnum):
-    """Top-level Document actions (no object context)."""
-
-    create = "top_level_document.create"

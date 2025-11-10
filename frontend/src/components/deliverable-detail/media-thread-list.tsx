@@ -1,7 +1,7 @@
 'use client';
 
 import { MediaThreadCard } from './media-thread-card';
-import type { DeliverableMediaAssociationSchema } from '@/openapi/managerLab.schemas';
+import type { DeliverableMediaAssociationSchema } from '@/openapi/ariveAPI.schemas';
 
 interface MediaThreadListProps {
   mediaAssociations: DeliverableMediaAssociationSchema[];

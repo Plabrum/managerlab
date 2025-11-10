@@ -4,7 +4,7 @@ import type {
   ActionExecutionResponse,
   ActionsActionGroupExecuteActionBody,
   ActionsActionGroupObjectIdExecuteObjectActionBody,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 type ExecuteActionApiParams = {
   action: ActionDTO;

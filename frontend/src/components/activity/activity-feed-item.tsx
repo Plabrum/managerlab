@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type {
   MessageSchema,
   MessageSchemaContent,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { MessageAvatar } from '@/components/chat/message-avatar';
 import { MessageContent } from '@/components/chat/message-content';
 import { MessageInput } from '@/components/chat/message-input';

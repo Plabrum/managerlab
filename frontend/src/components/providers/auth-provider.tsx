@@ -4,7 +4,7 @@ import {
   UserSchema,
   ListTeamsResponse,
   TeamListItemSchema,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import {
   createContext,
   useContext,

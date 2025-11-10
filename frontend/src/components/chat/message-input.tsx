@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
-import type { MessageSchemaContent } from '@/openapi/managerLab.schemas';
+import type { MessageSchemaContent } from '@/openapi/ariveAPI.schemas';
 
 interface MessageInputProps {
   onSendMessage: (content: MessageSchemaContent) => Promise<void>;

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import type {
   ObjectFilterDefinition,
   ObjectTypes,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 
 interface ObjectFilterProps {

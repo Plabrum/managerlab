@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import type {
   TextFilterDefinition,
   TextFilterDefinitionOperation,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface TextFilterProps {
   column: string;

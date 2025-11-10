@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AddMediaToDeliverableSchema } from '@/openapi/managerLab.schemas';
+import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SelectExistingMediaForm } from './select-existing-media-form';
 import { UploadNewMediaForm } from './upload-new-media-form';

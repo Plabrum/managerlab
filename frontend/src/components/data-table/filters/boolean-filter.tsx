@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import type { BooleanFilterDefinition } from '@/openapi/managerLab.schemas';
+import type { BooleanFilterDefinition } from '@/openapi/ariveAPI.schemas';
 
 interface BooleanFilterProps {
   column: string;

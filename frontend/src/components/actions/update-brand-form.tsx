@@ -1,7 +1,7 @@
 'use client';
 
 import { createTypedForm } from '@/components/forms/base';
-import type { BrandUpdateSchema } from '@/openapi/managerLab.schemas';
+import type { BrandUpdateSchema } from '@/openapi/ariveAPI.schemas';
 
 const { FormModal, FormString, FormText } =
   createTypedForm<BrandUpdateSchema>();

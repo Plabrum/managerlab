@@ -96,7 +96,7 @@ class TestCampaigns:
 
         response = await client.post(
             f"/actions/campaign_actions/{sqid_encode(campaign.id)}",
-            json={"action": "campaign_actions__campaign_delete"},
+            json={"action": "campaign_actions__campaign_delete", "data": {}},
         )
         assert response.status_code in [200, 201, 204]
         assert response.json() is not None

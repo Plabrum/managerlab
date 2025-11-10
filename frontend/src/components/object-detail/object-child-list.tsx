@@ -7,7 +7,7 @@ import { useListObjectsSuspense } from '@/openapi/objects/objects';
 import type {
   ObjectTypes,
   ObjectFilterDefinition,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface ObjectChildListProps {
   /**

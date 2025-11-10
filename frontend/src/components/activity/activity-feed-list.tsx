@@ -5,7 +5,7 @@ import { ActivityFeedItem } from './activity-feed-item';
 import type {
   MessageSchema,
   MessageSchemaContent,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface ActivityFeedListProps {
   messages: MessageSchema[];

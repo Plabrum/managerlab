@@ -7,7 +7,7 @@ import { Image } from '@/components/ui/image';
 import type {
   ObjectFieldDTO,
   ObjectFieldDTOValue,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface ObjectFieldsProps {
   fields: ObjectFieldDTO[];

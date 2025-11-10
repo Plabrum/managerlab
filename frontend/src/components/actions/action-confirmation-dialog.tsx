@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import type { ActionDTO } from '@/openapi/managerLab.schemas';
+import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 
 interface ActionConfirmationDialogProps {
   open: boolean;

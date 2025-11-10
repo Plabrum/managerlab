@@ -6,7 +6,7 @@ import type {
   DeliverableResponseSchema,
   DeliverableMediaAssociationSchema,
   RosterInDeliverableSchema,
-} from '@/openapi/managerLab.schemas';
+} from '@/openapi/ariveAPI.schemas';
 
 interface DeliverablePreviewProps {
   deliverable: DeliverableResponseSchema;

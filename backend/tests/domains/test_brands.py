@@ -38,17 +38,52 @@ class TestBrands:
         assert response.status_code in [200, 201]
         assert response.json() is not None
 
-    async def test_list_brand_actions(
+    async def test_list_top_level_brand_actions(
+        self,
+        authenticated_client: tuple[AsyncTestClient, dict],
+    ):
+        """Test GET /actions/brand_actions returns only top-level actions (no object)."""
+        client, _ = authenticated_client
+
+        response = await client.get("/actions/brand_actions")
+        assert response.status_code == 200
+        data = response.json()
+        assert data is not None
+
+        # Should only contain CreateBrand action (top-level)
+        actions = data.get("actions", [])
+        action_keys = [action["action"] for action in actions]
+
+        # Verify CreateBrand is present
+        assert "brand_actions__brand_create" in action_keys
+
+        # Verify object actions (DeleteBrand, UpdateBrand) are NOT present
+        assert "brand_actions__brand_delete" not in action_keys
+        assert "brand_actions__brand_update" not in action_keys
+
+    async def test_list_brand_object_actions(
         self,
         authenticated_client: tuple[AsyncTestClient, dict],
         brand,
     ):
-        """Test GET /actions/brand_actions/{id} returns available actions."""
+        """Test GET /actions/brand_actions/{id} returns only object actions."""
         client, _ = authenticated_client
 
         response = await client.get(f"/actions/brand_actions/{sqid_encode(brand.id)}")
         assert response.status_code == 200
-        assert response.json() is not None
+        data = response.json()
+        assert data is not None
+
+        # Should only contain object actions (DeleteBrand, UpdateBrand)
+        actions = data.get("actions", [])
+        action_keys = [action["action"] for action in actions]
+
+        # Verify object actions are present
+        assert "brand_actions__brand_delete" in action_keys
+        assert "brand_actions__brand_update" in action_keys
+
+        # Verify CreateBrand (top-level) is NOT present
+        assert "brand_actions__brand_create" not in action_keys
 
     async def test_execute_brand_update_action(
         self,
@@ -82,7 +117,7 @@ class TestBrands:
 
         response = await client.post(
             f"/actions/brand_actions/{sqid_encode(brand.id)}",
-            json={"action": "brand_actions__brand_delete"},
+            json={"action": "brand_actions__brand_delete", "data": {}},
         )
         assert response.status_code in [200, 201, 204]
         assert response.json() is not None

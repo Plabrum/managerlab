@@ -3,7 +3,7 @@
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { DeliverableResponseSchema } from '@/openapi/managerLab.schemas';
+import type { DeliverableResponseSchema } from '@/openapi/ariveAPI.schemas';
 
 interface DeliverableFieldsProps {
   deliverable: DeliverableResponseSchema;

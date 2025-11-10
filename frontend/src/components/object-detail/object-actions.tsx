@@ -9,12 +9,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import type { ObjectActionData, TopLevelActionData } from '@/types/actions';
-import type { ActionDTO } from '@/openapi/managerLab.schemas';
+import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 
-type ObjectActionsProps = ObjectActionData | TopLevelActionData;
+type ObjectActionsProps = (ObjectActionData | TopLevelActionData) & {
+  /** External edit mode state (controlled by URL params) */
+  editMode?: {
+    isOpen: boolean;
+    onOpen: () => void;
+    onClose: () => void;
+  };
+};
 
 export function ObjectActions(props: ObjectActionsProps) {
   // Type narrow to determine if this is object-level or top-level actions
@@ -60,6 +67,38 @@ export function ObjectActions(props: ObjectActionsProps) {
   );
   const [primaryAction, ...remainingActions] = sortedActions;
 
+  // Helper to check if an action is an update/edit action
+  const isUpdateAction = (action: ActionDTO) => {
+    return action.action.includes('_update') || action.action.includes('_edit');
+  };
+
+  // Find the update action (needed for external edit mode rendering)
+  const updateAction = availableActions.find(isUpdateAction);
+
+  // Handler for action clicks - uses external edit mode for update actions if provided
+  const handleActionClick = (action: ActionDTO) => {
+    if (isUpdateAction(action) && props.editMode) {
+      props.editMode.onOpen();
+    } else {
+      executor.initiateAction(action);
+    }
+  };
+
+  // Determine which action/state to use for form rendering
+  // External edit mode takes precedence for update actions
+  const formAction =
+    props.editMode?.isOpen && updateAction
+      ? updateAction
+      : executor.pendingAction;
+  const formIsOpen =
+    props.editMode?.isOpen && updateAction
+      ? props.editMode.isOpen
+      : executor.showForm;
+  const formOnClose =
+    props.editMode?.isOpen && updateAction
+      ? props.editMode.onClose
+      : executor.cancelAction;
+
   return (
     <>
       <div className="flex items-center gap-2">
@@ -67,7 +106,7 @@ export function ObjectActions(props: ObjectActionsProps) {
         <Button
           variant="default"
           size="sm"
-          onClick={() => executor.initiateAction(primaryAction)}
+          onClick={() => handleActionClick(primaryAction)}
         >
           {primaryAction.label}
         </Button>
@@ -84,7 +123,7 @@ export function ObjectActions(props: ObjectActionsProps) {
               {remainingActions.map((action: ActionDTO, index: number) => (
                 <DropdownMenuItem
                   key={`${action.action}-${index}`}
-                  onClick={() => executor.initiateAction(action)}
+                  onClick={() => handleActionClick(action)}
                   className="cursor-pointer"
                 >
                   {action.label}
@@ -103,15 +142,16 @@ export function ObjectActions(props: ObjectActionsProps) {
         onCancel={executor.cancelAction}
       />
 
-      {executor.pendingAction &&
+      {/* Unified form rendering - works with both internal and external state */}
+      {formAction &&
         executor.renderActionForm &&
         executor.renderActionForm({
-          action: executor.pendingAction,
+          action: formAction,
           onSubmit: executor.executeWithData,
-          onClose: executor.cancelAction,
+          onClose: formOnClose,
           isSubmitting: executor.isExecuting,
-          isOpen: executor.showForm,
-          actionLabel: executor.pendingAction.label,
+          isOpen: formIsOpen,
+          actionLabel: formAction.label,
         })}
     </>
   );

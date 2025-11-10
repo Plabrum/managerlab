@@ -20,16 +20,16 @@ class UserObject(BaseObject[User]):
         return User
 
     @classmethod
-    def title_field(cls, user: User) -> str:
-        return user.name
+    def title_field(cls, obj: User) -> str:
+        return obj.name
 
     @classmethod
-    def subtitle_field(cls, user: User) -> str:
-        return user.email
+    def subtitle_field(cls, obj: User) -> str:
+        return obj.email
 
     @classmethod
-    def state_field(cls, user: User) -> str:
-        return user.state
+    def state_field(cls, obj: User) -> str:
+        return obj.state
 
     column_definitions = [
         ObjectColumn(

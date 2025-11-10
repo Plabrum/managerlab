@@ -22,6 +22,7 @@ from litestar.stores.memory import MemoryStore
 from litestar_saq import SAQConfig, SAQPlugin
 from sqlalchemy.pool import StaticPool
 
+from app.actions.deps import provide_action_registry
 from app.base.models import BaseDBModel
 from app.client.s3_client import provide_s3_client
 from app.emails.dependencies import provide_email_client, provide_email_service
@@ -88,7 +89,7 @@ def create_app(
         "s3_client": Provide(provide_s3_client, sync_to_thread=False),
         "email_client": Provide(provide_email_client, sync_to_thread=False),
         "email_service": Provide(provide_email_service, sync_to_thread=False),
-        "action_registry": Provide(providers.provide_action_registry, sync_to_thread=False),
+        "action_registry": Provide(provide_action_registry, sync_to_thread=False),
         "object_registry": Provide(providers.provide_object_registry, sync_to_thread=False),
         "team_id": Provide(providers.provide_team_id, sync_to_thread=False),
         "campaign_id": Provide(providers.provide_campaign_id, sync_to_thread=False),
