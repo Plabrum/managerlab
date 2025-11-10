@@ -1,5 +1,5 @@
 from litestar.exceptions import HTTPException
-from litestar.status_codes import HTTP_403_FORBIDDEN
+from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -112,7 +112,11 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:
+        from app.auth.models import TeamInvitationToken
+        from app.users.models import User
+
         user_id = deps.request.user
+        invited_email = data.email.lower().strip()
 
         # Query the user's role for this team (with user relationship eager-loaded for inviter name)
         stmt = (
@@ -126,16 +130,45 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
         result = await transaction.execute(stmt)
         role = result.scalar_one()
 
+        # Check if user is already a member of this team
+        existing_member_stmt = select(Role).where(
+            Role.team_id == obj.id,
+            Role.user.has(User.email == invited_email),
+        )
+        existing_member_result = await transaction.execute(existing_member_stmt)
+        if existing_member_result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail=f"{invited_email} is already a member of this team",
+            )
+
+        # Check if there's already a pending invitation for this email
+        pending_invitation_stmt = select(TeamInvitationToken).where(
+            TeamInvitationToken.team_id == obj.id,
+            TeamInvitationToken.invited_email == invited_email,
+            TeamInvitationToken.accepted_at.is_(None),
+        )
+        pending_invitation_result = await transaction.execute(pending_invitation_stmt)
+        existing_invitation = pending_invitation_result.scalar_one_or_none()
+
+        if existing_invitation and existing_invitation.is_valid():
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail=f"An invitation to {invited_email} is already pending",
+            )
+
         # Generate secure invitation link (expires in 72 hours)
-        invitation_link = generate_scoped_team_link(
+        invitation_link = await generate_scoped_team_link(
+            db_session=transaction,
             team_id=int(obj.id),
-            invited_email=data.email,
+            invited_email=invited_email,
+            invited_by_user_id=int(user_id),
             expires_in_hours=72,
         )
 
         # Send invitation email
         await deps.email_service.send_team_invitation_email(
-            to_email=data.email,
+            to_email=invited_email,
             team_name=obj.name,
             inviter_name=role.user.name,
             invitation_link=invitation_link,
@@ -143,5 +176,5 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
         )
 
         return ActionExecutionResponse(
-            message=f"Invitation sent to {data.email}",
+            message=f"Invitation sent to {invited_email}. It will expire in 72 hours.",
         )

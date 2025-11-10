@@ -46,11 +46,27 @@ function AuthContent() {
 
     setIsLoading(true);
     try {
-      // TODO: Implement magic link sending
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const baseUrl = (
+        process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+      ).replace(/\/$/, '');
+
+      const response = await fetch(`${baseUrl}/auth/magic-link/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send magic link');
+      }
+
       setMagicLinkSent(true);
     } catch (error) {
       console.error('Magic link error:', error);
+      // Still show success screen for security (don't reveal if email exists)
+      setMagicLinkSent(true);
     } finally {
       setIsLoading(false);
     }
@@ -158,33 +174,15 @@ function AuthContent() {
                 <Label htmlFor="email" className="text-zinc-300">
                   Email address
                 </Label>
-                {/* <Input */}
-                {/*   id="email" */}
-                {/*   type="email" */}
-                {/*   placeholder="Enter your email" */}
-                {/*   value={email} */}
-                {/*   onChange={(e) => setEmail(e.target.value)} */}
-                {/*   required */}
-                {/*   className="border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500" */}
-                {/* /> */}
-                <div className="group relative w-full">
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
-                    disabled
-                  />
-                  <div
-                    role="tooltip"
-                    className="pointer-events-none absolute left-0 top-full z-10 mt-1 hidden rounded bg-zinc-900 px-2 py-1 text-xs text-white shadow group-hover:block"
-                  >
-                    Magic link sign-in is coming soon.
-                  </div>
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
+                />
               </div>
               <Button
                 type="submit"
@@ -192,8 +190,14 @@ function AuthContent() {
                 className="w-full bg-zinc-800 text-white hover:bg-zinc-700"
                 size="lg"
               >
-                <Mail className="mr-2 h-4 w-4" />
-                Send magic link
+                {isLoading ? (
+                  <>Sending...</>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Send magic link
+                  </>
+                )}
               </Button>
             </form>
 
