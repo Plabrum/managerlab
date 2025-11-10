@@ -7,6 +7,7 @@ import type {
   MediaResponseSchema,
   RosterSchema,
   InvoiceSchema,
+  TeamSchema,
 } from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from '@/types/domain-objects';
 import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
@@ -20,6 +21,7 @@ import { UpdateCampaignForm } from '@/components/actions/update-campaign-form';
 import { CreateBrandForm } from '@/components/actions/create-brand-form';
 import { UpdateBrandForm } from '@/components/actions/update-brand-form';
 import { AddDeliverableToCampaignForm } from '@/components/actions/add-deliverable-to-campaign-form';
+import { InviteUserToTeamForm } from '@/components/actions/invite-user-to-team-form';
 import React from 'react';
 
 /**
@@ -129,8 +131,8 @@ export type ActionToObjectMap = {
   dashboard_actions__update: never;
 
   // Team actions
-  team_actions__team_delete: never;
-  team_actions__team_invite_user: never;
+  team_actions__team_delete: TeamSchema;
+  team_actions__team_invite_user: TeamSchema;
 
   // Message actions
   message_actions__delete: never;
@@ -421,7 +423,17 @@ export const actionRegistry: ActionRegistry = {
     render: () => null,
   },
   team_actions__team_invite_user: {
-    render: () => null,
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
+      return (
+        <InviteUserToTeamForm
+          isOpen={isOpen}
+          onClose={onClose}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
+        />
+      );
+    },
   },
 
   // Message actions

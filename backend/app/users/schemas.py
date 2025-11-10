@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from app.actions.schemas import ActionDTO
+from app.auth.enums import ScopeType
 from app.base.schemas import BaseSchema
 from app.users.enums import RoleLevel
 from app.utils.sqids import Sqid
@@ -43,24 +44,23 @@ class CreateTeamSchema(BaseSchema):
 class TeamListItemSchema(BaseSchema):
     """Schema for a team in the list."""
 
-    team_id: int
-    public_id: str  # Sqid-encoded ID for use with actions API
+    id: Sqid
     team_name: str
-    role_level: RoleLevel
+    scope_type: ScopeType
+    is_selected: bool = False
     actions: list[ActionDTO] = []
-
-
-class ListTeamsResponse(BaseSchema):
-    """Response for listing teams."""
-
-    teams: list[TeamListItemSchema]
-    current_team_id: int | None
-    is_campaign_scoped: bool
 
 
 class SwitchTeamRequest(BaseSchema):
     """Request to switch team."""
 
+    team_id: Sqid
+
+
+class SwitchTeamResponse(BaseSchema):
+    """Response for switching team."""
+
+    detail: str
     team_id: int
 
 
@@ -68,3 +68,16 @@ class InviteUserToTeamSchema(BaseSchema):
     """Schema for inviting a user to a team."""
 
     email: str
+
+
+class UserAndRoleSchema(BaseSchema):
+    """Schema for a user with their role in a specific team context."""
+
+    id: Sqid
+    name: str
+    email: str
+    email_verified: bool
+    state: str
+    role_level: RoleLevel
+    created_at: datetime
+    updated_at: datetime

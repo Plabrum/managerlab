@@ -9,7 +9,7 @@ from litestar.exceptions import WebSocketDisconnect
 from litestar.handlers import websocket_listener
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.guards import requires_user_scope
+from app.auth.guards import requires_scoped_session
 from app.objects.enums import ObjectTypes
 from app.threads.enums import ThreadSocketMessageType
 from app.threads.schemas import ClientMessage, ServerMessage
@@ -92,7 +92,7 @@ async def thread_connection_lifespan(
 @websocket_listener(
     "/ws/threads/{threadable_type:str}/{threadable_id:str}",
     connection_lifespan=thread_connection_lifespan,
-    guards=[requires_user_scope],
+    guards=[requires_scoped_session],
 )
 async def thread_handler(
     data: dict,

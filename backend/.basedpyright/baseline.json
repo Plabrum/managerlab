@@ -1,15 +1,5 @@
 {
     "files": {
-        "./app/auth/guards.py": [
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 33,
-                    "endColumn": 44,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./app/media/tasks.py": [
             {
                 "code": "reportGeneralTypeIssues",

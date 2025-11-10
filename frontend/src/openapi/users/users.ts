@@ -30,12 +30,13 @@ import type {
 import type {
   CreateTeamSchema,
   CreateUserSchema,
-  ListTeamsResponse,
   SwitchTeamRequest,
+  SwitchTeamResponse,
+  TeamListItemSchema,
   TeamSchema,
+  UserAndRoleSchema,
   UserSchema,
   UsersCreateUser400,
-  UsersSwitchTeamSwitchTeam201,
   UsersSwitchTeamSwitchTeam400,
   UsersTeamsCreateTeam400,
   UsersUserIdGetUser400
@@ -55,7 +56,7 @@ export const usersListUsers = (
 ) => {
       
       
-      return customInstance<UserSchema[]>(
+      return customInstance<UserAndRoleSchema[]>(
       {url: `/users`, method: 'GET', signal
     },
       );
@@ -409,7 +410,7 @@ export const usersTeamsListTeams = (
 ) => {
       
       
-      return customInstance<ListTeamsResponse>(
+      return customInstance<TeamListItemSchema[]>(
       {url: `/users/teams`, method: 'GET', signal
     },
       );
@@ -763,7 +764,7 @@ export const usersSwitchTeamSwitchTeam = (
 ) => {
       
       
-      return customInstance<UsersSwitchTeamSwitchTeam201>(
+      return customInstance<SwitchTeamResponse>(
       {url: `/users/switch-team`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: switchTeamRequest, signal

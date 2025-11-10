@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useRouter } from 'next/navigation';
 import { config } from '@/lib/config';
 
 interface CreateTeamModalProps {
@@ -23,6 +24,7 @@ interface CreateTeamModalProps {
 
 export function CreateTeamModal({ open, onOpenChange }: CreateTeamModalProps) {
   const { refetchTeams } = useAuth();
+  const router = useRouter();
   const [isCreating, setIsCreating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [formData, setFormData] = React.useState({
@@ -53,8 +55,8 @@ export function CreateTeamModal({ open, onOpenChange }: CreateTeamModalProps) {
         setFormData({ name: '', description: '' });
         // Close modal
         onOpenChange(false);
-        // Reload page to refresh with new team scope
-        window.location.reload();
+        // Refresh server components without full page reload
+        router.refresh();
       } else {
         const errorData = await res.json();
         setError(errorData.detail || 'Failed to create team');

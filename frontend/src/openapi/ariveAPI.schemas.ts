@@ -1124,14 +1124,6 @@ export interface ListScopesResponse {
   current_scope_id?: ListScopesResponseCurrentScopeId;
 }
 
-export type ListTeamsResponseCurrentTeamId = number | null;
-
-export interface ListTeamsResponse {
-  teams: TeamListItemSchema[];
-  current_team_id?: ListTeamsResponseCurrentTeamId;
-  is_campaign_scoped: boolean;
-}
-
 export type MediaResponseSchemaThumbnailUrl = string | null;
 
 export type MediaResponseSchemaThread = ThreadUnreadInfo | null;
@@ -1550,14 +1542,19 @@ export interface SwitchScopeRequest {
 }
 
 export interface SwitchTeamRequest {
+  team_id: unknown;
+}
+
+export interface SwitchTeamResponse {
+  detail: string;
   team_id: number;
 }
 
 export interface TeamListItemSchema {
-  team_id: number;
-  public_id: string;
+  id: unknown;
   team_name: string;
-  role_level: RoleLevel;
+  scope_type: ScopeType;
+  is_selected?: boolean;
   actions?: ActionDTO[];
 }
 
@@ -1726,6 +1723,17 @@ export interface UpdateRosterAction {
   action: 'roster_actions__roster_update';
 }
 
+export interface UserAndRoleSchema {
+  id: unknown;
+  name: string;
+  email: string;
+  email_verified: boolean;
+  state: string;
+  role_level: RoleLevel;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface UserSchema {
   id: unknown;
   name: string;
@@ -1798,8 +1806,6 @@ export type UsersTeamsCreateTeam400 = {
   detail: string;
   extra?: UsersTeamsCreateTeam400Extra;
 };
-
-export type UsersSwitchTeamSwitchTeam201 = { [key: string]: unknown };
 
 export type UsersSwitchTeamSwitchTeam400ExtraAnyOf = {[key: string]: unknown};
 

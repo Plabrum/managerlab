@@ -21,6 +21,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuthLogoutLogoutUser } from '@/openapi/auth/auth';
+import { useAuth } from '@/components/providers/auth-provider';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 
 export function NavUser({
   user,
@@ -34,6 +36,10 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const authContext = useAuth();
+  const currentUser = authContext.user;
+  const { teams } = authContext;
 
   const { mutate: logout } = useAuthLogoutLogoutUser({
     mutation: {
@@ -55,6 +61,20 @@ export function NavUser({
   const handleLogout = () => {
     setIsSigningOut(true);
     logout();
+  };
+
+  // Get current team's id for navigation
+  const currentTeam = teams.find((t) => t.is_selected);
+  const teamId = currentTeam?.id as string | undefined;
+
+  const handleUserSettings = () => {
+    router.push(`/settings/user/${currentUser.id}`);
+  };
+
+  const handleTeamSettings = () => {
+    if (teamId) {
+      router.push(`/settings/team/${teamId}`);
+    }
   };
 
   return (
@@ -101,15 +121,19 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <DropdownMenuItem onClick={handleUserSettings}>
                 <User />
                 User Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleTeamSettings} disabled={!teamId}>
                 <Building2 />
                 Team Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <div className="flex justify-center px-2 py-2">
+              <ThemeSwitcher />
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} disabled={isSigningOut}>
               <LogOut />

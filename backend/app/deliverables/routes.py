@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.auth.guards import requires_user_id
+from app.auth.guards import requires_session
 from app.client.s3_client import S3Dep
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.schemas import (
@@ -102,7 +102,7 @@ async def update_deliverable(
 # Deliverable router
 deliverable_router = Router(
     path="/deliverables",
-    guards=[requires_user_id],
+    guards=[requires_session],
     route_handlers=[
         get_deliverable,
         update_deliverable,

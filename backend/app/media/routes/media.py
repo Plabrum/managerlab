@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.auth.guards import requires_user_id
+from app.auth.guards import requires_session
 from app.client.s3_client import S3Dep
 from app.media.enums import MediaStates
 from app.media.models import Media
@@ -126,7 +126,7 @@ async def delete_media(id: Sqid, transaction: AsyncSession, s3_client: S3Dep) ->
 # Media router
 media_router = Router(
     path="/media",
-    guards=[requires_user_id],
+    guards=[requires_session],
     route_handlers=[
         request_presigned_upload,
         register_media,
