@@ -40,7 +40,9 @@ class DeleteCampaign(BaseObjectAction[Campaign, EmptyActionData]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Campaign, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Campaign, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted campaign",
@@ -61,12 +63,13 @@ class UpdateCampaign(BaseObjectAction[Campaign, CampaignUpdateSchema]):
         obj: Campaign,
         data: CampaignUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
@@ -92,15 +95,16 @@ class AddDeliverableToCampaign(BaseObjectAction[Campaign, AddDeliverableToCampai
         obj: Campaign,
         data: AddDeliverableToCampaignSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Create a new deliverable associated with this campaign
         await create_model(
             session=transaction,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
             campaign_id=obj.id,
             model_class=Deliverable,
             create_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
         )
 
         return ActionExecutionResponse(
@@ -125,12 +129,13 @@ class AddContractToCampaign(BaseObjectAction[Campaign, AddContractToCampaignSche
         obj: Campaign,
         data: AddContractToCampaignSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Create association
         association = CampaignContract(
             campaign_id=obj.id,
             document_id=data.document_id,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
         )
         transaction.add(association)
 
@@ -139,7 +144,7 @@ class AddContractToCampaign(BaseObjectAction[Campaign, AddContractToCampaignSche
         )
 
     @classmethod
-    def is_available(cls, obj: Campaign | None) -> bool:
+    def is_available(cls, obj: Campaign | None, deps) -> bool:
         # Only available if campaign has no contract
         return obj is not None and obj.contract is None
 
@@ -160,12 +165,13 @@ class ReplaceContract(BaseObjectAction[Campaign, ReplaceContractSchema]):
         obj: Campaign,
         data: ReplaceContractSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Create new association (becomes latest via created_at)
         association = CampaignContract(
             campaign_id=obj.id,
             document_id=data.document_id,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
         )
         transaction.add(association)
 
@@ -174,7 +180,7 @@ class ReplaceContract(BaseObjectAction[Campaign, ReplaceContractSchema]):
         )
 
     @classmethod
-    def is_available(cls, obj: Campaign | None) -> bool:
+    def is_available(cls, obj: Campaign | None, deps) -> bool:
         # Only available if campaign already has a contract
         return obj is not None and obj.contract is not None
 
@@ -192,6 +198,7 @@ class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
         cls,
         data: CampaignCreateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Extract contract_document_id before creating campaign
         contract_document_id = data.contract_document_id
@@ -199,11 +206,11 @@ class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
         # brand_id is already decoded from SQID string to int by msgspec
         new_campaign = await create_model(
             session=transaction,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
             campaign_id=None,
             model_class=Campaign,
             create_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             ignore_fields=["contract_document_id"],
         )
 
@@ -212,7 +219,7 @@ class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
             contract_association = CampaignContract(
                 campaign_id=new_campaign.id,
                 document_id=contract_document_id,
-                team_id=cls.deps.team_id,
+                team_id=deps.team_id,
             )
             transaction.add(contract_association)
 

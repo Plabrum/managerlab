@@ -36,14 +36,17 @@ class DeleteTeam(BaseObjectAction[Team, EmptyActionData]):
     def is_available(
         cls,
         obj: Team | None,
+        deps,
     ) -> bool:
         """Action is available if team exists and is not already deleted."""
         return obj is None or obj.is_deleted
 
     @classmethod
-    async def execute(cls, obj: Team, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Team, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         """Execute team deletion. Only owners can delete teams."""
-        user_id = cls.deps.request.user
+        user_id = deps.request.user
 
         # Query the user's role for this team
         stmt = select(Role).where(
@@ -81,11 +84,12 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
     def is_available(
         cls,
         obj: Team | None,
+        deps,
     ) -> bool:
         if obj is None or obj.is_deleted:
             return False
 
-        user_id = cls.deps.request.user
+        user_id = deps.request.user
 
         # Find the user's role from the loaded roles relationship
         # (Team must be loaded with selectinload(Team.roles) in the query)
@@ -103,8 +107,9 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
         obj: Team,
         data: InviteUserToTeamSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
-        user_id = cls.deps.request.user
+        user_id = deps.request.user
 
         # Query the user's role for this team (with user relationship eager-loaded for inviter name)
         stmt = (
@@ -126,7 +131,7 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
         )
 
         # Send invitation email
-        await cls.deps.email_service.send_team_invitation_email(
+        await deps.email_service.send_team_invitation_email(
             to_email=data.email,
             team_name=obj.name,
             inviter_name=role.user.name,

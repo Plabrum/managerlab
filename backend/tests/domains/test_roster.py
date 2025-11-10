@@ -106,6 +106,7 @@ class TestRoster:
             client,
             "roster_actions",
             "roster_actions__roster_delete",
+            data={},
             obj_id=sqid_encode(roster.id),
         )
 

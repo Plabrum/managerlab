@@ -28,7 +28,9 @@ class DeleteDocument(BaseObjectAction[Document, EmptyActionData]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Document, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Document, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted document",
@@ -49,12 +51,13 @@ class UpdateDocument(BaseObjectAction[Document, DocumentUpdateSchema]):
         obj: Document,
         data: DocumentUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
@@ -72,8 +75,10 @@ class DownloadDocument(BaseObjectAction[Document, EmptyActionData]):
     icon = ActionIcon.download
 
     @classmethod
-    async def execute(cls, obj: Document, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
-        download_url = cls.deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
+    async def execute(
+        cls, obj: Document, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
+        download_url = deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
 
         return ActionExecutionResponse(
             message="Download ready",
@@ -84,7 +89,7 @@ class DownloadDocument(BaseObjectAction[Document, EmptyActionData]):
         )
 
     @classmethod
-    def is_available(cls, obj: Document | None) -> bool:
+    def is_available(cls, obj: Document | None, deps) -> bool:
         return obj is not None and obj.state == DocumentStates.READY
 
 
@@ -101,13 +106,14 @@ class CreateDocument(BaseTopLevelAction[RegisterDocumentSchema]):
         cls,
         data: RegisterDocumentSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Determine file type from mime_type or extension
         file_type = _determine_file_type(data.mime_type, data.file_name)
 
         document = Document(
-            team_id=cls.deps.team_id,
-            campaign_id=cls.deps.campaign_id,
+            team_id=deps.team_id,
+            campaign_id=deps.campaign_id,
             file_key=data.file_key,
             file_name=data.file_name,
             file_size=data.file_size,

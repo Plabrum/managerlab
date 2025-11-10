@@ -28,7 +28,9 @@ class DeleteBrand(BaseObjectAction[Brand, EmptyActionData]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Brand, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Brand, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted brand",
@@ -49,12 +51,13 @@ class UpdateBrand(BaseObjectAction[Brand, BrandUpdateSchema]):
         obj: Brand,
         data: BrandUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
@@ -76,14 +79,15 @@ class CreateBrand(BaseTopLevelAction[BrandCreateSchema]):
         cls,
         data: BrandCreateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         new_brand = await create_model(
             session=transaction,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
             campaign_id=None,
             model_class=Brand,
             create_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
         )
         return ActionExecutionResponse(
             message=f"Created brand '{new_brand.name}'",

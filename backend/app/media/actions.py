@@ -28,7 +28,9 @@ class DeleteMedia(BaseObjectAction[Media, EmptyActionData]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Media, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Media, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted media",
@@ -49,12 +51,13 @@ class UpdateMedia(BaseObjectAction[Media, MediaUpdateSchema]):
         obj: Media,
         data: MediaUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
@@ -72,8 +75,10 @@ class DownloadMedia(BaseObjectAction[Media, EmptyActionData]):
     icon = ActionIcon.download
 
     @classmethod
-    async def execute(cls, obj: Media, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
-        download_url = cls.deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
+    async def execute(
+        cls, obj: Media, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
+        download_url = deps.s3_client.generate_presigned_download_url(key=obj.file_key, expires_in=3600)
 
         return ActionExecutionResponse(
             message="Download ready",
@@ -84,7 +89,7 @@ class DownloadMedia(BaseObjectAction[Media, EmptyActionData]):
         )
 
     @classmethod
-    def is_available(cls, obj: Media | None) -> bool:
+    def is_available(cls, obj: Media | None, deps) -> bool:
         return obj is not None and obj.state == MediaStates.READY
 
 
@@ -101,11 +106,12 @@ class CreateMedia(BaseTopLevelAction[RegisterMediaSchema]):
         cls,
         data: RegisterMediaSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         file_type = "image" if data.mime_type.startswith("image/") else "video"
         media = Media(
-            team_id=cls.deps.team_id,
-            campaign_id=cls.deps.campaign_id,
+            team_id=deps.team_id,
+            campaign_id=deps.campaign_id,
             file_key=data.file_key,
             file_name=data.file_name,
             file_size=data.file_size,
@@ -115,7 +121,7 @@ class CreateMedia(BaseTopLevelAction[RegisterMediaSchema]):
         )
         transaction.add(media)
         await transaction.flush()
-        queue = cls.deps.task_queues.get("default")
+        queue = deps.task_queues.get("default")
         await queue.enqueue("generate_thumbnail", media_id=int(media.id))
         return ActionExecutionResponse(
             message=f"Created media '{media.file_name}'",

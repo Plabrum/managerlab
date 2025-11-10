@@ -30,7 +30,9 @@ class DeleteDashboard(BaseObjectAction[Dashboard, EmptyActionData]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Dashboard, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Dashboard, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Dashboard deleted successfully",
@@ -53,12 +55,13 @@ class UpdateDashboard(BaseObjectAction[Dashboard, UpdateDashboardSchema]):
         obj: Dashboard,
         data: UpdateDashboardSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 

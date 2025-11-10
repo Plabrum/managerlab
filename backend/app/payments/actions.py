@@ -23,7 +23,9 @@ class DeleteInvoice(BaseObjectAction[Invoice, EmptyActionData]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Invoice, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Invoice, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
             message="Deleted invoice",
@@ -44,12 +46,13 @@ class UpdateInvoice(BaseObjectAction[Invoice, InvoiceUpdateSchema]):
         obj: Invoice,
         data: InvoiceUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
@@ -71,14 +74,15 @@ class CreateInvoice(BaseTopLevelAction[InvoiceCreateSchema]):
         cls,
         data: InvoiceCreateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         new_invoice = await create_model(
             session=transaction,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
             campaign_id=None,
             model_class=Invoice,
             create_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
         )
         return ActionExecutionResponse(
             message=f"Created invoice #{new_invoice.invoice_number}",

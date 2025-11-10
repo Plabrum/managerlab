@@ -30,7 +30,7 @@ class DeleteDeliverable(BaseObjectAction[Deliverable, EmptyActionData]):
 
     @classmethod
     async def execute(
-        cls, obj: Deliverable, data: EmptyActionData, transaction: AsyncSession
+        cls, obj: Deliverable, data: EmptyActionData, transaction: AsyncSession, deps
     ) -> ActionExecutionResponse:
         await transaction.delete(obj)
         return ActionExecutionResponse(
@@ -52,12 +52,13 @@ class EditDeliverable(BaseObjectAction[Deliverable, DeliverableUpdateSchema]):
         obj: Deliverable,
         data: DeliverableUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
@@ -78,7 +79,7 @@ class PublishDeliverable(BaseObjectAction[Deliverable, EmptyActionData]):
 
     @classmethod
     async def execute(
-        cls, obj: Deliverable, data: EmptyActionData, transaction: AsyncSession
+        cls, obj: Deliverable, data: EmptyActionData, transaction: AsyncSession, deps
     ) -> ActionExecutionResponse:
         obj.state = DeliverableStates.POSTED
 
@@ -87,7 +88,7 @@ class PublishDeliverable(BaseObjectAction[Deliverable, EmptyActionData]):
         )
 
     @classmethod
-    def is_available(cls, obj: Deliverable | None) -> bool:
+    def is_available(cls, obj: Deliverable | None, deps) -> bool:
         return obj is not None and obj.state == DeliverableStates.DRAFT
 
 
@@ -109,6 +110,7 @@ class AddMediaToDeliverable(BaseObjectAction[Deliverable, AddMediaToDeliverableS
         obj: Deliverable,
         data: AddMediaToDeliverableSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # media_ids are already decoded from SQID strings to ints by msgspec
         requested_media_ids = data.media_ids
@@ -132,7 +134,7 @@ class AddMediaToDeliverable(BaseObjectAction[Deliverable, AddMediaToDeliverableS
         # Create DeliverableMedia association objects for new media
         for media_id in new_media_ids:
             association = DeliverableMedia(
-                team_id=cls.deps.team_id,
+                team_id=deps.team_id,
                 deliverable_id=obj.id,
                 media_id=media_id,
                 approved_at=None,
@@ -158,14 +160,15 @@ class CreateDeliverable(BaseTopLevelAction[DeliverableCreateSchema]):
         cls,
         data: DeliverableCreateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         deliverable = await create_model(
             session=transaction,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
             campaign_id=None,
             model_class=Deliverable,
             create_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
         )
         return ActionExecutionResponse(
             message=f"Created deliverable '{deliverable.title}'",

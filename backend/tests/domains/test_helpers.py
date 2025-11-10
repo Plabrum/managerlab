@@ -71,7 +71,7 @@ async def execute_action(
 
     # Build the action payload using msgspec
     payload_dict: dict[str, Any] = {"action": action_key}
-    if data:
+    if data is not None:
         payload_dict["data"] = data
 
     # Encode to JSON using msgspec for proper serialization

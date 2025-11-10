@@ -31,7 +31,7 @@ class RemoveMediaFromDeliverable(BaseObjectAction[DeliverableMedia, EmptyActionD
 
     @classmethod
     async def execute(
-        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession
+        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession, deps
     ) -> ActionExecutionResponse:
         # Delete the DeliverableMedia association object
         await transaction.delete(obj)
@@ -57,7 +57,7 @@ class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]
 
     @classmethod
     async def execute(
-        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession
+        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession, deps
     ) -> ActionExecutionResponse:
         # Set approved_at to current time
         obj.approved_at = datetime.now(tz=UTC)
@@ -67,7 +67,7 @@ class AcceptDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]
         )
 
     @classmethod
-    def is_available(cls, obj: DeliverableMedia | None) -> bool:
+    def is_available(cls, obj: DeliverableMedia | None, deps) -> bool:
         # Only available if not already approved
         return obj is not None and obj.approved_at is None
 
@@ -88,7 +88,7 @@ class RejectDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]
 
     @classmethod
     async def execute(
-        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession
+        cls, obj: DeliverableMedia, data: EmptyActionData, transaction: AsyncSession, deps
     ) -> ActionExecutionResponse:
         # Set approved_at to None
         obj.approved_at = None
@@ -98,6 +98,6 @@ class RejectDeliverableMedia(BaseObjectAction[DeliverableMedia, EmptyActionData]
         )
 
     @classmethod
-    def is_available(cls, obj: DeliverableMedia | None) -> bool:
+    def is_available(cls, obj: DeliverableMedia | None, deps) -> bool:
         # Only available if already approved
         return obj is not None and obj.approved_at is not None

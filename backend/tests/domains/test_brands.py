@@ -117,7 +117,7 @@ class TestBrands:
 
         response = await client.post(
             f"/actions/brand_actions/{sqid_encode(brand.id)}",
-            json={"action": "brand_actions__brand_delete"},
+            json={"action": "brand_actions__brand_delete", "data": {}},
         )
         assert response.status_code in [200, 201, 204]
         assert response.json() is not None

@@ -32,11 +32,12 @@ class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
     def is_available(
         cls,
         obj: Message | None,
+        deps,
     ) -> bool:
         """Only message author can edit their message."""
         if not obj:
             return False
-        return obj.user_id == cls.deps.user
+        return obj.user_id == deps.user
 
     @classmethod
     async def execute(
@@ -44,6 +45,7 @@ class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
         obj: Message,
         data: MessageUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Update content
         obj.content = data.content
@@ -52,7 +54,7 @@ class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
 
         # Notify WebSocket subscribers
         await notify_thread(
-            cls.deps.channels,
+            deps.channels,
             obj.thread_id,
             ServerMessage(
                 message_type=ThreadSocketMessageType.MESSAGE_UPDATED,
@@ -82,11 +84,12 @@ class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
     def is_available(
         cls,
         obj: Message | None,
+        deps,
     ) -> bool:
         """Only message author can delete their message."""
         if not obj:
             return False
-        return obj.user_id == cls.deps.user
+        return obj.user_id == deps.user
 
     @classmethod
     async def execute(
@@ -94,6 +97,7 @@ class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
         obj: Message,
         data: EmptyActionData,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Soft delete
         obj.soft_delete()
@@ -101,7 +105,7 @@ class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
 
         # Notify WebSocket subscribers
         await notify_thread(
-            cls.deps.channels,
+            deps.channels,
             obj.thread_id,
             ServerMessage(
                 message_type=ThreadSocketMessageType.MESSAGE_DELETED,

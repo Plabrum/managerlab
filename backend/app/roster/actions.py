@@ -27,7 +27,9 @@ class DeleteRoster(BaseObjectAction[Roster, EmptyActionData]):
     should_redirect_to_parent = True
 
     @classmethod
-    async def execute(cls, obj: Roster, data: EmptyActionData, transaction: AsyncSession) -> ActionExecutionResponse:
+    async def execute(
+        cls, obj: Roster, data: EmptyActionData, transaction: AsyncSession, deps
+    ) -> ActionExecutionResponse:
         from datetime import datetime, timezone
 
         # Soft delete by setting deleted_at
@@ -52,12 +54,13 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
         obj: Roster,
         data: RosterUpdateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
             model_instance=obj,
             update_vals=data,
-            user_id=cls.deps.user,
+            user_id=deps.user,
             team_id=obj.team_id,
         )
 
@@ -79,9 +82,10 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
         cls,
         data: RosterCreateSchema,
         transaction: AsyncSession,
+        deps,
     ) -> ActionExecutionResponse:
         # Get user_id from session
-        user_id = cls.deps.request.session.get("user_id")
+        user_id = deps.request.session.get("user_id")
         if not user_id:
             return ActionExecutionResponse(
                 message="User not authenticated",
@@ -90,7 +94,7 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
         # Create roster member
         roster = Roster(
             user_id=user_id,
-            team_id=cls.deps.team_id,
+            team_id=deps.team_id,
             name=data.name,
             email=data.email,
             phone=data.phone,

@@ -2,6 +2,7 @@ from abc import ABC
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, ClassVar
 
+from litestar.exceptions import NotFoundException
 from msgspec import Struct
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,10 +49,6 @@ class BaseAction[O: BaseDBModel, D: Struct](ABC):
     model: ClassVar[type[BaseDBModel] | None] = None
     load_options: ClassVar[list[ExecutableOption]] = []
 
-    # Injected dependencies (set by ActionGroup.trigger before execute)
-    # Note: This is set dynamically per-request, not a ClassVar
-    deps: "ActionDeps"
-
     @classmethod
     async def get_object(
         cls,
@@ -70,6 +67,7 @@ class BaseAction[O: BaseDBModel, D: Struct](ABC):
     def is_available(
         cls,
         obj: O | None,
+        deps: "ActionDeps",
     ) -> bool:
         return True
 
@@ -93,19 +91,18 @@ class BaseObjectAction[O: BaseDBModel, D: Struct](BaseAction[O, D]):
         obj: O,
         data: D,
         transaction: AsyncSession,
+        deps: "ActionDeps",
     ) -> ActionExecutionResponse:
         """Execute the action on an existing object.
 
         Args:
             obj: The database object this action operates on (never None)
             data: The action's input data (msgspec struct from discriminated union)
-            transaction: Database session for this request
+            transaction: Database session for this request (auto-commits via SQLAlchemy plugin)
+            deps: Injected dependencies (user, team_id, s3_client, etc.)
 
         Returns:
             ActionExecutionResponse with result metadata
-
-        Note:
-            Access injected dependencies via cls.deps (user, team_id, s3_client, etc.)
         """
         raise NotImplementedError(f"{cls.__name__} must implement execute()")
 
@@ -127,18 +124,17 @@ class BaseTopLevelAction[D: Struct](BaseAction[BaseDBModel, D]):
         cls,
         data: D,
         transaction: AsyncSession,
+        deps: "ActionDeps",
     ) -> ActionExecutionResponse:
         """Execute the action without an existing object.
 
         Args:
             data: The action's input data (msgspec struct from discriminated union)
-            transaction: Database session for this request
+            transaction: Database session for this request (auto-commits via SQLAlchemy plugin)
+            deps: Injected dependencies (user, team_id, s3_client, etc.)
 
         Returns:
             ActionExecutionResponse with result metadata
-
-        Note:
-            Access injected dependencies via cls.deps (user, team_id, s3_client, etc.)
         """
         raise NotImplementedError(f"{cls.__name__} must implement execute()")
 
@@ -184,7 +180,7 @@ class ActionGroup:
 
     def get_action(self, action_key: str) -> type[BaseAction]:
         if action_key not in self.actions:
-            raise Exception("Unknown action type")
+            raise NotFoundException(detail=f"Action {action_key} not found")
         return self.actions[action_key]
 
     async def get_object(self, object_id: int) -> BaseDBModel | None:
@@ -204,13 +200,26 @@ class ActionGroup:
         data: Any,  # Discriminated union instance
         object_id: int | None = None,
     ) -> ActionExecutionResponse:
+        """Execute an action with proper dependency injection.
+
+        Args:
+            data: Discriminated union instance containing action data
+            object_id: Optional object ID for object actions
+
+        Returns:
+            ActionExecutionResponse with result metadata
+
+        Note:
+            Transaction commits are handled automatically via SQLAlchemy plugin.
+            Dependencies are passed explicitly to avoid thread-safety issues.
+        """
         from app.actions.deps import ActionDeps
 
         action_class: type[BaseAction] = self.action_registry._struct_to_action[type(data)]
         transaction = self.action_registry.dependencies["transaction"]
 
-        # Inject dependencies via deps property
-        action_class.deps = ActionDeps(**self.action_registry.dependencies)
+        # Create deps instance for this request
+        deps = ActionDeps(**self.action_registry.dependencies)
 
         # Extract data from discriminated union wrapper
         action_data = getattr(data, "data", data)
@@ -220,11 +229,11 @@ class ActionGroup:
             # Instance action - requires object
             obj = await action_class.get_object(object_id=object_id, transaction=transaction) if object_id else None
             if obj is None:
-                raise ValueError(f"Object action {action_class.__name__} requires object_id")
-            actions_execution_response = await action_class.execute(obj, action_data, transaction)
+                raise NotFoundException(detail=f"Object action {action_class.__name__} requires object_id")
+            actions_execution_response = await action_class.execute(obj, action_data, transaction, deps)
         elif issubclass(action_class, BaseTopLevelAction):
             # Top-level action - no object needed
-            actions_execution_response = await action_class.execute(action_data, transaction)
+            actions_execution_response = await action_class.execute(action_data, transaction, deps)
         else:
             raise TypeError(f"Action {action_class.__name__} must inherit from BaseObjectAction or BaseTopLevelAction")
 
@@ -243,12 +252,12 @@ class ActionGroup:
         # Select the appropriate pre-sorted dictionary
         actions_dict = self.top_level_actions if obj is None else self.object_actions
 
+        # Create deps instance for this request
+        deps = ActionDeps(**self.action_registry.dependencies)
+
         available = []
         for action_key, action_class in actions_dict.items():
-            # Inject dependencies via deps property (same as trigger method)
-            action_class.deps = ActionDeps(**self.action_registry.dependencies)
-
-            if action_class.is_available(obj):
+            if action_class.is_available(obj, deps):
                 available.append((action_key, action_class))
 
         # Sort by priority
