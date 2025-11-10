@@ -45,10 +45,10 @@ class TestUsers:
         authenticated_client: tuple[AsyncTestClient, dict],
         db_session: AsyncSession,
     ):
-        """Test GET /users/teams returns user's teams."""
+        """Test GET /teams/ returns user's teams."""
         client, _ = authenticated_client
 
-        response = await client.get("/users/teams")
+        response = await client.get("/teams/")
         assert response.status_code == 200
         assert response.json() is not None
 
@@ -101,20 +101,20 @@ class TestTeams:
         self,
         authenticated_client: tuple[AsyncTestClient, dict],
     ):
-        """Smoke test: GET /users/teams returns 200."""
+        """Smoke test: GET /teams/ returns 200."""
         client, _ = authenticated_client
-        response = await client.get("/users/teams")
+        response = await client.get("/teams/")
         assert response.status_code == 200
 
     async def test_create_team(
         self,
         authenticated_client: tuple[AsyncTestClient, dict],
     ):
-        """Smoke test: POST /users/teams creates a team."""
+        """Smoke test: POST /teams/ creates a team."""
         client, _ = authenticated_client
 
         response = await client.post(
-            "/users/teams",
+            "/teams/",
             json={
                 "name": "New Team",
                 "description": "A brand new team",

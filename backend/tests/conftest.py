@@ -42,6 +42,7 @@ from app.media.routes import media_router
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
 from app.roster.routes import roster_router
+from app.teams.routes import team_router
 from app.threads import thread_router
 from app.threads.websocket import thread_handler
 from app.users.routes import user_router
@@ -269,6 +270,7 @@ def route_handlers() -> list:
     """Provide all route handlers for the test app."""
     return [
         user_router,
+        team_router,
         roster_router,
         auth_router,
         object_router,
