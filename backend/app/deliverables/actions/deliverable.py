@@ -2,7 +2,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.actions.base import BaseObjectAction, BaseTopLevelAction, EmptyActionData, action_group_factory
+from app.actions.base import (
+    BaseObjectAction,
+    BaseTopLevelAction,
+    EmptyActionData,
+    action_group_factory,
+)
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.deliverables.enums import DeliverableActions, DeliverableStates
@@ -52,7 +58,7 @@ class EditDeliverable(BaseObjectAction[Deliverable, DeliverableUpdateSchema]):
         obj: Deliverable,
         data: DeliverableUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
@@ -110,7 +116,7 @@ class AddMediaToDeliverable(BaseObjectAction[Deliverable, AddMediaToDeliverableS
         obj: Deliverable,
         data: AddMediaToDeliverableSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # media_ids are already decoded from SQID strings to ints by msgspec
         requested_media_ids = data.media_ids
@@ -160,7 +166,7 @@ class CreateDeliverable(BaseTopLevelAction[DeliverableCreateSchema]):
         cls,
         data: DeliverableCreateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         deliverable = await create_model(
             session=transaction,

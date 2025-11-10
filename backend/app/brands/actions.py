@@ -1,7 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions import (
+    ActionGroupType,
+    BaseObjectAction,
+    BaseTopLevelAction,
+    action_group_factory,
+)
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.brands.enums import BrandActions
@@ -51,7 +57,7 @@ class UpdateBrand(BaseObjectAction[Brand, BrandUpdateSchema]):
         obj: Brand,
         data: BrandUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
@@ -79,7 +85,7 @@ class CreateBrand(BaseTopLevelAction[BrandCreateSchema]):
         cls,
         data: BrandCreateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         new_brand = await create_model(
             session=transaction,

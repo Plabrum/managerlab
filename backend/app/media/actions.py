@@ -1,7 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions import (
+    ActionGroupType,
+    BaseObjectAction,
+    BaseTopLevelAction,
+    action_group_factory,
+)
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
 from app.client.s3_client import S3Client
@@ -51,7 +57,7 @@ class UpdateMedia(BaseObjectAction[Media, MediaUpdateSchema]):
         obj: Media,
         data: MediaUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
@@ -106,7 +112,7 @@ class CreateMedia(BaseTopLevelAction[RegisterMediaSchema]):
         cls,
         data: RegisterMediaSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         file_type = "image" if data.mime_type.startswith("image/") else "video"
         media = Media(

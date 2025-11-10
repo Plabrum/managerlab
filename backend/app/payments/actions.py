@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import BaseObjectAction, BaseTopLevelAction, action_group_factory
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.payments.enums import InvoiceActions
@@ -46,7 +47,7 @@ class UpdateInvoice(BaseObjectAction[Invoice, InvoiceUpdateSchema]):
         obj: Invoice,
         data: InvoiceUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
@@ -74,7 +75,7 @@ class CreateInvoice(BaseTopLevelAction[InvoiceCreateSchema]):
         cls,
         data: InvoiceCreateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         new_invoice = await create_model(
             session=transaction,

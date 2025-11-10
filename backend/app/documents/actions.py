@@ -1,7 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions import (
+    ActionGroupType,
+    BaseObjectAction,
+    BaseTopLevelAction,
+    action_group_factory,
+)
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
 from app.client.s3_client import S3Client
@@ -51,7 +57,7 @@ class UpdateDocument(BaseObjectAction[Document, DocumentUpdateSchema]):
         obj: Document,
         data: DocumentUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
@@ -106,7 +112,7 @@ class CreateDocument(BaseTopLevelAction[RegisterDocumentSchema]):
         cls,
         data: RegisterDocumentSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Determine file type from mime_type or extension
         file_type = _determine_file_type(data.mime_type, data.file_name)

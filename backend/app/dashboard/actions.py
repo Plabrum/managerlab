@@ -1,9 +1,8 @@
-"""Dashboard actions for update and delete operations."""
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.dashboard.enums import DashboardActions
@@ -55,7 +54,7 @@ class UpdateDashboard(BaseObjectAction[Dashboard, UpdateDashboardSchema]):
         obj: Dashboard,
         data: UpdateDashboardSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,

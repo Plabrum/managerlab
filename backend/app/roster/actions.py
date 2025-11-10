@@ -1,7 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
+from app.actions import (
+    ActionGroupType,
+    BaseObjectAction,
+    BaseTopLevelAction,
+    action_group_factory,
+)
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.roster.enums import RosterActions
@@ -54,7 +60,7 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
         obj: Roster,
         data: RosterUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
@@ -82,7 +88,7 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
         cls,
         data: RosterCreateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Get user_id from session
         user_id = deps.request.session.get("user_id")

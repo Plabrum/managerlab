@@ -1,10 +1,9 @@
-"""Message actions."""
-
 from litestar.channels import ChannelsPlugin
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.threads.enums import MessageActions, ThreadSocketMessageType
@@ -32,7 +31,7 @@ class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
     def is_available(
         cls,
         obj: Message | None,
-        deps,
+        deps: ActionDeps,
     ) -> bool:
         """Only message author can edit their message."""
         if not obj:
@@ -45,7 +44,7 @@ class UpdateMessage(BaseObjectAction[Message, MessageUpdateSchema]):
         obj: Message,
         data: MessageUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Update content
         obj.content = data.content
@@ -84,7 +83,7 @@ class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
     def is_available(
         cls,
         obj: Message | None,
-        deps,
+        deps: ActionDeps,
     ) -> bool:
         """Only message author can delete their message."""
         if not obj:
@@ -97,7 +96,7 @@ class DeleteMessage(BaseObjectAction[Message, EmptyActionData]):
         obj: Message,
         data: EmptyActionData,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Soft delete
         obj.soft_delete()

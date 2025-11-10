@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.users.enums import RoleLevel, TeamActions
@@ -36,7 +37,7 @@ class DeleteTeam(BaseObjectAction[Team, EmptyActionData]):
     def is_available(
         cls,
         obj: Team | None,
-        deps,
+        deps: ActionDeps,
     ) -> bool:
         """Action is available if team exists and is not already deleted."""
         return obj is None or obj.is_deleted
@@ -84,7 +85,7 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
     def is_available(
         cls,
         obj: Team | None,
-        deps,
+        deps: ActionDeps,
     ) -> bool:
         if obj is None or obj.is_deleted:
             return False
@@ -107,7 +108,7 @@ class InviteUserToTeam(BaseObjectAction[Team, InviteUserToTeamSchema]):
         obj: Team,
         data: InviteUserToTeamSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         user_id = deps.request.user
 

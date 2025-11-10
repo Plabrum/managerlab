@@ -8,6 +8,7 @@ from app.actions import (
     action_group_factory,
 )
 from app.actions.base import EmptyActionData
+from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, RedirectActionResult
 from app.campaigns.enums import CampaignActions
@@ -63,7 +64,7 @@ class UpdateCampaign(BaseObjectAction[Campaign, CampaignUpdateSchema]):
         obj: Campaign,
         data: CampaignUpdateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         await update_model(
             session=transaction,
@@ -95,7 +96,7 @@ class AddDeliverableToCampaign(BaseObjectAction[Campaign, AddDeliverableToCampai
         obj: Campaign,
         data: AddDeliverableToCampaignSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Create a new deliverable associated with this campaign
         await create_model(
@@ -129,7 +130,7 @@ class AddContractToCampaign(BaseObjectAction[Campaign, AddContractToCampaignSche
         obj: Campaign,
         data: AddContractToCampaignSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Create association
         association = CampaignContract(
@@ -165,7 +166,7 @@ class ReplaceContract(BaseObjectAction[Campaign, ReplaceContractSchema]):
         obj: Campaign,
         data: ReplaceContractSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Create new association (becomes latest via created_at)
         association = CampaignContract(
@@ -198,7 +199,7 @@ class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
         cls,
         data: CampaignCreateSchema,
         transaction: AsyncSession,
-        deps,
+        deps: ActionDeps,
     ) -> ActionExecutionResponse:
         # Extract contract_document_id before creating campaign
         contract_document_id = data.contract_document_id
