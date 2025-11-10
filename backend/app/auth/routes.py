@@ -16,7 +16,8 @@ from app.auth.schemas import (
     TeamScopeSchema,
 )
 from app.campaigns.models import Campaign, CampaignGuest
-from app.users.models import Role, Team
+from app.teams.models import Team
+from app.users.models import Role
 
 
 @get("/list-scopes", guards=[requires_session])

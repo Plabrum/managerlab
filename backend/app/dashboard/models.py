@@ -12,7 +12,8 @@ from app.base.scope_mixins import RLSMixin
 from app.dashboard.enums import DashboardOwnerType
 
 if TYPE_CHECKING:
-    from app.users.models import Team, User
+    from app.teams.models import Team
+    from app.users.models import User
 
 
 class Dashboard(RLSMixin(), BaseDBModel):

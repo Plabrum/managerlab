@@ -6,8 +6,9 @@ from polyfactory import Use
 
 from app.roster.enums import RosterStates
 from app.roster.models import Roster
+from app.teams.models import Team
 from app.users.enums import RoleLevel, UserStates
-from app.users.models import Role, Team, User
+from app.users.models import Role, User
 
 from .base import BaseFactory
 

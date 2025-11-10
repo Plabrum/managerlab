@@ -1,4 +1,4 @@
-"""User and team utility functions."""
+"""Team utility functions."""
 
 from app.utils.configure import config
 

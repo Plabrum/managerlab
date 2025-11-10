@@ -14,7 +14,8 @@ from sqlalchemy.orm import sessionmaker
 from app.brands.models.brands import Brand
 from app.campaigns.models import Campaign
 from app.roster.models import Roster
-from app.users.models import Role, Team
+from app.teams.models import Team
+from app.users.models import Role
 from app.utils.configure import config
 
 

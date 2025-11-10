@@ -32,7 +32,9 @@ export function ObjectActions(props: ObjectActionsProps) {
 
   // Extract appropriate values based on action type
   const objectId = isObjectAction ? String(props.data.id) : undefined;
-  const actions = isObjectAction ? props.data.actions : (props.actions ?? []);
+  const actions = isObjectAction
+    ? (props.data.actions ?? [])
+    : (props.actions ?? []);
   const objectData = isObjectAction ? props.data : undefined;
 
   // Use the centralized registry

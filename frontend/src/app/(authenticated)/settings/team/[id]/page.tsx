@@ -1,30 +1,30 @@
 'use client';
 
+import { use } from 'react';
 import { useUsersListUsersSuspense } from '@/openapi/users/users';
+import { useTeamsIdGetTeamSuspense } from '@/openapi/teams/teams';
 import { PageTopBar } from '@/components/page-topbar';
 import { TeamMembersCard } from '@/components/settings/team-members-card';
 import { ObjectActions } from '@/components/object-detail';
-import { useAuth } from '@/components/providers/auth-provider';
 import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 
-export default function TeamSettingsPage() {
+export default function TeamSettingsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const { data: users } = useUsersListUsersSuspense();
-  const { teams, refetchTeams } = useAuth();
-
-  const currentTeam = teams.find((t) => t.is_selected);
-
-  if (!currentTeam) {
-    return null;
-  }
+  const { data: team, refetch } = useTeamsIdGetTeamSuspense(id);
 
   return (
     <PageTopBar
-      title="Team Settings"
+      title={team.name}
       actions={
         <ObjectActions
-          data={currentTeam}
+          data={team}
           actionGroup={ActionGroupType.team_actions}
-          onRefetch={refetchTeams}
+          onRefetch={refetch}
         />
       }
     >

@@ -5,7 +5,7 @@ from app.objects.schemas import (
     ObjectColumn,
     StringFieldValue,
 )
-from app.users.models import Team
+from app.teams.models import Team
 
 
 class TeamObject(BaseObject[Team]):

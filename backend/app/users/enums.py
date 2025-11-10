@@ -14,10 +14,3 @@ class RoleLevel(StrEnum):
     ADMIN = auto()
     MEMBER = auto()
     VIEWER = auto()
-
-
-class TeamActions(StrEnum):
-    """Team actions."""
-
-    delete = "team.delete"
-    invite_user = "team.invite_user"

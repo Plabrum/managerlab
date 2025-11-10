@@ -22,6 +22,7 @@ from app.media.routes import local_media_router, media_router
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
 from app.roster.routes import roster_router
+from app.teams.routes import team_router
 from app.threads import thread_router
 from app.threads.websocket import thread_handler
 from app.users.routes import user_router
@@ -40,6 +41,7 @@ async def health_check() -> Response:
 route_handlers: list[Any] = [
     health_check,
     user_router,
+    team_router,
     roster_router,
     auth_router,
     object_router,

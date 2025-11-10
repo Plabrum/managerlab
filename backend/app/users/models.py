@@ -9,6 +9,7 @@ from app.users.enums import RoleLevel, UserStates
 
 if TYPE_CHECKING:
     from app.auth.google.models import GoogleOAuthAccount
+    from app.teams.models import Team
 
 
 class User(
@@ -33,21 +34,6 @@ class User(
     # Relationship to roles (team memberships)
     roles: Mapped[list["Role"]] = relationship(
         back_populates="user",
-        cascade="all, delete-orphan",
-    )
-
-
-class Team(BaseDBModel):
-    """Organization/workspace that users belong to."""
-
-    __tablename__ = "teams"
-
-    name: Mapped[str] = mapped_column(sa.Text, nullable=False, index=True)
-    description: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
-
-    # Relationship to roles (team members)
-    roles: Mapped[list["Role"]] = relationship(
-        back_populates="team",
         cascade="all, delete-orphan",
     )
 

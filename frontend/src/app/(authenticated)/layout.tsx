@@ -7,10 +7,8 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { SuspenseWrapper } from '@/components/suspense-wrapper';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import {
-  useUsersCurrentUserGetCurrentUser,
-  useUsersTeamsListTeams,
-} from '@/openapi/users/users';
+import { useUsersCurrentUserGetCurrentUser } from '@/openapi/users/users';
+import { useTeamsListTeams } from '@/openapi/teams/teams';
 
 export default function AuthenticatedLayout({
   children,
@@ -35,7 +33,7 @@ export default function AuthenticatedLayout({
     data: teams,
     isLoading: teamsLoading,
     error: teamsError,
-  } = useUsersTeamsListTeams({
+  } = useTeamsListTeams({
     query: {
       staleTime: 0, // No cache for teams to ensure immediate updates after onboarding
     },

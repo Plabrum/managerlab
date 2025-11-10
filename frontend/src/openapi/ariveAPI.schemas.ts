@@ -570,11 +570,6 @@ export interface CreateTeamSchema {
   description?: CreateTeamSchemaDescription;
 }
 
-export interface CreateUserSchema {
-  name: string;
-  email: string;
-}
-
 /**
  * Dashboard ownership types.
  */
@@ -1566,6 +1561,7 @@ export interface TeamSchema {
   description?: TeamSchemaDescription;
   created_at: string;
   updated_at: string;
+  actions: ActionDTO[];
 }
 
 export interface TeamScopeSchema {
@@ -1768,19 +1764,6 @@ export interface MediaSchemasPresignedUploadResponseSchema {
 
 export type HealthHealthCheck200 = { [key: string]: unknown };
 
-export type UsersCreateUser400ExtraAnyOf = {[key: string]: unknown};
-
-export type UsersCreateUser400Extra = null | UsersCreateUser400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersCreateUser400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersCreateUser400Extra;
-};
-
 export type UsersUserIdGetUser400ExtraAnyOf = {[key: string]: unknown};
 
 export type UsersUserIdGetUser400Extra = null | UsersUserIdGetUser400ExtraAnyOf | unknown[];
@@ -1794,19 +1777,6 @@ export type UsersUserIdGetUser400 = {
   extra?: UsersUserIdGetUser400Extra;
 };
 
-export type UsersTeamsCreateTeam400ExtraAnyOf = {[key: string]: unknown};
-
-export type UsersTeamsCreateTeam400Extra = null | UsersTeamsCreateTeam400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type UsersTeamsCreateTeam400 = {
-  status_code: number;
-  detail: string;
-  extra?: UsersTeamsCreateTeam400Extra;
-};
-
 export type UsersSwitchTeamSwitchTeam400ExtraAnyOf = {[key: string]: unknown};
 
 export type UsersSwitchTeamSwitchTeam400Extra = null | UsersSwitchTeamSwitchTeam400ExtraAnyOf | unknown[];
@@ -1818,6 +1788,32 @@ export type UsersSwitchTeamSwitchTeam400 = {
   status_code: number;
   detail: string;
   extra?: UsersSwitchTeamSwitchTeam400Extra;
+};
+
+export type TeamsCreateTeam400ExtraAnyOf = {[key: string]: unknown};
+
+export type TeamsCreateTeam400Extra = null | TeamsCreateTeam400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type TeamsCreateTeam400 = {
+  status_code: number;
+  detail: string;
+  extra?: TeamsCreateTeam400Extra;
+};
+
+export type TeamsIdGetTeam400ExtraAnyOf = {[key: string]: unknown};
+
+export type TeamsIdGetTeam400Extra = null | TeamsIdGetTeam400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type TeamsIdGetTeam400 = {
+  status_code: number;
+  detail: string;
+  extra?: TeamsIdGetTeam400Extra;
 };
 
 export type RosterIdGetRoster400ExtraAnyOf = {[key: string]: unknown};

@@ -9,10 +9,12 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.users.enums import RoleLevel, TeamActions
-from app.users.models import Role, Team
-from app.users.schemas import InviteUserToTeamSchema
-from app.users.utils import generate_scoped_team_link
+from app.teams.enums import TeamActions
+from app.teams.models import Team
+from app.teams.schemas import InviteUserToTeamSchema
+from app.teams.utils import generate_scoped_team_link
+from app.users.enums import RoleLevel
+from app.users.models import Role
 
 team_actions = action_group_factory(
     ActionGroupType.TeamActions,
