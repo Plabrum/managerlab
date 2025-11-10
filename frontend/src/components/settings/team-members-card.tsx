@@ -7,7 +7,7 @@ import { Mail, User, CheckCircle2, XCircle } from 'lucide-react';
 
 export function TeamMembersCard({ users }: { users: UserAndRoleSchema[] }) {
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto space-y-6 p-6">
       <Card>
         <CardHeader>
           <CardTitle>Team Members ({users.length})</CardTitle>

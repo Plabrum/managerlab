@@ -48,7 +48,7 @@ export function PageTopBar({
           </div>
         </div>
       </header>
-      <div className="container mx-auto p-6">{children}</div>
+      {children}
     </>
   );
 }

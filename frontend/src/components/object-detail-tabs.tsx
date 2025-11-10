@@ -53,7 +53,7 @@ export function ObjectDetailTabs({
     <Tabs
       value={currentTab}
       onValueChange={handleTabChange}
-      className="space-y-6"
+      className="container mx-auto space-y-6 p-6"
     >
       <TabsList>
         {tabs.map((tab) => (

@@ -123,7 +123,7 @@ export function ObjectList({
   const placeholder = searchPlaceholder ?? `Search ${objectType}`;
 
   return (
-    <>
+    <div className="container mx-auto flex flex-col gap-2 p-6">
       {enableSearch && (
         <div className="flex items-center gap-4">
           <DataTableSearch
@@ -158,6 +158,6 @@ export function ObjectList({
         onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
-    </>
+    </div>
   );
 }

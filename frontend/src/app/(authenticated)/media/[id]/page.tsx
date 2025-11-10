@@ -29,7 +29,7 @@ export default function MediaDetailPage({
         />
       }
     >
-      <div className="space-y-6">
+      <div className="container mx-auto space-y-6 p-6">
         {/* Two Column Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Left Column - Fields */}
