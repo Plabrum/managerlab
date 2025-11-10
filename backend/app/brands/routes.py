@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.auth.guards import requires_user_id
+from app.auth.guards import requires_session
 from app.brands.models.brands import Brand
 from app.brands.models.contacts import BrandContact
 from app.brands.schemas import (
@@ -139,7 +139,7 @@ async def update_brand_contact(
 # Brand router
 brand_router = Router(
     path="/brands",
-    guards=[requires_user_id],
+    guards=[requires_session],
     route_handlers=[
         get_brand,
         update_brand,

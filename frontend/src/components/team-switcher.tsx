@@ -40,7 +40,8 @@ export function TeamSwitcher({
       setIsSwitching(true);
       try {
         await switchTeam(teamId);
-        // Note: page will reload on success, so no need to reset state
+        // Note: React Query and router.refresh() will update on success
+        setIsSwitching(false);
       } catch (error) {
         console.error('Failed to switch team:', error);
         setIsSwitching(false);

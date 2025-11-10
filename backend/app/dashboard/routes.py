@@ -5,7 +5,7 @@ from litestar.exceptions import NotFoundException, PermissionDeniedException
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.guards import requires_user_scope
+from app.auth.guards import requires_scoped_session
 from app.dashboard.enums import DashboardOwnerType
 from app.dashboard.models import Dashboard
 from app.dashboard.schemas import (
@@ -162,7 +162,7 @@ async def update_dashboard(
 # Dashboard router
 dashboard_router = Router(
     path="/dashboards",
-    guards=[requires_user_scope],
+    guards=[requires_scoped_session],
     route_handlers=[
         list_dashboards,
         get_dashboard,

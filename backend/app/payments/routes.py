@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.auth.guards import requires_user_id
+from app.auth.guards import requires_session
 
 # Register InvoiceObject with the objects framework
 from app.objects.base import ObjectRegistry
@@ -104,7 +104,7 @@ async def update_invoice(
 # Invoice router
 invoice_router = Router(
     path="/invoices",
-    guards=[requires_user_id],
+    guards=[requires_session],
     route_handlers=[
         get_invoice,
         update_invoice,

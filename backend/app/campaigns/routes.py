@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.auth.guards import requires_user_id
+from app.auth.guards import requires_session
 from app.campaigns.models import Campaign
 from app.campaigns.schemas import CampaignSchema, CampaignUpdateSchema
 from app.threads.models import Thread
@@ -134,7 +134,7 @@ async def update_campaign(
 
 campaign_router = Router(
     path="/campaigns",
-    guards=[requires_user_id],
+    guards=[requires_session],
     route_handlers=[
         get_campaign,
         update_campaign,

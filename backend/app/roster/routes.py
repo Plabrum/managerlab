@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.auth.guards import requires_user_id
+from app.auth.guards import requires_session
 from app.roster.models import Roster
 from app.roster.schemas import RosterSchema, RosterUpdateSchema
 from app.threads.models import Thread
@@ -94,7 +94,7 @@ async def update_roster(
 
 roster_router = Router(
     path="/roster",
-    guards=[requires_user_id],
+    guards=[requires_session],
     route_handlers=[
         get_roster,
         update_roster,

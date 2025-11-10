@@ -10,7 +10,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.auth.guards import requires_user_scope
+from app.auth.guards import requires_scoped_session
 from app.objects.enums import ObjectTypes
 from app.threads.enums import ThreadSocketMessageType
 from app.threads.models import Message, Thread
@@ -224,7 +224,7 @@ async def get_batch_thread_unread(
 # Router configuration
 thread_router = Router(
     path="/threads",
-    guards=[requires_user_scope],
+    guards=[requires_scoped_session],
     route_handlers=[
         create_message,
         list_messages,

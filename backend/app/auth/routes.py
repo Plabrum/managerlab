@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.enums import ScopeType
 from app.auth.google.routes import google_auth_router
-from app.auth.guards import requires_user_id
+from app.auth.guards import requires_session
 from app.auth.schemas import (
     CampaignScopeSchema,
     ListScopesResponse,
@@ -19,7 +19,7 @@ from app.campaigns.models import Campaign, CampaignGuest
 from app.users.models import Role, Team
 
 
-@get("/list-scopes", guards=[requires_user_id])
+@get("/list-scopes", guards=[requires_session])
 async def list_scopes(request: Request, transaction: AsyncSession) -> ListScopesResponse:
     """List all available scopes for the current user.
 
@@ -74,7 +74,7 @@ async def list_scopes(request: Request, transaction: AsyncSession) -> ListScopes
     )
 
 
-@post("/switch-scope", guards=[requires_user_id])
+@post("/switch-scope", guards=[requires_session])
 async def switch_scope(request: Request, data: SwitchScopeRequest, transaction: AsyncSession) -> dict:
     """Switch the user's current scope.
 

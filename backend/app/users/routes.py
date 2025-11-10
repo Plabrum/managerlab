@@ -8,13 +8,12 @@ from sqlalchemy.orm import selectinload
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.auth.enums import ScopeType
-from app.auth.guards import requires_superuser, requires_user_id, requires_user_scope
+from app.auth.guards import requires_session, requires_team
 from app.campaigns.models import Campaign
 from app.users.enums import RoleLevel, UserStates
 from app.users.models import Role, Team, User
 from app.users.schemas import (
     CreateTeamSchema,
-    CreateUserSchema,
     SwitchTeamRequest,
     SwitchTeamResponse,
     TeamListItemSchema,
@@ -25,7 +24,7 @@ from app.users.schemas import (
 from app.utils.db import get_or_404
 
 
-@get("/", guards=[requires_user_scope])
+@get("/", guards=[requires_team])
 async def list_users(
     transaction: AsyncSession,
     team_id: int,
@@ -87,24 +86,7 @@ async def get_user(user_id: int, transaction: AsyncSession) -> UserSchema:
     )
 
 
-@post("/", guards=[requires_superuser])
-async def create_user(data: CreateUserSchema, transaction: AsyncSession) -> UserSchema:
-    """Create a new user - requires superuser privileges."""
-    user = User(email=data.email, name=data.name)
-    transaction.add(user)
-    await transaction.flush()
-    return UserSchema(
-        id=user.id,
-        name=user.name,
-        email=user.email,
-        email_verified=user.email_verified,
-        state=user.state,
-        created_at=user.created_at,
-        updated_at=user.updated_at,
-    )
-
-
-@post("/teams", guards=[requires_user_id])
+@post("/teams", guards=[requires_session])
 async def create_team(
     request: Request,
     data: CreateTeamSchema,
@@ -145,7 +127,7 @@ async def create_team(
     )
 
 
-@get("/teams", guards=[requires_user_id])
+@get("/teams", guards=[requires_session])
 async def list_teams(
     request: Request,
     transaction: AsyncSession,
@@ -215,7 +197,7 @@ async def list_teams(
     return teams
 
 
-@post("/switch-team", guards=[requires_user_id])
+@post("/switch-team", guards=[requires_session])
 async def switch_team(request: Request, data: SwitchTeamRequest, transaction: AsyncSession) -> SwitchTeamResponse:
     """Switch to a different team.
 
@@ -253,11 +235,10 @@ async def switch_team(request: Request, data: SwitchTeamRequest, transaction: As
 # Authenticated router for user management
 user_router = Router(
     path="/users",
-    guards=[requires_user_id],
+    guards=[requires_session],
     route_handlers=[
         list_users,
         get_user,
-        create_user,
         create_team,
         get_current_user,
         list_teams,
