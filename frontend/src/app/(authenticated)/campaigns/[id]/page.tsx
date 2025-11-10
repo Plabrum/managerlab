@@ -67,8 +67,11 @@ export default function CampaignDetailPage({
               objectType={ObjectTypes.deliverables}
               filterColumn="campaign_id"
               filterValue={id}
+              parentActions={data.actions}
+              parentObjectId={id}
               title="Deliverables"
               displayFields={['platforms', 'posting_date', 'deliverable_type']}
+              onActionComplete={refetch}
             />
           </div>
         </TabsContent>

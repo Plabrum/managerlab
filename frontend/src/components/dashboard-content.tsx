@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
+import { EmptyState } from '@/components/empty-state';
 import { WidgetContainer } from './dashboard/widget-container';
 import { StatWidget } from './dashboard/widgets/stat-widget';
 import { BarChartWidget } from './dashboard/widgets/bar-chart-widget';
@@ -178,16 +179,14 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
         }
       >
         <div className="space-y-6">
-          <div className="rounded-lg border border-dashed p-12 text-center">
-            <h3 className="mb-2 text-lg font-semibold">No Dashboard Found</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Create a dashboard to get started
-            </p>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Create Dashboard
-            </Button>
-          </div>
+          <EmptyState
+            title="Create a dashboard to get started"
+            cta={{
+              label: 'Create Dashboard',
+              onClick: () => setCreateDialogOpen(true),
+            }}
+            className="rounded-lg border-2 border-dashed py-12"
+          />
 
           {/* Create Dashboard Dialog */}
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -254,16 +253,14 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
       <div className="space-y-6">
         {/* Widgets Grid */}
         {config.widgets.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-12 text-center">
-            <h3 className="mb-2 text-lg font-semibold">No Widgets Yet</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Add your first widget to start visualizing your data
-            </p>
-            <Button onClick={handleAddWidget}>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Add Widget
-            </Button>
-          </div>
+          <EmptyState
+            title="Add your first widget to start visualizing your data"
+            cta={{
+              label: 'Add Widget',
+              onClick: handleAddWidget,
+            }}
+            className="rounded-lg border-2 border-dashed py-12"
+          />
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {config.widgets.map((widget) => (
