@@ -2,10 +2,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { UserSchema } from '@/openapi/managerLab.schemas';
+import { UserAndRoleSchema } from '@/openapi/ariveAPI.schemas';
 import { Mail, User, CheckCircle2, XCircle } from 'lucide-react';
 
-export function TeamMembersCard({ users }: { users: UserSchema[] }) {
+export function TeamMembersCard({ users }: { users: UserAndRoleSchema[] }) {
   return (
     <div className="space-y-6">
       <Card>

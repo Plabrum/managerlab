@@ -17,17 +17,17 @@ export default function TeamSettingsPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { teams, currentTeamId } = useAuth();
+  const { teams } = useAuth();
 
   const { data: users, isLoading } = useUsersListUsers();
 
   // Find the current team to verify the ID matches
-  const currentTeam = teams.find((t) => t.team_id === currentTeamId);
+  const currentTeam = teams.find((t) => t.is_selected);
 
-  // Redirect if the ID in the URL doesn't match the current team's public_id
+  // Redirect if the ID in the URL doesn't match the current team's id
   useEffect(() => {
-    if (currentTeam && currentTeam.public_id !== id) {
-      router.push(`/settings/team/${currentTeam.public_id}`);
+    if (currentTeam && currentTeam.id !== id) {
+      router.push(`/settings/team/${currentTeam.id}`);
     }
   }, [currentTeam, id, router]);
 

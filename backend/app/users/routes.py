@@ -15,14 +15,14 @@ from app.users.models import Role, Team, User
 from app.users.schemas import (
     CreateTeamSchema,
     CreateUserSchema,
-    ListTeamsResponse,
     SwitchTeamRequest,
+    SwitchTeamResponse,
     TeamListItemSchema,
     TeamSchema,
     UserAndRoleSchema,
     UserSchema,
 )
-from app.utils.sqids import sqid_encode
+from app.utils.db import get_or_404
 
 
 @get("/", guards=[requires_user_scope])
@@ -127,9 +127,7 @@ async def create_team(
     transaction.add(role)
 
     # Update user state to ACTIVE if they were in NEEDS_TEAM state
-    stmt = select(User).where(User.id == user_id)
-    result = await transaction.execute(stmt)
-    user = result.scalar_one()
+    user = await get_or_404(transaction, User, user_id)
 
     if user.state == UserStates.NEEDS_TEAM:
         user.state = UserStates.ACTIVE
@@ -148,7 +146,11 @@ async def create_team(
 
 
 @get("/teams", guards=[requires_user_id])
-async def list_teams(request: Request, transaction: AsyncSession, action_registry: ActionRegistry) -> ListTeamsResponse:
+async def list_teams(
+    request: Request,
+    transaction: AsyncSession,
+    action_registry: ActionRegistry,
+) -> list[TeamListItemSchema]:
     """List all teams for the current user.
 
     If user is in campaign scope, returns only the campaign's team (read-only).
@@ -165,73 +167,56 @@ async def list_teams(request: Request, transaction: AsyncSession, action_registr
 
     if is_campaign_scoped:
         # User is in campaign scope - return only the campaign's team
-        campaign_id = request.session.get("campaign_id")
+        campaign_id: int | None = request.session.get("campaign_id")
         if not campaign_id:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail="Campaign scope is active but no campaign_id in session",
             )
 
-        # Get the campaign's team
-        stmt = (
-            select(Campaign, Team)
-            .join(Team, Campaign.team_id == Team.id)
-            .where(Campaign.id == campaign_id, Team.deleted_at.is_(None))
-            .options(selectinload(Team.roles))
-        )
-        result = await transaction.execute(stmt)
-        row = result.one_or_none()
-
-        if not row:
-            raise HTTPException(
-                status_code=HTTP_400_BAD_REQUEST,
-                detail=f"Campaign {campaign_id} not found",
-            )
-
-        campaign, team = row
-        team_actions = team_action_group.get_available_actions(team)
+        # Get the campaign and its team
+        campaign = await get_or_404(transaction, Campaign, campaign_id)
         teams = [
             TeamListItemSchema(
-                team_id=team.id,
-                public_id=sqid_encode(team.id),
-                team_name=team.name,
-                role_level=RoleLevel.VIEWER,  # Campaign guests are treated as viewers
-                actions=team_actions,
+                id=campaign.id,
+                team_name=f"Guest Access: {campaign.name}",
+                scope_type=ScopeType.CAMPAIGN,
+                is_selected=True,
+                actions=[],
             )
         ]
-        current_team_id = team.id
     else:
         # User is in team scope or no scope - return all teams via Role table
-        team_stmt = (
-            select(Role, Team)
-            .join(Team, Role.team_id == Team.id)
+        team_id: int | None = request.session.get("team_id")
+        if not team_id:
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail="No team_id in session, cannot list teams",
+            )
+
+        result = await transaction.execute(
+            select(Team)
+            .join(Role, Role.team_id == Team.id)
             .where(Role.user_id == user_id, Team.deleted_at.is_(None))
             .options(selectinload(Team.roles))
         )
-        team_result = await transaction.execute(team_stmt)
-        rows = team_result.all()
 
         teams = [
             TeamListItemSchema(
-                team_id=role.team_id,
-                public_id=sqid_encode(role.team_id),
+                id=team.id,
                 team_name=team.name,
-                role_level=role.role_level,
+                scope_type=ScopeType.TEAM,
+                is_selected=team.id == team_id,
                 actions=team_action_group.get_available_actions(team),
             )
-            for role, team in rows
+            for team in result.scalars().all()
         ]
-        current_team_id = request.session.get("team_id")
 
-    return ListTeamsResponse(
-        teams=teams,
-        current_team_id=current_team_id,
-        is_campaign_scoped=is_campaign_scoped,
-    )
+    return teams
 
 
 @post("/switch-team", guards=[requires_user_id])
-async def switch_team(request: Request, data: SwitchTeamRequest, transaction: AsyncSession) -> dict:
+async def switch_team(request: Request, data: SwitchTeamRequest, transaction: AsyncSession) -> SwitchTeamResponse:
     """Switch to a different team.
 
     Only allowed when not in campaign scope. Validates user has access to the team.
@@ -259,10 +244,10 @@ async def switch_team(request: Request, data: SwitchTeamRequest, transaction: As
 
     # Update session to team scope
     request.session["scope_type"] = ScopeType.TEAM.value
-    request.session["team_id"] = data.team_id
+    request.session["team_id"] = int(data.team_id)
     request.session.pop("campaign_id", None)  # Clear campaign_id if present
 
-    return {"detail": "Switched to team", "team_id": data.team_id}
+    return SwitchTeamResponse(detail="Switched to team", team_id=data.team_id)
 
 
 # Authenticated router for user management

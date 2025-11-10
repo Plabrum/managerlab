@@ -2,8 +2,8 @@
 
 import {
   UserSchema,
-  ListTeamsResponse,
   TeamListItemSchema,
+  ScopeType,
 } from '@/openapi/ariveAPI.schemas';
 import {
   createContext,
@@ -12,14 +12,15 @@ import {
   useCallback,
   useEffect,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { config } from '@/lib/config';
 
 interface AuthContextValue {
   user: UserSchema;
   teams: TeamListItemSchema[];
-  currentTeamId: number | null;
+  currentTeamId: string | null;
   isCampaignScoped: boolean;
-  switchTeam: (teamId: number) => Promise<void>;
+  switchTeam: (teamId: string) => Promise<void>;
   refetchTeams: () => Promise<void>;
 }
 
@@ -43,11 +44,13 @@ export function AuthProvider({
   children,
 }: {
   user: UserSchema;
-  initialTeams: ListTeamsResponse;
+  initialTeams: TeamListItemSchema[];
   children: React.ReactNode;
 }) {
-  const [teamsData, setTeamsData] = useState<ListTeamsResponse>(initialTeams);
+  const [teamsData, setTeamsData] =
+    useState<TeamListItemSchema[]>(initialTeams);
   const [isSwitchingTeam, setIsSwitchingTeam] = useState(false);
+  const queryClient = useQueryClient();
 
   const refetchTeams = useCallback(async () => {
     const res = await fetch(`${config.api.baseUrl}/users/teams`, {
@@ -59,38 +62,50 @@ export function AuthProvider({
     });
 
     if (res.ok) {
-      const data: ListTeamsResponse = await res.json();
+      const data: TeamListItemSchema[] = await res.json();
       setTeamsData(data);
     }
   }, []);
 
-  const switchTeam = useCallback(async (teamId: number) => {
-    const res = await fetch(`${config.api.baseUrl}/users/switch-team`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ team_id: teamId }),
-    });
+  const switchTeam = useCallback(
+    async (teamId: string) => {
+      const res = await fetch(`${config.api.baseUrl}/users/switch-team`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ team_id: teamId }),
+      });
 
-    if (res.ok) {
-      // Reload the page to fetch fresh data with the new team context
-      window.location.reload();
-    } else {
-      const error = await res.json();
-      throw new Error(error.detail || 'Failed to switch team');
-    }
-  }, []);
+      if (res.ok) {
+        // Invalidate all queries since team context has changed
+        await queryClient.invalidateQueries();
+        // Refetch teams to update the selected team
+        await refetchTeams();
+        // Reload the page to ensure all server components are refreshed
+        window.location.reload();
+      } else {
+        const error = await res.json();
+        throw new Error(error.detail || 'Failed to switch team');
+      }
+    },
+    [queryClient, refetchTeams]
+  );
 
   // Auto-switch to first team if no scope is set
   useEffect(() => {
+    const selectedTeam = teamsData.find((t) => t.is_selected);
+    const isCampaignScoped = teamsData.some(
+      (t) => t.scope_type === ScopeType.campaign
+    );
+
     if (
       !isSwitchingTeam &&
-      !teamsData.current_team_id &&
-      !teamsData.is_campaign_scoped &&
-      teamsData.teams.length > 0
+      !selectedTeam &&
+      !isCampaignScoped &&
+      teamsData.length > 0
     ) {
       setIsSwitchingTeam(true);
       // Switch to first team automatically
@@ -101,11 +116,11 @@ export function AuthProvider({
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({ team_id: teamsData.teams[0].team_id }),
+        body: JSON.stringify({ team_id: teamsData[0].id }),
       })
         .then((res) => {
           if (res.ok) {
-            // Refresh teams data to get updated current_team_id
+            // Refresh teams data to get updated is_selected flags
             return refetchTeams();
           }
         })
@@ -115,11 +130,16 @@ export function AuthProvider({
     }
   }, [teamsData, isSwitchingTeam, refetchTeams]);
 
+  const selectedTeam = teamsData.find((t) => t.is_selected);
+  const isCampaignScoped = teamsData.some(
+    (t) => t.scope_type === ScopeType.campaign
+  );
+
   const contextValue: AuthContextValue = {
     user,
-    teams: teamsData.teams,
-    currentTeamId: teamsData.current_team_id ?? null,
-    isCampaignScoped: teamsData.is_campaign_scoped,
+    teams: teamsData,
+    currentTeamId: (selectedTeam?.id as string | null) ?? null,
+    isCampaignScoped,
     switchTeam,
     refetchTeams,
   };

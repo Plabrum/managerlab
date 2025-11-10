@@ -2,108 +2,65 @@
 
 import { useTheme } from 'next-themes';
 import { Monitor, Moon, Sun } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useEffect, useState } from 'react';
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch by only rendering after mount
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <Button variant="outline" size="icon" disabled>
-        <Sun className="h-5 w-5" />
-      </Button>
-    );
-  }
-
-  const getIcon = () => {
-    if (theme === 'light') return <Sun className="h-5 w-5" />;
-    if (theme === 'dark') return <Moon className="h-5 w-5" />;
-    return <Monitor className="h-5 w-5" />;
-  };
+  // Calculate position for sliding background
+  const position = theme === 'light' ? 0 : theme === 'dark' ? 1 : 2;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          {getIcon()}
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
-          <Sun className="mr-2 h-4 w-4" />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
-          <Moon className="mr-2 h-4 w-4" />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          <Monitor className="mr-2 h-4 w-4" />
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
+    <div className="bg-muted relative flex w-24 items-center gap-0.5 rounded-full p-0.5">
+      {/* Sliding background */}
+      <div
+        className="bg-primary absolute h-6 w-[calc(33.333%-0.125rem)] rounded-full transition-all duration-300 ease-out"
+        style={{
+          left: `calc(${position * 33.333}% + 0.125rem)`,
+        }}
+      />
 
-export function ThemeSwitcherInline() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="flex gap-2">
-        <Button variant="outline" disabled>
-          Loading...
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex gap-2">
-      <Button
-        variant={theme === 'light' ? 'default' : 'outline'}
-        size="sm"
+      {/* Theme buttons */}
+      <button
         onClick={() => setTheme('light')}
+        className="relative z-10 flex h-6 flex-1 items-center justify-center rounded-full transition-colors"
+        aria-label="Light mode"
       >
-        <Sun className="mr-2 h-4 w-4" />
-        Light
-      </Button>
-      <Button
-        variant={theme === 'dark' ? 'default' : 'outline'}
-        size="sm"
+        <Sun
+          className={`h-3.5 w-3.5 transition-colors ${
+            theme === 'light'
+              ? 'text-primary-foreground'
+              : 'text-muted-foreground'
+          }`}
+        />
+      </button>
+
+      <button
         onClick={() => setTheme('dark')}
+        className="relative z-10 flex h-6 flex-1 items-center justify-center rounded-full transition-colors"
+        aria-label="Dark mode"
       >
-        <Moon className="mr-2 h-4 w-4" />
-        Dark
-      </Button>
-      <Button
-        variant={theme === 'system' ? 'default' : 'outline'}
-        size="sm"
+        <Moon
+          className={`h-3.5 w-3.5 transition-colors ${
+            theme === 'dark'
+              ? 'text-primary-foreground'
+              : 'text-muted-foreground'
+          }`}
+        />
+      </button>
+
+      <button
         onClick={() => setTheme('system')}
+        className="relative z-10 flex h-6 flex-1 items-center justify-center rounded-full transition-colors"
+        aria-label="System mode"
       >
-        <Monitor className="mr-2 h-4 w-4" />
-        System
-      </Button>
+        <Monitor
+          className={`h-3.5 w-3.5 transition-colors ${
+            theme === 'system'
+              ? 'text-primary-foreground'
+              : 'text-muted-foreground'
+          }`}
+        />
+      </button>
     </div>
   );
 }

@@ -32,7 +32,7 @@ export function TeamSwitcher({
   const [isSwitching, setIsSwitching] = React.useState(false);
 
   const handleTeamSwitch = React.useCallback(
-    async (teamId: number) => {
+    async (teamId: string) => {
       if (isCampaignScoped || teamId === currentTeamId || isSwitching) {
         return;
       }
@@ -49,7 +49,7 @@ export function TeamSwitcher({
     [isCampaignScoped, currentTeamId, isSwitching, switchTeam]
   );
 
-  const activeTeam = teams.find((t) => t.team_id === currentTeamId) || teams[0];
+  const activeTeam = teams.find((t) => t.is_selected) || teams[0];
 
   if (!activeTeam) {
     return null;
@@ -73,10 +73,7 @@ export function TeamSwitcher({
                   {activeTeam.team_name}
                 </span>
                 <span className="truncate text-xs">
-                  {isCampaignScoped
-                    ? 'Campaign Guest'
-                    : activeTeam.role_level.charAt(0).toUpperCase() +
-                      activeTeam.role_level.slice(1).toLowerCase()}
+                  {isCampaignScoped ? 'Campaign Guest' : 'Team'}
                 </span>
               </div>
               {!isCampaignScoped && <ChevronsUpDown className="ml-auto" />}
@@ -94,9 +91,9 @@ export function TeamSwitcher({
               </DropdownMenuLabel>
               {teams.map((team) => (
                 <TeamMenuItem
-                  key={team.team_id}
+                  key={team.id as string}
                   team={team}
-                  isActive={team.team_id === currentTeamId}
+                  isActive={team.is_selected ?? false}
                   isSwitching={isSwitching}
                   onSwitch={handleTeamSwitch}
                   onActionComplete={refetchTeams}
@@ -125,15 +122,15 @@ export function TeamSwitcher({
 
 interface TeamMenuItemProps {
   team: {
-    team_id: number;
-    public_id: string;
+    id: unknown;
     team_name: string;
-    role_level: string;
+    scope_type: string;
+    is_selected?: boolean;
     actions?: ActionDTO[];
   };
   isActive: boolean;
   isSwitching: boolean;
-  onSwitch: (teamId: number) => void;
+  onSwitch: (teamId: string) => void;
   onActionComplete: () => void;
 }
 
@@ -147,30 +144,49 @@ function TeamMenuItem({
   // Use actions from team data (already fetched in teams list)
   const actions = team.actions || [];
   const hasActions = actions.length > 0;
+  const [isHoveringActions, setIsHoveringActions] = React.useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't switch teams if clicking on actions area
+    if ((e.target as HTMLElement).closest('[data-actions-menu]')) {
+      return;
+    }
+    if (isSwitching || isActive) return;
+    onSwitch(team.id as string);
+  };
 
   return (
     <DropdownMenuItem
-      onClick={() => onSwitch(team.team_id)}
-      disabled={isSwitching || isActive}
-      className="gap-2 p-2"
+      onClick={handleClick}
+      className={`gap-2 p-2 ${isHoveringActions ? '[&[data-highlighted]]:bg-transparent' : ''}`}
+      disabled={isSwitching}
+      onSelect={(e) => {
+        // Prevent dropdown from closing when clicking actions
+        if ((e.target as HTMLElement).closest('[data-actions-menu]')) {
+          e.preventDefault();
+        }
+      }}
     >
       <div className="flex size-6 items-center justify-center rounded-md border">
         <Building2 className="size-3.5 shrink-0" />
       </div>
       <div className="flex flex-1 flex-col">
         <span className="font-medium">{team.team_name}</span>
-        <span className="text-muted-foreground text-xs">
-          {team.role_level.charAt(0).toUpperCase() +
-            team.role_level.slice(1).toLowerCase()}
-        </span>
+        <span className="text-muted-foreground text-xs">Team</span>
       </div>
       {isActive && <span className="ml-auto text-xs">✓</span>}
       {hasActions && (
-        <div onClick={(e) => e.stopPropagation()}>
+        <div
+          data-actions-menu
+          onClick={(e) => e.stopPropagation()}
+          onMouseEnter={() => setIsHoveringActions(true)}
+          onMouseLeave={() => setIsHoveringActions(false)}
+          className="relative z-10"
+        >
           <ActionsMenu
             actions={actions}
             actionGroup="team_actions"
-            objectId={team.public_id}
+            objectId={team.id as string}
             onActionComplete={onActionComplete}
           />
         </div>
