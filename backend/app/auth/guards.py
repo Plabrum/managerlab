@@ -1,12 +1,10 @@
 """Authentication guards for route protection."""
 
 from litestar.connection import ASGIConnection
-from litestar.exceptions import NotAuthorizedException, PermissionDeniedException
+from litestar.exceptions import NotAuthorizedException
 from litestar.handlers.base import BaseRouteHandler
-from sqlalchemy import select
 
 from app.auth.enums import ScopeType
-from app.users.models import User
 
 
 def requires_session(connection: ASGIConnection, _: BaseRouteHandler) -> None:

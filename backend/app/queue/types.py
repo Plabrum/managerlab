@@ -1,6 +1,6 @@
 """Type definitions for queue context and tasks."""
 
-from typing import Required, TypedDict
+from typing import Required
 
 from saq.types import Context
 from sqlalchemy.ext.asyncio import async_sessionmaker

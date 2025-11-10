@@ -133,17 +133,12 @@ check-frontend:
 	@echo ""
 	@echo "✅ Frontend checks completed successfully!"
 
-.PHONY: lint-backend
-lint-backend:
-	@echo "🔍 Running backend linting..."
-	cd backend && uv run ruff check && uv run ruff format
-
 .PHONY: check-all
 check-all:
 	@echo "🚀 Running all pre-release checks..."
 	@echo ""
 	@echo "1️⃣  Running backend linting..."
-	@make lint-backend
+	@make check-backend
 	@echo ""
 	@echo "2️⃣  Running frontend checks..."
 	@make check-frontend

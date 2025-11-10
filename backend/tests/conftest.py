@@ -14,16 +14,13 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 pytest_plugins = ["pytest_databases.docker.postgres"]
 
 # Import and discover all models before tests run
-from app.client.s3_client import S3Client
 from app.utils.discovery import discover_and_import
 
 discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
 from litestar import Litestar
-from litestar.connection import Request
 from litestar.di import Provide
 from litestar.middleware.session.server_side import ServerSideSessionConfig
-from litestar.stores.base import Store
 from litestar.stores.memory import MemoryStore
 from litestar.testing import AsyncTestClient
 from sqlalchemy import event, text
@@ -31,7 +28,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import NullPool, StaticPool
 
 # Import all route handlers
-from app.actions.registry import ActionRegistry
 from app.actions.routes import action_router
 from app.auth.enums import ScopeType
 from app.auth.routes import auth_router
@@ -43,7 +39,6 @@ from app.deliverables.routes import deliverable_router
 from app.documents.routes.documents import document_router
 from app.factory import create_app
 from app.media.routes import media_router
-from app.objects.base import ObjectRegistry
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
 from app.roster.routes import roster_router
@@ -121,7 +116,7 @@ def setup_database(test_engine):
 
 
 @pytest.fixture
-async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession]:
     """Provide a clean database session for each test with automatic rollback.
 
     Each test gets an isolated transaction that is rolled back after the test,
@@ -168,7 +163,6 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 @pytest.fixture
 def test_config(test_db_url: str, monkeypatch) -> Config:
     """Provide test configuration with safe defaults."""
-    import os
 
     # Set environment variables before creating Config instance
     # Config.DATABASE_URL reads from os.getenv("DATABASE_URL")
@@ -316,7 +310,6 @@ def test_app(
         SQLAlchemyAsyncConfig,
         SQLAlchemyPlugin,
     )
-    from sqlalchemy.pool import StaticPool
 
     from app.base.models import BaseDBModel
 
@@ -387,7 +380,7 @@ def test_app(
 @pytest.fixture
 async def test_client(
     test_app: Litestar,
-) -> AsyncGenerator[AsyncTestClient[Litestar], None]:
+) -> AsyncGenerator[AsyncTestClient[Litestar]]:
     """Provide an async test client for making HTTP requests.
 
     Usage:
@@ -415,7 +408,7 @@ async def test_client(
 async def authenticated_client(
     test_client: AsyncTestClient[Litestar],
     db_session: AsyncSession,
-) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]], None]:
+) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]]]:
     """Provide an authenticated test client with a test user.
 
     Returns:
@@ -467,7 +460,7 @@ async def authenticated_client(
 async def other_team_client(
     test_client: AsyncTestClient[Litestar],
     db_session: AsyncSession,
-) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]], None]:
+) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]]]:
     """Provide an authenticated test client for a different team (for RLS isolation tests).
 
     This fixture uses a separate test client instance to simulate a different user/team
@@ -525,7 +518,7 @@ async def other_team_client(
 async def admin_client(
     test_client: AsyncTestClient[Litestar],
     db_session: AsyncSession,
-) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]], None]:
+) -> AsyncGenerator[tuple[AsyncTestClient[Litestar], dict[str, Any]]]:
     """Provide an authenticated admin client for testing admin endpoints."""
     from app.users.models import Role
     from tests.factories.users import TeamFactory, UserFactory

@@ -2,7 +2,6 @@
 
 from app.emails.client import BaseEmailClient, provide_email_client
 from app.emails.service import EmailService
-from app.utils.configure import config
 
 
 def provide_email_service(email_client: BaseEmailClient) -> EmailService:

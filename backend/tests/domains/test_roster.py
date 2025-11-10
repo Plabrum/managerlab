@@ -1,14 +1,10 @@
 """Tests for roster domain: endpoints and basic operations."""
 
-import pytest
 from litestar.testing import AsyncTestClient
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.roster.models import Roster
 from app.utils.sqids import sqid_encode
 from tests.domains.test_helpers import execute_action, get_available_actions
-from tests.factories.users import RosterFactory, UserFactory  # Still needed for specific tests
 
 
 class TestRoster:

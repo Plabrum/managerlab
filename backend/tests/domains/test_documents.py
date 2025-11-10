@@ -1,13 +1,10 @@
 """Tests for documents domain: endpoints and basic operations."""
 
-import pytest
 from litestar.testing import AsyncTestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.documents.enums import DocumentStates
 from app.utils.sqids import sqid_encode
 from tests.domains.test_helpers import execute_action, get_available_actions
-from tests.factories.documents import DocumentFactory  # Still needed for some specific tests
 
 
 class TestDocuments:

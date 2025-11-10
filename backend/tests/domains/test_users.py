@@ -1,12 +1,11 @@
 """Tests for users domain: endpoints and basic operations."""
 
-import pytest
 from litestar.testing import AsyncTestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.users.models import Role
 from app.utils.sqids import sqid_encode
-from tests.factories.users import TeamFactory, UserFactory
+from tests.factories.users import TeamFactory
 
 
 class TestUsers:

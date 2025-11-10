@@ -1,8 +1,6 @@
 """Tests for threads domain: thread and message operations."""
 
-import pytest
 from litestar.testing import AsyncTestClient
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.threads.models import Message, Thread

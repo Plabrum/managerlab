@@ -10,7 +10,6 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
-from app.client.s3_client import S3Client
 from app.documents.enums import DocumentActions, DocumentStates
 from app.documents.models import Document
 from app.documents.schemas import DocumentUpdateSchema, RegisterDocumentSchema

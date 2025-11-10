@@ -1,9 +1,7 @@
 """Tests for payments domain: invoice endpoints and operations."""
 
 from datetime import date, timedelta
-from decimal import Decimal
 
-import pytest
 from litestar.testing import AsyncTestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 

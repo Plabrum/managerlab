@@ -10,7 +10,6 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, DownloadFileActionResult
-from app.client.s3_client import S3Client
 from app.media.enums import MediaActions, MediaStates
 from app.media.models import Media
 from app.media.schemas import MediaUpdateSchema, RegisterMediaSchema
