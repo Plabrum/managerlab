@@ -2,11 +2,12 @@ from collections.abc import Sequence
 from typing import Any
 
 from advanced_alchemy.exceptions import RepositoryError
-from litestar import Litestar
+from litestar import Litestar, Request, Response
 from litestar.channels import ChannelsPlugin
 from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
 from litestar.config.cors import CORSConfig
 from litestar.di import Provide
+from litestar.exceptions import InternalServerException
 from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
 from litestar.middleware.session.server_side import ServerSideSessionConfig
 from litestar.openapi.config import OpenAPIConfig
@@ -32,6 +33,20 @@ from app.utils.configure import Config
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils.logging import logging_config
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
+
+
+def handle_options_disconnect(request: Request, exc: InternalServerException) -> Response:
+    """Suppress client disconnect errors for OPTIONS preflight requests.
+
+    CORS preflight OPTIONS requests have no body, so "client disconnected prematurely"
+    errors during body parsing are expected and harmless. The CORS middleware has
+    already handled the OPTIONS response correctly.
+    """
+    if request.method == "OPTIONS" and "client disconnected prematurely" in str(exc.detail):
+        # Return empty 204 response (CORS middleware already sent the actual response)
+        return Response(content=None, status_code=204)
+    # Re-raise for actual errors
+    raise exc
 
 
 def create_app(
@@ -172,6 +187,7 @@ def create_app(
         exception_handlers={
             ApplicationError: exception_to_http_response,
             RepositoryError: exception_to_http_response,
+            InternalServerException: handle_options_disconnect,
         },
         stores=stores,
         dependencies=dependencies,

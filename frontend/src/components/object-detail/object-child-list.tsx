@@ -3,10 +3,15 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/empty-state';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
+import { useActionExecutor } from '@/hooks/use-action-executor';
+import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
+import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import type {
   ObjectTypes,
   ObjectFilterDefinition,
+  ActionDTO,
 } from '@/openapi/ariveAPI.schemas';
 
 interface ObjectChildListProps {
@@ -23,6 +28,14 @@ interface ObjectChildListProps {
    */
   filterValue: string;
   /**
+   * Optional parent object's actions for empty state CTA
+   */
+  parentActions?: ActionDTO[];
+  /**
+   * Optional parent object's ID for action execution
+   */
+  parentObjectId?: string;
+  /**
    * Optional title for the section (defaults to object type)
    */
   title?: string;
@@ -35,10 +48,16 @@ interface ObjectChildListProps {
    * Optional callback when a card is clicked
    */
   onCardClick?: (objectId: string) => void;
+  /**
+   * Optional callback after action completes
+   */
+  onActionComplete?: () => void;
 }
 
 /**
  * ObjectChildList displays a list of child objects as cards, filtered by a parent object.
+ * When empty, shows an empty state with a CTA button using the highest priority action
+ * from the parent object's actions.
  *
  * Example usage:
  * ```tsx
@@ -46,7 +65,10 @@ interface ObjectChildListProps {
  *   objectType="deliverables"
  *   filterColumn="campaign_id"
  *   filterValue={campaignId}
+ *   parentActions={campaign.actions}
+ *   parentObjectId={campaignId}
  *   title="Deliverables"
+ *   onActionComplete={refetch}
  * />
  * ```
  */
@@ -54,9 +76,12 @@ export function ObjectChildList({
   objectType,
   filterColumn,
   filterValue,
+  parentActions,
+  parentObjectId,
   title,
   displayFields = [],
   onCardClick,
+  onActionComplete,
 }: ObjectChildListProps) {
   // Build the object filter
   const objectFilter: ObjectFilterDefinition = {
@@ -66,21 +91,84 @@ export function ObjectChildList({
   };
 
   // Fetch child objects with filter - request specific columns to get field data
-  const { data } = useListObjectsSuspense(objectType, {
+  const { data, refetch } = useListObjectsSuspense(objectType, {
     filters: [objectFilter],
     offset: 0,
     limit: 1000, // Show all items (no pagination as requested)
     column: [], // Request all columns to get field data
   });
 
-  // If no children, don't render anything
-  if (!data.objects || data.objects.length === 0) {
-    return null;
-  }
-
   // Default title is the capitalized object type
   const displayTitle =
     title || objectType.charAt(0).toUpperCase() + objectType.slice(1);
+
+  // Get available parent actions (if provided)
+  const availableActions = parentActions
+    ? parentActions.filter((action) => action.available !== false)
+    : [];
+
+  // Get highest priority action (lowest priority number)
+  const primaryAction =
+    availableActions.length > 0
+      ? availableActions.sort(
+          (a, b) => (a.priority || 0) - (b.priority || 0)
+        )[0]
+      : null;
+
+  // Extract action group from primary action
+  const actionGroup = primaryAction?.action_group_type;
+
+  // Action executor setup for empty state CTA
+  const formRenderer = useActionFormRenderer(undefined);
+  const executor = useActionExecutor({
+    actionGroup: actionGroup!,
+    objectId: parentObjectId, // Parent object's ID for context
+    renderActionForm: formRenderer,
+    onInvalidate: () => refetch(),
+    onSuccess: () => {
+      onActionComplete?.();
+    },
+  });
+
+  // If no children, show empty state
+  if (!data.objects || data.objects.length === 0) {
+    // Only show empty state if there's a primary action available
+    if (!primaryAction) {
+      return null;
+    }
+
+    return (
+      <>
+        <EmptyState
+          title={`No ${displayTitle.toLowerCase()} added yet`}
+          cta={{
+            label: primaryAction.label,
+            onClick: () => executor.initiateAction(primaryAction),
+          }}
+          className="rounded-lg border-2 border-dashed py-12"
+        />
+
+        <ActionConfirmationDialog
+          open={executor.showConfirmation}
+          action={executor.pendingAction}
+          isExecuting={executor.isExecuting}
+          onConfirm={executor.confirmAction}
+          onCancel={executor.cancelAction}
+        />
+
+        {executor.pendingAction &&
+          executor.renderActionForm &&
+          executor.renderActionForm({
+            action: executor.pendingAction,
+            onSubmit: executor.executeWithData,
+            onClose: executor.cancelAction,
+            isSubmitting: executor.isExecuting,
+            isOpen: executor.showForm,
+            actionLabel: executor.pendingAction.label,
+          })}
+      </>
+    );
+  }
 
   return (
     <Card>
