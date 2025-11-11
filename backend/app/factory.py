@@ -31,7 +31,7 @@ from app.queue.config import queue_config
 from app.utils import providers
 from app.utils.configure import Config
 from app.utils.exceptions import ApplicationError, exception_to_http_response
-from app.utils.logging import structlog_plugin
+from app.utils.logging import dev_logging_config, prod_structlog_plugin
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 
 
@@ -116,45 +116,46 @@ def create_app(
     # ========================================================================
     # Plugins
     # ========================================================================
-    plugins: list[Any] = (
-        [
-            structlog_plugin,
-            SQLAlchemyPlugin(
-                config=SQLAlchemyAsyncConfig(
-                    connection_string=config.ASYNC_DATABASE_URL,
-                    metadata=BaseDBModel.metadata,
-                    engine_config=EngineConfig(
-                        poolclass=StaticPool,
-                        connect_args={
-                            "connect_timeout": 10,
-                            "application_name": "manageros-ecs",
-                        },
-                        pool_pre_ping=False,
-                    ),
-                    session_config=AsyncSessionConfig(
-                        expire_on_commit=False,
-                        autoflush=False,
-                        autobegin=True,
-                    ),
-                    create_all=False,
-                )
-            ),
-            SAQPlugin(
-                config=SAQConfig(
-                    queue_configs=queue_config,
-                    web_enabled=config.IS_DEV,
-                    use_server_lifespan=True,
-                )
-            ),
-            ChannelsPlugin(
-                # in tesing backend = MemoryChannelsBackend()
-                backend=PsycoPgChannelsBackend(config.PSYCOPG_DATABASE_URL),
-                arbitrary_channels_allowed=True,
-            ),
-        ]
-        if not plugins_overrides
-        else plugins_overrides
-    )
+    base_plugins = [
+        SQLAlchemyPlugin(
+            config=SQLAlchemyAsyncConfig(
+                connection_string=config.ASYNC_DATABASE_URL,
+                metadata=BaseDBModel.metadata,
+                engine_config=EngineConfig(
+                    poolclass=StaticPool,
+                    connect_args={
+                        "connect_timeout": 10,
+                        "application_name": "manageros-ecs",
+                    },
+                    pool_pre_ping=False,
+                ),
+                session_config=AsyncSessionConfig(
+                    expire_on_commit=False,
+                    autoflush=False,
+                    autobegin=True,
+                ),
+                create_all=False,
+            )
+        ),
+        SAQPlugin(
+            config=SAQConfig(
+                queue_configs=queue_config,
+                web_enabled=config.IS_DEV,
+                use_server_lifespan=True,
+            )
+        ),
+        ChannelsPlugin(
+            # in tesing backend = MemoryChannelsBackend()
+            backend=PsycoPgChannelsBackend(config.PSYCOPG_DATABASE_URL),
+            arbitrary_channels_allowed=True,
+        ),
+    ]
+
+    # Add structlog plugin only in production
+    if not config.IS_DEV:
+        base_plugins.insert(0, prod_structlog_plugin)
+
+    plugins: list[Any] = base_plugins if not plugins_overrides else plugins_overrides
 
     # ========================================================================
     # OpenAPI
@@ -185,6 +186,7 @@ def create_app(
         on_shutdown=[providers.on_shutdown],
         on_app_init=[session_auth.on_app_init],
         middleware=[session_auth.middleware],
+        logging_config=dev_logging_config if config.IS_DEV else None,
         cors_config=cors_config,
         exception_handlers={
             ApplicationError: exception_to_http_response,

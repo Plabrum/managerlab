@@ -1,108 +1,121 @@
 import logging
-import logging.handlers
+import socket
+import threading
 
 import structlog
 from litestar.logging.config import LoggingConfig, StructLoggingConfig
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 
-from app.utils.configure import config
 
-# Environment-aware logging configuration
-# Development: ConsoleRenderer with colors and formatting for nice local experience
-# Production: JSONRenderer for structured logging sent to Vector sidecar → Betterstack
+class VectorTCPHandler(logging.Handler):
+    """TCP handler with persistent connection to Vector sidecar."""
+
+    def __init__(self, host: str = "localhost", port: int = 9000, timeout: float = 0.5) -> None:
+        super().__init__()
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.sock: socket.socket | None = None
+        self.lock: threading.Lock = threading.Lock()
+
+    def _connect(self) -> None:
+        """Establish connection to Vector."""
+        if self.sock:
+            try:
+                self.sock.close()
+            except Exception:
+                pass
+        self.sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Send log to Vector, reconnecting if needed."""
+        try:
+            msg = self.format(record)
+            data = msg.encode("utf-8") + b"\n"
+
+            with self.lock:
+                # Try with existing socket first
+                if self.sock is None:
+                    self._connect()
+
+                # After _connect(), sock is guaranteed to be set (or exception raised)
+                assert self.sock is not None
+                try:
+                    self.sock.sendall(data)
+                except (BrokenPipeError, OSError):
+                    # Socket failed, reconnect and retry once
+                    self._connect()
+                    assert self.sock is not None
+                    self.sock.sendall(data)
+        except Exception:
+            # Silently drop if Vector unavailable
+            pass
+
+    def close(self) -> None:
+        """Clean up socket on handler shutdown."""
+        with self.lock:
+            if self.sock:
+                try:
+                    self.sock.close()
+                except Exception:
+                    pass
+                self.sock = None
+        super().close()
 
 
-class VectorTCPHandler(logging.handlers.SocketHandler):
-    """Custom TCP handler that sends JSON logs to Vector sidecar.
-
-    In ECS, containers share the same network namespace, so we can send to localhost:9000.
-    Falls back gracefully if Vector is not available (development mode).
-    """
-
-    def __init__(self, host="localhost", port=9000):
-        super().__init__(host, port)
-        # Don't let connection failures crash the app
-        self.closeOnError = False
-
-    def makePickle(self, record):  # noqa: N802
-        """Override to send raw log message instead of pickled record."""
-        # The message should already be JSON from structlog's JSONRenderer
-        return record.getMessage().encode("utf-8") + b"\n"
-
-    def handleError(self, record):  # noqa: N802
-        """Silently ignore errors (Vector might not be running in dev)."""
-        pass
-
-
-def create_structlog_config() -> StructlogConfig:
-    """Create structlog configuration based on environment."""
-
-    # Shared processors for both environments
-    shared_processors = [
-        structlog.contextvars.merge_contextvars,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.stdlib.ExtraAdder(),
-        structlog.processors.StackInfoRenderer(),
-    ]
-
-    if config.IS_DEV:
-        # Development: Use ConsoleRenderer for readable colored output
-        # No Vector sidecar in development
-        processors = shared_processors + [
-            structlog.dev.ConsoleRenderer(colors=True),
-        ]
-        standard_lib_logging_config = None  # Use default handlers
-    else:
-        # Production: Use JSONRenderer and send to BOTH stdout (CloudWatch) and Vector (Betterstack)
-        # Dual logging during migration for safety
-        processors = shared_processors + [
-            structlog.processors.TimeStamper(fmt="iso", utc=True, key="timestamp"),
-            structlog.processors.format_exc_info,
-            structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer(),
-        ]
-
-        # Configure standard lib logging with dual handlers
-        # 1. Console handler for CloudWatch (stdout)
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(logging.Formatter("%(message)s"))  # JSON is already formatted
-
-        # 2. Vector handler for Betterstack
-        vector_handler = VectorTCPHandler(host="localhost", port=9000)
-        vector_handler.setLevel(logging.INFO)
-
-        standard_lib_logging_config = LoggingConfig(
-            handlers={
-                "console": {
-                    "()": lambda: console_handler,
+# Production: Use structlog with JSON logs sent to Vector over TCP via queue (non-blocking)
+prod_structlog_plugin = StructlogPlugin(
+    config=StructlogConfig(
+        structlog_logging_config=StructLoggingConfig(
+            processors=[
+                structlog.contextvars.merge_contextvars,
+                structlog.stdlib.add_logger_name,
+                structlog.stdlib.add_log_level,
+                structlog.stdlib.PositionalArgumentsFormatter(),
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.TimeStamper(fmt="iso", utc=True, key="timestamp"),
+                structlog.processors.format_exc_info,
+                structlog.processors.UnicodeDecoder(),
+                structlog.processors.JSONRenderer(),
+            ],
+            wrapper_class=structlog.stdlib.BoundLogger,
+            logger_factory=structlog.stdlib.LoggerFactory(),
+            cache_logger_on_first_use=True,
+            standard_lib_logging_config=LoggingConfig(
+                handlers={
+                    "vector": {
+                        "()": VectorTCPHandler,
+                        "host": "localhost",
+                        "port": 9000,
+                    },
+                    "queue_listener": {
+                        "class": "logging.handlers.QueueHandler",
+                        "queue": {"()": "queue.Queue", "maxsize": -1},
+                        "listener": "litestar.logging.standard.LoggingQueueListener",
+                        "handlers": ["vector"],
+                    },
                 },
-                "vector": {
-                    "()": lambda: vector_handler,
-                },
-            },
-            loggers={
-                "": {  # Root logger
-                    "handlers": ["console", "vector"],  # Log to BOTH
-                    "level": "INFO",
-                }
-            },
+                loggers={"": {"handlers": ["queue_listener"], "level": "INFO"}},
+            ),
         )
-
-    structlog_logging_config = StructLoggingConfig(
-        processors=processors,
-        wrapper_class=structlog.stdlib.BoundLogger,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        cache_logger_on_first_use=True,
-        standard_lib_logging_config=standard_lib_logging_config,
     )
+)
 
-    return StructlogConfig(
-        structlog_logging_config=structlog_logging_config,
-    )
-
-
-structlog_config = create_structlog_config()
-structlog_plugin = StructlogPlugin(config=structlog_config)
+# Development: Just use RichHandler with standard Python logging
+dev_logging_config = LoggingConfig(
+    handlers={
+        "console": {
+            "class": "rich.logging.RichHandler",
+            "markup": True,
+            "rich_tracebacks": True,
+            "show_time": False,
+            "show_path": False,
+        },
+        "queue_listener": {
+            "class": "logging.handlers.QueueHandler",
+            "queue": {"()": "queue.Queue", "maxsize": -1},
+            "listener": "litestar.logging.standard.LoggingQueueListener",
+            "handlers": ["console"],
+        },
+    },
+)
