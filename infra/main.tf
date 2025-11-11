@@ -17,6 +17,10 @@ terraform {
       source  = "hashicorp/tls"
       version = ">= 4.0"
     }
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
+    }
   }
 
   backend "s3" {}
@@ -33,6 +37,16 @@ provider "aws" {
     }
   }
 }
+
+provider "docker" {
+  registry_auth {
+    address  = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
+    username = "AWS"
+    password = data.aws_ecr_authorization_token.token.password
+  }
+}
+
+data "aws_ecr_authorization_token" "token" {}
 
 data "aws_availability_zones" "available" {
   state = "available"
@@ -188,6 +202,13 @@ variable "s3_bucket_prefix" {
   type        = string
   default     = "manageros-storage"
   description = "S3 bucket name prefix (random suffix will be added)"
+}
+
+# Betterstack logging configuration
+variable "betterstack_logs_uri" {
+  type        = string
+  default     = "https://s1585363.eu-nbg-2.betterstackdata.com/"
+  description = "Betterstack logs ingestion endpoint URL"
 }
 
 
@@ -561,46 +582,6 @@ resource "aws_ecr_lifecycle_policy" "app" {
           tagStatus   = "any"
           countType   = "imageCountMoreThan"
           countNumber = 10
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
-}
-
-# ECR repository for Vector log forwarder
-resource "aws_ecr_repository" "vector" {
-  name                 = "${var.ecr_repository}-vector"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  encryption_configuration {
-    encryption_type = "AES256"
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name}-vector-ecr"
-  })
-}
-
-# Lifecycle policy for Vector images
-resource "aws_ecr_lifecycle_policy" "vector" {
-  repository = aws_ecr_repository.vector.name
-
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep last 5 Vector images"
-        selection = {
-          tagStatus   = "any"
-          countType   = "imageCountMoreThan"
-          countNumber = 5
         }
         action = {
           type = "expire"
@@ -1175,8 +1156,54 @@ resource "aws_ecs_task_definition" "main" {
     },
     {
       name      = "vector"
-      image     = "${aws_ecr_repository.vector.repository_url}:latest"
+      image     = "timberio/vector:0.51.0-alpine"
       essential = false
+
+      environment = [
+        {
+          name  = "BETTERSTACK_LOGS_URI"
+          value = var.betterstack_logs_uri
+        },
+        {
+          name  = "VECTOR_CONFIG"
+          value = <<-EOT
+[sources.app]
+type = "socket"
+mode = "tcp"
+address = "0.0.0.0:9000"
+
+[sources.app.decoding]
+codec = "json"
+
+[transforms.timestamp_remap]
+type = "remap"
+inputs = ["app"]
+source = '''
+# Remap timestamp field from "timestamp" to "dt" as required by Betterstack
+if exists(.timestamp) {
+  .dt = del(.timestamp)
+} else {
+  .dt = format_timestamp!(now(), format: "%Y-%m-%d %H:%M:%S UTC")
+}
+'''
+
+[sinks.betterstack]
+type = "http"
+inputs = ["timestamp_remap"]
+uri = "$${BETTERSTACK_LOGS_URI}"
+
+[sinks.betterstack.auth]
+strategy = "bearer"
+token = "$${BETTERSTACK_SOURCE_TOKEN}"
+
+[sinks.betterstack.encoding]
+codec = "json"
+
+[sinks.betterstack.compression]
+algorithm = "gzip"
+EOT
+        }
+      ]
 
       secrets = [
         {
@@ -1360,8 +1387,54 @@ resource "aws_ecs_task_definition" "worker" {
     },
     {
       name      = "vector"
-      image     = "${aws_ecr_repository.vector.repository_url}:latest"
+      image     = "timberio/vector:0.51.0-alpine"
       essential = false
+
+      environment = [
+        {
+          name  = "BETTERSTACK_LOGS_URI"
+          value = var.betterstack_logs_uri
+        },
+        {
+          name  = "VECTOR_CONFIG"
+          value = <<-EOT
+[sources.app]
+type = "socket"
+mode = "tcp"
+address = "0.0.0.0:9000"
+
+[sources.app.decoding]
+codec = "json"
+
+[transforms.timestamp_remap]
+type = "remap"
+inputs = ["app"]
+source = '''
+# Remap timestamp field from "timestamp" to "dt" as required by Betterstack
+if exists(.timestamp) {
+  .dt = del(.timestamp)
+} else {
+  .dt = format_timestamp!(now(), format: "%Y-%m-%d %H:%M:%S UTC")
+}
+'''
+
+[sinks.betterstack]
+type = "http"
+inputs = ["timestamp_remap"]
+uri = "$${BETTERSTACK_LOGS_URI}"
+
+[sinks.betterstack.auth]
+strategy = "bearer"
+token = "$${BETTERSTACK_SOURCE_TOKEN}"
+
+[sinks.betterstack.encoding]
+codec = "json"
+
+[sinks.betterstack.compression]
+algorithm = "gzip"
+EOT
+        }
+      ]
 
       secrets = [
         {
