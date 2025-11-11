@@ -55,7 +55,8 @@ def create_structlog_config() -> StructlogConfig:
         ]
         standard_lib_logging_config = None  # Use default handlers
     else:
-        # Production: Use JSONRenderer and send to Vector sidecar via TCP
+        # Production: Use JSONRenderer and send to BOTH stdout (CloudWatch) and Vector (Betterstack)
+        # Dual logging during migration for safety
         processors = shared_processors + [
             structlog.processors.TimeStamper(fmt="iso", utc=True, key="timestamp"),
             structlog.processors.format_exc_info,
@@ -63,19 +64,28 @@ def create_structlog_config() -> StructlogConfig:
             structlog.processors.JSONRenderer(),
         ]
 
-        # Configure standard lib logging to send to Vector sidecar on localhost:9000
+        # Configure standard lib logging with dual handlers
+        # 1. Console handler for CloudWatch (stdout)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(logging.Formatter("%(message)s"))  # JSON is already formatted
+
+        # 2. Vector handler for Betterstack
         vector_handler = VectorTCPHandler(host="localhost", port=9000)
         vector_handler.setLevel(logging.INFO)
 
         standard_lib_logging_config = LoggingConfig(
             handlers={
+                "console": {
+                    "()": lambda: console_handler,
+                },
                 "vector": {
                     "()": lambda: vector_handler,
-                }
+                },
             },
             loggers={
                 "": {  # Root logger
-                    "handlers": ["vector"],
+                    "handlers": ["console", "vector"],  # Log to BOTH
                     "level": "INFO",
                 }
             },

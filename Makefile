@@ -71,7 +71,7 @@ dev-backend:
 .PHONY: dev-worker
 dev-worker:
 	@echo "🔄 Starting SAQ worker with auto-reload..."
-	cd backend && export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && uv run watchmedo auto-restart -d app/ -R -- uv run litestar workers run
+	cd backend && export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && uv run watchmedo auto-restart -d app/ -R -- uv run litestar --app app.index:app workers run
 
 # Database targets
 .PHONY: db-start

@@ -5,20 +5,44 @@ This document describes the migration from AWS CloudWatch to Betterstack for app
 ## Architecture
 
 ### Flow
+
+**During Migration (Current State - Dual Logging):**
 ```
 Python App (structlog)
-  ↓ JSON over TCP (localhost:9000)
-Vector Sidecar (ECS)
-  ↓ HTTPS with gzip compression
-Betterstack
+  ├─→ stdout → CloudWatch (1-day retention backup)
+  └─→ TCP localhost:9000 → Vector Sidecar → Betterstack (HTTPS + gzip)
+```
+
+**Post-Migration (Future State - Betterstack Only):**
+```
+Python App (structlog)
+  └─→ TCP localhost:9000 → Vector Sidecar → Betterstack (HTTPS + gzip)
 ```
 
 ### Key Components
 
 1. **Python Application**: Uses `structlog` to generate structured JSON logs
 2. **Vector Sidecar**: Runs alongside app in ECS task, forwards logs to Betterstack
-3. **CloudWatch Backup**: Retains logs for 1 day as emergency backup
+3. **CloudWatch Backup**: Retains logs for 1 day as emergency backup (dual logging during migration)
 4. **Betterstack**: Primary log storage and analysis platform
+
+### Migration Strategy: Dual Logging
+
+**During migration, logs are sent to BOTH destinations simultaneously:**
+
+- ✅ **stdout → CloudWatch**: Full JSON logs for backup (1-day retention)
+- ✅ **TCP → Vector → Betterstack**: Full JSON logs for primary storage
+
+**Why dual logging?**
+- **Safety**: Can compare both systems during migration
+- **Rollback**: Easy to revert if Betterstack has issues
+- **Confidence**: Validate log delivery and formatting before committing
+- **Zero risk**: No log loss during transition
+
+**Post-migration (future):**
+- Remove stdout console handler from production logging config
+- Keep only Vector handler
+- CloudWatch can be fully removed or retained for emergencies only
 
 ## Why Betterstack?
 
@@ -37,7 +61,9 @@ Betterstack
 - Sends JSON logs to Vector sidecar on `localhost:9000`
 - Environment-aware configuration:
   - **Development**: Colorful console output (no Vector)
-  - **Production**: JSON logs → Vector → Betterstack
+  - **Production**: **Dual logging** for migration safety:
+    - Console handler → stdout → CloudWatch (1-day backup)
+    - Vector handler → TCP localhost:9000 → Betterstack
 - Graceful error handling (doesn't crash if Vector unavailable)
 
 **File: `backend/app/factory.py`**
