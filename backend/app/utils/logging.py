@@ -7,16 +7,12 @@ from litestar.logging.config import LoggingConfig, StructLoggingConfig
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 
 
-def get_task_ip():
-    return socket.gethostbyname(socket.gethostname())
-
-
 class VectorTCPHandler(logging.Handler):
     """TCP handler with persistent connection to Vector sidecar."""
 
-    def __init__(self, host: str | None = None, port: int = 9000, timeout: float = 0.5) -> None:
+    def __init__(self, host: str = "localhost", port: int = 9000, timeout: float = 0.5) -> None:
         super().__init__()
-        self.host = host or get_task_ip()
+        self.host = host
         self.port = port
         self.timeout = timeout
         self.sock: socket.socket | None = None
@@ -68,6 +64,23 @@ class VectorTCPHandler(logging.Handler):
 
 
 # Production: Use structlog with JSON logs sent to Vector over TCP via queue (non-blocking)
+prod_logging_config = LoggingConfig(
+    handlers={
+        "vector": {
+            "()": VectorTCPHandler,
+            "host": "localhost",
+            "port": 9000,
+        },
+        "queue_listener": {
+            "class": "logging.handlers.QueueHandler",
+            "queue": {"()": "queue.Queue", "maxsize": -1},
+            "listener": "litestar.logging.standard.LoggingQueueListener",
+            "handlers": ["vector"],
+        },
+    },
+    loggers={"": {"handlers": ["queue_listener"], "level": "INFO"}},
+)
+
 prod_structlog_plugin = StructlogPlugin(
     config=StructlogConfig(
         structlog_logging_config=StructLoggingConfig(
@@ -85,22 +98,7 @@ prod_structlog_plugin = StructlogPlugin(
             wrapper_class=structlog.stdlib.BoundLogger,
             logger_factory=structlog.stdlib.LoggerFactory(),
             cache_logger_on_first_use=True,
-            standard_lib_logging_config=LoggingConfig(
-                handlers={
-                    "vector": {
-                        "()": VectorTCPHandler,
-                        "host": "localhost",
-                        "port": 9000,
-                    },
-                    "queue_listener": {
-                        "class": "logging.handlers.QueueHandler",
-                        "queue": {"()": "queue.Queue", "maxsize": -1},
-                        "listener": "litestar.logging.standard.LoggingQueueListener",
-                        "handlers": ["vector"],
-                    },
-                },
-                loggers={"": {"handlers": ["queue_listener"], "level": "INFO"}},
-            ),
+            standard_lib_logging_config=prod_logging_config,
         )
     )
 )

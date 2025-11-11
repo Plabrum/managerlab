@@ -31,7 +31,7 @@ from app.queue.config import queue_config
 from app.utils import providers
 from app.utils.configure import Config
 from app.utils.exceptions import ApplicationError, exception_to_http_response
-from app.utils.logging import dev_logging_config, prod_structlog_plugin
+from app.utils.logging import dev_logging_config, prod_logging_config, prod_structlog_plugin
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 
 
@@ -178,6 +178,13 @@ def create_app(
     )
 
     # ========================================================================
+    # Logging Config
+    # ========================================================================
+    # In production, use the Vector handler for sending logs to BetterStack
+    # In development, use the RichHandler console output
+    logging_config = prod_logging_config if not config.IS_DEV else dev_logging_config
+
+    # ========================================================================
     # Create App
     # ========================================================================
     app = Litestar(
@@ -186,7 +193,7 @@ def create_app(
         on_shutdown=[providers.on_shutdown],
         on_app_init=[session_auth.on_app_init],
         middleware=[session_auth.middleware],
-        logging_config=dev_logging_config if config.IS_DEV else None,
+        logging_config=logging_config,
         cors_config=cors_config,
         exception_handlers={
             ApplicationError: exception_to_http_response,
