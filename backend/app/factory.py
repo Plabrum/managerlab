@@ -180,9 +180,10 @@ def create_app(
     # ========================================================================
     # Logging Config
     # ========================================================================
-    # In production, use the Vector handler for sending logs to BetterStack
+    # In production, use the StructlogPlugin which includes Vector handler
     # In development, use the RichHandler console output
-    logging_config = prod_logging_config if not config.IS_DEV else dev_logging_config
+    # Note: StructlogPlugin already includes prod_logging_config internally
+    logging_config = None if not config.IS_DEV else dev_logging_config
 
     # ========================================================================
     # Create App
