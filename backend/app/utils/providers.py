@@ -1,3 +1,4 @@
+import sys
 from collections.abc import AsyncGenerator
 
 import aiohttp
@@ -53,6 +54,37 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
 
 
 async def on_startup(app: Litestar) -> None:
+    # Manually ensure logging is configured (Litestar sometimes skips this)
+    if not config.IS_DEV and app.logging_config:
+        import logging
+
+        from app.utils.logging import prod_logging_config
+
+        # Force configure the stdlib logging using Litestar's configure method
+        prod_logging_config.configure()
+        print(
+            f"[on_startup] Configured stdlib logging with {len(logging.getLogger().handlers)} handlers", file=sys.stderr
+        )
+
+        # Also configure structlog to use JSON and connect to stdlib
+        structlog.configure(
+            processors=[
+                structlog.contextvars.merge_contextvars,
+                structlog.stdlib.add_logger_name,
+                structlog.stdlib.add_log_level,
+                structlog.stdlib.PositionalArgumentsFormatter(),
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.TimeStamper(fmt="iso", utc=True, key="timestamp"),
+                structlog.processors.format_exc_info,
+                structlog.processors.UnicodeDecoder(),
+                structlog.processors.JSONRenderer(),
+            ],
+            wrapper_class=structlog.stdlib.BoundLogger,
+            logger_factory=structlog.stdlib.LoggerFactory(),
+            cache_logger_on_first_use=True,
+        )
+        print("[on_startup] Configured structlog with JSON renderer", file=sys.stderr)
+
     logger.info("Application startup initiated", env=config.ENV, debug=app.debug)
     app.state.http = aiohttp.ClientSession()
     logger.info("Application startup complete", http_client_initialized=True)

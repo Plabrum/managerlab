@@ -116,7 +116,12 @@ prod_logging_config = LoggingConfig(
             "handlers": ["vector"],
         },
     },
-    loggers={"": {"handlers": ["queue_listener"], "level": "INFO"}},
+    loggers={
+        "": {"handlers": ["queue_listener"], "level": "INFO"},
+        "uvicorn.access": {"handlers": ["queue_listener"], "level": "INFO", "propagate": False},
+        "uvicorn.error": {"handlers": ["queue_listener"], "level": "INFO", "propagate": False},
+    },
+    configure_root_logger=True,
 )
 
 prod_structlog_plugin = StructlogPlugin(

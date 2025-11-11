@@ -151,9 +151,9 @@ def create_app(
         ),
     ]
 
-    # Add structlog plugin only in production
-    if not config.IS_DEV:
-        base_plugins.insert(0, prod_structlog_plugin)
+    # Don't add structlog plugin - we configure structlog via logging_config instead
+    # if not config.IS_DEV:
+    #     base_plugins.insert(0, prod_structlog_plugin)
 
     plugins: list[Any] = base_plugins if not plugins_overrides else plugins_overrides
 
