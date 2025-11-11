@@ -1,0 +1,38 @@
+# Vector configuration for Betterstack log forwarding
+# ECS sidecar: Listens on localhost:9000 for JSON logs from Python app
+# Forwards to Betterstack via HTTP
+
+[sources.app]
+type = "socket"
+mode = "tcp"
+address = "0.0.0.0:9000"
+
+[sources.app.decoding]
+codec = "json"
+
+[transforms.timestamp_remap]
+type = "remap"
+inputs = ["app"]
+source = '''
+# Remap timestamp field from "timestamp" to "dt" as required by Betterstack
+if exists(.timestamp) {
+  .dt = del(.timestamp)
+} else {
+  .dt = format_timestamp!(now(), format: "%Y-%m-%d %H:%M:%S UTC")
+}
+'''
+
+[sinks.betterstack]
+type = "http"
+inputs = ["timestamp_remap"]
+uri = "https://s1585363.eu-nbg-2.betterstackdata.com/"
+
+[sinks.betterstack.auth]
+strategy = "bearer"
+token = "${BETTERSTACK_SOURCE_TOKEN}"
+
+[sinks.betterstack.encoding]
+codec = "json"
+
+[sinks.betterstack.compression]
+algorithm = "gzip"

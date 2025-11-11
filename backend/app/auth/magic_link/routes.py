@@ -10,7 +10,7 @@ from litestar.di import Provide
 from litestar.exceptions import HTTPException
 from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.status_codes import HTTP_302_FOUND, HTTP_400_BAD_REQUEST
-from msgspec import Struct, ValidationError
+from msgspec import Struct
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

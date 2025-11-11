@@ -16,8 +16,6 @@ from app.campaigns.models import Campaign
 from app.teams.models import Team
 from app.teams.schemas import (
     CreateTeamSchema,
-    SwitchTeamRequest,
-    SwitchTeamResponse,
     TeamListItemSchema,
     TeamSchema,
 )

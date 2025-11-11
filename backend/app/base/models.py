@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import DateTime, func
@@ -53,7 +53,7 @@ class BaseDBModel(DeclarativeBase):
 
     def soft_delete(self) -> None:
         """Soft delete this record by setting deleted_at timestamp."""
-        self.deleted_at = datetime.now(tz=timezone.utc)
+        self.deleted_at = datetime.now(tz=UTC)
 
     def restore(self) -> None:
         """Restore a soft-deleted record by clearing deleted_at."""

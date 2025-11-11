@@ -570,6 +570,46 @@ resource "aws_ecr_lifecycle_policy" "app" {
   })
 }
 
+# ECR repository for Vector log forwarder
+resource "aws_ecr_repository" "vector" {
+  name                 = "${var.ecr_repository}-vector"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-vector-ecr"
+  })
+}
+
+# Lifecycle policy for Vector images
+resource "aws_ecr_lifecycle_policy" "vector" {
+  repository = aws_ecr_repository.vector.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 5 Vector images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 5
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
 # ================================
 # S3 Storage
 # ================================
@@ -854,12 +894,13 @@ resource "aws_secretsmanager_secret" "app_secrets_v2" {
 resource "aws_secretsmanager_secret_version" "app_secrets_v2" {
   secret_id = aws_secretsmanager_secret.app_secrets_v2.id
   secret_string = jsonencode({
-    GOOGLE_CLIENT_ID      = ""
-    GOOGLE_CLIENT_SECRET  = ""
-    GOOGLE_REDIRECT_URI   = ""
-    SUCCESS_REDIRECT_URL  = ""
-    SESSION_COOKIE_DOMAIN = ""
-    FRONTEND_ORIGIN       = ""
+    GOOGLE_CLIENT_ID         = ""
+    GOOGLE_CLIENT_SECRET     = ""
+    GOOGLE_REDIRECT_URI      = ""
+    SUCCESS_REDIRECT_URL     = ""
+    SESSION_COOKIE_DOMAIN    = ""
+    FRONTEND_ORIGIN          = ""
+    BETTERSTACK_SOURCE_TOKEN = ""
   })
 
   lifecycle {
@@ -1036,7 +1077,7 @@ resource "aws_iam_role_policy" "ecs_task_ses" {
 # CloudWatch log group for ECS
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${local.name}"
-  retention_in_days = 7
+  retention_in_days = 1 # Short retention - logs primarily go to Betterstack
 
   tags = local.common_tags
 }
@@ -1107,12 +1148,13 @@ resource "aws_ecs_task_definition" "main" {
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
+      # Keep CloudWatch as backup (1 day retention)
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
+          "awslogs-stream-prefix" = "app"
         }
       }
 
@@ -1122,6 +1164,34 @@ resource "aws_ecs_task_definition" "main" {
         timeout     = 5
         retries     = 3
         startPeriod = 60
+      }
+
+      dependsOn = [
+        {
+          containerName = "vector"
+          condition     = "START"
+        }
+      ]
+    },
+    {
+      name      = "vector"
+      image     = "${aws_ecr_repository.vector.repository_url}:latest"
+      essential = false
+
+      secrets = [
+        {
+          name      = "BETTERSTACK_SOURCE_TOKEN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "vector"
+        }
       }
     }
   ])
@@ -1217,7 +1287,7 @@ resource "aws_appautoscaling_policy" "ecs_memory" {
 # CloudWatch log group for worker
 resource "aws_cloudwatch_log_group" "worker" {
   name              = "/ecs/${local.name}-worker"
-  retention_in_days = 7
+  retention_in_days = 1 # Short retention - logs primarily go to Betterstack
 
   tags = local.common_tags
 }
@@ -1269,7 +1339,7 @@ resource "aws_ecs_task_definition" "worker" {
         {
           name  = "APP_SECRETS_ARN"
           value = aws_secretsmanager_secret.app_secrets_v2.arn
-        }
+        },
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
       logConfiguration = {
@@ -1277,7 +1347,35 @@ resource "aws_ecs_task_definition" "worker" {
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.worker.name
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "worker"
+          "awslogs-stream-prefix" = "worker-app"
+        }
+      }
+
+      dependsOn = [
+        {
+          containerName = "vector"
+          condition     = "START"
+        }
+      ]
+    },
+    {
+      name      = "vector"
+      image     = "${aws_ecr_repository.vector.repository_url}:latest"
+      essential = false
+
+      secrets = [
+        {
+          name      = "BETTERSTACK_SOURCE_TOKEN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.worker.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "worker-vector"
         }
       }
     }

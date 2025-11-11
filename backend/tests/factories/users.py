@@ -1,6 +1,6 @@
 """User-related model factories."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from polyfactory import Use
 
@@ -26,9 +26,9 @@ class UserFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
     deleted_at = None  # Ensure users are not soft-deleted by default
 
 
@@ -43,9 +43,9 @@ class TeamFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
     deleted_at = None  # Ensure teams are not soft-deleted by default
 
 
@@ -59,9 +59,9 @@ class RoleFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
 
 
 class RosterFactory(BaseFactory):
@@ -82,7 +82,7 @@ class RosterFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-1y",
         end_date="now",
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
-    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
+    updated_at = Use(lambda: datetime.now(tz=UTC))
     deleted_at = None  # Ensure roster members are not soft-deleted by default

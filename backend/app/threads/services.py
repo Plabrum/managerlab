@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import cast
 
 from litestar.channels import ChannelsPlugin
@@ -186,7 +186,7 @@ async def mark_thread_as_read(
         thread_id: Thread ID
         user_id: User ID
     """
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     # Simple INSERT - append-only log
     read_status = ThreadReadStatus(

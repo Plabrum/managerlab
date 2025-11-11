@@ -1,7 +1,7 @@
 """Email-related background tasks."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import sqlalchemy as sa
 
@@ -55,7 +55,7 @@ async def send_email_task(ctx: AppContext, *, email_message_id: int) -> dict:
             # Update database
             email.state = EmailState.SENT
             email.ses_message_id = ses_message_id
-            email.sent_at = datetime.now(timezone.utc)
+            email.sent_at = datetime.now(UTC)
             await db_session.commit()
 
             logger.info(f"Email {email_message_id} sent: {ses_message_id}")
