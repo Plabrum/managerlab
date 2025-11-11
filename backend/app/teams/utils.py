@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.models import TeamInvitationToken
 from app.auth.tokens import build_invitation_link_url, generate_secure_token, hash_token
-from app.utils.configure import config
 
 
 async def generate_scoped_team_link(

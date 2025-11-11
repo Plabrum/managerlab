@@ -1,6 +1,6 @@
 """Session models for PostgreSQL-backed session storage."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import sqlalchemy as sa
@@ -30,4 +30,4 @@ class Session(BaseDBModel.registry.generate_base()):
     @property
     def is_expired(self) -> bool:
         """Check if the session is expired."""
-        return datetime.now(tz=timezone.utc) > self.expires_at
+        return datetime.now(tz=UTC) > self.expires_at

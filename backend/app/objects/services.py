@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import assert_never
 
 from sqlalchemy import Select, and_, func, select
@@ -212,7 +212,7 @@ def resolve_time_range(
     Returns:
         Tuple of (start_datetime, end_datetime) in UTC
     """
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     # Explicit dates override time_range
     if start_date and end_date:

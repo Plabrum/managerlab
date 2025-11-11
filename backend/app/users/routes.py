@@ -7,13 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.enums import ScopeType
 from app.auth.guards import requires_session, requires_team
 from app.teams.schemas import SwitchTeamRequest, SwitchTeamResponse
-from app.users.enums import RoleLevel, UserStates
 from app.users.models import Role, User
 from app.users.schemas import (
     UserAndRoleSchema,
     UserSchema,
 )
-from app.utils.db import get_or_404
 
 
 @get("/", guards=[requires_team])

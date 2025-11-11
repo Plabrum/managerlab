@@ -1,6 +1,6 @@
 """Tests for deliverables domain: endpoints and operations."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from litestar.testing import AsyncTestClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -207,7 +207,7 @@ class TestDeliverablePlatforms:
         """Test deliverable posting date fields."""
         client, user_data = authenticated_client
 
-        posting_date = datetime.now(tz=timezone.utc) + timedelta(days=7)
+        posting_date = datetime.now(tz=UTC) + timedelta(days=7)
         start_date = date.today() + timedelta(days=7)
         end_date = date.today() + timedelta(days=14)
 

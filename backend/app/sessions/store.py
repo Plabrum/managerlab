@@ -1,7 +1,7 @@
 """PostgreSQL-backed session store implementation."""
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from litestar.stores.base import Store
@@ -43,9 +43,9 @@ class PostgreSQLSessionStore(Store):
             # Renew session if requested
             if renew_for is not None:
                 if isinstance(renew_for, timedelta):
-                    session.expires_at = datetime.now(tz=timezone.utc) + renew_for
+                    session.expires_at = datetime.now(tz=UTC) + renew_for
                 else:
-                    session.expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=renew_for)
+                    session.expires_at = datetime.now(tz=UTC) + timedelta(seconds=renew_for)
                 await db_session.commit()
 
             # Convert dict back to bytes for Litestar
@@ -60,7 +60,7 @@ class PostgreSQLSessionStore(Store):
         else:
             expiry_seconds = expires_in
 
-        expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expiry_seconds)
+        expires_at = datetime.now(tz=UTC) + timedelta(seconds=expiry_seconds)
 
         # Convert value to string for JSON parsing
         if isinstance(value, bytes):
@@ -127,14 +127,14 @@ class PostgreSQLSessionStore(Store):
             if not session or session.is_expired:
                 return None
 
-            now = datetime.now(tz=timezone.utc)
+            now = datetime.now(tz=UTC)
             delta = session.expires_at - now
             return max(0, int(delta.total_seconds()))
 
     async def delete_expired(self) -> None:
         """Clean up expired sessions."""
         async with self.db_session_factory() as db_session:
-            now = datetime.now(tz=timezone.utc)
+            now = datetime.now(tz=UTC)
             stmt = delete(Session).where(Session.expires_at < now)
             await db_session.execute(stmt)
             await db_session.commit()
