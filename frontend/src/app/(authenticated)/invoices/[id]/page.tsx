@@ -28,7 +28,7 @@ export default function InvoiceDetailPage({
         />
       }
     >
-      <div className="space-y-6">
+      <div className="container mx-auto space-y-6 p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>

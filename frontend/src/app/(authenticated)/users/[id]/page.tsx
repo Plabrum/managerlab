@@ -16,7 +16,7 @@ export default function UserDetailPage({
 
   return (
     <PageTopBar title={data.name} state={data.state}>
-      <div className="space-y-6">
+      <div className="container mx-auto space-y-6 p-6">
         <Card>
           <CardHeader>
             <CardTitle>User Information</CardTitle>

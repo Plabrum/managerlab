@@ -16,7 +16,7 @@ export default function BrandContactDetailPage({
 
   return (
     <PageTopBar title={`${data.first_name} ${data.last_name}`}>
-      <div className="space-y-6">
+      <div className="container mx-auto space-y-6 p-6">
         <Card>
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>

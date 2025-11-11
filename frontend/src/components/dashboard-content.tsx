@@ -178,7 +178,7 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
           </Button>
         }
       >
-        <div className="space-y-6">
+        <div className="container mx-auto space-y-6 p-6">
           <EmptyState
             title="Create a dashboard to get started"
             cta={{
@@ -250,7 +250,7 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="container mx-auto space-y-6 p-6">
         {/* Widgets Grid */}
         {config.widgets.length === 0 ? (
           <EmptyState
