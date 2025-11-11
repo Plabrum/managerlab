@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 
 import aiohttp
+import structlog
 from litestar import Litestar, Request
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
@@ -18,6 +19,8 @@ from app.threads.services import ThreadViewerStore
 from app.utils.configure import Config, config
 from app.utils.db import set_rls_variables
 from app.utils.db_filters import apply_soft_delete_filter
+
+logger = structlog.get_logger(__name__)
 
 
 def provide_viewer_store(request: Request) -> ThreadViewerStore:
@@ -50,11 +53,15 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
 
 
 async def on_startup(app: Litestar) -> None:
+    logger.info("Application startup initiated", env=config.ENV, debug=app.debug)
     app.state.http = aiohttp.ClientSession()
+    logger.info("Application startup complete", http_client_initialized=True)
 
 
 async def on_shutdown(app: Litestar) -> None:
+    logger.info("Application shutdown initiated")
     await app.state.http.close()
+    logger.info("Application shutdown complete")
 
 
 def provide_http(state: State) -> aiohttp.ClientSession:

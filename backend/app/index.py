@@ -5,9 +5,9 @@ from app.utils.discovery import discover_and_import
 # Discover and import all models before app initialization
 discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
-import logging
 from typing import Any
 
+import structlog
 from litestar import Response, get
 
 from app.actions.routes import action_router
@@ -28,7 +28,7 @@ from app.threads.websocket import thread_handler
 from app.users.routes import user_router
 from app.utils.configure import config
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @get("/health", tags=["system"], guards=[])
@@ -68,4 +68,4 @@ app = create_app(
     config=config,
 )
 
-logger.info(f"✅ ManagerLab API initialized successfully. Environment: {config.ENV}")
+logger.info("ManagerLab API initialized successfully", environment=config.ENV, debug=config.IS_DEV)

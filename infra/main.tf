@@ -1150,7 +1150,7 @@ resource "aws_ecs_task_definition" "main" {
       dependsOn = [
         {
           containerName = "vector"
-          condition     = "START"
+          condition     = "HEALTHY"
         }
       ]
     },
@@ -1163,6 +1163,14 @@ resource "aws_ecs_task_definition" "main" {
       command = [
         "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
       ]
+
+      healthCheck = {
+        command     = ["CMD-SHELL", "nc -z localhost 9000 || exit 1"]
+        interval    = 5
+        timeout     = 3
+        retries     = 3
+        startPeriod = 10
+      }
 
       environment = [
         {
@@ -1386,7 +1394,7 @@ resource "aws_ecs_task_definition" "worker" {
       dependsOn = [
         {
           containerName = "vector"
-          condition     = "START"
+          condition     = "HEALTHY"
         }
       ]
     },
@@ -1399,6 +1407,14 @@ resource "aws_ecs_task_definition" "worker" {
       command = [
         "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
       ]
+
+      healthCheck = {
+        command     = ["CMD-SHELL", "nc -z localhost 9000 || exit 1"]
+        interval    = 5
+        timeout     = 3
+        retries     = 3
+        startPeriod = 10
+      }
 
       environment = [
         {

@@ -1,6 +1,8 @@
 import logging
 import socket
+import sys
 import threading
+import time
 
 import structlog
 from litestar.logging.config import LoggingConfig, StructLoggingConfig
@@ -17,6 +19,19 @@ class VectorTCPHandler(logging.Handler):
         self.timeout = timeout
         self.sock: socket.socket | None = None
         self.lock: threading.Lock = threading.Lock()
+        self.connection_attempts = 0
+        self.last_error: Exception | None = None
+        self.connected = False
+
+        # Try to establish initial connection and report status
+        try:
+            self._connect()
+            self.connected = True
+            print(f"[VectorTCPHandler] Successfully connected to Vector at {host}:{port}", file=sys.stderr)
+        except Exception as e:
+            self.last_error = e
+            print(f"[VectorTCPHandler] WARNING: Failed to connect to Vector at {host}:{port}: {e}", file=sys.stderr)
+            print(f"[VectorTCPHandler] Logs will be dropped until Vector is available", file=sys.stderr)
 
     def _connect(self) -> None:
         """Establish connection to Vector."""
@@ -25,7 +40,14 @@ class VectorTCPHandler(logging.Handler):
                 self.sock.close()
             except Exception:
                 pass
+
+        self.connection_attempts += 1
         self.sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
+        self.connected = True
+
+        # Log successful reconnection if this was a reconnect
+        if self.connection_attempts > 1:
+            print(f"[VectorTCPHandler] Reconnected to Vector (attempt #{self.connection_attempts})", file=sys.stderr)
 
     def emit(self, record: logging.LogRecord) -> None:
         """Send log to Vector, reconnecting if needed."""
@@ -42,14 +64,23 @@ class VectorTCPHandler(logging.Handler):
                 assert self.sock is not None
                 try:
                     self.sock.sendall(data)
-                except (BrokenPipeError, OSError):
+                except (BrokenPipeError, OSError) as e:
                     # Socket failed, reconnect and retry once
+                    self.connected = False
+                    print(f"[VectorTCPHandler] Connection lost: {e}, reconnecting...", file=sys.stderr)
                     self._connect()
                     assert self.sock is not None
                     self.sock.sendall(data)
-        except Exception:
-            # Silently drop if Vector unavailable
-            pass
+        except Exception as e:
+            # Track errors but don't crash the application
+            self.last_error = e
+            self.connected = False
+            # Only log error every 100 failed attempts to avoid spam
+            if self.connection_attempts % 100 == 0:
+                print(
+                    f"[VectorTCPHandler] ERROR: Failed to send log to Vector after {self.connection_attempts} attempts: {e}",
+                    file=sys.stderr,
+                )
 
     def close(self) -> None:
         """Clean up socket on handler shutdown."""
