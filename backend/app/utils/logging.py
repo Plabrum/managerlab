@@ -7,12 +7,16 @@ from litestar.logging.config import LoggingConfig, StructLoggingConfig
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 
 
+def get_task_ip():
+    return socket.gethostbyname(socket.gethostname())
+
+
 class VectorTCPHandler(logging.Handler):
     """TCP handler with persistent connection to Vector sidecar."""
 
-    def __init__(self, host: str = "localhost", port: int = 9000, timeout: float = 0.5) -> None:
+    def __init__(self, host: str | None = None, port: int = 9000, timeout: float = 0.5) -> None:
         super().__init__()
-        self.host = host
+        self.host = host or get_task_ip()
         self.port = port
         self.timeout = timeout
         self.sock: socket.socket | None = None
