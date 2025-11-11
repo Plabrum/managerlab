@@ -34,21 +34,23 @@ def generate_secure_token(length: int = 32) -> str:
 
 
 def hash_token(token: str) -> str:
-    """Hash a token using SHA-256 for database storage.
+    """Hash a token using HMAC-SHA256 for database storage.
 
     Args:
         token: Plaintext token to hash
 
     Returns:
-        Hexadecimal SHA-256 hash (64 characters)
+        Hexadecimal HMAC-SHA256 hash (64 characters)
 
     Note:
-        We store hashes instead of plaintext tokens in the database
+        We store HMAC hashes instead of plaintext tokens in the database
         so that if the database is compromised, tokens cannot be used
-        directly. The plaintext token is only sent via email and never
-        stored anywhere.
+        directly. HMAC-SHA256 with a secret key provides protection against
+        rainbow table attacks. The plaintext token is only sent via email
+        and never stored anywhere.
     """
-    return hashlib.sha256(token.encode()).hexdigest()
+    secret = config.SECRET_KEY.encode()
+    return hmac.new(secret, token.encode(), hashlib.sha256).hexdigest()
 
 
 def verify_token_hash(token: str, token_hash: str) -> bool:
