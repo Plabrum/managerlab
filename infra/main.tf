@@ -1159,9 +1159,8 @@ resource "aws_ecs_task_definition" "main" {
       image     = "timberio/vector:0.51.0-alpine"
       essential = false
 
+      entryPoint = ["sh", "-c"]
       command = [
-        "sh",
-        "-c",
         "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
       ]
 
@@ -1396,9 +1395,8 @@ resource "aws_ecs_task_definition" "worker" {
       image     = "timberio/vector:0.51.0-alpine"
       essential = false
 
+      entryPoint = ["sh", "-c"]
       command = [
-        "sh",
-        "-c",
         "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
       ]
 
