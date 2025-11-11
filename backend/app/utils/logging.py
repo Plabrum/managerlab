@@ -136,7 +136,8 @@ prod_structlog_plugin = StructlogPlugin(
             wrapper_class=structlog.stdlib.BoundLogger,
             logger_factory=structlog.stdlib.LoggerFactory(),
             cache_logger_on_first_use=True,
-            standard_lib_logging_config=prod_logging_config,
+            # Don't set standard_lib_logging_config here - we pass it directly to Litestar
+            # to avoid conflicts. Litestar will handle stdlib logging initialization.
         )
     )
 )

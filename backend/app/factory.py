@@ -180,10 +180,11 @@ def create_app(
     # ========================================================================
     # Logging Config
     # ========================================================================
-    # In production, use the StructlogPlugin which includes Vector handler
+    # In production, use prod_logging_config with StructlogPlugin
+    # The StructlogPlugin will configure structlog processors, and prod_logging_config
+    # configures the stdlib logging handlers (including VectorTCPHandler)
     # In development, use the RichHandler console output
-    # Note: StructlogPlugin already includes prod_logging_config internally
-    logging_config = None if not config.IS_DEV else dev_logging_config
+    logging_config = prod_logging_config if not config.IS_DEV else dev_logging_config
 
     # ========================================================================
     # Create App
