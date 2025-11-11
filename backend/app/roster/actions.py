@@ -1,4 +1,4 @@
-from datetime import UTC
+from datetime import timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,7 +41,7 @@ class DeleteRoster(BaseObjectAction[Roster, EmptyActionData]):
         from datetime import datetime
 
         # Soft delete by setting deleted_at
-        obj.deleted_at = datetime.now(tz=UTC)
+        obj.deleted_at = datetime.now(tz=timezone.utc)
         await transaction.flush()
         return ActionExecutionResponse(
             message="Deleted roster member",

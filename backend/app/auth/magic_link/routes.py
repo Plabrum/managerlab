@@ -6,6 +6,7 @@ from litestar import Response, Router, get, post
 from litestar.connection import Request
 from litestar.di import Provide
 from litestar.exceptions import HTTPException
+from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.status_codes import HTTP_302_FOUND, HTTP_400_BAD_REQUEST
 from msgspec import Struct
 from sqlalchemy import select
@@ -155,5 +156,8 @@ magic_link_router = Router(
     dependencies={
         "magic_link_service": Provide(provide_magic_link_service, sync_to_thread=False),
     },
+    middleware=[
+        RateLimitConfig(rate_limit=("minute", 3)).middleware,  # 3 requests per minute per IP
+    ],
     tags=["auth"],
 )

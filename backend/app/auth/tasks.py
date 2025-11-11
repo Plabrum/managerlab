@@ -1,6 +1,6 @@
 """Authentication-related background tasks."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from saq.types import Context
 from sqlalchemy import delete, select
@@ -30,7 +30,7 @@ async def cleanup_expired_tokens(ctx: Context) -> dict:
     session_maker: async_sessionmaker = ctx["db_sessionmaker"]
 
     async with session_maker() as session:
-        cutoff_date = datetime.now(tz=UTC) - timedelta(days=7)
+        cutoff_date = datetime.now(tz=timezone.utc) - timedelta(days=7)
 
         # Delete old magic link tokens (expired or used)
         magic_link_delete_stmt = delete(MagicLinkToken).where(

@@ -126,7 +126,7 @@ function AuthContent() {
             </CardTitle>
             <CardDescription className="text-zinc-400">
               {isSignUp
-                ? 'Sign up for your Arive account'
+                ? 'Sign up to get started with Arive'
                 : 'Sign in to your Arive account'}
             </CardDescription>
           </CardHeader>
@@ -202,7 +202,7 @@ function AuthContent() {
             </form>
 
             <p className="text-center text-xs text-zinc-500">
-              By signing in, you agree to our{' '}
+              By continuing, you agree to our{' '}
               <Link
                 href="/terms"
                 className="text-zinc-400 underline hover:text-white"

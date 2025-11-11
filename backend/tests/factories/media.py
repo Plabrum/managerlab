@@ -1,6 +1,6 @@
 """Media-related model factories."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from polyfactory import Use
 
@@ -21,7 +21,7 @@ class MediaFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-6m",
         end_date="now",
-        tzinfo=UTC,
+        tzinfo=timezone.utc,
     )
-    updated_at = Use(lambda: datetime.now(tz=UTC))
+    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
     deleted_at = None

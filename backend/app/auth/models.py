@@ -1,6 +1,6 @@
 """Authentication-related database models."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
@@ -54,17 +54,17 @@ class MagicLinkToken(BaseDBModel):
         return cls(
             user_id=user_id,
             token_hash=token_hash,
-            expires_at=datetime.now(tz=UTC) + timedelta(minutes=expires_in_minutes),
+            expires_at=datetime.now(tz=timezone.utc) + timedelta(minutes=expires_in_minutes),
         )
 
     def is_valid(self) -> bool:
         """Check if token is valid (not expired, not used)."""
-        now = datetime.now(tz=UTC)
+        now = datetime.now(tz=timezone.utc)
         return self.expires_at > now and self.used_at is None
 
     def mark_as_used(self) -> None:
         """Mark this token as used."""
-        self.used_at = datetime.now(tz=UTC)
+        self.used_at = datetime.now(tz=timezone.utc)
 
 
 class TeamInvitationToken(BaseDBModel):
@@ -136,14 +136,14 @@ class TeamInvitationToken(BaseDBModel):
             invited_email=invited_email.lower(),  # Normalize email to lowercase
             invited_by_user_id=invited_by_user_id,
             token_hash=token_hash,
-            expires_at=datetime.now(tz=UTC) + timedelta(hours=expires_in_hours),
+            expires_at=datetime.now(tz=timezone.utc) + timedelta(hours=expires_in_hours),
         )
 
     def is_valid(self) -> bool:
         """Check if invitation is valid (not expired, not accepted)."""
-        now = datetime.now(tz=UTC)
+        now = datetime.now(tz=timezone.utc)
         return self.expires_at > now and self.accepted_at is None
 
     def mark_as_accepted(self) -> None:
         """Mark this invitation as accepted."""
-        self.accepted_at = datetime.now(tz=UTC)
+        self.accepted_at = datetime.now(tz=timezone.utc)

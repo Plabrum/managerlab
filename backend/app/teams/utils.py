@@ -46,7 +46,7 @@ async def generate_scoped_team_link(
     )
 
     db_session.add(invitation_token)
-    await db_session.commit()
+    await db_session.flush()  # Flush to ensure token is created
 
     # Build and return the invitation URL
     return build_invitation_link_url(token)
@@ -73,11 +73,12 @@ async def verify_team_invitation_token(
     """
     token_hash = hash_token(token)
 
-    # Find the token
+    # Find the token with pessimistic lock to prevent race conditions
     result = await db_session.execute(
         select(TeamInvitationToken)
         .where(TeamInvitationToken.token_hash == token_hash)
         .where(TeamInvitationToken.accepted_at.is_(None))
+        .with_for_update()  # Prevent concurrent use of same token
     )
     invitation_token = result.scalar_one_or_none()
 

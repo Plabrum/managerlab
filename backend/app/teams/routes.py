@@ -252,18 +252,21 @@ async def accept_team_invitation(
         user.state = UserStates.ACTIVE
         logger.info(f"Updated user {user.id} state to ACTIVE")
 
-    # Mark invitation as accepted
-    token_hash_import = __import__("app.auth.tokens", fromlist=["hash_token"])
-    token_hash = token_hash_import.hash_token(token)
-    invitation_stmt = select(TeamInvitationToken).where(TeamInvitationToken.token_hash == token_hash)
+    # Mark invitation as accepted (with lock to prevent race conditions)
+    from app.auth.tokens import hash_token as hash_token_func
+
+    token_hash = hash_token_func(token)
+    invitation_stmt = (
+        select(TeamInvitationToken)
+        .where(TeamInvitationToken.token_hash == token_hash)
+        .with_for_update()  # Lock to prevent concurrent acceptance
+    )
     invitation_result = await transaction.execute(invitation_stmt)
     invitation_token = invitation_result.scalar_one_or_none()
 
     if invitation_token:
         invitation_token.mark_as_accepted()
         logger.info(f"Marked invitation token as accepted for user {user.id} joining team {team_id}")
-
-    await transaction.commit()
 
     # Create secure session (same as OAuth and magic link)
     request.session["user_id"] = int(user.id)

@@ -1,6 +1,6 @@
 """Magic link authentication business logic."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -37,8 +37,7 @@ class MagicLinkService:
             Dictionary with status information
 
         Note:
-            For security, this always returns success even if the user doesn't exist.
-            This prevents email enumeration attacks.
+            This creates a new user if they don't exist (passwordless registration).
         """
         email = email.lower().strip()
 
@@ -47,8 +46,14 @@ class MagicLinkService:
         user = result.scalar_one_or_none()
 
         if not user:
-            # Don't reveal that the user doesn't exist
-            return {"success": True, "message": "If that email exists, a magic link has been sent."}
+            # Create new user (passwordless registration)
+            user = User(
+                email=email,
+                name=email.split("@")[0],  # Use email prefix as default name
+                email_verified=False,
+            )
+            self.db.add(user)
+            await self.db.flush()  # Flush to get user.id
 
         # Generate token
         token = generate_secure_token()
@@ -61,7 +66,7 @@ class MagicLinkService:
             expires_in_minutes=15,
         )
         self.db.add(magic_link_token)
-        await self.db.commit()
+        await self.db.flush()  # Flush to ensure token is created
 
         # Build the magic link URL
         magic_link_url = build_magic_link_url(token)
@@ -73,7 +78,7 @@ class MagicLinkService:
             expires_minutes=15,
         )
 
-        return {"success": True, "message": "If that email exists, a magic link has been sent."}
+        return {"success": True, "message": "A magic link has been sent to your email."}
 
     async def verify_magic_link_token(self, token: str) -> User | None:
         """Verify a magic link token and return the associated user.
@@ -89,11 +94,12 @@ class MagicLinkService:
         """
         token_hash = hash_token(token)
 
-        # Find the token
+        # Find the token with pessimistic lock to prevent race conditions
         result = await self.db.execute(
             select(MagicLinkToken)
             .where(MagicLinkToken.token_hash == token_hash)
             .where(MagicLinkToken.used_at.is_(None))
+            .with_for_update()  # Prevent concurrent use of same token
         )
         magic_link_token = result.scalar_one_or_none()
 
@@ -110,7 +116,5 @@ class MagicLinkService:
         # Get the user
         result = await self.db.execute(select(User).where(User.id == magic_link_token.user_id))
         user = result.scalar_one_or_none()
-
-        await self.db.commit()
 
         return user

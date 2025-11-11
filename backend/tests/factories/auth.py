@@ -1,6 +1,6 @@
 """Authentication-related model factories."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from polyfactory import Use
 
@@ -24,15 +24,15 @@ class GoogleOAuthAccountFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="+1h",
         end_date="+1d",
-        tzinfo=UTC,
+        tzinfo=timezone.utc,
     )
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-6m",
         end_date="now",
-        tzinfo=UTC,
+        tzinfo=timezone.utc,
     )
-    updated_at = Use(lambda: datetime.now(tz=UTC))
+    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
 
 
 class GoogleOAuthStateFactory(BaseFactory):
@@ -42,11 +42,11 @@ class GoogleOAuthStateFactory(BaseFactory):
 
     state = Use(BaseFactory.__faker__.uuid4)
     redirect_uri = Use(BaseFactory.__faker__.url)
-    expires_at = Use(lambda: datetime.now(tz=UTC) + timedelta(minutes=10))
+    expires_at = Use(lambda: datetime.now(tz=timezone.utc) + timedelta(minutes=10))
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-1h",
         end_date="now",
-        tzinfo=UTC,
+        tzinfo=timezone.utc,
     )
-    updated_at = Use(lambda: datetime.now(tz=UTC))
+    updated_at = Use(lambda: datetime.now(tz=timezone.utc))

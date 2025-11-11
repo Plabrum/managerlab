@@ -1,7 +1,7 @@
 import logging
 import secrets
 import urllib.parse
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import aiohttp
@@ -59,7 +59,7 @@ class GoogleOAuthService:
         oauth_state = GoogleOAuthState(
             state=state,
             redirect_uri=redirect_uri,
-            expires_at=datetime.now(tz=UTC) + timedelta(minutes=10),
+            expires_at=datetime.now(tz=timezone.utc) + timedelta(minutes=10),
         )
         transaction.add(oauth_state)
         return oauth_state
@@ -68,7 +68,7 @@ class GoogleOAuthService:
         """Verify OAuth state token and return stored state if valid."""
         stmt = select(GoogleOAuthState).where(
             GoogleOAuthState.state == state,
-            GoogleOAuthState.expires_at > datetime.now(tz=UTC),
+            GoogleOAuthState.expires_at > datetime.now(tz=timezone.utc),
         )
         result = await transaction.execute(stmt)
         oauth_state = result.scalar_one_or_none()
@@ -128,7 +128,7 @@ class GoogleOAuthService:
             google_account.access_token = tokens["access_token"]
             google_account.refresh_token = tokens.get("refresh_token")
             google_account.token_expires_at = (
-                datetime.now(tz=UTC) + timedelta(seconds=tokens.get("expires_in", 3600))
+                datetime.now(tz=timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
                 if "expires_in" in tokens
                 else None
             )
@@ -163,7 +163,7 @@ class GoogleOAuthService:
                 access_token=tokens["access_token"],
                 refresh_token=tokens.get("refresh_token"),
                 token_expires_at=(
-                    datetime.now(tz=UTC) + timedelta(seconds=tokens.get("expires_in", 3600))
+                    datetime.now(tz=timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
                     if "expires_in" in tokens
                     else None
                 ),
@@ -191,7 +191,7 @@ class GoogleOAuthService:
 
             google_account.access_token = tokens["access_token"]
             google_account.token_expires_at = (
-                datetime.now(tz=UTC) + timedelta(seconds=tokens.get("expires_in", 3600))
+                datetime.now(tz=timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
                 if "expires_in" in tokens
                 else None
             )
