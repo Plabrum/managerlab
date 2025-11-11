@@ -1159,6 +1159,12 @@ resource "aws_ecs_task_definition" "main" {
       image     = "timberio/vector:0.51.0-alpine"
       essential = false
 
+      command = [
+        "sh",
+        "-c",
+        "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
+      ]
+
       environment = [
         {
           name  = "BETTERSTACK_LOGS_URI"
@@ -1389,6 +1395,12 @@ resource "aws_ecs_task_definition" "worker" {
       name      = "vector"
       image     = "timberio/vector:0.51.0-alpine"
       essential = false
+
+      command = [
+        "sh",
+        "-c",
+        "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
+      ]
 
       environment = [
         {
