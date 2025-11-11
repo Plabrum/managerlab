@@ -1121,6 +1121,8 @@ export interface ListScopesResponse {
 
 export interface MagicLinkRequestSchema {
   email: string;
+  recaptcha_token: string;
+  honeypot?: string;
 }
 
 export interface MagicLinkResponseSchema {

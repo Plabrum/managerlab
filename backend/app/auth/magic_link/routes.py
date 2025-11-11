@@ -2,6 +2,7 @@
 
 import logging
 
+import aiohttp
 from email_validator import EmailNotValidError, validate_email
 from litestar import Response, Router, get, post
 from litestar.connection import Request
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.enums import ScopeType
 from app.auth.magic_link.services import MagicLinkService
+from app.auth.recaptcha import RecaptchaService
 from app.emails.service import EmailService
 from app.utils.configure import config
 
@@ -25,6 +27,8 @@ class MagicLinkRequestSchema(Struct):
     """Schema for requesting a magic link."""
 
     email: str
+    recaptcha_token: str
+    honeypot: str = ""  # Should be empty - bots often fill this
 
     def __post_init__(self) -> None:
         """Validate email address format."""
@@ -50,16 +54,23 @@ def provide_magic_link_service(
     return MagicLinkService(transaction, email_service)
 
 
+def provide_recaptcha_service(http_client: aiohttp.ClientSession) -> RecaptchaService:
+    """Provide the reCAPTCHA service."""
+    return RecaptchaService(http_client)
+
+
 @post("/request", guards=[])
 async def request_magic_link(
     data: MagicLinkRequestSchema,
     magic_link_service: MagicLinkService,
+    recaptcha_service: RecaptchaService,
 ) -> MagicLinkResponseSchema:
     """Request a magic link to be sent to the provided email.
 
     Args:
-        data: Request data containing email address
+        data: Request data containing email address, recaptcha token, and honeypot
         magic_link_service: Magic link service
+        recaptcha_service: reCAPTCHA verification service
 
     Returns:
         Response indicating success (always returns success for security)
@@ -68,7 +79,28 @@ async def request_magic_link(
         For security, this always returns success even if the user doesn't exist.
         This prevents email enumeration attacks where an attacker could determine
         which email addresses have accounts.
+
+    Bot Protection:
+        - reCAPTCHA v3: Verifies token with Google (score threshold: 0.5)
+        - Honeypot: Hidden field that bots often fill (humans leave empty)
+        - Disposable emails: Blocks temporary email domains
     """
+    from litestar.exceptions import ValidationException
+
+    from app.auth.disposable_emails import validate_email_not_disposable
+
+    # 1. Check honeypot field (should be empty)
+    if data.honeypot:
+        logger.warning(f"Honeypot triggered for email: {data.email}")
+        raise ValidationException(detail="Invalid request. Please try again.")
+
+    # 2. Verify reCAPTCHA token
+    await recaptcha_service.verify_token(data.recaptcha_token)
+
+    # 3. Check for disposable email domains
+    validate_email_not_disposable(data.email)
+
+    # 4. Proceed with magic link creation
     result = await magic_link_service.create_and_send_magic_link(data.email)
     return MagicLinkResponseSchema(**result)
 
@@ -164,6 +196,7 @@ magic_link_router = Router(
     ],
     dependencies={
         "magic_link_service": Provide(provide_magic_link_service, sync_to_thread=False),
+        "recaptcha_service": Provide(provide_recaptcha_service, sync_to_thread=False),
     },
     middleware=[
         RateLimitConfig(rate_limit=("minute", 3)).middleware,  # 3 requests per minute per IP
