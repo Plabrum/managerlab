@@ -158,25 +158,22 @@ cd backend
 uv sync  # Installs structlog
 ```
 
-### 2. Build Vector Image
+### 2. Vector Image Build (Automatic via Terraform)
 
-```bash
-cd infra/vector
+The Vector Docker image is **automatically built and pushed to ECR by Terraform** using the Docker provider.
 
-# Get AWS account ID and region
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-REGION=$(aws configure get region)
-REPO_NAME="manageros-vector"  # Adjust based on your ecr_repository variable
+**How it works:**
+- Terraform tracks the hash of `Dockerfile` and `vector.toml`
+- Only rebuilds when these files change (not on every deploy)
+- Image is stored in Terraform state
+- CI/CD just runs `terraform apply` - no manual Docker commands needed
 
-# Authenticate to ECR
-aws ecr get-login-password --region $REGION | \
-  docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+**What happens during `terraform apply`:**
+1. Checks if Dockerfile or config changed
+2. If changed: builds image locally, pushes to ECR
+3. If unchanged: skips build (uses existing image in ECR)
 
-# Build and push
-docker build -t vector:latest .
-docker tag vector:latest $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest
-docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest
-```
+**No manual Docker commands required!**
 
 ### 3. Configure Betterstack Token in AWS Secrets Manager
 
