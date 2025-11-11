@@ -22,6 +22,7 @@ class VectorTCPHandler(logging.Handler):
         self.connection_attempts = 0
         self.last_error: Exception | None = None
         self.connected = False
+        self.logs_sent = 0
 
         # Try to establish initial connection and report status
         try:
@@ -52,7 +53,8 @@ class VectorTCPHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         """Send log to Vector, reconnecting if needed."""
         try:
-            msg = self.format(record)
+            # Get the message - structlog already formatted it as JSON
+            msg = record.getMessage()
             data = msg.encode("utf-8") + b"\n"
 
             with self.lock:
@@ -64,6 +66,10 @@ class VectorTCPHandler(logging.Handler):
                 assert self.sock is not None
                 try:
                     self.sock.sendall(data)
+                    self.logs_sent += 1
+                    # Log every 10 successful sends for diagnostics
+                    if self.logs_sent % 10 == 0:
+                        print(f"[VectorTCPHandler] Sent {self.logs_sent} logs to Vector", file=sys.stderr)
                 except (BrokenPipeError, OSError) as e:
                     # Socket failed, reconnect and retry once
                     self.connected = False
@@ -71,6 +77,7 @@ class VectorTCPHandler(logging.Handler):
                     self._connect()
                     assert self.sock is not None
                     self.sock.sendall(data)
+                    self.logs_sent += 1
         except Exception as e:
             # Track errors but don't crash the application
             self.last_error = e
