@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.base.models import BaseDBModel
 
 if TYPE_CHECKING:
+    from app.auth.models import TeamInvitationToken
     from app.users.models import Role
 
 
@@ -19,6 +20,13 @@ class Team(BaseDBModel):
 
     # Relationship to roles (team members)
     roles: Mapped[list["Role"]] = relationship(
+        back_populates="team",
+        cascade="all, delete-orphan",
+    )
+
+    # Relationship to invitation tokens
+    invitation_tokens: Mapped[list["TeamInvitationToken"]] = relationship(
+        "app.auth.models.TeamInvitationToken",
         back_populates="team",
         cascade="all, delete-orphan",
     )

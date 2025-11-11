@@ -55,7 +55,7 @@ export function AuthProvider({
   const router = useRouter();
 
   const refetchTeams = useCallback(async () => {
-    const res = await fetch(`${config.api.baseUrl}/users/teams`, {
+    const res = await fetch(`${config.api.baseUrl}/teams`, {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',

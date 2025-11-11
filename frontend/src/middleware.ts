@@ -14,37 +14,40 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // For authenticated routes, check if user has teams
-  // We need to call the backend to check teams
+  // For authenticated routes, check user state and redirect to onboarding if needed
   try {
-    const teamsResponse = await fetch(`${appConfig.api.baseUrl}/users/teams`, {
-      headers: {
-        cookie: request.headers.get('cookie') || '',
-      },
-      credentials: 'include',
-    });
+    // Fetch current user to check their state
+    const userResponse = await fetch(
+      `${appConfig.api.baseUrl}/users/current_user`,
+      {
+        headers: {
+          cookie: request.headers.get('cookie') || '',
+        },
+        credentials: 'include',
+      }
+    );
 
-    if (!teamsResponse.ok) {
+    if (!userResponse.ok) {
       // If not authenticated, let the page handle it
-      if (teamsResponse.status === 401) {
+      if (userResponse.status === 401) {
         return NextResponse.next();
       }
       // Other errors, let the page handle it
       return NextResponse.next();
     }
 
-    const teamsData = await teamsResponse.json();
+    const userData = await userResponse.json();
 
-    // If user has no teams, redirect to onboarding
-    if (teamsData.teams && teamsData.teams.length === 0) {
+    // If user is in NEEDS_TEAM state, redirect to onboarding
+    if (userData.state === 'needs_team') {
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }
 
-    // User has teams, continue to requested page
+    // User is in valid state, continue to requested page
     return NextResponse.next();
   } catch (error) {
     // On error, let the page handle it (don't block the request)
-    console.error('[Middleware] Error checking teams:', error);
+    console.error('[Middleware] Error checking user state:', error);
     return NextResponse.next();
   }
 }

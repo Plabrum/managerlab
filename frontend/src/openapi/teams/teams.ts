@@ -32,7 +32,10 @@ import type {
   TeamListItemSchema,
   TeamSchema,
   TeamsCreateTeam400,
-  TeamsIdGetTeam400
+  TeamsIdGetTeam400,
+  TeamsInvitationsAcceptAcceptTeamInvitation200,
+  TeamsInvitationsAcceptAcceptTeamInvitation400,
+  TeamsInvitationsAcceptAcceptTeamInvitationParams
 } from '../ariveAPI.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -384,6 +387,152 @@ export function useTeamsIdGetTeamSuspense<TData = Awaited<ReturnType<typeof team
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getTeamsIdGetTeamSuspenseQueryOptions(id,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary AcceptTeamInvitation
+ */
+export const teamsInvitationsAcceptAcceptTeamInvitation = (
+    params: TeamsInvitationsAcceptAcceptTeamInvitationParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<TeamsInvitationsAcceptAcceptTeamInvitation200>(
+      {url: `/teams/invitations/accept`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getTeamsInvitationsAcceptAcceptTeamInvitationQueryKey = (params?: TeamsInvitationsAcceptAcceptTeamInvitationParams,) => {
+    return [
+    `/teams/invitations/accept`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getTeamsInvitationsAcceptAcceptTeamInvitationQueryOptions = <TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTeamsInvitationsAcceptAcceptTeamInvitationQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>> = ({ signal }) => teamsInvitationsAcceptAcceptTeamInvitation(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TeamsInvitationsAcceptAcceptTeamInvitationQueryResult = NonNullable<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>>
+export type TeamsInvitationsAcceptAcceptTeamInvitationQueryError = TeamsInvitationsAcceptAcceptTeamInvitation400
+
+
+export function useTeamsInvitationsAcceptAcceptTeamInvitation<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>,
+          TError,
+          Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTeamsInvitationsAcceptAcceptTeamInvitation<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>,
+          TError,
+          Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTeamsInvitationsAcceptAcceptTeamInvitation<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary AcceptTeamInvitation
+ */
+
+export function useTeamsInvitationsAcceptAcceptTeamInvitation<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTeamsInvitationsAcceptAcceptTeamInvitationQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getTeamsInvitationsAcceptAcceptTeamInvitationSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTeamsInvitationsAcceptAcceptTeamInvitationQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>> = ({ signal }) => teamsInvitationsAcceptAcceptTeamInvitation(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TeamsInvitationsAcceptAcceptTeamInvitationSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>>
+export type TeamsInvitationsAcceptAcceptTeamInvitationSuspenseQueryError = TeamsInvitationsAcceptAcceptTeamInvitation400
+
+
+export function useTeamsInvitationsAcceptAcceptTeamInvitationSuspense<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTeamsInvitationsAcceptAcceptTeamInvitationSuspense<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTeamsInvitationsAcceptAcceptTeamInvitationSuspense<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary AcceptTeamInvitation
+ */
+
+export function useTeamsInvitationsAcceptAcceptTeamInvitationSuspense<TData = Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError = TeamsInvitationsAcceptAcceptTeamInvitation400>(
+ params: TeamsInvitationsAcceptAcceptTeamInvitationParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsInvitationsAcceptAcceptTeamInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTeamsInvitationsAcceptAcceptTeamInvitationSuspenseQueryOptions(params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

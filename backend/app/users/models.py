@@ -9,6 +9,7 @@ from app.users.enums import RoleLevel, UserStates
 
 if TYPE_CHECKING:
     from app.auth.google.models import GoogleOAuthAccount
+    from app.auth.models import MagicLinkToken
     from app.teams.models import Team
 
 
@@ -33,6 +34,13 @@ class User(
 
     # Relationship to roles (team memberships)
     roles: Mapped[list["Role"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Relationship to magic link tokens
+    magic_link_tokens: Mapped[list["MagicLinkToken"]] = relationship(
+        "app.auth.models.MagicLinkToken",
         back_populates="user",
         cascade="all, delete-orphan",
     )

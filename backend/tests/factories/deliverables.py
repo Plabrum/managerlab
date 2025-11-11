@@ -1,6 +1,6 @@
 """Deliverable-related model factories."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from polyfactory import Use
 
@@ -26,7 +26,7 @@ class DeliverableFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="+0d",
         end_date="+30d",
-        tzinfo=UTC,
+        tzinfo=timezone.utc,
     )
     notes = Use(
         lambda: {
@@ -41,7 +41,7 @@ class DeliverableFactory(BaseFactory):
         BaseFactory.__faker__.date_time_between,
         start_date="-3m",
         end_date="now",
-        tzinfo=UTC,
+        tzinfo=timezone.utc,
     )
-    updated_at = Use(lambda: datetime.now(tz=UTC))
+    updated_at = Use(lambda: datetime.now(tz=timezone.utc))
     deleted_at = None

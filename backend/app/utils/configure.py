@@ -35,9 +35,15 @@ class Config:
     ENV: str = os.getenv("ENV", "development")
     IS_DEV: bool = ENV == "development"
 
+    # Security Configuration
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "default-salt-key")
+
     # Google OAuth Configuration
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+
+    # reCAPTCHA v3 Configuration
+    RECAPTCHA_SECRET_KEY: str = os.getenv("RECAPTCHA_SECRET_KEY", "")
 
     GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback")
     SUCCESS_REDIRECT_URL: str = os.getenv("SUCCESS_REDIRECT_URL", "http://localhost:3000/")

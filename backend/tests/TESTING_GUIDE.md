@@ -507,7 +507,7 @@ Always use factories instead of creating models manually:
 user = await UserFactory.create_async(session=db_session, email="test@example.com")
 
 # ❌ Bad
-user = User(email="test@example.com", team_id=1, created_at=datetime.now())
+user = User(email="test@example.com", team_id=1, created_at=datetime.now(tz=timezone.utc))
 session.add(user)
 await session.flush()
 ```

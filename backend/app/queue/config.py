@@ -11,7 +11,7 @@ To add a new task:
 4. Done! It's automatically registered via auto-discovery.
 """
 
-from datetime import UTC
+from datetime import timezone
 
 from litestar_saq import QueueConfig
 from saq.types import Context
@@ -67,7 +67,7 @@ def get_queue_config() -> list[QueueConfig]:
             # Scheduled tasks are automatically collected from @scheduled_task decorators
             scheduled_tasks=registry.get_all_scheduled_tasks(),
             # Timezone for cron schedules
-            cron_tz=UTC,
+            cron_tz=timezone.utc,
             # Worker lifecycle hooks
             startup=queue_startup,  # Inject dependencies when worker starts
             # Worker configuration

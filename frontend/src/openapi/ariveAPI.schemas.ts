@@ -1119,6 +1119,17 @@ export interface ListScopesResponse {
   current_scope_id?: ListScopesResponseCurrentScopeId;
 }
 
+export interface MagicLinkRequestSchema {
+  email: string;
+  recaptcha_token: string;
+  honeypot?: string;
+}
+
+export interface MagicLinkResponseSchema {
+  success: boolean;
+  message: string;
+}
+
 export type MediaResponseSchemaThumbnailUrl = string | null;
 
 export type MediaResponseSchemaThread = ThreadUnreadInfo | null;
@@ -1816,6 +1827,25 @@ export type TeamsIdGetTeam400 = {
   extra?: TeamsIdGetTeam400Extra;
 };
 
+export type TeamsInvitationsAcceptAcceptTeamInvitationParams = {
+token: string;
+};
+
+export type TeamsInvitationsAcceptAcceptTeamInvitation200 = { [key: string]: unknown };
+
+export type TeamsInvitationsAcceptAcceptTeamInvitation400ExtraAnyOf = {[key: string]: unknown};
+
+export type TeamsInvitationsAcceptAcceptTeamInvitation400Extra = null | TeamsInvitationsAcceptAcceptTeamInvitation400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type TeamsInvitationsAcceptAcceptTeamInvitation400 = {
+  status_code: number;
+  detail: string;
+  extra?: TeamsInvitationsAcceptAcceptTeamInvitation400Extra;
+};
+
 export type RosterIdGetRoster400ExtraAnyOf = {[key: string]: unknown};
 
 export type RosterIdGetRoster400Extra = null | RosterIdGetRoster400ExtraAnyOf | unknown[];
@@ -1878,6 +1908,38 @@ export type AuthGoogleCallbackGoogleCallback400 = {
   status_code: number;
   detail: string;
   extra?: AuthGoogleCallbackGoogleCallback400Extra;
+};
+
+export type AuthMagicLinkRequestRequestMagicLink400ExtraAnyOf = {[key: string]: unknown};
+
+export type AuthMagicLinkRequestRequestMagicLink400Extra = null | AuthMagicLinkRequestRequestMagicLink400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type AuthMagicLinkRequestRequestMagicLink400 = {
+  status_code: number;
+  detail: string;
+  extra?: AuthMagicLinkRequestRequestMagicLink400Extra;
+};
+
+export type AuthMagicLinkVerifyVerifyMagicLinkParams = {
+token: string;
+};
+
+export type AuthMagicLinkVerifyVerifyMagicLink200 = { [key: string]: unknown };
+
+export type AuthMagicLinkVerifyVerifyMagicLink400ExtraAnyOf = {[key: string]: unknown};
+
+export type AuthMagicLinkVerifyVerifyMagicLink400Extra = null | AuthMagicLinkVerifyVerifyMagicLink400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type AuthMagicLinkVerifyVerifyMagicLink400 = {
+  status_code: number;
+  detail: string;
+  extra?: AuthMagicLinkVerifyVerifyMagicLink400Extra;
 };
 
 export type OObjectTypeSchemaGetObjectSchema400ExtraAnyOf = {[key: string]: unknown};

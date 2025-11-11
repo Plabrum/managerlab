@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.enums import ScopeType
 from app.auth.google.routes import google_auth_router
 from app.auth.guards import requires_session
+from app.auth.magic_link.routes import magic_link_router
 from app.auth.schemas import (
     CampaignScopeSchema,
     ListScopesResponse,
@@ -143,6 +144,7 @@ auth_router = Router(
         list_scopes,
         switch_scope,
         google_auth_router,
+        magic_link_router,
     ],
     tags=["auth"],
 )

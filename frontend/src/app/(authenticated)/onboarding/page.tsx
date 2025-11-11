@@ -5,48 +5,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { config } from '@/lib/config';
 import { Building2 } from 'lucide-react';
+import { useTeamsCreateTeam } from '@/openapi/teams/teams';
+import { handleError } from '@/lib/error-handler';
 
 export default function OnboardingPage() {
-  const [isCreating, setIsCreating] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [formData, setFormData] = React.useState({
     name: '',
     description: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsCreating(true);
-
-    try {
-      const res = await fetch(`${config.api.baseUrl}/users/teams`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (res.ok) {
-        await res.json();
-
+  const createTeamMutation = useTeamsCreateTeam({
+    mutation: {
+      onSuccess: () => {
         // Redirect to dashboard with full page reload to refresh server-side data
         window.location.href = '/dashboard';
-      } else {
-        const errorData = await res.json();
-        setError(errorData.detail || 'Failed to create team');
-        setIsCreating(false);
-      }
-    } catch (err) {
-      console.error('[Onboarding] Exception:', err);
-      setError('An error occurred while creating the team');
-      setIsCreating(false);
-    }
+      },
+      onError: (error) => {
+        handleError(error, { fallbackMessage: 'Failed to create team' });
+      },
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    createTeamMutation.mutate({ data: formData });
   };
 
   return (
@@ -78,7 +61,7 @@ export default function OnboardingPage() {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 required
-                disabled={isCreating}
+                disabled={createTeamMutation.isPending}
                 className="border-gray-700 bg-gray-800 text-white placeholder:text-gray-500"
               />
               <p className="text-xs text-gray-500">
@@ -97,24 +80,20 @@ export default function OnboardingPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                disabled={isCreating}
+                disabled={createTeamMutation.isPending}
                 rows={3}
                 className="border-gray-700 bg-gray-800 text-white placeholder:text-gray-500"
               />
             </div>
 
-            {error && (
-              <div className="rounded-md border border-red-900/50 bg-red-900/20 p-3 text-sm text-red-400">
-                {error}
-              </div>
-            )}
-
             <Button
               type="submit"
-              disabled={isCreating || !formData.name}
+              disabled={createTeamMutation.isPending || !formData.name}
               className="w-full"
             >
-              {isCreating ? 'Creating your team...' : 'Create team'}
+              {createTeamMutation.isPending
+                ? 'Creating your team...'
+                : 'Create team'}
             </Button>
           </form>
         </div>

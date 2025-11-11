@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "build": "next build",
     "start": "next start",
+    "clean": "rm -rf .next",
     "format:write": "prettier --write --cache .",
     "format:check": "prettier --check --cache .",
     "codegen": "orval"
