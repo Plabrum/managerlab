@@ -71,6 +71,8 @@ def create_app(
     exclude_patterns = [
         "^/health",
         "^/auth/google/",
+        "^/auth/magic-link/",
+        "^/teams/invitations/accept",
         "^/schema",
     ]
 

@@ -16,7 +16,6 @@ export default function TeamSettingsPage({
   const { id } = use(params);
   const { data: users } = useUsersListUsersSuspense();
   const { data: team, refetch } = useTeamsIdGetTeamSuspense(id);
-
   return (
     <PageTopBar
       title={team.name}

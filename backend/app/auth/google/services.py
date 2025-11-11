@@ -135,6 +135,9 @@ class GoogleOAuthService:
             google_account.email = email
             google_account.name = name
             google_account.picture = picture
+            # Mark email as verified (Google verifies emails)
+            if not user.email_verified:
+                user.email_verified = True
         else:
             # Check if user exists by email
             user_stmt = select(User).where(User.email == email)
@@ -152,6 +155,9 @@ class GoogleOAuthService:
                 await transaction.flush()  # To get user.id
             else:
                 user = existing_user
+                # Mark email as verified (Google verifies emails)
+                if not user.email_verified:
+                    user.email_verified = True
 
             # Create Google OAuth account
             google_account = GoogleOAuthAccount(

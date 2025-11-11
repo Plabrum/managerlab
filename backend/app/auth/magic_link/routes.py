@@ -2,13 +2,14 @@
 
 import logging
 
+from email_validator import EmailNotValidError, validate_email
 from litestar import Response, Router, get, post
 from litestar.connection import Request
 from litestar.di import Provide
 from litestar.exceptions import HTTPException
 from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.status_codes import HTTP_302_FOUND, HTTP_400_BAD_REQUEST
-from msgspec import Struct
+from msgspec import Struct, ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +25,14 @@ class MagicLinkRequestSchema(Struct):
     """Schema for requesting a magic link."""
 
     email: str
+
+    def __post_init__(self) -> None:
+        """Validate email address format."""
+        try:
+            # Validate email format (without deliverability check for performance)
+            validate_email(self.email, check_deliverability=False)
+        except EmailNotValidError as e:
+            raise ValueError(f"Invalid email address: {e}") from e
 
 
 class MagicLinkResponseSchema(Struct):

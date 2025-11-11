@@ -147,11 +147,6 @@ async def list_teams(
     else:
         # User is in team scope or no scope - return all teams via Role table
         team_id: int | None = request.session.get("team_id")
-        if not team_id:
-            raise HTTPException(
-                status_code=HTTP_400_BAD_REQUEST,
-                detail="No team_id in session, cannot list teams",
-            )
 
         result = await transaction.execute(
             select(Team)
@@ -165,7 +160,7 @@ async def list_teams(
                 id=team.id,
                 team_name=team.name,
                 scope_type=ScopeType.TEAM,
-                is_selected=team.id == team_id,
+                is_selected=team.id == team_id if team_id else False,
                 actions=team_action_group.get_available_actions(team),
             )
             for team in result.scalars().all()
@@ -221,11 +216,16 @@ async def accept_team_invitation(
         user = User(
             email=invited_email,
             name=str(invited_email).split("@")[0],  # Use email prefix as default name
-            email_verified=False,  # Will be verified when they accept invitation
+            email_verified=True,  # User proved they have access to the email by clicking the link
         )
         transaction.add(user)
         await transaction.flush()  # Flush to get user.id
         logger.info(f"Created new user {user.id} from team invitation (email={invited_email})")
+    else:
+        # Mark email as verified (user proved they have access to the email)
+        if not user.email_verified:
+            user.email_verified = True
+            logger.info(f"Marked user {user.id} email as verified via team invitation")
 
     # Check if user is already in this team
     role_check_stmt = select(Role).where(

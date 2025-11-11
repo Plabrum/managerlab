@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useState, Suspense } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,64 +17,47 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthMagicLinkRequestRequestMagicLink } from '@/openapi/auth/auth';
+import { SuspenseWrapper } from '@/components/suspense-wrapper';
+import { handleError } from '@/lib/error-handler';
 
 function AuthContent() {
   const searchParams = useSearchParams();
   const isSignUp = searchParams.get('sign-up') !== null;
 
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
+  const magicLinkMutation = useAuthMagicLinkRequestRequestMagicLink({
+    mutation: {
+      onSuccess: () => {
+        setMagicLinkSent(true);
+      },
+      onError: (error) => {
+        handleError(error, {
+          fallbackMessage: 'Failed to send magic link. Please try again.',
+        });
+      },
+    },
+  });
+
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const baseUrl = (
-        process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
-      ).replace(/\/$/, '');
-      window.location.href = `${baseUrl}/auth/google/login`;
-    } catch (error) {
-      console.error('Google sign in error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    const baseUrl = (
+      process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+    ).replace(/\/$/, '');
+    window.location.href = `${baseUrl}/auth/google/login`;
   };
 
   const handleMagicLinkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
-    setIsLoading(true);
-    try {
-      const baseUrl = (
-        process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
-      ).replace(/\/$/, '');
-
-      const response = await fetch(`${baseUrl}/auth/magic-link/request`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send magic link');
-      }
-
-      setMagicLinkSent(true);
-    } catch (error) {
-      console.error('Magic link error:', error);
-      // Still show success screen for security (don't reveal if email exists)
-      setMagicLinkSent(true);
-    } finally {
-      setIsLoading(false);
-    }
+    magicLinkMutation.mutate({ data: { email } });
   };
 
   if (magicLinkSent) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black p-4">
+      <div className="flex h-screen items-center justify-center overflow-auto bg-black p-4">
         <Card className="w-full max-w-md border-zinc-800 bg-zinc-900">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-600">
@@ -108,7 +91,7 @@ function AuthContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black p-4">
+    <div className="flex h-screen items-center justify-center overflow-auto bg-black p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Back to home link */}
         <Link
@@ -134,7 +117,7 @@ function AuthContent() {
             {/* Google Sign In */}
             <Button
               onClick={handleGoogleSignIn}
-              disabled={isLoading}
+              disabled={magicLinkMutation.isPending}
               className="w-full bg-white font-medium text-black hover:bg-gray-100"
               size="lg"
             >
@@ -186,11 +169,11 @@ function AuthContent() {
               </div>
               <Button
                 type="submit"
-                disabled={isLoading || !email}
+                disabled={magicLinkMutation.isPending || !email}
                 className="w-full bg-zinc-800 text-white hover:bg-zinc-700"
                 size="lg"
               >
-                {isLoading ? (
+                {magicLinkMutation.isPending ? (
                   <>Sending...</>
                 ) : (
                   <>
@@ -249,14 +232,8 @@ function AuthContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-black">
-          <div className="text-white">Loading...</div>
-        </div>
-      }
-    >
+    <SuspenseWrapper>
       <AuthContent />
-    </Suspense>
+    </SuspenseWrapper>
   );
 }

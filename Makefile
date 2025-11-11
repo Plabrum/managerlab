@@ -12,6 +12,7 @@ help:
 	@echo "  dev-worker       - Start SAQ worker for async task processing"
 	@echo "  db-start         - Start development database"
 	@echo "  db-stop          - Stop development database"
+	@echo "  db-clean         - Delete all database data and start fresh (requires confirmation)"
 	@echo "  db-migrate-generate - Generate new migration from model changes"
 	@echo "  db-migrate-up    - Run database migrations (upgrade)"
 	@echo "  db-migrate-down  - Rollback database migrations"
@@ -80,6 +81,27 @@ db-start:
 .PHONY: db-stop
 db-stop:
 	cd backend && docker compose -f docker-compose.dev.yml down
+
+.PHONY: db-clean
+db-clean:
+	@echo "⚠️  WARNING: This will DELETE all local database data!"
+	@echo "This action cannot be undone."
+	@read -p "Are you sure you want to continue? [y/N] " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "❌ Database clean cancelled."; \
+		exit 1; \
+	fi
+	@echo "🗑️  Stopping database container..."
+	cd backend && docker compose -f docker-compose.dev.yml down
+	@echo "🗑️  Removing database volume..."
+	docker volume rm backend_pgdata || true
+	@echo "🚀 Starting fresh database..."
+	cd backend && docker compose -f docker-compose.dev.yml up -d db
+	@echo "⏳ Waiting for database to be ready..."
+	@sleep 3
+	@echo "🔄 Running migrations..."
+	cd backend && uv run alembic upgrade head
+	@echo "✅ Database cleaned and migrations applied!"
 
 .PHONY: db-migrate
 db-migrate:

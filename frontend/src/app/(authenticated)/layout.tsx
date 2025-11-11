@@ -17,6 +17,7 @@ export default function AuthenticatedLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const isOnboardingPage = pathname.includes('/onboarding');
 
   // Fetch user and teams data client-side
   const {
@@ -56,6 +57,13 @@ export default function AuthenticatedLayout({
     }
   }, [userError, teamsError, router]);
 
+  // Redirect to onboarding if user has no teams and not already on onboarding page
+  useEffect(() => {
+    if (teams && teams.length === 0 && !isOnboardingPage) {
+      router.push('/onboarding');
+    }
+  }, [teams, isOnboardingPage, router]);
+
   // Show loading state while fetching initial data
   // Don't show loading if there's an error (redirect will happen)
   if (
@@ -76,8 +84,6 @@ export default function AuthenticatedLayout({
   if (!user || !teams) {
     return null;
   }
-
-  const isOnboardingPage = pathname.includes('/onboarding');
 
   // If on onboarding page, render without sidebar
   if (isOnboardingPage) {

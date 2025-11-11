@@ -38,7 +38,7 @@ export function CreateTeamModal({ open, onOpenChange }: CreateTeamModalProps) {
     setIsCreating(true);
 
     try {
-      const res = await fetch(`${config.api.baseUrl}/users/teams`, {
+      const res = await fetch(`${config.api.baseUrl}/teams`, {
         method: 'POST',
         credentials: 'include',
         headers: {

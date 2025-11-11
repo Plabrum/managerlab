@@ -32,10 +32,16 @@ import type {
   AuthGoogleCallbackGoogleCallback400,
   AuthGoogleCallbackGoogleCallbackParams,
   AuthGoogleLoginGoogleLogin200,
+  AuthMagicLinkRequestRequestMagicLink400,
+  AuthMagicLinkVerifyVerifyMagicLink200,
+  AuthMagicLinkVerifyVerifyMagicLink400,
+  AuthMagicLinkVerifyVerifyMagicLinkParams,
   AuthSwitchScopeSwitchScope201,
   AuthSwitchScopeSwitchScope400,
   GoogleUserInfoResponseSchema,
   ListScopesResponse,
+  MagicLinkRequestSchema,
+  MagicLinkResponseSchema,
   SwitchScopeRequest
 } from '../ariveAPI.schemas';
 
@@ -741,6 +747,216 @@ export function useAuthGoogleMeGetCurrentUserGoogleInfoSuspense<TData = Awaited<
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getAuthGoogleMeGetCurrentUserGoogleInfoSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary RequestMagicLink
+ */
+export const authMagicLinkRequestRequestMagicLink = (
+    magicLinkRequestSchema: MagicLinkRequestSchema,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<MagicLinkResponseSchema>(
+      {url: `/auth/magic-link/request`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: magicLinkRequestSchema, signal
+    },
+      );
+    }
+  
+
+
+export const getAuthMagicLinkRequestRequestMagicLinkMutationOptions = <TError = AuthMagicLinkRequestRequestMagicLink400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authMagicLinkRequestRequestMagicLink>>, TError,{data: MagicLinkRequestSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authMagicLinkRequestRequestMagicLink>>, TError,{data: MagicLinkRequestSchema}, TContext> => {
+
+const mutationKey = ['authMagicLinkRequestRequestMagicLink'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authMagicLinkRequestRequestMagicLink>>, {data: MagicLinkRequestSchema}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authMagicLinkRequestRequestMagicLink(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthMagicLinkRequestRequestMagicLinkMutationResult = NonNullable<Awaited<ReturnType<typeof authMagicLinkRequestRequestMagicLink>>>
+    export type AuthMagicLinkRequestRequestMagicLinkMutationBody = MagicLinkRequestSchema
+    export type AuthMagicLinkRequestRequestMagicLinkMutationError = AuthMagicLinkRequestRequestMagicLink400
+
+    /**
+ * @summary RequestMagicLink
+ */
+export const useAuthMagicLinkRequestRequestMagicLink = <TError = AuthMagicLinkRequestRequestMagicLink400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authMagicLinkRequestRequestMagicLink>>, TError,{data: MagicLinkRequestSchema}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authMagicLinkRequestRequestMagicLink>>,
+        TError,
+        {data: MagicLinkRequestSchema},
+        TContext
+      > => {
+
+      const mutationOptions = getAuthMagicLinkRequestRequestMagicLinkMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary VerifyMagicLink
+ */
+export const authMagicLinkVerifyVerifyMagicLink = (
+    params: AuthMagicLinkVerifyVerifyMagicLinkParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AuthMagicLinkVerifyVerifyMagicLink200>(
+      {url: `/auth/magic-link/verify`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getAuthMagicLinkVerifyVerifyMagicLinkQueryKey = (params?: AuthMagicLinkVerifyVerifyMagicLinkParams,) => {
+    return [
+    `/auth/magic-link/verify`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getAuthMagicLinkVerifyVerifyMagicLinkQueryOptions = <TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthMagicLinkVerifyVerifyMagicLinkQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>> = ({ signal }) => authMagicLinkVerifyVerifyMagicLink(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthMagicLinkVerifyVerifyMagicLinkQueryResult = NonNullable<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>>
+export type AuthMagicLinkVerifyVerifyMagicLinkQueryError = AuthMagicLinkVerifyVerifyMagicLink400
+
+
+export function useAuthMagicLinkVerifyVerifyMagicLink<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>,
+          TError,
+          Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthMagicLinkVerifyVerifyMagicLink<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>,
+          TError,
+          Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthMagicLinkVerifyVerifyMagicLink<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary VerifyMagicLink
+ */
+
+export function useAuthMagicLinkVerifyVerifyMagicLink<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthMagicLinkVerifyVerifyMagicLinkQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getAuthMagicLinkVerifyVerifyMagicLinkSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthMagicLinkVerifyVerifyMagicLinkQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>> = ({ signal }) => authMagicLinkVerifyVerifyMagicLink(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthMagicLinkVerifyVerifyMagicLinkSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>>
+export type AuthMagicLinkVerifyVerifyMagicLinkSuspenseQueryError = AuthMagicLinkVerifyVerifyMagicLink400
+
+
+export function useAuthMagicLinkVerifyVerifyMagicLinkSuspense<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthMagicLinkVerifyVerifyMagicLinkSuspense<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthMagicLinkVerifyVerifyMagicLinkSuspense<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary VerifyMagicLink
+ */
+
+export function useAuthMagicLinkVerifyVerifyMagicLinkSuspense<TData = Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError = AuthMagicLinkVerifyVerifyMagicLink400>(
+ params: AuthMagicLinkVerifyVerifyMagicLinkParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authMagicLinkVerifyVerifyMagicLink>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthMagicLinkVerifyVerifyMagicLinkSuspenseQueryOptions(params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -12,8 +12,6 @@ if TYPE_CHECKING:
     from app.teams.models import Team
     from app.users.models import User
 
-__all__ = ["MagicLinkToken", "TeamInvitationToken"]
-
 
 class MagicLinkToken(BaseDBModel):
     """Model for magic link authentication tokens.

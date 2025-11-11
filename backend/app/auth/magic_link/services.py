@@ -117,4 +117,8 @@ class MagicLinkService:
         result = await self.db.execute(select(User).where(User.id == magic_link_token.user_id))
         user = result.scalar_one_or_none()
 
+        # Mark email as verified (user proved they have access to the email)
+        if user and not user.email_verified:
+            user.email_verified = True
+
         return user
