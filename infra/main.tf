@@ -1128,6 +1128,7 @@ resource "aws_ecs_task_definition" "main" {
           "Host"             = "in.logs.betterstack.com"
           "Port"             = "443"
           "URI"              = "/"
+          "Header"           = "Authorization Bearer $${BETTERSTACK_TOKEN}"
           "tls"              = "on"
           "tls.verify"       = "on"
           "Format"           = "json"
@@ -1135,12 +1136,6 @@ resource "aws_ecs_task_definition" "main" {
           "json_date_format" = "iso8601"
           "compress"         = "gzip"
         }
-        secretOptions = [
-          {
-            name      = "Header"
-            valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
-          }
-        ]
       }
 
       healthCheck = {
@@ -1169,6 +1164,13 @@ resource "aws_ecs_task_definition" "main" {
           "enable-ecs-log-metadata" = "true"
         }
       }
+
+      secrets = [
+        {
+          name      = "BETTERSTACK_TOKEN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+        }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -1336,6 +1338,7 @@ resource "aws_ecs_task_definition" "worker" {
           "Host"             = "in.logs.betterstack.com"
           "Port"             = "443"
           "URI"              = "/"
+          "Header"           = "Authorization Bearer $${BETTERSTACK_TOKEN}"
           "tls"              = "on"
           "tls.verify"       = "on"
           "Format"           = "json"
@@ -1343,12 +1346,6 @@ resource "aws_ecs_task_definition" "worker" {
           "json_date_format" = "iso8601"
           "compress"         = "gzip"
         }
-        secretOptions = [
-          {
-            name      = "Header"
-            valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
-          }
-        ]
       }
 
       dependsOn = [
@@ -1369,6 +1366,13 @@ resource "aws_ecs_task_definition" "worker" {
           "enable-ecs-log-metadata" = "true"
         }
       }
+
+      secrets = [
+        {
+          name      = "BETTERSTACK_TOKEN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+        }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
