@@ -1140,54 +1140,31 @@ resource "aws_ecs_task_definition" "main" {
       ]
     },
     {
-      name      = "log_router"
-      image     = "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable"
-      essential = true
-
-      environment = [
-        {
-          name  = "FLB_LOG_LEVEL"
-          value = "info"
-        }
-      ]
+      name              = "log_router"
+      image             = "betterstack/aws-ecs-fluent-bit:amd64-latest"
+      essential         = true
+      cpu               = 256
+      memory            = 512
+      memoryReservation = 50
 
       firelensConfiguration = {
         type = "fluentbit"
         options = {
           "enable-ecs-log-metadata" = "true"
           "config-file-type"        = "file"
-          "config-file-value"       = "/fluent-bit/etc/extra.conf"
+          "config-file-value"       = "/fluent-bit-logtail.conf"
         }
       }
 
       secrets = [
         {
-          name      = "BETTERSTACK_TOKEN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+          name      = "BETTER_STACK_SOURCE_TOKEN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_SOURCE_TOKEN::"
+        },
+        {
+          name      = "BETTER_STACK_INGESTING_HOST"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_INGESTING_HOST::"
         }
-      ]
-
-      # Mount custom config via environment variable
-      entryPoint = ["/bin/sh", "-c"]
-      command = [
-        <<-EOT
-        cat > /fluent-bit/etc/extra.conf << EOF
-        [OUTPUT]
-            Name http
-            Match *
-            Host s1585363.eu-nbg-2.betterstackdata.com
-            Port 443
-            URI /
-            Header Authorization Bearer $${BETTERSTACK_TOKEN}
-            tls On
-            tls.verify On
-            Format json
-            json_date_key dt
-            json_date_format iso8601
-            compress gzip
-        EOF
-        exec /entrypoint.sh
-        EOT
       ]
 
       logConfiguration = {
@@ -1360,54 +1337,31 @@ resource "aws_ecs_task_definition" "worker" {
       ]
     },
     {
-      name      = "log_router"
-      image     = "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable"
-      essential = true
-
-      environment = [
-        {
-          name  = "FLB_LOG_LEVEL"
-          value = "info"
-        }
-      ]
+      name              = "log_router"
+      image             = "betterstack/aws-ecs-fluent-bit:amd64-latest"
+      essential         = true
+      cpu               = 256
+      memory            = 512
+      memoryReservation = 50
 
       firelensConfiguration = {
         type = "fluentbit"
         options = {
           "enable-ecs-log-metadata" = "true"
           "config-file-type"        = "file"
-          "config-file-value"       = "/fluent-bit/etc/extra.conf"
+          "config-file-value"       = "/fluent-bit-logtail.conf"
         }
       }
 
       secrets = [
         {
-          name      = "BETTERSTACK_TOKEN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+          name      = "BETTER_STACK_SOURCE_TOKEN"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_SOURCE_TOKEN::"
+        },
+        {
+          name      = "BETTER_STACK_INGESTING_HOST"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_INGESTING_HOST::"
         }
-      ]
-
-      # Mount custom config via environment variable
-      entryPoint = ["/bin/sh", "-c"]
-      command = [
-        <<-EOT
-        cat > /fluent-bit/etc/extra.conf << EOF
-        [OUTPUT]
-            Name http
-            Match *
-            Host s1585363.eu-nbg-2.betterstackdata.com
-            Port 443
-            URI /
-            Header Authorization Bearer $${BETTERSTACK_TOKEN}
-            tls On
-            tls.verify On
-            Format json
-            json_date_key dt
-            json_date_format iso8601
-            compress gzip
-        EOF
-        exec /entrypoint.sh
-        EOT
       ]
 
       logConfiguration = {
