@@ -1175,7 +1175,7 @@ resource "aws_ecs_task_definition" "main" {
         [OUTPUT]
             Name http
             Match *
-            Host in.logs.betterstack.com
+            Host s1585363.eu-nbg-2.betterstackdata.com
             Port 443
             URI /
             Header Authorization Bearer $${BETTERSTACK_TOKEN}
@@ -1395,7 +1395,7 @@ resource "aws_ecs_task_definition" "worker" {
         [OUTPUT]
             Name http
             Match *
-            Host in.logs.betterstack.com
+            Host s1585363.eu-nbg-2.betterstackdata.com
             Port 443
             URI /
             Header Authorization Bearer $${BETTERSTACK_TOKEN}
