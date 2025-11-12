@@ -1129,16 +1129,28 @@ resource "aws_ecs_task_definition" "main" {
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
-      # Use FireLens to route logs to Vector sidecar
+      # Use FireLens to route logs directly to BetterStack via Fluent Bit HTTP output
       logConfiguration = {
         logDriver = "awsfirelens"
         options = {
-          "Name"       = "forward"
-          "Host"       = "localhost"
-          "Port"       = "24224"
-          "tls"        = "off"
-          "tls.verify" = "off"
+          "Name"             = "http"
+          "Match"            = "*"
+          "Host"             = replace(replace(var.betterstack_logs_uri, "https://", ""), "/.*", "")
+          "Port"             = "443"
+          "URI"              = replace(var.betterstack_logs_uri, "https://[^/]+", "")
+          "tls"              = "on"
+          "tls.verify"       = "on"
+          "Format"           = "json"
+          "json_date_key"    = "dt"
+          "json_date_format" = "iso8601"
+          "compress"         = "gzip"
         }
+        secretOptions = [
+          {
+            name      = "Header"
+            valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+          }
+        ]
       }
 
       healthCheck = {
@@ -1158,77 +1170,22 @@ resource "aws_ecs_task_definition" "main" {
     },
     {
       name      = "log_router"
-      image     = "timberio/vector:0.51.0-alpine"
+      image     = "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable"
       essential = true
 
       firelensConfiguration = {
         type = "fluentbit"
         options = {
           "enable-ecs-log-metadata" = "true"
-          "config-file-type"        = "file"
-          "config-file-value"       = "/fluent-bit/configs/parse-json.conf"
         }
       }
-
-      entryPoint = ["sh", "-c"]
-      command = [
-        "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
-      ]
-
-      environment = [
-        {
-          name  = "BETTERSTACK_LOGS_URI"
-          value = var.betterstack_logs_uri
-        },
-        {
-          name  = "VECTOR_CONFIG"
-          value = <<-EOT
-[sources.fluent]
-type = "fluent"
-address = "0.0.0.0:24224"
-
-[transforms.process_logs]
-type = "remap"
-inputs = ["fluent"]
-source = '''
-# Remap timestamp field to 'dt' for BetterStack
-if exists(.timestamp) {
-  .dt = del(.timestamp)
-}
-.
-'''
-
-[sinks.betterstack]
-type = "http"
-inputs = ["process_logs"]
-uri = "$${BETTERSTACK_LOGS_URI}"
-
-[sinks.betterstack.auth]
-strategy = "bearer"
-token = "$${BETTERSTACK_SOURCE_TOKEN}"
-
-[sinks.betterstack.encoding]
-codec = "json"
-
-[sinks.betterstack.compression]
-algorithm = "gzip"
-EOT
-        }
-      ]
-
-      secrets = [
-        {
-          name      = "BETTERSTACK_SOURCE_TOKEN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
-        }
-      ]
 
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "vector"
+          "awslogs-stream-prefix" = "firelens"
         }
       }
     }
@@ -1380,16 +1337,28 @@ resource "aws_ecs_task_definition" "worker" {
         },
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
-      # Use FireLens to route logs to Vector sidecar
+      # Use FireLens to route logs directly to BetterStack via Fluent Bit HTTP output
       logConfiguration = {
         logDriver = "awsfirelens"
         options = {
-          "Name"       = "forward"
-          "Host"       = "localhost"
-          "Port"       = "24224"
-          "tls"        = "off"
-          "tls.verify" = "off"
+          "Name"             = "http"
+          "Match"            = "*"
+          "Host"             = replace(replace(var.betterstack_logs_uri, "https://", ""), "/.*", "")
+          "Port"             = "443"
+          "URI"              = replace(var.betterstack_logs_uri, "https://[^/]+", "")
+          "tls"              = "on"
+          "tls.verify"       = "on"
+          "Format"           = "json"
+          "json_date_key"    = "dt"
+          "json_date_format" = "iso8601"
+          "compress"         = "gzip"
         }
+        secretOptions = [
+          {
+            name      = "Header"
+            valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
+          }
+        ]
       }
 
       dependsOn = [
@@ -1401,77 +1370,22 @@ resource "aws_ecs_task_definition" "worker" {
     },
     {
       name      = "log_router"
-      image     = "timberio/vector:0.51.0-alpine"
+      image     = "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable"
       essential = true
 
       firelensConfiguration = {
         type = "fluentbit"
         options = {
           "enable-ecs-log-metadata" = "true"
-          "config-file-type"        = "file"
-          "config-file-value"       = "/fluent-bit/configs/parse-json.conf"
         }
       }
-
-      entryPoint = ["sh", "-c"]
-      command = [
-        "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
-      ]
-
-      environment = [
-        {
-          name  = "BETTERSTACK_LOGS_URI"
-          value = var.betterstack_logs_uri
-        },
-        {
-          name  = "VECTOR_CONFIG"
-          value = <<-EOT
-[sources.fluent]
-type = "fluent"
-address = "0.0.0.0:24224"
-
-[transforms.process_logs]
-type = "remap"
-inputs = ["fluent"]
-source = '''
-# Remap timestamp field to 'dt' for BetterStack
-if exists(.timestamp) {
-  .dt = del(.timestamp)
-}
-.
-'''
-
-[sinks.betterstack]
-type = "http"
-inputs = ["process_logs"]
-uri = "$${BETTERSTACK_LOGS_URI}"
-
-[sinks.betterstack.auth]
-strategy = "bearer"
-token = "$${BETTERSTACK_SOURCE_TOKEN}"
-
-[sinks.betterstack.encoding]
-codec = "json"
-
-[sinks.betterstack.compression]
-algorithm = "gzip"
-EOT
-        }
-      ]
-
-      secrets = [
-        {
-          name      = "BETTERSTACK_SOURCE_TOKEN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTERSTACK_SOURCE_TOKEN::"
-        }
-      ]
 
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.worker.name
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "worker-vector"
+          "awslogs-stream-prefix" = "worker-firelens"
         }
       }
     }
