@@ -1171,7 +1171,7 @@ resource "aws_ecs_task_definition" "main" {
       entryPoint = ["/bin/sh", "-c"]
       command = [
         <<-EOT
-        cat > /fluent-bit/etc/extra.conf << 'EOF'
+        cat > /fluent-bit/etc/extra.conf << EOF
         [OUTPUT]
             Name http
             Match *
@@ -1391,7 +1391,7 @@ resource "aws_ecs_task_definition" "worker" {
       entryPoint = ["/bin/sh", "-c"]
       command = [
         <<-EOT
-        cat > /fluent-bit/etc/extra.conf << 'EOF'
+        cat > /fluent-bit/etc/extra.conf << EOF
         [OUTPUT]
             Name http
             Match *
