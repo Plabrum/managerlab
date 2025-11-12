@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Sequence
 from typing import Any
 
@@ -9,7 +10,7 @@ from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
 from litestar.config.cors import CORSConfig
 from litestar.di import Provide
 from litestar.exceptions import InternalServerException
-from litestar.logging.config import StructLoggingConfig
+from litestar.logging.config import LoggingConfig, StructLoggingConfig
 from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
 from litestar.middleware.session.server_side import ServerSideSessionConfig
 from litestar.openapi.config import OpenAPIConfig
@@ -34,6 +35,7 @@ from app.queue.config import queue_config
 from app.utils import providers
 from app.utils.configure import Config
 from app.utils.exceptions import ApplicationError, exception_to_http_response
+from app.utils.logging_middleware import create_logging_middleware
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 
 
@@ -151,7 +153,67 @@ def create_app(
             backend=PsycoPgChannelsBackend(config.PSYCOPG_DATABASE_URL),
             arbitrary_channels_allowed=True,
         ),
-        StructlogPlugin(),
+        StructlogPlugin(
+            config=StructlogConfig(
+                enable_middleware_logging=True,
+                structlog_logging_config=StructLoggingConfig(
+                    processors=[
+                        structlog.contextvars.merge_contextvars,
+                        structlog.processors.add_log_level,
+                        structlog.processors.StackInfoRenderer(),
+                        structlog.dev.set_exc_info,
+                        structlog.processors.TimeStamper(fmt="iso", utc=True),
+                        structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer(),
+                    ],
+                    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+                    logger_factory=structlog.PrintLoggerFactory(),
+                    cache_logger_on_first_use=False,
+                    standard_lib_logging_config=LoggingConfig(
+                        formatters={
+                            "structlog": {
+                                "()": structlog.stdlib.ProcessorFormatter,
+                                "processors": [
+                                    structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                                    structlog.dev.ConsoleRenderer()
+                                    if config.IS_DEV
+                                    else structlog.processors.JSONRenderer(),
+                                ],
+                                "foreign_pre_chain": [
+                                    structlog.contextvars.merge_contextvars,
+                                    structlog.processors.add_log_level,
+                                    structlog.processors.TimeStamper(fmt="iso", utc=True),
+                                ],
+                            },
+                        },
+                        handlers={
+                            "default": {
+                                "level": "INFO",
+                                "class": "logging.StreamHandler",
+                                "formatter": "structlog",
+                            },
+                        },
+                        loggers={
+                            "uvicorn": {
+                                "handlers": ["default"],
+                                "level": "INFO",
+                                "propagate": False,
+                            },
+                            "uvicorn.access": {
+                                "handlers": ["default"],
+                                "level": "INFO",
+                                "propagate": False,
+                            },
+                            "uvicorn.error": {
+                                "handlers": ["default"],
+                                "level": "INFO",
+                                "propagate": False,
+                            },
+                        },
+                        configure_root_logger=True,
+                    ),
+                ),
+            )
+        ),
     ]
 
     plugins: list[Any] = base_plugins if not plugins_overrides else plugins_overrides
@@ -184,7 +246,7 @@ def create_app(
         on_startup=[providers.on_startup],
         on_shutdown=[providers.on_shutdown],
         on_app_init=[session_auth.on_app_init],
-        middleware=[session_auth.middleware],
+        middleware=[session_auth.middleware, create_logging_middleware()],
         cors_config=cors_config,
         exception_handlers={
             ApplicationError: exception_to_http_response,
