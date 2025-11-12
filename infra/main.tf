@@ -204,17 +204,6 @@ variable "s3_bucket_prefix" {
   description = "S3 bucket name prefix (random suffix will be added)"
 }
 
-# Betterstack logging configuration
-variable "betterstack_logs_uri" {
-  type        = string
-  default     = "https://s1585363.eu-nbg-2.betterstackdata.com/"
-  description = "Betterstack logs ingestion endpoint URL"
-}
-
-
-
-
-
 # ================================
 # Local Values
 # ================================
@@ -238,6 +227,7 @@ locals {
 
   # S3 bucket name with random suffix for global uniqueness
   s3_bucket_name = "${var.s3_bucket_prefix}-${var.environment}-${random_id.bucket_suffix.hex}"
+
 }
 
 # ================================
@@ -1135,9 +1125,9 @@ resource "aws_ecs_task_definition" "main" {
         options = {
           "Name"             = "http"
           "Match"            = "*"
-          "Host"             = replace(replace(var.betterstack_logs_uri, "https://", ""), "/.*", "")
+          "Host"             = "in.logs.betterstack.com"
           "Port"             = "443"
-          "URI"              = replace(var.betterstack_logs_uri, "https://[^/]+", "")
+          "URI"              = "/"
           "tls"              = "on"
           "tls.verify"       = "on"
           "Format"           = "json"
@@ -1343,9 +1333,9 @@ resource "aws_ecs_task_definition" "worker" {
         options = {
           "Name"             = "http"
           "Match"            = "*"
-          "Host"             = replace(replace(var.betterstack_logs_uri, "https://", ""), "/.*", "")
+          "Host"             = "in.logs.betterstack.com"
           "Port"             = "443"
-          "URI"              = replace(var.betterstack_logs_uri, "https://[^/]+", "")
+          "URI"              = "/"
           "tls"              = "on"
           "tls.verify"       = "on"
           "Format"           = "json"
