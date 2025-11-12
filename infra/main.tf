@@ -625,6 +625,16 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "app" {
   }
 }
 
+# Upload Fluent Bit configuration to S3
+resource "aws_s3_object" "fluent_bit_config" {
+  bucket  = aws_s3_bucket.app.id
+  key     = "fluent-bit/fluent-bit-betterstack.conf"
+  content = file("${path.module}/fluent-bit-betterstack.conf")
+  etag    = filemd5("${path.module}/fluent-bit-betterstack.conf")
+
+  tags = local.common_tags
+}
+
 # VPC Gateway Endpoint for S3 (free, enables private access)
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id
@@ -909,6 +919,27 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Policy for S3 access to Fluent Bit config
+resource "aws_iam_role_policy" "ecs_task_execution_s3" {
+  name = "${local.name}-ecs-task-execution-s3-policy"
+  role = aws_iam_role.ecs_task_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = [
+          "${aws_s3_bucket.app.arn}/fluent-bit/*"
+        ]
+      }
+    ]
+  })
+}
+
 # Policy for Secrets Manager access (legacy - kept for compatibility)
 # Note: Secrets are now loaded at app startup via task role, not injected by ECS
 resource "aws_iam_role_policy" "ecs_task_execution_secrets" {
@@ -1119,23 +1150,9 @@ resource "aws_ecs_task_definition" "main" {
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
-      # Use FireLens to route logs directly to BetterStack via Fluent Bit HTTP output
+      # Use FireLens to route logs to BetterStack (config from S3)
       logConfiguration = {
         logDriver = "awsfirelens"
-        options = {
-          "Name"             = "http"
-          "Match"            = "*"
-          "Host"             = "in.logs.betterstack.com"
-          "Port"             = "443"
-          "URI"              = "/"
-          "Header"           = "Authorization Bearer $${BETTERSTACK_TOKEN}"
-          "tls"              = "on"
-          "tls.verify"       = "on"
-          "Format"           = "json"
-          "json_date_key"    = "dt"
-          "json_date_format" = "iso8601"
-          "compress"         = "gzip"
-        }
       }
 
       healthCheck = {
@@ -1162,6 +1179,8 @@ resource "aws_ecs_task_definition" "main" {
         type = "fluentbit"
         options = {
           "enable-ecs-log-metadata" = "true"
+          "config-file-type"        = "s3"
+          "config-file-value"       = "arn:aws:s3:::${aws_s3_bucket.app.bucket}/fluent-bit/fluent-bit-betterstack.conf"
         }
       }
 
@@ -1329,23 +1348,9 @@ resource "aws_ecs_task_definition" "worker" {
         },
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
-      # Use FireLens to route logs directly to BetterStack via Fluent Bit HTTP output
+      # Use FireLens to route logs to BetterStack (config from S3)
       logConfiguration = {
         logDriver = "awsfirelens"
-        options = {
-          "Name"             = "http"
-          "Match"            = "*"
-          "Host"             = "in.logs.betterstack.com"
-          "Port"             = "443"
-          "URI"              = "/"
-          "Header"           = "Authorization Bearer $${BETTERSTACK_TOKEN}"
-          "tls"              = "on"
-          "tls.verify"       = "on"
-          "Format"           = "json"
-          "json_date_key"    = "dt"
-          "json_date_format" = "iso8601"
-          "compress"         = "gzip"
-        }
       }
 
       dependsOn = [
@@ -1364,6 +1369,8 @@ resource "aws_ecs_task_definition" "worker" {
         type = "fluentbit"
         options = {
           "enable-ecs-log-metadata" = "true"
+          "config-file-type"        = "s3"
+          "config-file-value"       = "arn:aws:s3:::${aws_s3_bucket.app.bucket}/fluent-bit/fluent-bit-betterstack.conf"
         }
       }
 
