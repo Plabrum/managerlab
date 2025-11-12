@@ -16,6 +16,7 @@ import {
 import { executeActionApi } from './action-executor/execute-action-api';
 import { handleQueryInvalidation } from './action-executor/handle-query-invalidation';
 import { handleActionResult } from './action-executor/handle-action-result';
+import { getErrorMessage } from '@/lib/error-handler';
 
 export type ActionExecutorState = {
   isExecuting: boolean;
@@ -123,8 +124,10 @@ export function useActionExecutor({
 
       return response;
     } catch (err) {
-      const error = err as Error;
-      const errorMessage = error.message || `Failed to execute ${action.label}`;
+      const errorMessage = getErrorMessage(
+        err,
+        `Failed to execute ${action.label}`
+      );
 
       setState((prev) => ({
         ...prev,
@@ -133,9 +136,9 @@ export function useActionExecutor({
       }));
 
       toast.error(errorMessage);
-      onError?.(action, error);
+      onError?.(action, err as Error);
 
-      throw error;
+      throw err;
     }
   }
 
