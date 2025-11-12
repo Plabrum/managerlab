@@ -1129,13 +1129,15 @@ resource "aws_ecs_task_definition" "main" {
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
-      # Keep CloudWatch as backup (1 day retention)
+      # Use FireLens to route logs to Vector sidecar
       logConfiguration = {
-        logDriver = "awslogs"
+        logDriver = "awsfirelens"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "app"
+          "Name"       = "forward"
+          "Host"       = "localhost"
+          "Port"       = "24224"
+          "tls"        = "off"
+          "tls.verify" = "off"
         }
       }
 
@@ -1149,28 +1151,29 @@ resource "aws_ecs_task_definition" "main" {
 
       dependsOn = [
         {
-          containerName = "vector"
-          condition     = "HEALTHY"
+          containerName = "log_router"
+          condition     = "START"
         }
       ]
     },
     {
-      name      = "vector"
+      name      = "log_router"
       image     = "timberio/vector:0.51.0-alpine"
-      essential = false
+      essential = true
+
+      firelensConfiguration = {
+        type = "fluentbit"
+        options = {
+          "enable-ecs-log-metadata" = "true"
+          "config-file-type"        = "file"
+          "config-file-value"       = "/fluent-bit/configs/parse-json.conf"
+        }
+      }
 
       entryPoint = ["sh", "-c"]
       command = [
         "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
       ]
-
-      healthCheck = {
-        command     = ["CMD-SHELL", "nc -z localhost 9000 || exit 1"]
-        interval    = 5
-        timeout     = 3
-        retries     = 3
-        startPeriod = 10
-      }
 
       environment = [
         {
@@ -1180,29 +1183,27 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "VECTOR_CONFIG"
           value = <<-EOT
-[sources.app]
-type = "socket"
-mode = "tcp"
-address = "0.0.0.0:9000"
+[sources.fluent]
+type = "fluent"
+address = "0.0.0.0:24224"
 
-[sources.app.decoding]
+[sources.fluent.decoding]
 codec = "json"
 
-[transforms.timestamp_remap]
+[transforms.process_logs]
 type = "remap"
-inputs = ["app"]
+inputs = ["fluent"]
 source = '''
-# Remap timestamp field from "timestamp" to "dt" as required by Betterstack
+# Remap timestamp field to 'dt' for BetterStack
 if exists(.timestamp) {
   .dt = del(.timestamp)
-} else {
-  .dt = format_timestamp!(now(), format: "%Y-%m-%d %H:%M:%S UTC")
 }
+.
 '''
 
 [sinks.betterstack]
 type = "http"
-inputs = ["timestamp_remap"]
+inputs = ["process_logs"]
 uri = "$${BETTERSTACK_LOGS_URI}"
 
 [sinks.betterstack.auth]
@@ -1382,39 +1383,43 @@ resource "aws_ecs_task_definition" "worker" {
         },
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
+      # Use FireLens to route logs to Vector sidecar
       logConfiguration = {
-        logDriver = "awslogs"
+        logDriver = "awsfirelens"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.worker.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "worker-app"
+          "Name"       = "forward"
+          "Host"       = "localhost"
+          "Port"       = "24224"
+          "tls"        = "off"
+          "tls.verify" = "off"
         }
       }
 
       dependsOn = [
         {
-          containerName = "vector"
-          condition     = "HEALTHY"
+          containerName = "log_router"
+          condition     = "START"
         }
       ]
     },
     {
-      name      = "vector"
+      name      = "log_router"
       image     = "timberio/vector:0.51.0-alpine"
-      essential = false
+      essential = true
+
+      firelensConfiguration = {
+        type = "fluentbit"
+        options = {
+          "enable-ecs-log-metadata" = "true"
+          "config-file-type"        = "file"
+          "config-file-value"       = "/fluent-bit/configs/parse-json.conf"
+        }
+      }
 
       entryPoint = ["sh", "-c"]
       command = [
         "echo \"$VECTOR_CONFIG\" > /etc/vector/vector.toml && /usr/local/bin/vector --config /etc/vector/vector.toml"
       ]
-
-      healthCheck = {
-        command     = ["CMD-SHELL", "nc -z localhost 9000 || exit 1"]
-        interval    = 5
-        timeout     = 3
-        retries     = 3
-        startPeriod = 10
-      }
 
       environment = [
         {
@@ -1424,29 +1429,27 @@ resource "aws_ecs_task_definition" "worker" {
         {
           name  = "VECTOR_CONFIG"
           value = <<-EOT
-[sources.app]
-type = "socket"
-mode = "tcp"
-address = "0.0.0.0:9000"
+[sources.fluent]
+type = "fluent"
+address = "0.0.0.0:24224"
 
-[sources.app.decoding]
+[sources.fluent.decoding]
 codec = "json"
 
-[transforms.timestamp_remap]
+[transforms.process_logs]
 type = "remap"
-inputs = ["app"]
+inputs = ["fluent"]
 source = '''
-# Remap timestamp field from "timestamp" to "dt" as required by Betterstack
+# Remap timestamp field to 'dt' for BetterStack
 if exists(.timestamp) {
   .dt = del(.timestamp)
-} else {
-  .dt = format_timestamp!(now(), format: "%Y-%m-%d %H:%M:%S UTC")
 }
+.
 '''
 
 [sinks.betterstack]
 type = "http"
-inputs = ["timestamp_remap"]
+inputs = ["process_logs"]
 uri = "$${BETTERSTACK_LOGS_URI}"
 
 [sinks.betterstack.auth]
