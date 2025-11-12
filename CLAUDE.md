@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make check-frontend` - Run type checking + linting together
 
 ### Email Template Development
-- `make dev-emails` - Start React Email preview server with auto-compile (http://localhost:3001)
+- `make dev-emails` - Start email template viewer with JSON editor and auto-compile (http://localhost:3001)
 - `make build-emails` - Build email templates from React Email to HTML with Jinja2 variables
 
 ### Docker & Deployment
@@ -92,11 +92,14 @@ Email templates are built using React Email for better maintainability and desig
 - `backend/templates/emails-react/` - Compiled HTML output with Jinja2 variables
 
 **Development Workflow:**
-1. Run `make dev-emails` to start preview server (http://localhost:3001) with auto-compile
-2. Edit React Email templates in `backend/emails/templates/`
-3. Changes auto-compile to HTML on save
-4. Preview updates automatically in browser
-5. Backend picks up new templates automatically
+1. Run `make dev-emails` to start email viewer (http://localhost:3001) with auto-compile
+2. Use the split-pane viewer:
+   - **Left pane**: JSON editor for template data (edit values live)
+   - **Right pane**: Live email preview
+   - **Top bar**: Template selector dropdown
+3. Edit React Email templates in `backend/emails/templates/`
+4. Changes auto-compile to HTML on save
+5. Viewer refreshes automatically with new changes
 
 **Creating New Email Templates:**
 1. Create new `.tsx` file in `backend/emails/templates/` (e.g., `WelcomeEmail.tsx`)

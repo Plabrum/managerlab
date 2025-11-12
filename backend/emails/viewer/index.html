@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Template Viewer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background: #1e1e1e;
+      color: #fff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      background: #252526;
+      padding: 12px 20px;
+      border-bottom: 1px solid #3e3e42;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-right: auto;
+    }
+
+    .header select {
+      background: #3c3c3c;
+      color: #fff;
+      border: 1px solid #5a5a5a;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 200px;
+    }
+
+    .header select:focus {
+      outline: none;
+      border-color: #007acc;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .left-panel {
+      width: 40%;
+      border-right: 1px solid #3e3e42;
+      background: #1e1e1e;
+    }
+
+    .right-panel {
+      flex: 1;
+      background: #f5f5f5;
+    }
+
+    .panel-header {
+      background: #252526;
+      padding: 8px 16px;
+      border-bottom: 1px solid #3e3e42;
+      font-size: 13px;
+      font-weight: 500;
+      color: #cccccc;
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .editor {
+      width: 100%;
+      height: 100%;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      padding: 16px;
+      border: none;
+      outline: none;
+      resize: none;
+      line-height: 1.6;
+    }
+
+    .preview-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    .error {
+      padding: 16px;
+      color: #f48771;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="module">
+    import React, { useState, useEffect, useCallback } from 'https://esm.sh/react@19';
+    import ReactDOM from 'https://esm.sh/react-dom@19/client';
+
+    const TEMPLATES = {
+      'MagicLink': {
+        name: 'Magic Link',
+        defaultData: {
+          magic_link_url: 'https://app.tryarive.com/auth/verify?token=abc123',
+          expiration_minutes: '15'
+        }
+      },
+      'TeamInvitation': {
+        name: 'Team Invitation',
+        defaultData: {
+          invitation_url: 'https://app.tryarive.com/invites/xyz789',
+          team_name: 'Acme Corp',
+          inviter_name: 'John Doe',
+          expiration_hours: '72'
+        }
+      }
+    };
+
+    function App() {
+      const [selectedTemplate, setSelectedTemplate] = useState('MagicLink');
+      const [jsonData, setJsonData] = useState(JSON.stringify(TEMPLATES.MagicLink.defaultData, null, 2));
+      const [previewHtml, setPreviewHtml] = useState('');
+      const [error, setError] = useState('');
+
+      const updatePreview = useCallback(async () => {
+        try {
+          setError('');
+          const data = JSON.parse(jsonData);
+
+          // Fetch the rendered template from backend
+          const response = await fetch('http://localhost:3001/api/render', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              template: selectedTemplate,
+              data: data
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+          }
+
+          const html = await response.text();
+          setPreviewHtml(html);
+        } catch (err) {
+          setError(err.message);
+          console.error('Preview error:', err);
+        }
+      }, [selectedTemplate, jsonData]);
+
+      useEffect(() => {
+        updatePreview();
+      }, [updatePreview]);
+
+      useEffect(() => {
+        const templateData = TEMPLATES[selectedTemplate];
+        if (templateData) {
+          setJsonData(JSON.stringify(templateData.defaultData, null, 2));
+        }
+      }, [selectedTemplate]);
+
+      return React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'header' },
+          React.createElement('h1', null, '📧 Email Template Viewer'),
+          React.createElement('select', {
+            value: selectedTemplate,
+            onChange: (e) => setSelectedTemplate(e.target.value)
+          },
+            ...Object.entries(TEMPLATES).map(([key, value]) =>
+              React.createElement('option', { key: key, value: key }, value.name)
+            )
+          )
+        ),
+        React.createElement('div', { className: 'main' },
+          React.createElement('div', { className: 'panel left-panel' },
+            React.createElement('div', { className: 'panel-header' }, 'Template Data (JSON)'),
+            React.createElement('div', { className: 'panel-content' },
+              React.createElement('textarea', {
+                className: 'editor',
+                value: jsonData,
+                onChange: (e) => setJsonData(e.target.value),
+                spellCheck: false
+              })
+            )
+          ),
+          React.createElement('div', { className: 'panel right-panel' },
+            React.createElement('div', { className: 'panel-header' }, 'Preview'),
+            React.createElement('div', { className: 'panel-content' },
+              error
+                ? React.createElement('div', { className: 'error' }, error)
+                : React.createElement('iframe', {
+                    className: 'preview-frame',
+                    srcDoc: previewHtml,
+                    title: 'Email Preview'
+                  })
+            )
+          )
+        )
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(
+      React.createElement(App)
+    );
+  </script>
+</body>
+</html>
