@@ -1187,9 +1187,6 @@ resource "aws_ecs_task_definition" "main" {
 type = "fluent"
 address = "0.0.0.0:24224"
 
-[sources.fluent.decoding]
-codec = "json"
-
 [transforms.process_logs]
 type = "remap"
 inputs = ["fluent"]
@@ -1432,9 +1429,6 @@ resource "aws_ecs_task_definition" "worker" {
 [sources.fluent]
 type = "fluent"
 address = "0.0.0.0:24224"
-
-[sources.fluent.decoding]
-codec = "json"
 
 [transforms.process_logs]
 type = "remap"
