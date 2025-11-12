@@ -161,14 +161,16 @@ def create_app(
                         structlog.contextvars.merge_contextvars,
                         structlog.processors.add_log_level,
                         structlog.processors.StackInfoRenderer(),
-                        structlog.dev.set_exc_info,
+                        structlog.dev.set_exc_info if config.IS_DEV else structlog.processors.format_exc_info,
                         structlog.processors.TimeStamper(fmt="iso", utc=True),
                         structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer(),
                     ],
                     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
                     logger_factory=structlog.PrintLoggerFactory(),
                     cache_logger_on_first_use=False,
+                    log_exceptions="always",  # Always log exceptions, even in production
                     standard_lib_logging_config=LoggingConfig(
+                        log_exceptions="always",
                         formatters={
                             "structlog": {
                                 "()": structlog.stdlib.ProcessorFormatter,
@@ -182,6 +184,7 @@ def create_app(
                                     structlog.contextvars.merge_contextvars,
                                     structlog.processors.add_log_level,
                                     structlog.processors.TimeStamper(fmt="iso", utc=True),
+                                    structlog.processors.format_exc_info,
                                 ],
                             },
                         },
