@@ -32,6 +32,8 @@ help:
 	@echo "  docker-test      - Test backend Docker image locally"
 	@echo "  docker-push      - Build and push backend Docker image to ECR"
 	@echo "  codegen          - Generate API client code"
+	@echo "  dev-emails       - Start email template preview server with auto-compile"
+	@echo "  build-emails     - Build email templates from React Email to HTML"
 	@echo "  ecs-exec         - Connect to running ECS API task via Session Manager"
 	@echo "  ecs-exec-worker  - Connect to running ECS worker task via Session Manager"
 	@echo "  sqid             - Encode/decode sqid (usage: make sqid 9 or make sqid abc123)"
@@ -173,6 +175,18 @@ check-all:
 .PHONY: codegen
 codegen:
 	cd frontend && pnpm run codegen
+
+# Email template targets
+.PHONY: dev-emails
+dev-emails:
+	@echo "📧 Starting email preview server with auto-compile..."
+	@echo "Preview server will be available at http://localhost:3001"
+	cd backend/emails && npm run dev
+
+.PHONY: build-emails
+build-emails:
+	@echo "📧 Building email templates..."
+	cd backend/emails && npm run build
 
 # Testing targets
 .PHONY: test

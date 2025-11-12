@@ -68,3 +68,8 @@ README.md
 
 # Logs
 *.log
+
+# Email template build artifacts
+emails/node_modules/
+emails/.next/
+emails/dist/

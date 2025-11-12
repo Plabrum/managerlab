@@ -32,6 +32,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make format-frontend` - Check Prettier formatting
 - `make check-frontend` - Run type checking + linting together
 
+### Email Template Development
+- `make dev-emails` - Start React Email preview server with auto-compile (http://localhost:3001)
+- `make build-emails` - Build email templates from React Email to HTML with Jinja2 variables
+
 ### Docker & Deployment
 - `make docker-build` - Build backend Docker image
 - `make docker-test` - Run comprehensive Docker health checks
@@ -42,8 +46,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Tech Stack
 - **Frontend**: Next.js 15 with React 19, TypeScript, Tailwind CSS, shadcn/ui components
 - **Backend**: Python 3.13+ with Litestar (ASGI), SQLAlchemy, PostgreSQL
+- **Email**: React Email with TypeScript, compiled to HTML with Jinja2 templating
 - **Queue**: SAQ (Simple Async Queue) with PostgreSQL backing for background tasks
-- **Package Managers**: pnpm (frontend), uv (backend)
+- **Package Managers**: pnpm (frontend), uv (backend), npm (emails)
 - **Database**: PostgreSQL with Alembic migrations
 - **Infrastructure**: AWS (ECS Fargate, ALB, Aurora Serverless v2, ECR, S3, Route53) managed via Terraform
 
@@ -54,6 +59,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `backend/app/` - Python application code
 - `backend/app/models/` - SQLAlchemy database models
 - `backend/app/queue/` - SAQ async task definitions and configuration
+- `backend/emails/` - React Email templates and build system
+- `backend/templates/emails-react/` - Compiled email HTML (auto-generated)
 - `backend/alembic/` - Database migrations
 - `infra/` - Terraform infrastructure code
 
@@ -74,6 +81,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **NEVER** use commands that would delete the `pgdata` volume
 - Local database state should persist across container restarts
 - If database reset is absolutely necessary, explicitly confirm with the developer first
+
+### Email Template Workflow (React Email)
+Email templates are built using React Email for better maintainability and design consistency.
+
+**Directory Structure:**
+- `backend/emails/templates/` - React Email components (.tsx files)
+- `backend/emails/design-tokens.ts` - Design system colors matching frontend
+- `backend/emails/scripts/` - Build and watch scripts
+- `backend/templates/emails-react/` - Compiled HTML output with Jinja2 variables
+
+**Development Workflow:**
+1. Run `make dev-emails` to start preview server (http://localhost:3001) with auto-compile
+2. Edit React Email templates in `backend/emails/templates/`
+3. Changes auto-compile to HTML on save
+4. Preview updates automatically in browser
+5. Backend picks up new templates automatically
+
+**Creating New Email Templates:**
+1. Create new `.tsx` file in `backend/emails/templates/` (e.g., `WelcomeEmail.tsx`)
+2. Use shared components: `_BaseLayout`, `_Button`
+3. Props are compiled to Jinja2 variables: `{{ variable_name }}`
+4. Update `TEMPLATE_VARIABLES` in `backend/emails/scripts/build.ts`
+5. Add method to `EmailService` for sending the new template
+
+**Design System:**
+- Colors match frontend `globals.css` (dark gray/black primary, not blue)
+- Typography uses Geist Sans font family
+- Components use shadcn/ui aesthetic (clean, minimalist)
+
+**Production Build:**
+- Docker automatically builds templates during image build
+- Compiled HTML templates included in production image
+- No Node.js runtime required in production
 
 ### Testing
 - Backend tests use pytest with asyncio support

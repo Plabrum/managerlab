@@ -18,9 +18,14 @@ class EmailService:
         self.client = email_client
         self.config = config
 
-        # Setup Jinja2
-        template_dir = Path(__file__).parent.parent.parent / self.config.EMAIL_TEMPLATES_DIR
-        self.jinja_env = Environment(loader=FileSystemLoader(template_dir))
+        # Setup Jinja2 with multiple template directories
+        # Try React Email templates first, fall back to legacy Jinja2 templates
+        base_template_dir = Path(__file__).parent.parent.parent / "templates"
+        template_dirs = [
+            base_template_dir / "emails-react",  # React Email compiled templates
+            base_template_dir / "emails",  # Legacy Jinja2 templates
+        ]
+        self.jinja_env = Environment(loader=FileSystemLoader([str(d) for d in template_dirs]))
 
         # Setup html2text
         self.h2t = html2text.HTML2Text()
@@ -92,7 +97,7 @@ class EmailService:
         context = {
             "magic_link_url": magic_link_url,
             "user_email": to_email,
-            "expires_minutes": expires_minutes,
+            "expiration_minutes": expires_minutes,  # React Email template uses expiration_minutes
         }
 
         return await self.send_email(
@@ -115,8 +120,8 @@ class EmailService:
             "invitee_email": to_email,
             "team_name": team_name,
             "inviter_name": inviter_name,
-            "invitation_link": invitation_link,
-            "expires_hours": expires_hours,
+            "invitation_url": invitation_link,  # React Email template uses invitation_url
+            "expiration_hours": expires_hours,  # React Email template uses expiration_hours
         }
 
         return await self.send_email(
