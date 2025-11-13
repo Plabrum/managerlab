@@ -1,7 +1,6 @@
 import { Heading, Section, Text } from '@react-email/components';
 import * as React from 'react';
-import { BaseLayout } from './_BaseLayout';
-import { Button } from './_Button';
+import { BaseLayout, Button } from './components';
 
 interface MagicLinkProps {
   magic_link_url: string;

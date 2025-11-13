@@ -9,6 +9,7 @@ import {
   Hr,
   Link,
   Tailwind,
+  Button as ReactEmailButton,
 } from '@react-email/components';
 import * as React from 'react';
 
@@ -21,12 +22,7 @@ export function BaseLayout({ preview, children }: BaseLayoutProps) {
   return (
     <Html lang="en">
       <Tailwind>
-        <Head>
-          <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-          />
-        </Head>
+        <Head />
         <Preview>{preview}</Preview>
         <Body className="bg-white md:bg-neutral-50 font-sans m-0 md:py-12 md:px-4 antialiased">
           <Container className="bg-white md:rounded-xl p-4 md:p-12 max-w-[560px] mx-auto md:shadow-sm md:border md:border-neutral-100">
@@ -60,5 +56,22 @@ export function BaseLayout({ preview, children }: BaseLayoutProps) {
         </Body>
       </Tailwind>
     </Html>
+  );
+}
+
+interface ButtonProps {
+  href: string;
+  children: React.ReactNode;
+}
+
+export function Button({ href, children }: ButtonProps) {
+  return (
+    <ReactEmailButton
+      href={href}
+      className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-neutral-950 text-white no-underline rounded-full font-medium text-[15px] text-center cursor-pointer border-none leading-tight"
+    >
+      <span className="inline-block">{children}</span>
+      <span className="inline-block text-base leading-none ml-1">→</span>
+    </ReactEmailButton>
   );
 }

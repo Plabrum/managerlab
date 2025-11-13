@@ -1,23 +1,56 @@
 import { render } from '@react-email/components';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ts from 'typescript';
 
 const TEMPLATES_DIR = path.join(__dirname, '../templates');
 const OUTPUT_DIR = path.join(__dirname, '../../templates/emails-react');
 
-// Mapping of template files to their Jinja2 variable names
-const TEMPLATE_VARIABLES: Record<string, Record<string, string>> = {
-  'MagicLink': {
-    'magic_link_url': '{{ magic_link_url }}',
-    'expiration_minutes': '{{ expiration_minutes }}',
-  },
-  'TeamInvitation': {
-    'invitation_url': '{{ invitation_url }}',
-    'team_name': '{{ team_name }}',
-    'inviter_name': '{{ inviter_name }}',
-    'expiration_hours': '{{ expiration_hours }}',
-  },
-};
+/**
+ * Extract prop names from a TypeScript interface in a .tsx file
+ */
+function extractPropsFromTemplate(templatePath: string): string[] {
+  const sourceCode = fs.readFileSync(templatePath, 'utf-8');
+  const sourceFile = ts.createSourceFile(
+    templatePath,
+    sourceCode,
+    ts.ScriptTarget.Latest,
+    true
+  );
+
+  const propNames: string[] = [];
+
+  function visit(node: ts.Node) {
+    // Look for interface declarations ending with "Props"
+    if (ts.isInterfaceDeclaration(node) && node.name.text.endsWith('Props')) {
+      // Extract property names from the interface
+      node.members.forEach((member) => {
+        if (ts.isPropertySignature(member) && ts.isIdentifier(member.name)) {
+          propNames.push(member.name.text);
+        }
+      });
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return propNames;
+}
+
+/**
+ * Generate Jinja2 variables for all props in a template
+ */
+function generateJinjaProps(templatePath: string): Record<string, string> {
+  const propNames = extractPropsFromTemplate(templatePath);
+  const jinjaProps: Record<string, string> = {};
+
+  for (const propName of propNames) {
+    // Convert prop name to Jinja2 variable: prop_name -> {{ prop_name }}
+    jinjaProps[propName] = `{{ ${propName} }}`;
+  }
+
+  return jinjaProps;
+}
 
 async function buildTemplate(templateName: string) {
   try {
@@ -32,15 +65,10 @@ async function buildTemplate(templateName: string) {
       throw new Error(`No default export found in ${templateName}.tsx`);
     }
 
-    // Get Jinja2 variables for this template
-    const variables = TEMPLATE_VARIABLES[templateName] || {};
+    // Auto-generate Jinja2 variables from the template's props interface
+    const props = generateJinjaProps(templatePath);
+    console.log(`  Props: ${Object.keys(props).join(', ') || '(none)'}`);
 
-    // Pass Jinja2 template variables directly as props
-    // React Email will render them as-is into the HTML
-    const props: Record<string, any> = {};
-    for (const [key, jinjaVar] of Object.entries(variables)) {
-      props[key] = jinjaVar;
-    }
 
     // Render the component to HTML with Jinja2 variables
     const html = await render(Component(props), {
@@ -80,7 +108,7 @@ async function buildAll() {
 
     const files = fs.readdirSync(TEMPLATES_DIR);
     const templateFiles = files.filter(
-      (file) => file.endsWith('.tsx') && !file.startsWith('_')
+      (file) => file.endsWith('.tsx') && !file.startsWith('_') && file !== 'components.tsx'
     );
 
     if (templateFiles.length === 0) {
