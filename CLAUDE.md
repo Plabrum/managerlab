@@ -82,41 +82,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Local database state should persist across container restarts
 - If database reset is absolutely necessary, explicitly confirm with the developer first
 
-### Email Template Workflow (React Email)
-Email templates are built using React Email for better maintainability and design consistency.
+### Email Template Workflow (React Email + Tailwind)
+Email templates are built using React Email with Tailwind CSS for better maintainability and design consistency.
 
 **Directory Structure:**
-- `backend/emails/templates/` - React Email components (.tsx files)
-- `backend/emails/design-tokens.ts` - Design system colors matching frontend
+- `backend/emails/templates/` - React Email components (.tsx files) with Tailwind classes
+- `backend/emails/tailwind.config.ts` - Tailwind config matching frontend design system
 - `backend/emails/scripts/` - Build and watch scripts
-- `backend/templates/emails-react/` - Compiled HTML output with Jinja2 variables
+- `backend/templates/emails-react/` - Compiled HTML output with Jinja2 variables (Tailwind compiled to inline styles)
 
 **Development Workflow:**
-1. Run `make dev-emails` to start email viewer (http://localhost:3001) with auto-compile
-2. Use the split-pane viewer:
-   - **Left pane**: JSON editor for template data (edit values live)
-   - **Right pane**: Live email preview
-   - **Top bar**: Template selector dropdown
+1. Run `make dev-emails` to start React Email dev server (http://localhost:3001)
+2. Official React Email preview UI with:
+   - Live preview of all templates
+   - Mobile/desktop view toggle
+   - Built-in Tailwind support
 3. Edit React Email templates in `backend/emails/templates/`
-4. Changes auto-compile to HTML on save
-5. Viewer refreshes automatically with new changes
+4. Use Tailwind classes for styling (e.g., `className="bg-neutral-50 p-4 rounded-lg"`)
+5. React Email automatically compiles Tailwind to inline styles for email compatibility
 
 **Creating New Email Templates:**
 1. Create new `.tsx` file in `backend/emails/templates/` (e.g., `WelcomeEmail.tsx`)
-2. Use shared components: `_BaseLayout`, `_Button`
-3. Props are compiled to Jinja2 variables: `{{ variable_name }}`
-4. Update `TEMPLATE_VARIABLES` in `backend/emails/scripts/build.ts`
-5. Add method to `EmailService` for sending the new template
+2. Wrap content with `<Tailwind>` component (included in `_BaseLayout`)
+3. Use Tailwind classes instead of inline styles
+4. Use shared components: `_BaseLayout`, `_Button`
+5. Props are compiled to Jinja2 variables: `{{ variable_name }}`
+6. Update `TEMPLATE_VARIABLES` in `backend/emails/scripts/build.ts`
+7. Add method to `EmailService` for sending the new template
 
 **Design System:**
-- Colors match frontend `globals.css` (dark gray/black primary, not blue)
-- Typography uses Geist Sans font family
-- Components use shadcn/ui aesthetic (clean, minimalist)
+- Tailwind config matches frontend color scheme (dark/neutral gray primary)
+- Uses same semantic color names: `text-foreground`, `bg-muted`, `border`, etc.
+- Tailwind classes compiled to inline styles for email client compatibility
+- React Email handles complex selectors that don't work in emails
 
 **Production Build:**
-- Docker automatically builds templates during image build
-- Compiled HTML templates included in production image
+- Run `make build-emails` manually before Docker builds (templates must be committed)
+- Compiled HTML templates (.html.jinja2) included in Docker image
 - No Node.js runtime required in production
+- Litestar's JinjaTemplateEngine renders templates at runtime
 
 ### Testing
 - Backend tests use pytest with asyncio support

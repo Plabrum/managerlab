@@ -75,8 +75,8 @@ emails/.next/
 emails/dist/
 emails/scripts/
 emails/templates/
-emails/viewer/
 emails/package.json
 emails/package-lock.json
 emails/tsconfig.json
+emails/tailwind.config.ts
 emails/README.md
