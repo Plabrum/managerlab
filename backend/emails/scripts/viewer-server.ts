@@ -34,10 +34,15 @@ app.post('/api/render', async (req, res) => {
 
     // Dynamic import doesn't work well with tsx in this context,
     // so we'll read the compiled HTML from the output directory
+    // Convert PascalCase to snake_case: MagicLink -> magic_link
+    const fileName = template
+      .replace(/([A-Z])/g, '_$1')
+      .toLowerCase()
+      .replace(/^_/, '');
     const compiledPath = path.join(
       __dirname,
       '../../templates/emails-react',
-      `${template.toLowerCase().replace(/([A-Z])/g, '_$1').replace(/^_/, '')}.html`
+      `${fileName}.html`
     );
 
     if (!fs.existsSync(compiledPath)) {

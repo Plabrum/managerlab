@@ -2,7 +2,7 @@ import { Heading, Section, Text } from '@react-email/components';
 import * as React from 'react';
 import { BaseLayout } from './_BaseLayout';
 import { Button } from './_Button';
-import { colors, spacing } from '../design-tokens';
+import { colors, spacing, typography, borderRadius } from '../design-tokens';
 
 interface MagicLinkProps {
   magic_link_url: string;
@@ -14,32 +14,35 @@ export default function MagicLink({
   expiration_minutes,
 }: MagicLinkProps) {
   return (
-    <BaseLayout preview="Sign in to your Arive account">
-      <Heading style={styles.heading}>Sign in to Arive</Heading>
-
-      <Text style={styles.paragraph}>Hello,</Text>
-
-      <Text style={styles.paragraph}>
-        Click the button below to sign in to your Arive account. This link will
-        expire in {expiration_minutes} minutes.
-      </Text>
-
-      <Section style={styles.buttonContainer}>
-        <Button href={magic_link_url}>Sign In to Arive</Button>
+    <BaseLayout preview="Sign in to your account securely">
+      <Section style={styles.headingSection}>
+        <Heading style={styles.heading}>Sign in to your account</Heading>
       </Section>
 
       <Text style={styles.paragraph}>
-        Or copy and paste this URL into your browser:
+        Click the button below to securely sign in. This link expires in{' '}
+        {expiration_minutes} minutes for your security.
       </Text>
 
-      <Text style={styles.urlText}>{magic_link_url}</Text>
+      <Section style={styles.buttonContainer}>
+        <Button href={magic_link_url}>Continue to Arive</Button>
+      </Section>
 
+      {/* Alternative link section */}
+      <Section style={styles.alternativeSection}>
+        <Text style={styles.alternativeLabel}>Or copy this link:</Text>
+        <div style={styles.urlBox}>
+          <Text style={styles.urlText}>{magic_link_url}</Text>
+        </div>
+      </Section>
+
+      {/* Security notice */}
       <Section style={styles.securityNotice}>
         <Text style={styles.securityText}>
-          <strong>Didn't request this email?</strong>
+          <strong style={styles.securityHeading}>Didn't request this?</strong>
           <br />
-          If you didn't request this sign-in link, you can safely ignore this
-          email. Someone may have entered your email address by mistake.
+          You can safely ignore this email. This link can only be used once and
+          expires automatically.
         </Text>
       </Section>
     </BaseLayout>
@@ -47,37 +50,69 @@ export default function MagicLink({
 }
 
 const styles = {
+  headingSection: {
+    marginBottom: spacing.lg,
+  },
   heading: {
     color: colors.foreground,
-    fontSize: '24px',
-    fontWeight: 600,
-    margin: '0 0 24px 0',
-    lineHeight: '1.3',
+    fontSize: '28px',
+    fontWeight: typography.weightBold,
+    margin: 0,
+    lineHeight: typography.lineHeightTight,
+    letterSpacing: '-0.02em',
   },
   paragraph: {
-    color: colors.foreground,
+    color: colors.foregroundMuted,
     fontSize: '16px',
-    lineHeight: '1.6',
-    margin: '0 0 16px 0',
+    lineHeight: typography.lineHeightRelaxed,
+    margin: `0 0 ${spacing.xl} 0`,
+    fontWeight: typography.weightNormal,
   },
   buttonContainer: {
+    margin: `${spacing.xl} 0`,
     textAlign: 'center' as const,
-    margin: `${spacing.lg} 0`,
+  },
+  alternativeSection: {
+    marginTop: spacing['2xl'],
+    marginBottom: spacing.xl,
+  },
+  alternativeLabel: {
+    fontSize: '13px',
+    color: colors.foregroundSubtle,
+    margin: `0 0 ${spacing.sm} 0`,
+    fontWeight: typography.weightMedium,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+  },
+  urlBox: {
+    backgroundColor: colors.backgroundMuted,
+    border: `1px solid ${colors.border}`,
+    borderRadius: borderRadius.md,
+    padding: `${spacing.md} ${spacing.md}`,
   },
   urlText: {
-    color: colors.mutedForeground,
-    fontSize: '14px',
+    color: colors.foregroundMuted,
+    fontSize: '13px',
     wordBreak: 'break-all' as const,
-    margin: '0 0 24px 0',
-    lineHeight: '1.5',
+    margin: 0,
+    lineHeight: typography.lineHeightNormal,
+    fontFamily: typography.fontFamilyMono,
   },
   securityNotice: {
-    marginTop: spacing.xl,
+    marginTop: spacing['2xl'],
+    padding: spacing.md,
+    backgroundColor: colors.backgroundMuted,
+    borderRadius: borderRadius.md,
+    border: `1px solid ${colors.borderSubtle}`,
+  },
+  securityHeading: {
+    color: colors.foreground,
+    fontWeight: typography.weightSemibold,
   },
   securityText: {
-    color: colors.mutedForeground,
+    color: colors.foregroundMuted,
     fontSize: '14px',
-    lineHeight: '1.6',
+    lineHeight: typography.lineHeightRelaxed,
     margin: 0,
   },
 };

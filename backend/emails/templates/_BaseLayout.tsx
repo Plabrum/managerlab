@@ -7,9 +7,10 @@ import {
   Section,
   Text,
   Hr,
+  Link,
 } from '@react-email/components';
 import * as React from 'react';
-import { colors, typography, spacing } from '../design-tokens';
+import { colors, typography, spacing, shadows, borderRadius } from '../design-tokens';
 
 interface BaseLayoutProps {
   preview: string;
@@ -28,22 +29,25 @@ export function BaseLayout({ preview, children }: BaseLayoutProps) {
       <Preview>{preview}</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          {/* Header */}
+          {/* Minimal Header - just logo, no heavy styling */}
           <Section style={styles.header}>
             <Text style={styles.logo}>Arive</Text>
           </Section>
 
-          {/* Main Content */}
+          {/* Main Content with generous spacing */}
           <Section style={styles.content}>{children}</Section>
 
-          {/* Footer */}
+          {/* Minimal Footer */}
           <Hr style={styles.divider} />
           <Section style={styles.footer}>
             <Text style={styles.footerText}>
-              © 2025 Arive. All rights reserved.
+              Sent securely with{' '}
+              <Link href="https://tryarive.com" style={styles.footerLink}>
+                Arive
+              </Link>
             </Text>
-            <Text style={styles.footerText}>
-              This email was sent from an automated system.
+            <Text style={styles.footerSubtext}>
+              © 2025 Arive. All rights reserved.
             </Text>
           </Section>
         </Container>
@@ -54,46 +58,62 @@ export function BaseLayout({ preview, children }: BaseLayoutProps) {
 
 const styles = {
   body: {
-    backgroundColor: colors.muted,
+    backgroundColor: colors.backgroundMuted,
     fontFamily: typography.fontFamily,
     margin: 0,
-    padding: spacing.lg,
+    padding: `${spacing['2xl']} ${spacing.md}`,
+    WebkitFontSmoothing: 'antialiased' as const,
+    MozOsxFontSmoothing: 'grayscale' as const,
   },
   container: {
     backgroundColor: colors.white,
-    borderRadius: '10px',
-    padding: spacing.xl,
-    maxWidth: '600px',
+    borderRadius: borderRadius.lg,
+    padding: `${spacing['2xl']} ${spacing.xl}`,
+    maxWidth: '560px',
     margin: '0 auto',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+    boxShadow: shadows.sm,
+    border: `1px solid ${colors.borderSubtle}`,
   },
   header: {
-    textAlign: 'center' as const,
-    paddingBottom: spacing.lg,
-    borderBottom: `2px solid ${colors.primary}`,
+    paddingBottom: spacing.xl,
     marginBottom: spacing.xl,
+    borderBottom: `1px solid ${colors.borderSubtle}`,
   },
   logo: {
-    fontSize: '32px',
-    fontWeight: 700,
-    color: colors.primary,
-    letterSpacing: '-0.5px',
+    fontSize: '20px',
+    fontWeight: typography.weightSemibold,
+    color: colors.foreground,
+    letterSpacing: '-0.02em',
     margin: 0,
   },
   content: {
-    padding: `${spacing.md} 0`,
+    padding: 0,
   },
   divider: {
-    borderColor: colors.border,
-    margin: `${spacing.xl} 0 ${spacing.lg} 0`,
+    borderColor: colors.borderSubtle,
+    margin: `${spacing['2xl']} 0 ${spacing.lg} 0`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
   },
   footer: {
     textAlign: 'center' as const,
   },
   footerText: {
     fontSize: '13px',
-    color: colors.mutedForeground,
-    margin: `${spacing.xs} 0`,
-    lineHeight: '1.5',
+    color: colors.foregroundMuted,
+    margin: `${spacing.sm} 0`,
+    lineHeight: typography.lineHeightNormal,
+    fontWeight: typography.weightNormal,
+  },
+  footerLink: {
+    color: colors.foreground,
+    textDecoration: 'none',
+    fontWeight: typography.weightMedium,
+  },
+  footerSubtext: {
+    fontSize: '12px',
+    color: colors.foregroundSubtle,
+    margin: `${spacing.xs} 0 0 0`,
+    lineHeight: typography.lineHeightNormal,
   },
 };

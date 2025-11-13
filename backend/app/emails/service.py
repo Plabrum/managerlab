@@ -18,14 +18,10 @@ class EmailService:
         self.client = email_client
         self.config = config
 
-        # Setup Jinja2 with multiple template directories
-        # Try React Email templates first, fall back to legacy Jinja2 templates
+        # Setup Jinja2 for React Email compiled templates
         base_template_dir = Path(__file__).parent.parent.parent / "templates"
-        template_dirs = [
-            base_template_dir / "emails-react",  # React Email compiled templates
-            base_template_dir / "emails",  # Legacy Jinja2 templates
-        ]
-        self.jinja_env = Environment(loader=FileSystemLoader([str(d) for d in template_dirs]))
+        template_dir = base_template_dir / "emails-react"
+        self.jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
 
         # Setup html2text
         self.h2t = html2text.HTML2Text()

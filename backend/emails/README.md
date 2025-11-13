@@ -20,6 +20,7 @@ Visit **http://localhost:3001** to see the email viewer.
 - **👀 Live Preview** (right pane): See email rendered with your data
 - **🔄 Auto-Compile**: Changes to .tsx files automatically rebuild
 - **📑 Template Selector**: Switch between different email templates
+- **📱 Mobile View**: Toggle button to hide JSON editor for full-width mobile preview
 
 ## Directory Structure
 

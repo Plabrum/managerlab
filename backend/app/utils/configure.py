@@ -54,7 +54,7 @@ class Config:
     SES_FROM_EMAIL: str = os.getenv("SES_FROM_EMAIL", "noreply@tryarive.com")
     SES_REPLY_TO_EMAIL: str = os.getenv("SES_REPLY_TO_EMAIL", "support@tryarive.com")
     SES_CONFIGURATION_SET: str = os.getenv("SES_CONFIGURATION_SET", "manageros-dev")
-    EMAIL_TEMPLATES_DIR: str = "templates/emails"
+    EMAIL_TEMPLATES_DIR: str = "templates/emails-react"  # React Email compiled templates
 
     # Session Configuration
     SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
