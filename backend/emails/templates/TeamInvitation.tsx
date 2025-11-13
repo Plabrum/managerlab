@@ -18,36 +18,18 @@ export default function TeamInvitation({
   return (
     <BaseLayout preview={`You've been invited to join ${team_name}`}>
       <Section className="mb-6">
-        <Heading className="text-foreground text-[28px] font-bold m-0 leading-tight tracking-tight">
-          You've been invited!
+        <Heading className="mx-0 my-[30px] p-0 text-center font-normal text-[28px] text-black">
+          Join <strong>{team_name}</strong> on <strong>Arive</strong>
         </Heading>
       </Section>
 
       <Text className="text-muted-foreground text-base leading-relaxed mb-8 font-normal">
-        <strong className="text-foreground font-semibold">{inviter_name}</strong> has invited
-        you to join <strong className="text-foreground font-semibold">{team_name}</strong> on
-        Arive.
+        <strong>{inviter_name}</strong> would like to add you as a user to the <strong>{team_name}</strong> on <strong>Arive</strong>.
       </Text>
 
-      {/* Team info card */}
-      <Section className="bg-neutral-50 border border-border rounded-lg p-6 mb-8">
-        <div className="flex justify-between items-center py-2">
-          <Text className="text-[13px] text-neutral-400 m-0 font-medium uppercase tracking-wider">
-            Team
-          </Text>
-          <Text className="text-[15px] text-foreground m-0 font-medium">{team_name}</Text>
-        </div>
-        <div className="h-px bg-border my-2" />
-        <div className="flex justify-between items-center py-2">
-          <Text className="text-[13px] text-neutral-400 m-0 font-medium uppercase tracking-wider">
-            Invited by
-          </Text>
-          <Text className="text-[15px] text-foreground m-0 font-medium">{inviter_name}</Text>
-        </div>
-      </Section>
 
       <Section className="my-8 text-center">
-        <Button href={invitation_url}>Accept invitation</Button>
+        <Button href={invitation_url}>Join the team</Button>
       </Section>
 
       {/* Alternative link section */}
