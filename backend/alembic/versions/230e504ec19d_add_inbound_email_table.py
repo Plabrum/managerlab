@@ -11,6 +11,8 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 
 from alembic import op
+from app.state_machine.models import TextEnum
+from app.utils.sqids import SqidType
 
 # revision identifiers, used by Alembic.
 revision: str = "230e504ec19d"
@@ -34,9 +36,9 @@ def upgrade() -> None:
         sa.Column("attachments_json", sa.JSON(), nullable=True),
         sa.Column("processed_at", sa.DateTime(), nullable=True),
         sa.Column("error_message", sa.Text(), nullable=True),
-        sa.Column("team_id", app.utils.sqids.SqidType(), nullable=True),
-        sa.Column("state", app.state_machine.models.TextEnum(), server_default="RECEIVED", nullable=False),
-        sa.Column("id", app.utils.sqids.SqidType(), autoincrement=True, nullable=False),
+        sa.Column("team_id", SqidType(), nullable=True),
+        sa.Column("state", TextEnum(), server_default="RECEIVED", nullable=False),
+        sa.Column("id", SqidType(), autoincrement=True, nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),

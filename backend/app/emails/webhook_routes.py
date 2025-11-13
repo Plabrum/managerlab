@@ -5,6 +5,7 @@ import logging
 from litestar import Response, Router, post
 from litestar.status_codes import HTTP_200_OK
 from litestar_saq import TaskQueues
+from msgspec import Struct
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.guards import requires_webhook_signature
@@ -14,9 +15,16 @@ from app.emails.models import InboundEmail
 logger = logging.getLogger(__name__)
 
 
+class InboundEmailWebhookPayload(Struct):
+    """Schema for inbound email webhook payload from Lambda."""
+
+    bucket: str
+    key: str
+
+
 @post("/inbound", guards=[requires_webhook_signature])
 async def handle_inbound_email_webhook(
-    data: dict,
+    data: InboundEmailWebhookPayload,
     db_session: AsyncSession,
     task_queues: TaskQueues,
 ) -> Response:
@@ -39,12 +47,12 @@ async def handle_inbound_email_webhook(
     Returns:
         Response with status and inbound_email_id
     """
-    logger.info(f"Received email webhook for s3://{data['bucket']}/{data['key']}")
+    logger.info(f"Received email webhook for s3://{data.bucket}/{data.key}")
 
     # Create minimal InboundEmail record (task will parse email and fill in details)
     inbound = InboundEmail(
-        s3_bucket=data["bucket"],
-        s3_key=data["key"],
+        s3_bucket=data.bucket,
+        s3_key=data.key,
         state=InboundEmailState.RECEIVED,
         team_id=None,  # Matched later by task if needed
     )

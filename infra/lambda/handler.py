@@ -26,6 +26,8 @@ def lambda_handler(event, context):
     Extracts S3 location from SES event and forwards to webhook endpoint.
     Backend fetches from S3 and parses everything in the task.
 
+    Always returns 200 to prevent SES retries (email is already in S3).
+
     Args:
         event: SES event with S3 action info
         context: Lambda context (unused)
@@ -34,33 +36,40 @@ def lambda_handler(event, context):
         dict with statusCode 200
     """
     for record in event["Records"]:
-        # Extract S3 location from SES event
-        s3_info = record["ses"]["receipt"]["action"]
+        try:
+            # Extract S3 location from SES event
+            s3_info = record["ses"]["receipt"]["action"]
 
-        # Build minimal payload - just S3 location
-        payload = json.dumps(
-            {"bucket": s3_info["bucketName"], "key": s3_info["objectKey"]}
-        )
+            # Build minimal payload - just S3 location
+            payload = json.dumps(
+                {"bucket": s3_info["bucketName"], "key": s3_info["objectKey"]}
+            )
 
-        # Sign payload with HMAC-SHA256
-        signature = hmac.new(
-            WEBHOOK_SECRET.encode(), payload.encode(), hashlib.sha256
-        ).hexdigest()
+            # Sign payload with HMAC-SHA256
+            signature = hmac.new(
+                WEBHOOK_SECRET.encode(), payload.encode(), hashlib.sha256
+            ).hexdigest()
 
-        # POST to webhook with signature header
-        response = http.request(
-            "POST",
-            WEBHOOK_URL,
-            body=payload,
-            headers={
-                "Content-Type": "application/json",
-                "X-Webhook-Signature": signature,
-            },
-        )
+            # POST to webhook with signature header
+            response = http.request(
+                "POST",
+                WEBHOOK_URL,
+                body=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Webhook-Signature": signature,
+                },
+            )
 
-        print(
-            f"Forwarded email notification: bucket={s3_info['bucketName']}, "
-            f"key={s3_info['objectKey']}, response_status={response.status}"
-        )
+            print(
+                f"Forwarded email notification: bucket={s3_info['bucketName']}, "
+                f"key={s3_info['objectKey']}, response_status={response.status}"
+            )
 
+        except Exception as e:
+            # Log error but continue processing other records
+            print(f"Error processing record: {e}")
+            # Don't re-raise - email is in S3, backend can retry later
+
+    # Always return 200 - email is already in S3
     return {"statusCode": 200}
