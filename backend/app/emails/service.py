@@ -1,11 +1,10 @@
 """Email service with template rendering."""
 
-from pathlib import Path
 from typing import Any
 
 import html2text
 from email_validator import EmailNotValidError, validate_email
-from jinja2 import Environment, FileSystemLoader
+from litestar.template import TemplateEngineProtocol
 
 from app.emails.client import BaseEmailClient, EmailMessage as ClientEmailMessage
 from app.utils.configure import config
@@ -14,14 +13,10 @@ from app.utils.configure import config
 class EmailService:
     """High-level email service with template rendering."""
 
-    def __init__(self, email_client: BaseEmailClient):
+    def __init__(self, email_client: BaseEmailClient, template_engine: TemplateEngineProtocol):
         self.client = email_client
         self.config = config
-
-        # Setup Jinja2 for React Email compiled templates
-        base_template_dir = Path(__file__).parent.parent.parent / "templates"
-        template_dir = base_template_dir / "emails-react"
-        self.jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.template_engine = template_engine
 
         # Setup html2text
         self.h2t = html2text.HTML2Text()
@@ -37,8 +32,8 @@ class EmailService:
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> tuple[str, str]:
         """Render email template to HTML and plain text."""
-        # Render HTML
-        template = self.jinja_env.get_template(f"{template_name}.html")
+        # Render HTML using Litestar's template engine
+        template = self.template_engine.get_template(f"{template_name}.html.jinja2")
         html_body = template.render(**context)
 
         # Auto-generate plain text from HTML

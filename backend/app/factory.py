@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 import structlog
@@ -8,6 +9,7 @@ from litestar import Litestar, Request, Response
 from litestar.channels import ChannelsPlugin
 from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
 from litestar.config.cors import CORSConfig
+from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.di import Provide
 from litestar.exceptions import InternalServerException
 from litestar.logging.config import LoggingConfig, StructLoggingConfig
@@ -24,6 +26,7 @@ from litestar.plugins.sqlalchemy import (
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 from litestar.security.session_auth import SessionAuth
 from litestar.stores.memory import MemoryStore
+from litestar.template.config import TemplateConfig
 from litestar_saq import SAQConfig, SAQPlugin
 from sqlalchemy.pool import StaticPool
 
@@ -242,6 +245,15 @@ def create_app(
     )
 
     # ========================================================================
+    # Template Engine
+    # ========================================================================
+    # Configure Jinja2 template engine for email templates
+    template_config = TemplateConfig(
+        directory=Path(__file__).parent.parent / "templates" / "emails-react",
+        engine=JinjaTemplateEngine,
+    )
+
+    # ========================================================================
     # Create App
     # ========================================================================
     app = Litestar(
@@ -260,6 +272,7 @@ def create_app(
         dependencies=dependencies,
         plugins=plugins,
         openapi_config=openapi_config,
+        template_config=template_config,
         type_encoders={Sqid: sqid_enc_hook},
         type_decoders=[(sqid_type_predicate, sqid_dec_hook)],
         debug=config.IS_DEV,

@@ -32,40 +32,34 @@ async function buildTemplate(templateName: string) {
       throw new Error(`No default export found in ${templateName}.tsx`);
     }
 
-    // Get placeholder values for this template
+    // Get Jinja2 variables for this template
     const variables = TEMPLATE_VARIABLES[templateName] || {};
-    const props: Record<string, any> = {};
 
-    // Use placeholder values that we'll replace with Jinja2 variables
-    for (const [key, value] of Object.entries(variables)) {
-      props[key] = `__${key.toUpperCase()}__`;
+    // Pass Jinja2 template variables directly as props
+    // React Email will render them as-is into the HTML
+    const props: Record<string, any> = {};
+    for (const [key, jinjaVar] of Object.entries(variables)) {
+      props[key] = jinjaVar;
     }
 
-    // Render the component to HTML
+    // Render the component to HTML with Jinja2 variables
     const html = await render(Component(props), {
       pretty: true,
     });
-
-    // Replace placeholders with Jinja2 variables
-    let finalHtml = html;
-    for (const [key, jinjaVar] of Object.entries(variables)) {
-      const placeholder = `__${key.toUpperCase()}__`;
-      finalHtml = finalHtml.replace(new RegExp(placeholder, 'g'), jinjaVar);
-    }
 
     // Ensure output directory exists
     if (!fs.existsSync(OUTPUT_DIR)) {
       fs.mkdirSync(OUTPUT_DIR, { recursive: true });
     }
 
-    // Write to output file
+    // Write to output file as .html.jinja2
     // Convert PascalCase to snake_case: MagicLink -> magic_link
     const fileName = templateName
       .replace(/([A-Z])/g, '_$1')
       .toLowerCase()
       .replace(/^_/, '');
-    const outputPath = path.join(OUTPUT_DIR, `${fileName}.html`);
-    fs.writeFileSync(outputPath, finalHtml, 'utf-8');
+    const outputPath = path.join(OUTPUT_DIR, `${fileName}.html.jinja2`);
+    fs.writeFileSync(outputPath, html, 'utf-8');
 
     console.log(`✓ Built ${templateName} -> ${outputPath}`);
   } catch (error) {
