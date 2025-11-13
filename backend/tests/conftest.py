@@ -266,30 +266,7 @@ def provide_test_campaign_id(campaign_id: int | None = None) -> int | None:
 
 
 @pytest.fixture
-def route_handlers() -> list:
-    """Provide all route handlers for the test app."""
-    return [
-        user_router,
-        team_router,
-        roster_router,
-        auth_router,
-        object_router,
-        action_router,
-        brand_router,
-        campaign_router,
-        deliverable_router,
-        media_router,
-        document_router,
-        invoice_router,
-        dashboard_router,
-        thread_router,
-        thread_handler,
-    ]
-
-
-@pytest.fixture
 def test_app(
-    route_handlers: list,
     test_config: Config,
     db_session: AsyncSession,
     mock_s3_client: Any,
@@ -336,7 +313,6 @@ def test_app(
 
     # Create app with test-specific overrides
     app = create_app(
-        route_handlers=route_handlers,
         config=test_config,
         # Override external service dependencies for testing
         dependencies_overrides={

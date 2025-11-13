@@ -69,27 +69,39 @@ async function buildTemplate(templateName: string) {
     const props = generateJinjaProps(templatePath);
     console.log(`  Props: ${Object.keys(props).join(', ') || '(none)'}`);
 
+    // Convert PascalCase to snake_case: MagicLink -> magic_link
+    const fileName = templateName
+      .replace(/([A-Z])/g, '_$1')
+      .toLowerCase()
+      .replace(/^_/, '');
+
+    // Create template-specific directory
+    const templateDir = path.join(OUTPUT_DIR, fileName);
+    if (!fs.existsSync(templateDir)) {
+      fs.mkdirSync(templateDir, { recursive: true });
+    }
 
     // Render the component to HTML with Jinja2 variables
     const html = await render(Component(props), {
       pretty: true,
     });
 
-    // Ensure output directory exists
-    if (!fs.existsSync(OUTPUT_DIR)) {
-      fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-    }
+    // Render the component to plain text with Jinja2 variables
+    const text = await render(Component(props), {
+      plainText: true,
+    });
 
-    // Write to output file as .html.jinja2
-    // Convert PascalCase to snake_case: MagicLink -> magic_link
-    const fileName = templateName
-      .replace(/([A-Z])/g, '_$1')
-      .toLowerCase()
-      .replace(/^_/, '');
-    const outputPath = path.join(OUTPUT_DIR, `${fileName}.html.jinja2`);
-    fs.writeFileSync(outputPath, html, 'utf-8');
+    // Write HTML template
+    const htmlPath = path.join(templateDir, 'html.jinja2');
+    fs.writeFileSync(htmlPath, html, 'utf-8');
 
-    console.log(`✓ Built ${templateName} -> ${outputPath}`);
+    // Write text template
+    const textPath = path.join(templateDir, 'text.jinja2');
+    fs.writeFileSync(textPath, text, 'utf-8');
+
+    console.log(`✓ Built ${templateName}:`);
+    console.log(`  - ${htmlPath}`);
+    console.log(`  - ${textPath}`);
   } catch (error) {
     console.error(`✗ Error building ${templateName}:`, error);
     throw error;

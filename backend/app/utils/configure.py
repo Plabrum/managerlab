@@ -53,8 +53,17 @@ class Config:
     SES_REGION: str = os.getenv("SES_REGION", "us-east-1")
     SES_FROM_EMAIL: str = os.getenv("SES_FROM_EMAIL", "noreply@tryarive.com")
     SES_REPLY_TO_EMAIL: str = os.getenv("SES_REPLY_TO_EMAIL", "support@tryarive.com")
-    SES_CONFIGURATION_SET: str = os.getenv("SES_CONFIGURATION_SET", "manageros-dev")
     EMAIL_TEMPLATES_DIR: str = "templates/emails-react"  # React Email compiled templates
+    ALLOW_LOCAL_SES: bool = os.getenv("ALLOW_LOCAL_SES", "false").lower() == "true"
+
+    @property
+    def SES_CONFIGURATION_SET(self) -> str:
+        """SES configuration set name - uses manageros-production when ALLOW_LOCAL_SES is enabled."""
+        # Allow explicit override via env var
+        if config_set := os.getenv("SES_CONFIGURATION_SET"):
+            return config_set
+        # Use manageros-production for local SES testing, manageros-dev otherwise
+        return "manageros-production" if self.ALLOW_LOCAL_SES else "manageros-dev"
 
     # Session Configuration
     SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")

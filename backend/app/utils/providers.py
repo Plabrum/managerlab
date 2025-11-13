@@ -1,4 +1,3 @@
-import sys
 from collections.abc import AsyncGenerator
 
 import aiohttp
@@ -7,6 +6,7 @@ from litestar import Litestar, Request
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
+from litestar.template import TemplateEngineProtocol
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -14,6 +14,8 @@ from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
 from app.client.s3_client import S3Dep
+from app.emails.client import BaseEmailClient
+from app.emails.service import EmailService
 from app.objects.base import ObjectRegistry
 from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
@@ -110,3 +112,13 @@ def provide_campaign_id(request: Request) -> int | None:
     """Provide the optional campaign ID from the session."""
     campaign_id = request.session.get("campaign_id")
     return int(campaign_id) if campaign_id else None
+
+
+def provide_email_service(
+    email_client: BaseEmailClient,
+    request: Request,
+) -> EmailService:
+    """Factory for email service."""
+    if not (template_engine := request.app.template_engine):
+        raise ValueError("Template engine is not configured")
+    return EmailService(email_client, template_engine)

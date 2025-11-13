@@ -2,9 +2,8 @@
 
 from typing import Any
 
-import html2text
 from email_validator import EmailNotValidError, validate_email
-from litestar.template import TemplateEngineProtocol
+from litestar.contrib.jinja import JinjaTemplateEngine
 
 from app.emails.client import BaseEmailClient, EmailMessage as ClientEmailMessage
 from app.utils.configure import config
@@ -13,14 +12,14 @@ from app.utils.configure import config
 class EmailService:
     """High-level email service with template rendering."""
 
-    def __init__(self, email_client: BaseEmailClient, template_engine: TemplateEngineProtocol):
+    def __init__(
+        self,
+        email_client: BaseEmailClient,
+        template_engine: JinjaTemplateEngine,
+    ):
         self.client = email_client
         self.config = config
         self.template_engine = template_engine
-
-        # Setup html2text
-        self.h2t = html2text.HTML2Text()
-        self.h2t.ignore_links = False
 
     def validate_email_address(self, email: str) -> str:
         """Validate and normalize email address."""
@@ -32,12 +31,18 @@ class EmailService:
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> tuple[str, str]:
         """Render email template to HTML and plain text."""
-        # Render HTML using Litestar's template engine
-        template = self.template_engine.get_template(f"{template_name}.html.jinja2")
-        html_body = template.render(**context)
+        # Access the underlying Jinja2 environment
+        jinja_env = self.template_engine.engine
 
-        # Auto-generate plain text from HTML
-        text_body = self.h2t.handle(html_body)
+        # Render HTML template
+        html_template_path = f"{template_name}/html.jinja2"
+        html_template = jinja_env.get_template(html_template_path)
+        html_body = html_template.render(**context)
+
+        # Render text template
+        text_template_path = f"{template_name}/text.jinja2"
+        text_template = jinja_env.get_template(text_template_path)
+        text_body = text_template.render(**context)
 
         return html_body, text_body
 
