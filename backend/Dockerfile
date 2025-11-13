@@ -2,13 +2,10 @@ FROM ghcr.io/astral-sh/uv:python3.13-bookworm
 
 WORKDIR /app
 
-# Install PostgreSQL client tools and Node.js (for email template building)
+# Install PostgreSQL client tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     pspg \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure PostgreSQL pager
@@ -26,12 +23,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy application source
 COPY . /app
-
-# Build email templates
-RUN cd /app/emails && \
-    npm install && \
-    npm run build && \
-    rm -rf node_modules
 
 # Make scripts executable
 RUN chmod +x /app/scripts/start.sh /app/scripts/start-worker.sh

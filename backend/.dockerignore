@@ -69,7 +69,14 @@ README.md
 # Logs
 *.log
 
-# Email template build artifacts
+# Email template source files (only include compiled HTML)
 emails/node_modules/
 emails/.next/
 emails/dist/
+emails/scripts/
+emails/templates/
+emails/viewer/
+emails/package.json
+emails/package-lock.json
+emails/tsconfig.json
+emails/README.md
