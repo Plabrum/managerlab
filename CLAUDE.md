@@ -32,6 +32,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make format-frontend` - Check Prettier formatting
 - `make check-frontend` - Run type checking + linting together
 
+### Email Template Development
+- `make dev-emails` - Start email template viewer with JSON editor and auto-compile (http://localhost:3001)
+- `make build-emails` - Build email templates from React Email to HTML with Jinja2 variables
+
 ### Docker & Deployment
 - `make docker-build` - Build backend Docker image
 - `make docker-test` - Run comprehensive Docker health checks
@@ -42,8 +46,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Tech Stack
 - **Frontend**: Next.js 15 with React 19, TypeScript, Tailwind CSS, shadcn/ui components
 - **Backend**: Python 3.13+ with Litestar (ASGI), SQLAlchemy, PostgreSQL
+- **Email**: React Email with TypeScript, compiled to HTML with Jinja2 templating
 - **Queue**: SAQ (Simple Async Queue) with PostgreSQL backing for background tasks
-- **Package Managers**: pnpm (frontend), uv (backend)
+- **Package Managers**: pnpm (frontend), uv (backend), npm (emails)
 - **Database**: PostgreSQL with Alembic migrations
 - **Infrastructure**: AWS (ECS Fargate, ALB, Aurora Serverless v2, ECR, S3, Route53) managed via Terraform
 
@@ -54,6 +59,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `backend/app/` - Python application code
 - `backend/app/models/` - SQLAlchemy database models
 - `backend/app/queue/` - SAQ async task definitions and configuration
+- `backend/emails/` - React Email templates and build system
+- `backend/templates/emails-react/` - Compiled email HTML (auto-generated)
 - `backend/alembic/` - Database migrations
 - `infra/` - Terraform infrastructure code
 
@@ -74,6 +81,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **NEVER** use commands that would delete the `pgdata` volume
 - Local database state should persist across container restarts
 - If database reset is absolutely necessary, explicitly confirm with the developer first
+
+### Email Template Workflow (React Email + Tailwind)
+Email templates are built using React Email with Tailwind CSS for better maintainability and design consistency.
+
+**Directory Structure:**
+- `backend/emails/templates/` - React Email components (.tsx files) with Tailwind classes
+- `backend/emails/tailwind.config.ts` - Tailwind config matching frontend design system
+- `backend/emails/scripts/` - Build and watch scripts
+- `backend/templates/emails-react/` - Compiled HTML output with Jinja2 variables (Tailwind compiled to inline styles)
+
+**Development Workflow:**
+1. Run `make dev-emails` to start React Email dev server (http://localhost:3001)
+2. Official React Email preview UI with:
+   - Live preview of all templates
+   - Mobile/desktop view toggle
+   - Built-in Tailwind support
+3. Edit React Email templates in `backend/emails/templates/`
+4. Use Tailwind classes for styling (e.g., `className="bg-neutral-50 p-4 rounded-lg"`)
+5. React Email automatically compiles Tailwind to inline styles for email compatibility
+
+**Creating New Email Templates:**
+1. Create new `.tsx` file in `backend/emails/templates/` (e.g., `WelcomeEmail.tsx`)
+2. Wrap content with `<Tailwind>` component (included in `_BaseLayout`)
+3. Use Tailwind classes instead of inline styles
+4. Use shared components: `_BaseLayout`, `_Button`
+5. Props are compiled to Jinja2 variables: `{{ variable_name }}`
+6. Update `TEMPLATE_VARIABLES` in `backend/emails/scripts/build.ts`
+7. Add method to `EmailService` for sending the new template
+
+**Design System:**
+- Tailwind config matches frontend color scheme (dark/neutral gray primary)
+- Uses same semantic color names: `text-foreground`, `bg-muted`, `border`, etc.
+- Tailwind classes compiled to inline styles for email client compatibility
+- React Email handles complex selectors that don't work in emails
+
+**Production Build:**
+- Run `make build-emails` manually before Docker builds (templates must be committed)
+- Compiled HTML templates (.html.jinja2) included in Docker image
+- No Node.js runtime required in production
+- Litestar's JinjaTemplateEngine renders templates at runtime
 
 ### Testing
 - Backend tests use pytest with asyncio support

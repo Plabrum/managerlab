@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 import structlog
@@ -8,6 +8,7 @@ from litestar import Litestar, Request, Response
 from litestar.channels import ChannelsPlugin
 from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
 from litestar.config.cors import CORSConfig
+from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.di import Provide
 from litestar.exceptions import InternalServerException
 from litestar.logging.config import LoggingConfig, StructLoggingConfig
@@ -24,14 +25,31 @@ from litestar.plugins.sqlalchemy import (
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 from litestar.security.session_auth import SessionAuth
 from litestar.stores.memory import MemoryStore
+from litestar.template.config import TemplateConfig
 from litestar_saq import SAQConfig, SAQPlugin
 from sqlalchemy.pool import StaticPool
 
 from app.actions.deps import provide_action_registry
+from app.actions.routes import action_router
+from app.auth.routes import auth_router
 from app.base.models import BaseDBModel
+from app.base.routes import health_check
+from app.brands.routes import brand_router
+from app.campaigns.routes import campaign_router
 from app.client.s3_client import provide_s3_client
-from app.emails.dependencies import provide_email_client, provide_email_service
+from app.dashboard.routes import dashboard_router
+from app.deliverables.routes import deliverable_router
+from app.documents.routes.documents import document_router
+from app.emails.client import provide_email_client
+from app.media.routes import local_media_router, media_router
+from app.objects.routes import object_router
+from app.payments.routes import invoice_router
 from app.queue.config import queue_config
+from app.roster.routes import roster_router
+from app.teams.routes import team_router
+from app.threads import thread_router
+from app.threads.websocket import thread_handler
+from app.users.routes import user_router
 from app.utils import providers
 from app.utils.configure import Config
 from app.utils.exceptions import ApplicationError, exception_to_http_response
@@ -54,7 +72,6 @@ def handle_options_disconnect(request: Request, exc: InternalServerException) ->
 
 
 def create_app(
-    route_handlers: Sequence[Any],
     config: Config,
     dependencies_overrides: dict[str, Provide] | None = None,
     plugins_overrides: list[Any] | None = None,
@@ -109,7 +126,7 @@ def create_app(
         "config": Provide(lambda: config, sync_to_thread=False),
         "s3_client": Provide(provide_s3_client, sync_to_thread=False),
         "email_client": Provide(provide_email_client, sync_to_thread=False),
-        "email_service": Provide(provide_email_service, sync_to_thread=False),
+        "email_service": Provide(providers.provide_email_service, sync_to_thread=False),
         "action_registry": Provide(provide_action_registry, sync_to_thread=False),
         "object_registry": Provide(providers.provide_object_registry, sync_to_thread=False),
         "team_id": Provide(providers.provide_team_id, sync_to_thread=False),
@@ -161,9 +178,9 @@ def create_app(
                         structlog.contextvars.merge_contextvars,
                         structlog.processors.add_log_level,
                         structlog.processors.StackInfoRenderer(),
-                        structlog.dev.set_exc_info if config.IS_DEV else structlog.processors.format_exc_info,
+                        (structlog.dev.set_exc_info if config.IS_DEV else structlog.processors.format_exc_info),
                         structlog.processors.TimeStamper(fmt="iso", utc=True),
-                        structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer(),
+                        (structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer()),
                     ],
                     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
                     logger_factory=structlog.PrintLoggerFactory(),
@@ -176,9 +193,11 @@ def create_app(
                                 "()": structlog.stdlib.ProcessorFormatter,
                                 "processors": [
                                     structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-                                    structlog.dev.ConsoleRenderer()
-                                    if config.IS_DEV
-                                    else structlog.processors.JSONRenderer(),
+                                    (
+                                        structlog.dev.ConsoleRenderer()
+                                        if config.IS_DEV
+                                        else structlog.processors.JSONRenderer()
+                                    ),
                                 ],
                                 "foreign_pre_chain": [
                                     structlog.contextvars.merge_contextvars,
@@ -242,6 +261,39 @@ def create_app(
     )
 
     # ========================================================================
+    # Template Engine
+    # ========================================================================
+    # Configure Jinja2 template engine for email templates
+    template_config = TemplateConfig(
+        directory=config.EMAIL_TEMPLATES_DIR,
+        engine=JinjaTemplateEngine,
+    )
+
+    # ========================================================================
+    # Route Handlers
+    # ========================================================================
+    route_handlers: list[Any] = [
+        health_check,
+        user_router,
+        team_router,
+        roster_router,
+        auth_router,
+        object_router,
+        action_router,
+        brand_router,
+        campaign_router,
+        deliverable_router,
+        media_router,
+        document_router,
+        invoice_router,
+        dashboard_router,
+        thread_router,
+        thread_handler,
+    ]
+    if config.IS_DEV:
+        route_handlers.append(local_media_router)
+
+    # ========================================================================
     # Create App
     # ========================================================================
     app = Litestar(
@@ -260,6 +312,7 @@ def create_app(
         dependencies=dependencies,
         plugins=plugins,
         openapi_config=openapi_config,
+        template_config=template_config,
         type_encoders={Sqid: sqid_enc_hook},
         type_decoders=[(sqid_type_predicate, sqid_dec_hook)],
         debug=config.IS_DEV,

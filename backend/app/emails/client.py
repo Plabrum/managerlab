@@ -100,10 +100,10 @@ class SESEmailClient(BaseEmailClient):
 
 def provide_email_client(config: Config) -> BaseEmailClient:
     """Factory function to create appropriate email client based on config."""
-    if config.IS_DEV:
-        return LocalEmailClient()
-    else:
+    if config.ALLOW_LOCAL_SES or not config.IS_DEV:
         return SESEmailClient(config)
+    else:
+        return LocalEmailClient()
 
 
 EmailClientDep = Annotated[BaseEmailClient, Dependency()]

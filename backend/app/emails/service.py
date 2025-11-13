@@ -1,11 +1,9 @@
 """Email service with template rendering."""
 
-from pathlib import Path
 from typing import Any
 
-import html2text
 from email_validator import EmailNotValidError, validate_email
-from jinja2 import Environment, FileSystemLoader
+from litestar.contrib.jinja import JinjaTemplateEngine
 
 from app.emails.client import BaseEmailClient, EmailMessage as ClientEmailMessage
 from app.utils.configure import config
@@ -14,17 +12,14 @@ from app.utils.configure import config
 class EmailService:
     """High-level email service with template rendering."""
 
-    def __init__(self, email_client: BaseEmailClient):
+    def __init__(
+        self,
+        email_client: BaseEmailClient,
+        template_engine: JinjaTemplateEngine,
+    ):
         self.client = email_client
         self.config = config
-
-        # Setup Jinja2
-        template_dir = Path(__file__).parent.parent.parent / self.config.EMAIL_TEMPLATES_DIR
-        self.jinja_env = Environment(loader=FileSystemLoader(template_dir))
-
-        # Setup html2text
-        self.h2t = html2text.HTML2Text()
-        self.h2t.ignore_links = False
+        self.template_engine = template_engine
 
     def validate_email_address(self, email: str) -> str:
         """Validate and normalize email address."""
@@ -36,12 +31,18 @@ class EmailService:
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> tuple[str, str]:
         """Render email template to HTML and plain text."""
-        # Render HTML
-        template = self.jinja_env.get_template(f"{template_name}.html")
-        html_body = template.render(**context)
+        # Access the underlying Jinja2 environment
+        jinja_env = self.template_engine.engine
 
-        # Auto-generate plain text from HTML
-        text_body = self.h2t.handle(html_body)
+        # Render HTML template
+        html_template_path = f"{template_name}/html.jinja2"
+        html_template = jinja_env.get_template(html_template_path)
+        html_body = html_template.render(**context)
+
+        # Render text template
+        text_template_path = f"{template_name}/text.jinja2"
+        text_template = jinja_env.get_template(text_template_path)
+        text_body = text_template.render(**context)
 
         return html_body, text_body
 
@@ -92,7 +93,7 @@ class EmailService:
         context = {
             "magic_link_url": magic_link_url,
             "user_email": to_email,
-            "expires_minutes": expires_minutes,
+            "expiration_minutes": expires_minutes,  # React Email template uses expiration_minutes
         }
 
         return await self.send_email(
@@ -115,8 +116,8 @@ class EmailService:
             "invitee_email": to_email,
             "team_name": team_name,
             "inviter_name": inviter_name,
-            "invitation_link": invitation_link,
-            "expires_hours": expires_hours,
+            "invitation_url": invitation_link,  # React Email template uses invitation_url
+            "expiration_hours": expires_hours,  # React Email template uses expiration_hours
         }
 
         return await self.send_email(

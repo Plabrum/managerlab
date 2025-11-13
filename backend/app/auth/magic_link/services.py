@@ -10,8 +10,6 @@ from app.auth.tokens import build_magic_link_url, generate_secure_token, hash_to
 from app.emails.service import EmailService
 from app.users.models import User
 
-__all__ = ["MagicLinkService"]
-
 
 class MagicLinkService:
     """Service for handling magic link authentication."""

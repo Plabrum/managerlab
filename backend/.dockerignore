@@ -68,3 +68,15 @@ README.md
 
 # Logs
 *.log
+
+# Email template source files (only include compiled HTML)
+emails/node_modules/
+emails/.next/
+emails/dist/
+emails/scripts/
+emails/templates/
+emails/package.json
+emails/package-lock.json
+emails/tsconfig.json
+emails/tailwind.config.ts
+emails/README.md
