@@ -1,10 +1,20 @@
 """Authentication guards for route protection."""
 
+import logging
+from typing import TYPE_CHECKING
+
 from litestar.connection import ASGIConnection
 from litestar.exceptions import NotAuthorizedException
 from litestar.handlers.base import BaseRouteHandler
 
 from app.auth.enums import ScopeType
+from app.auth.tokens import verify_payload_signature
+from app.utils.configure import config
+
+if TYPE_CHECKING:
+    from litestar import Request
+
+logger = logging.getLogger(__name__)
 
 
 def requires_session(connection: ASGIConnection, _: BaseRouteHandler) -> None:
@@ -102,3 +112,38 @@ def requires_scoped_session(connection: ASGIConnection, _: BaseRouteHandler) -> 
         campaign_id = connection.session.get("campaign_id")
         if not campaign_id:
             raise NotAuthorizedException("Campaign scope is set but campaign_id is missing")
+
+
+async def requires_webhook_signature(connection: ASGIConnection, _: BaseRouteHandler) -> None:
+    """Guard that verifies HMAC-SHA256 webhook signature.
+
+    Expects X-Webhook-Signature header with HMAC-SHA256 of request body.
+    Uses WEBHOOK_SECRET from config for verification.
+
+    Use this for public webhook endpoints that need to verify the sender's
+    authenticity without requiring user authentication.
+
+    Raises:
+        NotAuthorizedException: If signature is missing or invalid.
+    """
+    from litestar import Request
+
+    # Get signature from header
+    signature = connection.headers.get("X-Webhook-Signature")
+    if not signature:
+        logger.warning("Webhook request missing X-Webhook-Signature header")
+        raise NotAuthorizedException("Missing webhook signature")
+
+    # Get request body (cast to Request to access body method)
+    request = connection if isinstance(connection, Request) else None
+    if request is None:
+        raise NotAuthorizedException("Invalid connection type")
+
+    body = await request.body()
+
+    # Verify signature using constant-time comparison
+    if not verify_payload_signature(body, signature, config.WEBHOOK_SECRET):
+        logger.warning("Invalid webhook signature")
+        raise NotAuthorizedException("Invalid webhook signature")
+
+    logger.debug("Webhook signature verified successfully")

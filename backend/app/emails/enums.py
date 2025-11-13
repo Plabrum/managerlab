@@ -9,3 +9,12 @@ class EmailState(str, Enum):
     PENDING = "PENDING"
     SENT = "SENT"
     FAILED = "FAILED"
+
+
+class InboundEmailState(str, Enum):
+    """Inbound email processing states."""
+
+    RECEIVED = "RECEIVED"
+    PROCESSING = "PROCESSING"
+    PROCESSED = "PROCESSED"
+    FAILED = "FAILED"

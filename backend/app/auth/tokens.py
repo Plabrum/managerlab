@@ -11,6 +11,8 @@ __all__ = [
     "generate_secure_token",
     "hash_token",
     "verify_token_hash",
+    "sign_payload",
+    "verify_payload_signature",
     "build_magic_link_url",
     "build_invitation_link_url",
 ]
@@ -70,6 +72,42 @@ def verify_token_hash(token: str, token_hash: str) -> bool:
     """
     computed_hash = hash_token(token)
     return hmac.compare_digest(computed_hash, token_hash)
+
+
+def sign_payload(payload: bytes, secret: str) -> str:
+    """Sign a payload with HMAC-SHA256.
+
+    Args:
+        payload: Raw bytes to sign (e.g., request body)
+        secret: Secret key for HMAC signing
+
+    Returns:
+        Hexadecimal HMAC-SHA256 hash (64 characters)
+
+    Note:
+        Generic payload signing function for webhooks and API signatures.
+        Use verify_payload_signature() to verify the signature.
+    """
+    return hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+
+
+def verify_payload_signature(payload: bytes, signature: str, secret: str) -> bool:
+    """Verify payload signature using constant-time comparison.
+
+    Args:
+        payload: Raw bytes that were signed
+        signature: Signature to verify (hexadecimal string)
+        secret: Secret key used for signing
+
+    Returns:
+        True if signature is valid, False otherwise
+
+    Note:
+        Uses `hmac.compare_digest()` to prevent timing attacks.
+        Generic verification for webhook and API signatures.
+    """
+    computed_signature = sign_payload(payload, secret)
+    return hmac.compare_digest(computed_signature, signature)
 
 
 def build_magic_link_url(token: str, link_type: Literal["magic_link", "invitation"] = "magic_link") -> str:

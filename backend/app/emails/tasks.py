@@ -2,12 +2,15 @@
 
 import logging
 from datetime import UTC, datetime
+from email import message_from_bytes
+from email.utils import parsedate_to_datetime
+from io import BytesIO
 
 import sqlalchemy as sa
 
 from app.emails.client import EmailMessage as ClientEmailMessage, SESEmailClient
-from app.emails.enums import EmailState
-from app.emails.models import EmailMessage
+from app.emails.enums import EmailState, InboundEmailState
+from app.emails.models import EmailMessage, InboundEmail
 from app.queue.registry import task
 from app.queue.types import AppContext
 
@@ -73,4 +76,118 @@ async def send_email_task(ctx: AppContext, *, email_message_id: int) -> dict:
             await db_session.commit()
 
             logger.error(f"Failed to send email {email_message_id}: {e}")
+            raise
+
+
+@task
+async def process_inbound_email_task(ctx: AppContext, *, inbound_email_id: int) -> dict:
+    """
+    SAQ task to process an inbound email from S3.
+
+    Fetches raw email from S3, parses headers and metadata,
+    extracts attachments and stores them in S3.
+
+    Args:
+        ctx: SAQ context with db_sessionmaker, s3_client, and config
+        inbound_email_id: ID of InboundEmail to process
+
+    Returns:
+        dict with status and processing details
+    """
+    db_sessionmaker = ctx["db_sessionmaker"]
+    s3_client = ctx["s3_client"]
+
+    async with db_sessionmaker() as db_session:
+        # Fetch inbound email from database
+        stmt = sa.select(InboundEmail).where(InboundEmail.id == inbound_email_id)
+        result = await db_session.execute(stmt)
+        inbound = result.scalar_one()
+
+        try:
+            # Mark as processing
+            inbound.state = InboundEmailState.PROCESSING
+            await db_session.commit()
+
+            # Fetch raw email from S3
+            logger.info(f"Fetching email from s3://{inbound.s3_bucket}/{inbound.s3_key}")
+            email_bytes = s3_client.get_file_bytes(inbound.s3_key)
+
+            # Parse MIME message
+            msg = message_from_bytes(email_bytes)
+
+            # Extract and store metadata from headers
+            inbound.from_email = msg.get("From", "unknown@unknown.com")
+            inbound.to_email = msg.get("To", "unknown@unknown.com")
+            inbound.subject = msg.get("Subject", "(no subject)")
+            inbound.ses_message_id = msg.get("Message-ID", f"local-{inbound.id}")
+
+            # Parse received timestamp if available
+            date_str = msg.get("Date")
+            if date_str:
+                try:
+                    inbound.received_at = parsedate_to_datetime(date_str)
+                except Exception as date_error:
+                    logger.warning(f"Failed to parse date '{date_str}': {date_error}")
+
+            await db_session.commit()
+
+            logger.info(f"Processing email from {inbound.from_email}")
+            logger.info(f"Subject: {inbound.subject}")
+
+            # Extract attachments
+            attachments = []
+            for part in msg.walk():
+                # Check if this is an attachment
+                if part.get_content_disposition() == "attachment":
+                    filename = part.get_filename()
+                    if not filename:
+                        continue
+
+                    # Get attachment data
+                    attachment_data = part.get_payload(decode=True)
+                    if not attachment_data or not isinstance(attachment_data, bytes):
+                        continue
+
+                    # Generate S3 key for attachment
+                    s3_key = f"emails/attachments/{inbound_email_id}/{filename}"
+
+                    # Upload to S3
+                    logger.info(f"Uploading attachment: {filename} ({len(attachment_data)} bytes)")
+                    s3_client.upload_fileobj(BytesIO(attachment_data), s3_key)
+
+                    # Store metadata
+                    attachments.append(
+                        {
+                            "filename": filename,
+                            "s3_key": s3_key,
+                            "content_type": part.get_content_type(),
+                            "size": len(attachment_data),
+                        }
+                    )
+
+            # Save attachments metadata
+            if attachments:
+                inbound.attachments_json = {"attachments": attachments}
+                logger.info(f"Extracted {len(attachments)} attachment(s)")
+
+            # Mark as processed
+            inbound.state = InboundEmailState.PROCESSED
+            inbound.processed_at = datetime.now(UTC)
+            await db_session.commit()
+
+            return {
+                "status": "processed",
+                "inbound_email_id": inbound_email_id,
+                "from": inbound.from_email,
+                "subject": inbound.subject,
+                "attachment_count": len(attachments),
+            }
+
+        except Exception as e:
+            # Mark as failed
+            inbound.state = InboundEmailState.FAILED
+            inbound.error_message = str(e)
+            await db_session.commit()
+
+            logger.error(f"Failed to process inbound email {inbound_email_id}: {e}")
             raise

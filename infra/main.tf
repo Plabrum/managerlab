@@ -865,13 +865,16 @@ resource "aws_secretsmanager_secret" "app_secrets_v2" {
 resource "aws_secretsmanager_secret_version" "app_secrets_v2" {
   secret_id = aws_secretsmanager_secret.app_secrets_v2.id
   secret_string = jsonencode({
-    GOOGLE_CLIENT_ID         = ""
-    GOOGLE_CLIENT_SECRET     = ""
-    GOOGLE_REDIRECT_URI      = ""
-    SUCCESS_REDIRECT_URL     = ""
-    SESSION_COOKIE_DOMAIN    = ""
-    FRONTEND_ORIGIN          = ""
-    BETTERSTACK_SOURCE_TOKEN = ""
+    GOOGLE_CLIENT_ID            = ""
+    GOOGLE_CLIENT_SECRET        = ""
+    GOOGLE_REDIRECT_URI         = ""
+    SUCCESS_REDIRECT_URL        = ""
+    SESSION_COOKIE_DOMAIN       = ""
+    FRONTEND_ORIGIN             = ""
+    BETTER_STACK_SOURCE_TOKEN   = ""
+    BETTER_STACK_INGESTING_HOST = ""
+    SES_CONFIGURATION_SET       = ""
+    WEBHOOK_SECRET              = ""
   })
 
   lifecycle {
