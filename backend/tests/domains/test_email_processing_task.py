@@ -122,7 +122,7 @@ async def test_task_extracts_attachments(
 async def test_task_handles_s3_error(
     db_session: AsyncSession,
 ):
-    """Test task handles S3 fetch errors gracefully."""
+    """Test task handles S3 fetch errors gracefully - no orphaned records."""
     # Mock S3 client to raise error
     mock_s3 = Mock()
     mock_s3.get_file_bytes = Mock(side_effect=Exception("S3 bucket not found"))
@@ -138,6 +138,7 @@ async def test_task_handles_s3_error(
     }
 
     # Run task - should raise exception
+    task_raised = False
     try:
         await process_inbound_email_task(
             mock_context,
@@ -145,12 +146,14 @@ async def test_task_handles_s3_error(
             key="emails/test-email-error.eml",
         )
     except Exception:
-        pass  # Expected to raise
+        task_raised = True
 
-    # Verify record was created with task_id before failure
+    assert task_raised, "Task should have raised an exception"
+
+    # Verify NO record was created (transaction pattern prevents orphaned records)
     stmt = select(InboundEmail).where(InboundEmail.s3_key == "emails/test-email-error.eml")
     result_db = await db_session.execute(stmt)
-    email = result_db.scalar_one()
+    email = result_db.scalar_one_or_none()
 
-    assert email.task_id == "test-task-id-789"
-    # Error details stored in SAQ task, not on email record
+    assert email is None, "No database record should exist when S3 fetch fails"
+    # Error is captured in SAQ task state, not in database
