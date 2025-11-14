@@ -24,6 +24,7 @@ class EmailMessage:
     body_html: str
     body_text: str
     from_email: str
+    from_name: str | None = None
     reply_to: str | None = None
 
 
@@ -41,10 +42,13 @@ class LocalEmailClient(BaseEmailClient):
 
     async def send_email(self, message: EmailMessage) -> str:
         """Log email instead of sending."""
+        # Format From header with display name if provided
+        from_header = f'"{message.from_name}" <{message.from_email}>' if message.from_name else message.from_email
+
         logger.info("=" * 80)
         logger.info("LOCAL EMAIL (not actually sent)")
         logger.info(f"To: {', '.join(message.to)}")
-        logger.info(f"From: {message.from_email}")
+        logger.info(f"From: {from_header}")
         logger.info(f"Subject: {message.subject}")
         logger.info(f"Reply-To: {message.reply_to}")
         logger.info("-" * 80)
@@ -69,10 +73,13 @@ class SESEmailClient(BaseEmailClient):
         session = aioboto3.Session()
 
         async with session.client("ses", region_name=self.region) as ses:
+            # Format From header with display name if provided
+            from_header = f'"{message.from_name}" <{message.from_email}>' if message.from_name else message.from_email
+
             # Build MIME message
             msg = MIMEMultipart("alternative")
             msg["Subject"] = message.subject
-            msg["From"] = message.from_email
+            msg["From"] = from_header  # Can include display name
             msg["To"] = ", ".join(message.to)
 
             if message.reply_to:
@@ -84,7 +91,7 @@ class SESEmailClient(BaseEmailClient):
 
             # Send via SES
             kwargs = {
-                "Source": message.from_email,
+                "Source": message.from_email,  # Must be just the email address
                 "Destinations": message.to,
                 "RawMessage": {"Data": msg.as_string()},
             }

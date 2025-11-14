@@ -51,6 +51,7 @@ class Config:
 
     # Email Configuration (AWS SES)
     SES_REGION: str = os.getenv("SES_REGION", "us-east-1")
+    SES_FROM_NAME: str = os.getenv("SES_FROM_NAME", "Arive")
     SES_FROM_EMAIL: str = os.getenv("SES_FROM_EMAIL", "noreply@tryarive.com")
     SES_REPLY_TO_EMAIL: str = os.getenv("SES_REPLY_TO_EMAIL", "support@tryarive.com")
     EMAIL_TEMPLATES_DIR: str = "templates/emails-react"  # React Email compiled templates

@@ -53,6 +53,7 @@ class EmailService:
         template_name: str,
         context: dict[str, Any],
         from_email: str | None = None,
+        from_name: str | None = None,
         reply_to: str | None = None,
     ) -> str:
         """Send an email using a template."""
@@ -63,9 +64,11 @@ class EmailService:
         # Validate all email addresses
         to = [self.validate_email_address(email) for email in to]
 
-        # Use default from email if not specified
+        # Use default from email/name if not specified
         if not from_email:
             from_email = self.config.SES_FROM_EMAIL
+        if not from_name:
+            from_name = self.config.SES_FROM_NAME
 
         # Render template
         html_body, text_body = self.render_template(template_name, context)
@@ -77,6 +80,7 @@ class EmailService:
             body_html=html_body,
             body_text=text_body,
             from_email=from_email,
+            from_name=from_name,
             reply_to=reply_to or self.config.SES_REPLY_TO_EMAIL,
         )
 
