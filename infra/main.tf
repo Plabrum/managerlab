@@ -979,6 +979,26 @@ resource "aws_iam_role_policy" "ecs_task_s3" {
   })
 }
 
+# Policy for reading inbound emails from S3
+resource "aws_iam_role_policy" "ecs_task_inbound_emails_s3" {
+  name = "${local.name}-ecs-task-inbound-emails-s3-policy"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:HeadObject"
+        ]
+        Resource = "${aws_s3_bucket.inbound_emails.arn}/*"
+      }
+    ]
+  })
+}
+
 # Policy for Secrets Manager access (app fetches secrets at startup)
 resource "aws_iam_role_policy" "ecs_task_secrets" {
   name = "${local.name}-ecs-task-secrets-policy"
@@ -1210,6 +1230,7 @@ resource "aws_ecs_service" "main" {
   depends_on = [
     aws_lb_listener.https,
     aws_iam_role_policy.ecs_task_s3,
+    aws_iam_role_policy.ecs_task_inbound_emails_s3,
     aws_iam_role_policy.ecs_task_secrets,
     aws_iam_role_policy.ecs_task_exec,
     aws_vpc_endpoint.ssm,
@@ -1402,6 +1423,7 @@ resource "aws_ecs_service" "worker" {
 
   depends_on = [
     aws_iam_role_policy.ecs_task_s3,
+    aws_iam_role_policy.ecs_task_inbound_emails_s3,
     aws_iam_role_policy.ecs_task_secrets,
     aws_iam_role_policy.ecs_task_exec,
     aws_vpc_endpoint.ssm,
