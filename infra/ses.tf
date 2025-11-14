@@ -62,6 +62,123 @@ resource "aws_route53_record" "ses_dmarc" {
   records = ["v=DMARC1; p=none; rua=mailto:dmarc@tryarive.com"]
 }
 
+# ================================
+# Inbound Email Configuration
+# ================================
+
+# S3 Bucket for Inbound Emails
+resource "aws_s3_bucket" "inbound_emails" {
+  bucket = "manageros-inbound-emails-${var.environment}"
+
+  tags = {
+    Name        = "Inbound Emails - ${var.environment}"
+    Environment = var.environment
+  }
+}
+
+# Lifecycle Configuration - Delete old emails after 30 days
+resource "aws_s3_bucket_lifecycle_configuration" "inbound_emails" {
+  bucket = aws_s3_bucket.inbound_emails.id
+
+  rule {
+    id     = "delete-old-emails"
+    status = "Enabled"
+
+    filter {} # Apply to all objects in bucket
+
+    expiration {
+      days = 30
+    }
+  }
+}
+
+# Disable versioning
+resource "aws_s3_bucket_versioning" "inbound_emails" {
+  bucket = aws_s3_bucket.inbound_emails.id
+
+  versioning_configuration {
+    status = "Disabled"
+  }
+}
+
+# Server-side encryption
+resource "aws_s3_bucket_server_side_encryption_configuration" "inbound_emails" {
+  bucket = aws_s3_bucket.inbound_emails.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# Bucket Policy - Allow SES to write emails
+resource "aws_s3_bucket_policy" "inbound_emails" {
+  bucket = aws_s3_bucket.inbound_emails.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowSESPuts"
+        Effect = "Allow"
+        Principal = {
+          Service = "ses.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "${aws_s3_bucket.inbound_emails.arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+# SES Receipt Rule Set
+resource "aws_ses_receipt_rule_set" "main" {
+  rule_set_name = "manageros-${var.environment}"
+}
+
+# Activate the rule set
+resource "aws_ses_active_receipt_rule_set" "main" {
+  rule_set_name = aws_ses_receipt_rule_set.main.rule_set_name
+}
+
+# SES Receipt Rule for contracts@tryarive.com
+resource "aws_ses_receipt_rule" "contracts" {
+  name          = "contracts-inbound"
+  rule_set_name = aws_ses_receipt_rule_set.main.rule_set_name
+  recipients    = ["contracts@tryarive.com"]
+  enabled       = true
+  scan_enabled  = true
+
+  # Store in S3 first
+  s3_action {
+    bucket_name       = aws_s3_bucket.inbound_emails.bucket
+    object_key_prefix = "emails/"
+    position          = 1
+  }
+
+  # Then trigger Lambda
+  lambda_action {
+    function_arn    = aws_lambda_function.email_webhook.arn
+    invocation_type = "Event"
+    position        = 2
+  }
+}
+
+# MX Record for Inbound Email
+resource "aws_route53_record" "ses_mx" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "tryarive.com"
+  type    = "MX"
+  ttl     = 600
+  records = ["10 inbound-smtp.${var.aws_region}.amazonaws.com"]
+}
+
 # Outputs for verification
 output "ses_domain_verification_status" {
   description = "SES domain verification status (check after apply)"
@@ -76,4 +193,9 @@ output "ses_dkim_status" {
 output "ses_configuration_set" {
   description = "SES configuration set name"
   value       = aws_ses_configuration_set.main.name
+}
+
+output "inbound_emails_bucket" {
+  description = "S3 bucket for inbound emails"
+  value       = aws_s3_bucket.inbound_emails.bucket
 }

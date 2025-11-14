@@ -65,6 +65,14 @@ class Config:
         # Use manageros-production for local SES testing, manageros-dev otherwise
         return "manageros-production" if self.ALLOW_LOCAL_SES else "manageros-dev"
 
+    # Webhook Configuration (for inbound email)
+    WEBHOOK_SECRET: str = os.getenv("WEBHOOK_SECRET", "")
+
+    @property
+    def INBOUND_EMAILS_BUCKET(self) -> str:
+        """S3 bucket for inbound emails - dynamically set based on environment."""
+        return f"manageros-inbound-emails-{self.ENV}"
+
     # Session Configuration
     SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
 

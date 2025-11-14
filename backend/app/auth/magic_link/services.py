@@ -5,10 +5,11 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.crypto import generate_secure_token, hash_token
 from app.auth.models import MagicLinkToken
-from app.auth.tokens import build_magic_link_url, generate_secure_token, hash_token
 from app.emails.service import EmailService
 from app.users.models import User
+from app.utils.configure import config
 
 
 class MagicLinkService:
@@ -23,6 +24,22 @@ class MagicLinkService:
         """
         self.db = db_session
         self.email_service = email_service
+
+    def _build_magic_link_url(self, token: str) -> str:
+        """Build a complete magic link URL.
+
+        Args:
+            token: Plaintext token to include in URL
+
+        Returns:
+            Complete URL for the magic link
+
+        Example:
+            >>> self._build_magic_link_url("abc123")
+            'http://localhost:3000/auth/magic-link/verify?token=abc123'
+        """
+        base_url = config.FRONTEND_ORIGIN.rstrip("/")
+        return f"{base_url}/auth/magic-link/verify?token={token}"
 
     async def create_and_send_magic_link(self, email: str) -> dict[str, Any]:
         """Create a magic link token and send it via email.
@@ -66,7 +83,7 @@ class MagicLinkService:
         await self.db.flush()  # Flush to ensure token is created
 
         # Build the magic link URL
-        magic_link_url = build_magic_link_url(token)
+        magic_link_url = self._build_magic_link_url(token)
 
         # Send email
         await self.email_service.send_magic_link_email(

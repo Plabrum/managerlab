@@ -865,13 +865,16 @@ resource "aws_secretsmanager_secret" "app_secrets_v2" {
 resource "aws_secretsmanager_secret_version" "app_secrets_v2" {
   secret_id = aws_secretsmanager_secret.app_secrets_v2.id
   secret_string = jsonencode({
-    GOOGLE_CLIENT_ID         = ""
-    GOOGLE_CLIENT_SECRET     = ""
-    GOOGLE_REDIRECT_URI      = ""
-    SUCCESS_REDIRECT_URL     = ""
-    SESSION_COOKIE_DOMAIN    = ""
-    FRONTEND_ORIGIN          = ""
-    BETTERSTACK_SOURCE_TOKEN = ""
+    GOOGLE_CLIENT_ID            = ""
+    GOOGLE_CLIENT_SECRET        = ""
+    GOOGLE_REDIRECT_URI         = ""
+    SUCCESS_REDIRECT_URL        = ""
+    SESSION_COOKIE_DOMAIN       = ""
+    FRONTEND_ORIGIN             = ""
+    BETTER_STACK_SOURCE_TOKEN   = ""
+    BETTER_STACK_INGESTING_HOST = ""
+    SES_CONFIGURATION_SET       = ""
+    WEBHOOK_SECRET              = ""
   })
 
   lifecycle {
@@ -971,6 +974,26 @@ resource "aws_iam_role_policy" "ecs_task_s3" {
           aws_s3_bucket.app.arn,
           "${aws_s3_bucket.app.arn}/*"
         ]
+      }
+    ]
+  })
+}
+
+# Policy for reading inbound emails from S3
+resource "aws_iam_role_policy" "ecs_task_inbound_emails_s3" {
+  name = "${local.name}-ecs-task-inbound-emails-s3-policy"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:HeadObject"
+        ]
+        Resource = "${aws_s3_bucket.inbound_emails.arn}/*"
       }
     ]
   })
@@ -1207,6 +1230,7 @@ resource "aws_ecs_service" "main" {
   depends_on = [
     aws_lb_listener.https,
     aws_iam_role_policy.ecs_task_s3,
+    aws_iam_role_policy.ecs_task_inbound_emails_s3,
     aws_iam_role_policy.ecs_task_secrets,
     aws_iam_role_policy.ecs_task_exec,
     aws_vpc_endpoint.ssm,
@@ -1399,6 +1423,7 @@ resource "aws_ecs_service" "worker" {
 
   depends_on = [
     aws_iam_role_policy.ecs_task_s3,
+    aws_iam_role_policy.ecs_task_inbound_emails_s3,
     aws_iam_role_policy.ecs_task_secrets,
     aws_iam_role_policy.ecs_task_exec,
     aws_vpc_endpoint.ssm,

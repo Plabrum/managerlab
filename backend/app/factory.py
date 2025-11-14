@@ -41,6 +41,7 @@ from app.dashboard.routes import dashboard_router
 from app.deliverables.routes import deliverable_router
 from app.documents.routes.documents import document_router
 from app.emails.client import provide_email_client
+from app.emails.webhook_routes import inbound_email_router
 from app.media.routes import local_media_router, media_router
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
@@ -93,6 +94,7 @@ def create_app(
         "^/health",
         "^/auth/google/",
         "^/auth/magic-link/",
+        "^/webhooks/emails",
         "^/teams/invitations/accept",
         "^/schema",
     ]
@@ -289,6 +291,7 @@ def create_app(
         dashboard_router,
         thread_router,
         thread_handler,
+        inbound_email_router,
     ]
     if config.IS_DEV:
         route_handlers.append(local_media_router)

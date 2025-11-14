@@ -61,20 +61,33 @@
 - `backend/app/factory.py` - Registered email_client and email_service in DI
 - `infra/main.tf` - Added SES IAM permissions to ECS task role
 
-### ⏸️ Phase 2: Inbound Email (NOT IMPLEMENTED)
+### ✅ Phase 2: Inbound Email (COMPLETED)
 
-**Status**: Deferred - outbound-only implementation prioritized for production
+**Status**: Code complete - ready for deployment
 
-**What's NOT Built**:
-- Lambda function for webhook forwarding
-- S3 bucket for inbound emails
-- Webhook handlers with HMAC signature verification
-- InboundEmail model
-- Email parsing tasks
-- MX DNS records
-- SES receipt rules
+**Last Updated**: 2025-11-13
 
-**Reason for Deferral**: Production priority on magic link authentication requires outbound only. Inbound email can be added later without affecting current implementation.
+**What's Been Built**:
+- ✅ Backend webhook handler with HMAC signature verification (reusable auth/guards.py pattern)
+- ✅ InboundEmail model with state machine tracking (RECEIVED → PROCESSING → PROCESSED/FAILED)
+- ✅ SAQ task for async email processing (parse MIME, extract attachments)
+- ✅ S3 bucket for inbound emails (30-day lifecycle)
+- ✅ SES receipt rules for contracts@tryarive.com
+- ✅ MX DNS record pointing to SES
+- ✅ Lambda function (auto-packaged via Terraform `archive_file`)
+- ✅ Complete infrastructure with IAM, VPC, CloudWatch
+- ✅ Database migration for inbound_emails table
+- ✅ Attachment extraction to S3 with metadata
+
+**Architecture**:
+Email → SES → S3 + Lambda → Webhook (HMAC-verified) → Task Queue → Process (parse + extract attachments)
+
+**Key Files**:
+- Backend: `backend/app/emails/webhook_routes.py`, `tasks.py`, `models.py`
+- Infrastructure: `infra/ses.tf`, `infra/lambda.tf`, `infra/lambda/handler.py`, `infra/main.tf` (webhook_secret variable)
+- Documentation: `INBOUND_EMAIL_IMPLEMENTATION.md`
+
+**Deployment**: See `INBOUND_EMAIL_IMPLEMENTATION.md` for complete deployment guide
 
 ### 🔮 Future: Communications Platform Evolution
 

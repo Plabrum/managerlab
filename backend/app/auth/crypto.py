@@ -3,17 +3,8 @@
 import hashlib
 import hmac
 import secrets
-from typing import Literal
 
 from app.utils.configure import config
-
-__all__ = [
-    "generate_secure_token",
-    "hash_token",
-    "verify_token_hash",
-    "build_magic_link_url",
-    "build_invitation_link_url",
-]
 
 
 def generate_secure_token(length: int = 32) -> str:
@@ -72,39 +63,37 @@ def verify_token_hash(token: str, token_hash: str) -> bool:
     return hmac.compare_digest(computed_hash, token_hash)
 
 
-def build_magic_link_url(token: str, link_type: Literal["magic_link", "invitation"] = "magic_link") -> str:
-    """Build a complete magic link URL.
+def sign_payload(payload: bytes, secret: str) -> str:
+    """Sign a payload with HMAC-SHA256.
 
     Args:
-        token: Plaintext token to include in URL
-        link_type: Type of link ("magic_link" or "invitation")
+        payload: Raw bytes to sign (e.g., request body)
+        secret: Secret key for HMAC signing
 
     Returns:
-        Complete URL for the magic link or invitation
+        Hexadecimal HMAC-SHA256 hash (64 characters)
 
-    Example:
-        >>> build_magic_link_url("abc123", "magic_link")
-        'http://localhost:3000/auth/magic-link/verify?token=abc123'
+    Note:
+        Generic payload signing function for webhooks and API signatures.
+        Use verify_payload_signature() to verify the signature.
     """
-    base_url = config.FRONTEND_ORIGIN.rstrip("/")
-
-    if link_type == "magic_link":
-        return f"{base_url}/auth/magic-link/verify?token={token}"
-    else:
-        return f"{base_url}/invite/accept?token={token}"
+    return hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
 
 
-def build_invitation_link_url(token: str) -> str:
-    """Build a complete invitation link URL.
+def verify_payload_signature(payload: bytes, signature: str, secret: str) -> bool:
+    """Verify payload signature using constant-time comparison.
 
     Args:
-        token: Plaintext token to include in URL
+        payload: Raw bytes that were signed
+        signature: Signature to verify (hexadecimal string)
+        secret: Secret key used for signing
 
     Returns:
-        Complete URL for the team invitation
+        True if signature is valid, False otherwise
 
-    Example:
-        >>> build_invitation_link_url("xyz789")
-        'http://localhost:3000/invite/accept?token=xyz789'
+    Note:
+        Uses `hmac.compare_digest()` to prevent timing attacks.
+        Generic verification for webhook and API signatures.
     """
-    return build_magic_link_url(token, link_type="invitation")
+    computed_signature = sign_payload(payload, secret)
+    return hmac.compare_digest(computed_signature, signature)

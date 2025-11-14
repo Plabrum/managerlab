@@ -3,8 +3,26 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.crypto import generate_secure_token, hash_token
 from app.auth.models import TeamInvitationToken
-from app.auth.tokens import build_invitation_link_url, generate_secure_token, hash_token
+from app.utils.configure import config
+
+
+def _build_invitation_link_url(token: str) -> str:
+    """Build a complete invitation link URL.
+
+    Args:
+        token: Plaintext token to include in URL
+
+    Returns:
+        Complete URL for the team invitation
+
+    Example:
+        >>> _build_invitation_link_url("xyz789")
+        'http://localhost:3000/invite/accept?token=xyz789'
+    """
+    base_url = config.FRONTEND_ORIGIN.rstrip("/")
+    return f"{base_url}/invite/accept?token={token}"
 
 
 async def generate_scoped_team_link(
@@ -48,7 +66,7 @@ async def generate_scoped_team_link(
     await db_session.flush()  # Flush to ensure token is created
 
     # Build and return the invitation URL
-    return build_invitation_link_url(token)
+    return _build_invitation_link_url(token)
 
 
 async def verify_team_invitation_token(
