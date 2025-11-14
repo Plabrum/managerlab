@@ -1,11 +1,22 @@
 """Pytest configuration and fixtures for backend tests."""
 
 import logging
+import os
 from collections.abc import AsyncGenerator
 from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
+
+# Set test environment variables BEFORE any app imports
+# This ensures Config class reads correct values when modules are imported
+os.environ.setdefault("ENV", "testing")
+os.environ.setdefault("WEBHOOK_SECRET", "test-webhook-secret-key")
+os.environ.setdefault("S3_BUCKET", "test-bucket")
+os.environ.setdefault("SESSION_COOKIE_DOMAIN", "localhost")
+os.environ.setdefault("FRONTEND_ORIGIN", "http://localhost:3000")
+os.environ.setdefault("GOOGLE_CLIENT_ID", "test-client-id")
+os.environ.setdefault("GOOGLE_CLIENT_SECRET", "test-client-secret")
 
 # Silence httpx INFO logs during tests
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -174,6 +185,7 @@ def test_config(test_db_url: str, monkeypatch) -> Config:
     monkeypatch.setenv("FRONTEND_ORIGIN", "http://localhost:3000")
     monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
     monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "test-client-secret")
+    monkeypatch.setenv("WEBHOOK_SECRET", "test-webhook-secret-key")
 
     # Create config after environment variables are set
     config = Config()
@@ -304,12 +316,16 @@ def test_app(
 
     def provide_test_task_queues() -> Any:
         """Provide a TaskQueues object for testing."""
-        # Import the real TaskQueues class and create an empty instance
-        # This satisfies Litestar's type checking without needing actual queues
+        from unittest.mock import AsyncMock, Mock
+
         from litestar_saq import TaskQueues
 
-        # Create empty TaskQueues dict - tests don't actually enqueue tasks
-        return TaskQueues({})
+        # Create a mock queue
+        mock_queue = Mock()
+        mock_queue.enqueue = AsyncMock(return_value=None)
+
+        # Create TaskQueues with default queue
+        return TaskQueues({"default": mock_queue})
 
     # Create app with test-specific overrides
     app = create_app(
