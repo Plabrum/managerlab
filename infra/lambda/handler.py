@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     Extracts S3 location from SES event and forwards to webhook endpoint.
     Backend fetches from S3 and parses everything in the task.
 
-    Always returns 200 to prevent SES retries (email is already in S3).
+    Returns 200 for permanent failures, raises for transient failures to trigger SES retry.
 
     Args:
         event: SES event with S3 action info
@@ -59,6 +59,7 @@ def lambda_handler(event, context):
                     "Content-Type": "application/json",
                     "X-Webhook-Signature": signature,
                 },
+                timeout=10.0,
             )
 
             print(
@@ -66,10 +67,20 @@ def lambda_handler(event, context):
                 f"key={s3_info['objectKey']}, response_status={response.status}"
             )
 
-        except Exception as e:
-            # Log error but continue processing other records
-            print(f"Error processing record: {e}")
-            # Don't re-raise - email is in S3, backend can retry later
+            # Transient failure (5xx) - let SES retry
+            if response.status >= 500:
+                raise Exception(
+                    f"Backend returned {response.status} (transient error) - SES will retry"
+                )
 
-    # Always return 200 - email is already in S3
+        except urllib3.exceptions.HTTPError as e:
+            # Network/connection errors are transient - let SES retry
+            print(f"Network error (transient): {e}")
+            raise
+
+        except Exception as e:
+            # Other errors (4xx, parsing, etc.) are permanent - log and continue
+            print(f"Permanent error processing record: {e}")
+
+    # Return 200 for permanent failures or success
     return {"statusCode": 200}
