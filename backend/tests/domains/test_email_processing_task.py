@@ -62,7 +62,6 @@ async def test_task_processes_email_with_metadata(
     assert email.from_email == "sender@example.com"
     assert email.subject == "Test Contract Submission"
     assert email.processed_at is not None
-    assert email.error_message is None
 
 
 async def test_task_extracts_attachments(
@@ -148,10 +147,10 @@ async def test_task_handles_s3_error(
     except Exception:
         pass  # Expected to raise
 
-    # Verify error was recorded
+    # Verify record was created with task_id before failure
     stmt = select(InboundEmail).where(InboundEmail.s3_key == "emails/test-email-error.eml")
     result_db = await db_session.execute(stmt)
     email = result_db.scalar_one()
 
     assert email.task_id == "test-task-id-789"
-    assert email.error_message == "S3 bucket not found"
+    # Error details stored in SAQ task, not on email record

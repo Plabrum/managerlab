@@ -22,11 +22,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    # Remove state column and index from email_messages
+    # Remove state and error_message columns from email_messages
     op.drop_index(op.f("ix_email_messages_state"), table_name="email_messages")
     op.drop_column("email_messages", "state")
+    op.drop_column("email_messages", "error_message")
 
-    # Create inbound_emails table without state, with task_id
+    # Create inbound_emails table without state/error_message, with task_id
     op.create_table(
         "inbound_emails",
         sa.Column("s3_bucket", sa.Text(), nullable=False),
@@ -39,7 +40,6 @@ def upgrade() -> None:
         sa.Column("attachments_json", sa.JSON(), nullable=True),
         sa.Column("task_id", sa.Text(), nullable=True),
         sa.Column("processed_at", sa.DateTime(), nullable=True),
-        sa.Column("error_message", sa.Text(), nullable=True),
         sa.Column("team_id", SqidType(), nullable=True),
         sa.Column("id", SqidType(), autoincrement=True, nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
@@ -66,6 +66,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_inbound_emails_deleted_at"), table_name="inbound_emails")
     op.drop_table("inbound_emails")
 
-    # Re-add state column and index to email_messages
+    # Re-add state and error_message columns to email_messages
     op.add_column("email_messages", sa.Column("state", sa.Text(), server_default="PENDING", nullable=False))
+    op.add_column("email_messages", sa.Column("error_message", sa.Text(), nullable=True))
     op.create_index(op.f("ix_email_messages_state"), "email_messages", ["state"], unique=False)

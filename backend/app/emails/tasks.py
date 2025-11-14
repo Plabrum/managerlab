@@ -37,43 +37,34 @@ async def send_email_task(ctx: AppContext, *, email_message_id: int) -> dict:
         result = await db_session.execute(stmt)
         email = result.scalar_one()
 
-        try:
-            # Create SES client
-            ses_client = SESEmailClient(config)
+        # Create SES client
+        ses_client = SESEmailClient(config)
 
-            # Build message
-            message = ClientEmailMessage(
-                to=email.to_email.split(","),  # Handle comma-separated emails
-                subject=email.subject,
-                body_html=email.body_html,
-                body_text=email.body_text,
-                from_email=email.from_email,
-                reply_to=email.reply_to_email,
-            )
+        # Build message
+        message = ClientEmailMessage(
+            to=email.to_email.split(","),  # Handle comma-separated emails
+            subject=email.subject,
+            body_html=email.body_html,
+            body_text=email.body_text,
+            from_email=email.from_email,
+            reply_to=email.reply_to_email,
+        )
 
-            # Send via SES
-            ses_message_id = await ses_client.send_email(message)
+        # Send via SES
+        ses_message_id = await ses_client.send_email(message)
 
-            # Update database
-            email.ses_message_id = ses_message_id
-            email.sent_at = datetime.now(UTC)
-            await db_session.commit()
+        # Update database
+        email.ses_message_id = ses_message_id
+        email.sent_at = datetime.now(UTC)
+        await db_session.commit()
 
-            logger.info(f"Email {email_message_id} sent: {ses_message_id}")
+        logger.info(f"Email {email_message_id} sent: {ses_message_id}")
 
-            return {
-                "status": "sent",
-                "email_id": email_message_id,
-                "ses_message_id": ses_message_id,
-            }
-
-        except Exception as e:
-            # Mark as failed
-            email.error_message = str(e)
-            await db_session.commit()
-
-            logger.error(f"Failed to send email {email_message_id}: {e}")
-            raise
+        return {
+            "status": "sent",
+            "email_id": email_message_id,
+            "ses_message_id": ses_message_id,
+        }
 
 
 @task
@@ -105,92 +96,83 @@ async def process_inbound_email_task(ctx: AppContext, *, bucket: str, key: str) 
         db_session.add(inbound)
         await db_session.flush()  # Get the ID assigned
 
-        try:
-            # Store task ID for status tracking
-            job = ctx.get("job")
-            if job:
-                inbound.task_id = job.key
+        # Store task ID for status tracking
+        job = ctx.get("job")
+        if job:
+            inbound.task_id = job.key
 
-            await db_session.commit()
+        await db_session.commit()
 
-            # Fetch raw email from S3
-            logger.info(f"Fetching email from s3://{bucket}/{key}")
-            email_bytes = s3_client.get_file_bytes(inbound.s3_key)
+        # Fetch raw email from S3
+        logger.info(f"Fetching email from s3://{bucket}/{key}")
+        email_bytes = s3_client.get_file_bytes(inbound.s3_key)
 
-            # Parse MIME message
-            msg = message_from_bytes(email_bytes)
+        # Parse MIME message
+        msg = message_from_bytes(email_bytes)
 
-            # Extract and store metadata from headers
-            inbound.from_email = msg.get("From", "unknown@unknown.com")
-            inbound.to_email = msg.get("To", "unknown@unknown.com")
-            inbound.subject = msg.get("Subject", "(no subject)")
-            inbound.ses_message_id = msg.get("Message-ID", f"local-{inbound.id}")
+        # Extract and store metadata from headers
+        inbound.from_email = msg.get("From", "unknown@unknown.com")
+        inbound.to_email = msg.get("To", "unknown@unknown.com")
+        inbound.subject = msg.get("Subject", "(no subject)")
+        inbound.ses_message_id = msg.get("Message-ID", f"local-{inbound.id}")
 
-            # Parse received timestamp if available
-            date_str = msg.get("Date")
-            if date_str:
-                try:
-                    inbound.received_at = parsedate_to_datetime(date_str)
-                except Exception as date_error:
-                    logger.warning(f"Failed to parse date '{date_str}': {date_error}")
+        # Parse received timestamp if available
+        date_str = msg.get("Date")
+        if date_str:
+            try:
+                inbound.received_at = parsedate_to_datetime(date_str)
+            except Exception as date_error:
+                logger.warning(f"Failed to parse date '{date_str}': {date_error}")
 
-            await db_session.commit()
+        await db_session.commit()
 
-            logger.info(f"Processing email from {inbound.from_email}")
-            logger.info(f"Subject: {inbound.subject}")
+        logger.info(f"Processing email from {inbound.from_email}")
+        logger.info(f"Subject: {inbound.subject}")
 
-            # Extract attachments
-            attachments = []
-            for part in msg.walk():
-                # Check if this is an attachment
-                if part.get_content_disposition() == "attachment":
-                    filename = part.get_filename()
-                    if not filename:
-                        continue
+        # Extract attachments
+        attachments = []
+        for part in msg.walk():
+            # Check if this is an attachment
+            if part.get_content_disposition() == "attachment":
+                filename = part.get_filename()
+                if not filename:
+                    continue
 
-                    # Get attachment data
-                    attachment_data = part.get_payload(decode=True)
-                    if not attachment_data or not isinstance(attachment_data, bytes):
-                        continue
+                # Get attachment data
+                attachment_data = part.get_payload(decode=True)
+                if not attachment_data or not isinstance(attachment_data, bytes):
+                    continue
 
-                    # Generate S3 key for attachment
-                    s3_key = f"emails/attachments/{inbound.id}/{filename}"
+                # Generate S3 key for attachment
+                s3_key = f"emails/attachments/{inbound.id}/{filename}"
 
-                    # Upload to S3
-                    logger.info(f"Uploading attachment: {filename} ({len(attachment_data)} bytes)")
-                    s3_client.upload_fileobj(BytesIO(attachment_data), s3_key)
+                # Upload to S3
+                logger.info(f"Uploading attachment: {filename} ({len(attachment_data)} bytes)")
+                s3_client.upload_fileobj(BytesIO(attachment_data), s3_key)
 
-                    # Store metadata
-                    attachments.append(
-                        {
-                            "filename": filename,
-                            "s3_key": s3_key,
-                            "content_type": part.get_content_type(),
-                            "size": len(attachment_data),
-                        }
-                    )
+                # Store metadata
+                attachments.append(
+                    {
+                        "filename": filename,
+                        "s3_key": s3_key,
+                        "content_type": part.get_content_type(),
+                        "size": len(attachment_data),
+                    }
+                )
 
-            # Save attachments metadata
-            if attachments:
-                inbound.attachments_json = {"attachments": attachments}
-                logger.info(f"Extracted {len(attachments)} attachment(s)")
+        # Save attachments metadata
+        if attachments:
+            inbound.attachments_json = {"attachments": attachments}
+            logger.info(f"Extracted {len(attachments)} attachment(s)")
 
-            # Mark as processed
-            inbound.processed_at = datetime.now(UTC)
-            await db_session.commit()
+        # Mark as processed
+        inbound.processed_at = datetime.now(UTC)
+        await db_session.commit()
 
-            return {
-                "status": "processed",
-                "inbound_email_id": inbound.id,
-                "from": inbound.from_email,
-                "subject": inbound.subject,
-                "attachment_count": len(attachments),
-            }
-
-        except Exception as e:
-            # Mark as failed
-            inbound.error_message = str(e)
-            await db_session.commit()
-
-            logger.error(f"Failed to process inbound email {inbound.id}: {e}")
-            raise
+        return {
+            "status": "processed",
+            "inbound_email_id": inbound.id,
+            "from": inbound.from_email,
+            "subject": inbound.subject,
+            "attachment_count": len(attachments),
+        }

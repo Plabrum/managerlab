@@ -30,7 +30,6 @@ class EmailMessage(
     # SES tracking
     ses_message_id: Mapped[str | None] = mapped_column(sa.Text, unique=True)
     sent_at: Mapped[datetime | None]
-    error_message: Mapped[str | None] = mapped_column(sa.Text)
 
     # Metadata
     template_name: Mapped[str | None] = mapped_column(sa.Text)
@@ -63,7 +62,6 @@ class InboundEmail(
     # Processing status
     task_id: Mapped[str | None] = mapped_column(sa.Text, index=True)
     processed_at: Mapped[datetime | None]
-    error_message: Mapped[str | None] = mapped_column(sa.Text)
 
     # Team linking (nullable - matched later if needed)
     team_id: Mapped[int | None] = mapped_column(

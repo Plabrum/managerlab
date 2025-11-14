@@ -23,7 +23,6 @@ class InboundEmailFactory(BaseFactory):
     received_at = Use(lambda: datetime.now(tz=UTC))
     attachments_json = None
     processed_at = None
-    error_message = None
     team_id = None
     task_id = None
     created_at = Use(
