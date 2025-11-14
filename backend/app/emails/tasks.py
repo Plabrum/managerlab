@@ -7,6 +7,7 @@ from email.utils import parsedate_to_datetime
 from io import BytesIO
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.emails.client import EmailMessage as ClientEmailMessage, SESEmailClient
@@ -146,26 +147,48 @@ async def process_inbound_email_task(
             )
 
     # Phase 2: Create record and upload attachments (auto-wrapped in transaction)
-    # Create InboundEmail record
-    inbound = InboundEmail(
-        s3_bucket=bucket,
-        s3_key=key,
-        from_email=from_email,
-        to_email=to_email,
-        subject=subject,
-        ses_message_id=message_id,
-        received_at=received_at,
-        processed_at=datetime.now(UTC),
-        team_id=None,  # Matched later if needed
-    )
-
     # Store task ID for status tracking
     job = ctx.get("job")
-    if job:
-        inbound.task_id = job.key
+    task_id = job.key if job else None
 
-    transaction.add(inbound)
-    await transaction.flush()  # Get the ID for S3 keys
+    # Insert with on_conflict_do_nothing - database handles duplicates atomically
+    stmt = (
+        insert(InboundEmail)
+        .values(
+            s3_bucket=bucket,
+            s3_key=key,
+            from_email=from_email,
+            to_email=to_email,
+            subject=subject,
+            ses_message_id=message_id,
+            received_at=received_at,
+            processed_at=datetime.now(UTC),
+            team_id=None,  # Matched later if needed
+            task_id=task_id,
+        )
+        .on_conflict_do_nothing(index_elements=["s3_key"])
+        .returning(InboundEmail)
+    )
+
+    result = await transaction.execute(stmt)
+    inbound = result.scalar_one_or_none()
+
+    if inbound is None:
+        # Conflict occurred - record already exists, skip attachment processing
+        stmt = sa.select(InboundEmail).where(InboundEmail.s3_key == key)
+        result = await transaction.execute(stmt)
+        existing = result.scalar_one()
+
+        logger.info(f"Email already processed: {key} (id={existing.id})")
+        return {
+            "status": "processed",
+            "inbound_email_id": existing.id,
+            "from": from_email,
+            "subject": subject,
+            "attachment_count": len(existing.attachments_json.get("attachments", []))
+            if existing.attachments_json
+            else 0,
+        }
 
     # Now upload attachments with the DB ID
     attachments_metadata = []

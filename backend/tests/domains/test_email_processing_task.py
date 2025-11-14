@@ -157,3 +157,63 @@ async def test_task_handles_s3_error(
 
     assert email is None, "No database record should exist when S3 fetch fails"
     # Error is captured in SAQ task state, not in database
+
+
+async def test_task_handles_duplicate_calls(
+    db_session: AsyncSession,
+):
+    """Test task is idempotent - duplicate calls don't create duplicate records."""
+    # Create sample email
+    msg = EmailMessage()
+    msg["From"] = "duplicate@example.com"
+    msg["To"] = "contracts@tryarive.com"
+    msg["Subject"] = "Duplicate Test Email"
+    msg["Date"] = "Mon, 13 Nov 2023 11:00:00 -0500"
+    msg["Message-ID"] = "<duplicate123@mail.example.com>"
+    msg.set_content("This email will be processed twice.")
+    email_bytes = msg.as_bytes()
+
+    # Mock S3 client
+    mock_s3 = Mock()
+    mock_s3.get_file_bytes = Mock(return_value=email_bytes)
+    mock_s3.upload_fileobj = Mock()
+
+    # Create mock context
+    sessionmaker = async_sessionmaker(bind=db_session.bind, expire_on_commit=False)
+    mock_job = Mock()
+    mock_job.key = "test-task-id-duplicate"
+    mock_context = {
+        "db_sessionmaker": sessionmaker,
+        "s3_client": mock_s3,
+        "job": mock_job,
+    }
+
+    # First call - should process normally
+    result1 = await process_inbound_email_task(
+        mock_context,
+        bucket="test-inbound-emails-bucket",
+        key="emails/duplicate-email.eml",
+    )
+
+    assert result1["status"] == "processed"
+    assert result1["from"] == "duplicate@example.com"
+    first_id = result1["inbound_email_id"]
+
+    # Second call - should detect duplicate and return early (on_conflict_do_nothing)
+    result2 = await process_inbound_email_task(
+        mock_context,
+        bucket="test-inbound-emails-bucket",
+        key="emails/duplicate-email.eml",
+    )
+
+    assert result2["status"] == "processed"  # Same status as first call
+    assert result2["inbound_email_id"] == first_id  # Same ID
+    assert result2["from"] == "duplicate@example.com"
+
+    # Verify only ONE record exists in database
+    stmt = select(InboundEmail).where(InboundEmail.s3_key == "emails/duplicate-email.eml")
+    result_db = await db_session.execute(stmt)
+    emails = result_db.scalars().all()
+
+    assert len(emails) == 1, "Should have exactly one record despite duplicate calls"
+    assert emails[0].id == first_id
