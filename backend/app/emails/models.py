@@ -7,13 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
-from app.emails.enums import EmailState, InboundEmailState
-from app.state_machine.models import StateMachineMixin
 
 
 class EmailMessage(
     RLSMixin(),
-    StateMachineMixin(state_enum=EmailState, initial_state=EmailState.PENDING),
     BaseDBModel,
 ):
     """Outbound email messages."""
@@ -43,7 +40,6 @@ class EmailMessage(
 
 
 class InboundEmail(
-    StateMachineMixin(state_enum=InboundEmailState, initial_state=InboundEmailState.RECEIVED),
     BaseDBModel,
 ):
     """Inbound emails received via SES."""
@@ -65,6 +61,7 @@ class InboundEmail(
     attachments_json: Mapped[dict | None] = mapped_column(sa.JSON)
 
     # Processing status
+    task_id: Mapped[str | None] = mapped_column(sa.Text, index=True)
     processed_at: Mapped[datetime | None]
     error_message: Mapped[str | None] = mapped_column(sa.Text)
 

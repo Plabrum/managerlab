@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 
 from polyfactory import Use
 
-from app.emails.enums import InboundEmailState
 from app.emails.models import InboundEmail
 
 from .base import BaseFactory
@@ -26,7 +25,7 @@ class InboundEmailFactory(BaseFactory):
     processed_at = None
     error_message = None
     team_id = None
-    state = InboundEmailState.RECEIVED
+    task_id = None
     created_at = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="-30d",

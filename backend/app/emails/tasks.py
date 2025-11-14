@@ -9,7 +9,6 @@ from io import BytesIO
 import sqlalchemy as sa
 
 from app.emails.client import EmailMessage as ClientEmailMessage, SESEmailClient
-from app.emails.enums import EmailState, InboundEmailState
 from app.emails.models import EmailMessage, InboundEmail
 from app.queue.registry import task
 from app.queue.types import AppContext
@@ -56,7 +55,6 @@ async def send_email_task(ctx: AppContext, *, email_message_id: int) -> dict:
             ses_message_id = await ses_client.send_email(message)
 
             # Update database
-            email.state = EmailState.SENT
             email.ses_message_id = ses_message_id
             email.sent_at = datetime.now(UTC)
             await db_session.commit()
@@ -71,7 +69,6 @@ async def send_email_task(ctx: AppContext, *, email_message_id: int) -> dict:
 
         except Exception as e:
             # Mark as failed
-            email.state = EmailState.FAILED
             email.error_message = str(e)
             await db_session.commit()
 
@@ -80,16 +77,17 @@ async def send_email_task(ctx: AppContext, *, email_message_id: int) -> dict:
 
 
 @task
-async def process_inbound_email_task(ctx: AppContext, *, inbound_email_id: int) -> dict:
+async def process_inbound_email_task(ctx: AppContext, *, bucket: str, key: str) -> dict:
     """
     SAQ task to process an inbound email from S3.
 
-    Fetches raw email from S3, parses headers and metadata,
+    Creates InboundEmail record, fetches raw email from S3, parses headers and metadata,
     extracts attachments and stores them in S3.
 
     Args:
         ctx: SAQ context with db_sessionmaker, s3_client, and config
-        inbound_email_id: ID of InboundEmail to process
+        bucket: S3 bucket containing the email
+        key: S3 key of the email file
 
     Returns:
         dict with status and processing details
@@ -98,18 +96,25 @@ async def process_inbound_email_task(ctx: AppContext, *, inbound_email_id: int) 
     s3_client = ctx["s3_client"]
 
     async with db_sessionmaker() as db_session:
-        # Fetch inbound email from database
-        stmt = sa.select(InboundEmail).where(InboundEmail.id == inbound_email_id)
-        result = await db_session.execute(stmt)
-        inbound = result.scalar_one()
+        # Create InboundEmail record
+        inbound = InboundEmail(
+            s3_bucket=bucket,
+            s3_key=key,
+            team_id=None,  # Matched later if needed
+        )
+        db_session.add(inbound)
+        await db_session.flush()  # Get the ID assigned
 
         try:
-            # Mark as processing
-            inbound.state = InboundEmailState.PROCESSING
+            # Store task ID for status tracking
+            job = ctx.get("job")
+            if job:
+                inbound.task_id = job.key
+
             await db_session.commit()
 
             # Fetch raw email from S3
-            logger.info(f"Fetching email from s3://{inbound.s3_bucket}/{inbound.s3_key}")
+            logger.info(f"Fetching email from s3://{bucket}/{key}")
             email_bytes = s3_client.get_file_bytes(inbound.s3_key)
 
             # Parse MIME message
@@ -149,7 +154,7 @@ async def process_inbound_email_task(ctx: AppContext, *, inbound_email_id: int) 
                         continue
 
                     # Generate S3 key for attachment
-                    s3_key = f"emails/attachments/{inbound_email_id}/{filename}"
+                    s3_key = f"emails/attachments/{inbound.id}/{filename}"
 
                     # Upload to S3
                     logger.info(f"Uploading attachment: {filename} ({len(attachment_data)} bytes)")
@@ -171,13 +176,12 @@ async def process_inbound_email_task(ctx: AppContext, *, inbound_email_id: int) 
                 logger.info(f"Extracted {len(attachments)} attachment(s)")
 
             # Mark as processed
-            inbound.state = InboundEmailState.PROCESSED
             inbound.processed_at = datetime.now(UTC)
             await db_session.commit()
 
             return {
                 "status": "processed",
-                "inbound_email_id": inbound_email_id,
+                "inbound_email_id": inbound.id,
                 "from": inbound.from_email,
                 "subject": inbound.subject,
                 "attachment_count": len(attachments),
@@ -185,9 +189,8 @@ async def process_inbound_email_task(ctx: AppContext, *, inbound_email_id: int) 
 
         except Exception as e:
             # Mark as failed
-            inbound.state = InboundEmailState.FAILED
             inbound.error_message = str(e)
             await db_session.commit()
 
-            logger.error(f"Failed to process inbound email {inbound_email_id}: {e}")
+            logger.error(f"Failed to process inbound email {inbound.id}: {e}")
             raise

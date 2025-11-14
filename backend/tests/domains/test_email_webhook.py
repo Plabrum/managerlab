@@ -3,19 +3,14 @@
 import json
 
 from litestar.testing import AsyncTestClient
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.crypto import sign_payload
-from app.emails.enums import InboundEmailState
-from app.emails.models import InboundEmail
 
 
-async def test_webhook_creates_inbound_email_and_queues_task(
+async def test_webhook_queues_task(
     test_client: AsyncTestClient,
-    db_session: AsyncSession,
 ):
-    """Test that valid webhook creates InboundEmail record and queues processing task."""
+    """Test that valid webhook queues processing task."""
     # Create payload and signature
     payload = {
         "bucket": "manageros-inbound-emails-dev",
@@ -37,16 +32,6 @@ async def test_webhook_creates_inbound_email_and_queues_task(
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "queued"
-    assert "inbound_email_id" in data
-
-    # Verify database record
-    stmt = select(InboundEmail).where(InboundEmail.s3_key == payload["key"])
-    result = await db_session.execute(stmt)
-    email = result.scalar_one()
-
-    assert email.s3_bucket == payload["bucket"]
-    assert email.s3_key == payload["key"]
-    assert email.state == InboundEmailState.RECEIVED
 
 
 async def test_webhook_rejects_invalid_signature(
