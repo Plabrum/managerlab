@@ -3,7 +3,6 @@
 import hashlib
 import hmac
 import secrets
-from typing import Literal
 
 from app.utils.configure import config
 
@@ -13,8 +12,6 @@ __all__ = [
     "verify_token_hash",
     "sign_payload",
     "verify_payload_signature",
-    "build_magic_link_url",
-    "build_invitation_link_url",
 ]
 
 
@@ -108,41 +105,3 @@ def verify_payload_signature(payload: bytes, signature: str, secret: str) -> boo
     """
     computed_signature = sign_payload(payload, secret)
     return hmac.compare_digest(computed_signature, signature)
-
-
-def build_magic_link_url(token: str, link_type: Literal["magic_link", "invitation"] = "magic_link") -> str:
-    """Build a complete magic link URL.
-
-    Args:
-        token: Plaintext token to include in URL
-        link_type: Type of link ("magic_link" or "invitation")
-
-    Returns:
-        Complete URL for the magic link or invitation
-
-    Example:
-        >>> build_magic_link_url("abc123", "magic_link")
-        'http://localhost:3000/auth/magic-link/verify?token=abc123'
-    """
-    base_url = config.FRONTEND_ORIGIN.rstrip("/")
-
-    if link_type == "magic_link":
-        return f"{base_url}/auth/magic-link/verify?token={token}"
-    else:
-        return f"{base_url}/invite/accept?token={token}"
-
-
-def build_invitation_link_url(token: str) -> str:
-    """Build a complete invitation link URL.
-
-    Args:
-        token: Plaintext token to include in URL
-
-    Returns:
-        Complete URL for the team invitation
-
-    Example:
-        >>> build_invitation_link_url("xyz789")
-        'http://localhost:3000/invite/accept?token=xyz789'
-    """
-    return build_magic_link_url(token, link_type="invitation")
