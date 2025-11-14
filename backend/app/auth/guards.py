@@ -7,8 +7,8 @@ from litestar.connection import ASGIConnection
 from litestar.exceptions import NotAuthorizedException
 from litestar.handlers.base import BaseRouteHandler
 
+from app.auth.crypto import verify_payload_signature
 from app.auth.enums import ScopeType
-from app.auth.tokens import verify_payload_signature
 from app.utils.configure import config
 
 if TYPE_CHECKING:

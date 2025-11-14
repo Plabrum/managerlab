@@ -6,7 +6,7 @@ from litestar.testing import AsyncTestClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.tokens import sign_payload
+from app.auth.crypto import sign_payload
 from app.emails.enums import InboundEmailState
 from app.emails.models import InboundEmail
 

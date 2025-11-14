@@ -3,8 +3,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.crypto import generate_secure_token, hash_token
 from app.auth.models import TeamInvitationToken
-from app.auth.tokens import generate_secure_token, hash_token
 from app.utils.configure import config
 
 

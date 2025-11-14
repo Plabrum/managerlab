@@ -5,8 +5,8 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.crypto import generate_secure_token, hash_token
 from app.auth.models import MagicLinkToken
-from app.auth.tokens import generate_secure_token, hash_token
 from app.emails.service import EmailService
 from app.users.models import User
 from app.utils.configure import config

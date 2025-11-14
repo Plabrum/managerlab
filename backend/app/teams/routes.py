@@ -251,7 +251,7 @@ async def accept_team_invitation(
         logger.info(f"Updated user {user.id} state to ACTIVE")
 
     # Mark invitation as accepted (with lock to prevent race conditions)
-    from app.auth.tokens import hash_token as hash_token_func
+    from app.auth.crypto import hash_token as hash_token_func
 
     token_hash = hash_token_func(token)
     invitation_stmt = (
