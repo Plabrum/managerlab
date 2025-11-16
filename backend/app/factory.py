@@ -123,12 +123,19 @@ def create_app(
     # ========================================================================
     # Dependencies - Defaults that can be overridden
     # ========================================================================
+    # Define provider functions for dependencies with injection needs
+    def _provide_s3_client() -> Any:
+        return provide_s3_client(config)
+
+    def _provide_openai_client(s3_client: Any) -> Any:
+        return provide_openai_client(config, s3_client)
+
     dependencies = {
         "transaction": Provide(providers.provide_transaction),
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
         "config": Provide(lambda: config, sync_to_thread=False),
-        "s3_client": Provide(provide_s3_client, sync_to_thread=False),
-        "openai_client": Provide(provide_openai_client, sync_to_thread=False),
+        "s3_client": Provide(_provide_s3_client, sync_to_thread=False),
+        "openai_client": Provide(_provide_openai_client, sync_to_thread=False),
         "email_client": Provide(provide_email_client, sync_to_thread=False),
         "email_service": Provide(providers.provide_email_service, sync_to_thread=False),
         "action_registry": Provide(provide_action_registry, sync_to_thread=False),

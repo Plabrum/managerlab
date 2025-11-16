@@ -4,12 +4,11 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
-from app.agents.campaign_decoder import campaign_decoder_agent
 from app.agents.schemas import ExtractFromContractRequestSchema, ExtractFromContractResponseSchema
 from app.auth.guards import requires_session
 from app.campaigns.models import Campaign
 from app.campaigns.schemas import CampaignSchema, CampaignUpdateSchema
-from app.client.openai_client import BaseOpenAIClient
+from app.client.openai_client import OpenAIClient
 from app.client.s3_client import BaseS3Client
 from app.documents.models import Document
 from app.threads.models import Thread
@@ -143,7 +142,7 @@ async def extract_from_contract(
     request: Request,
     transaction: AsyncSession,
     s3_client: BaseS3Client,
-    openai_client: BaseOpenAIClient,
+    openai_client: OpenAIClient,
 ) -> ExtractFromContractResponseSchema:
     """
     Extract structured campaign data from a contract document using OpenAI agent.
@@ -165,19 +164,16 @@ async def extract_from_contract(
         ExtractFromContractResponseSchema with extracted campaign data
     """
     # Fetch document - RLS will ensure user has access
+    from app.agents.campaign_decoder import CampaignDecoderAgent
     from app.utils.sqids import sqid_decode
 
     document = await get_or_404(transaction, Document, sqid_decode(data.document_id))
 
-    # Download file from S3
-    file_bytes = s3_client.get_file_bytes(document.file_key)
+    # Create agent with injected OpenAI client
+    agent = CampaignDecoderAgent(openai_client)
 
-    # Run extraction agent
-    extraction_result = await campaign_decoder_agent.run(
-        file_bytes=file_bytes,
-        filename=document.file_name,
-        openai_client=openai_client,
-    )
+    # Run extraction agent (handles S3 download and OpenAI file cleanup internally)
+    extraction_result = await agent.run(s3_key=document.file_key)
 
     return ExtractFromContractResponseSchema(
         data=extraction_result,

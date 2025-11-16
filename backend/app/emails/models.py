@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.base.models import BaseDBModel
@@ -56,8 +57,12 @@ class InboundEmail(
     ses_message_id: Mapped[str | None] = mapped_column(sa.Text, unique=True)
     received_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
 
-    # Attachment metadata (JSON array of attachment info)
-    attachments_json: Mapped[dict | None] = mapped_column(sa.JSON)
+    # Attachment metadata (JSONB array of attachment info)
+    attachments_json: Mapped[dict] = mapped_column(
+        postgresql.JSONB,
+        nullable=False,
+        server_default=sa.text("'{}'::jsonb"),
+    )
 
     # Processing status
     task_id: Mapped[str | None] = mapped_column(sa.Text, index=True)

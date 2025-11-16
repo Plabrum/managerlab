@@ -53,10 +53,11 @@ async def queue_startup(ctx: AppContext) -> None:
     ctx["db_sessionmaker"] = async_sessionmaker(engine, expire_on_commit=False)
 
     # Inject S3 client
-    ctx["s3_client"] = provide_s3_client(config)
+    s3_client = provide_s3_client(config)
+    ctx["s3_client"] = s3_client
 
-    # Inject OpenAI client
-    ctx["openai_client"] = provide_openai_client(config)
+    # Inject OpenAI client (depends on S3 client)
+    ctx["openai_client"] = provide_openai_client(config, s3_client)
 
     # Inject config
     ctx["config"] = config
