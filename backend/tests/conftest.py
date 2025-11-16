@@ -3,6 +3,7 @@
 import logging
 import os
 from collections.abc import AsyncGenerator
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock
 
@@ -20,9 +21,6 @@ os.environ.setdefault("GOOGLE_CLIENT_SECRET", "test-client-secret")
 
 # Silence httpx INFO logs during tests
 logging.getLogger("httpx").setLevel(logging.WARNING)
-
-# Enable pytest-databases PostgreSQL plugin for CI/CD
-pytest_plugins = ["pytest_databases.docker.postgres"]
 
 # Import and discover all models before tests run
 from app.utils.discovery import discover_and_import
@@ -58,7 +56,7 @@ from app.threads import thread_router
 from app.threads.websocket import thread_handler
 from app.users.routes import user_router
 from app.utils.configure import Config
-from app.utils.db_filters import apply_soft_delete_filter
+from app.utils.db_filters import create_query_filter
 
 
 @pytest.fixture
@@ -73,17 +71,24 @@ def memory_store() -> MemoryStore:
 
 
 @pytest.fixture(scope="session")
-def test_db_url(postgres_service) -> str:
-    """Test database URL using pytest-databases PostgreSQL service.
+def test_db_url() -> str:
+    """Test database URL using dedicated test database.
 
-    This works in both local development and CI/CD environments.
-    The postgres_service fixture is provided by pytest-databases and automatically
-    starts a Docker container with PostgreSQL.
+    Uses dedicated PostgreSQL container on port 5433 locally (via docker-compose)
+    and port 5432 in CI (via GitHub Actions service container).
+
+    Make sure the test database is running:
+    - Local: make test-db-start
+    - CI: Configured in GitHub Actions workflow
     """
-    return (
-        f"postgresql+psycopg://{postgres_service.user}:{postgres_service.password}@"
-        f"{postgres_service.host}:{postgres_service.port}/{postgres_service.database}"
-    )
+    # Check for CI environment or use local test database
+    db_host = os.getenv("TEST_DB_HOST", "localhost")
+    db_port = os.getenv("TEST_DB_PORT", "5433")  # 5433 locally, 5432 in CI
+    db_name = os.getenv("TEST_DB_NAME", "manageros_test")
+    db_user = os.getenv("TEST_DB_USER", "postgres")
+    db_password = os.getenv("TEST_DB_PASSWORD", "postgres")
+
+    return f"postgresql+psycopg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 
 @pytest.fixture(scope="session")
@@ -98,20 +103,46 @@ def test_engine(test_db_url: str):
 
 
 @pytest.fixture(scope="session")
-def setup_database(test_engine):
-    """Create all tables once at the start of the test session.
+def setup_database(test_engine, test_db_url):
+    """Set up test database schema by running Alembic migrations.
 
-    This is intentionally synchronous to avoid async fixture issues.
+    This ensures:
+    1. Tests use the actual migration code (not just SQLAlchemy metadata)
+    2. RLS policies are created and enabled properly
+    3. Database state matches production
+
+    Migrations are run once per test session and cleaned up at the end.
     """
     import asyncio
+    import subprocess
 
     async def _setup():
+        # Drop and recreate schema to ensure clean state
         async with test_engine.begin() as conn:
-            await conn.run_sync(BaseDBModel.metadata.create_all)
+            await conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+            await conn.execute(text("CREATE SCHEMA public"))
+            await conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
+            await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
+
+        # Run Alembic migrations to set up schema
+        # Set DATABASE_URL environment variable for alembic
+        env = os.environ.copy()
+        env["DATABASE_URL"] = test_db_url.replace("postgresql+psycopg://", "postgresql://")
+
+        result = subprocess.run(
+            ["uv", "run", "alembic", "upgrade", "head"],
+            cwd=Path(__file__).parent.parent,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Alembic migration failed:\n{result.stderr}")
 
     async def _teardown():
+        # Drop schema and dispose engine
         async with test_engine.begin() as conn:
-            # Drop all tables with CASCADE to handle foreign key constraints
             await conn.execute(text("DROP SCHEMA public CASCADE"))
             await conn.execute(text("CREATE SCHEMA public"))
             await conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
@@ -149,15 +180,19 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
     )
 
     session = session_maker()
+
+    # Create query filter with no scope (for general testing)
+    query_filter = create_query_filter(team_id=None, campaign_id=None, scope_type=None)
+
     try:
-        # Attach listeners for soft delete filter and raiseload
-        event.listen(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        # Attach listeners
+        event.listen(session.sync_session, "do_orm_execute", query_filter)
         event.listen(session.sync_session, "do_orm_execute", _raiseload_listener)
 
         yield session
     finally:
         # Remove listeners
-        event.remove(session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        event.remove(session.sync_session, "do_orm_execute", query_filter)
         event.remove(session.sync_session, "do_orm_execute", _raiseload_listener)
 
         # Rollback any pending transaction
@@ -248,9 +283,10 @@ async def provide_test_transaction_with_rls(
     campaign_id: int | None = None,
 ) -> AsyncGenerator[AsyncSession]:
     """Test transaction provider that sets RLS variables for team/campaign isolation testing."""
-    # Set RLS variables if provided
+    # Set RLS variables if provided (database-level)
     if team_id is not None:
         await db_session.execute(text(f"SET LOCAL app.team_id = {team_id}"))
+
     if campaign_id is not None:
         await db_session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id}"))
 

@@ -5,8 +5,11 @@ import sqlalchemy as sa
 from alembic_utils.pg_policy import PGPolicy
 from sqlalchemy.orm import Mapped, mapped_column
 
-# Global registry for RLS policies - consumed by alembic env.py
+from app.base.rls_entity import PGRLSEnabled
+
+# Global registries for RLS entities - consumed by alembic env.py
 RLS_POLICY_REGISTRY: list[PGPolicy] = []
+RLS_ENABLED_REGISTRY: list[PGRLSEnabled] = []
 
 # Flag to disable policy registration during migration generation
 REGISTER_POLICIES = os.getenv("REGISTER_RLS_POLICIES", "true").lower() == "true"
@@ -29,16 +32,18 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
             )
 
             def __init_subclass__(cls, **kwargs: Any) -> None:
-                """Auto-register RLS policy when model class is defined."""
+                """Auto-register RLS policy and enablement when model class is defined."""
                 super().__init_subclass__(**kwargs)
 
                 # Only register if this is an actual table model and policies are enabled
                 if REGISTER_POLICIES and hasattr(cls, "__tablename__"):
+                    tablename = getattr(cls, "__tablename__")
+
                     # Create RLS policy for dual-scoped table
                     policy = PGPolicy(
                         schema="public",
                         signature="dual_scope_policy",
-                        on_entity=f"public.{getattr(cls, '__tablename__')}",
+                        on_entity=f"public.{tablename}",
                         definition="""
                             AS PERMISSIVE
                             FOR ALL
@@ -50,6 +55,10 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                         """,
                     )
                     RLS_POLICY_REGISTRY.append(policy)
+
+                    # Register RLS enablement for this table
+                    rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
+                    RLS_ENABLED_REGISTRY.append(rls_enabled)
 
         return _DualScopedMixin
 
@@ -63,16 +72,18 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
             )
 
             def __init_subclass__(cls, **kwargs: Any) -> None:
-                """Auto-register RLS policy when model class is defined."""
+                """Auto-register RLS policy and enablement when model class is defined."""
                 super().__init_subclass__(**kwargs)
 
                 # Only register if this is an actual table model and policies are enabled
                 if REGISTER_POLICIES and hasattr(cls, "__tablename__"):
+                    tablename = getattr(cls, "__tablename__")
+
                     # Create RLS policy for team-scoped table
                     policy = PGPolicy(
                         schema="public",
                         signature="team_scope_policy",
-                        on_entity=f"public.{getattr(cls, '__tablename__')}",
+                        on_entity=f"public.{tablename}",
                         definition="""
                             AS PERMISSIVE
                             FOR ALL
@@ -83,5 +94,9 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                         """,
                     )
                     RLS_POLICY_REGISTRY.append(policy)
+
+                    # Register RLS enablement for this table
+                    rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
+                    RLS_ENABLED_REGISTRY.append(rls_enabled)
 
         return _TeamScopedMixin

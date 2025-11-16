@@ -18,6 +18,10 @@ help:
 	@echo "  db-migrate-down  - Rollback database migrations"
 	@echo "  db-migrate-prod  - Run production database migrations"
 	@echo "  db-fixtures      - Populate database with fake data for development"
+	@echo "  test-db-start    - Start test database (port 5433)"
+	@echo "  test-db-stop     - Stop test database"
+	@echo "  test-db-reset    - Reset test database schema and run migrations"
+	@echo "  test-db-clean    - Delete test database volume and start fresh"
 	@echo "  build-frontend   - Build frontend for production"
 	@echo "  start-frontend   - Start frontend production server"
 	@echo "  lint-frontend    - Run frontend linting"
@@ -123,6 +127,57 @@ db-downgrade:
 db-fixtures:
 	@echo "🎭 Creating database fixtures..."
 	cd backend && uv run python scripts/create_fixtures.py
+
+# Test Database targets
+.PHONY: test-db-start
+test-db-start:
+	cd backend && docker compose -f docker-compose.dev.yml up -d test-db
+	@echo "⏳ Waiting for test database to be ready..."
+	@sleep 3
+	@echo "✅ Test database started on port 5433"
+
+.PHONY: test-db-stop
+test-db-stop:
+	cd backend && docker compose -f docker-compose.dev.yml stop test-db
+
+.PHONY: test-db-reset
+test-db-reset:
+	@echo "🔄 Resetting test database schema..."
+	@TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5433/manageros_test" \
+	cd backend && uv run python -c "import asyncio; from sqlalchemy import text; from sqlalchemy.ext.asyncio import create_async_engine; \
+	async def reset(): \
+		engine = create_async_engine('postgresql+psycopg://postgres:postgres@localhost:5433/manageros_test'); \
+		async with engine.begin() as conn: \
+			await conn.execute(text('DROP SCHEMA public CASCADE')); \
+			await conn.execute(text('CREATE SCHEMA public')); \
+			await conn.execute(text('GRANT ALL ON SCHEMA public TO postgres')); \
+			await conn.execute(text('GRANT ALL ON SCHEMA public TO public')); \
+		await engine.dispose(); \
+	asyncio.run(reset())"
+	@echo "🔄 Running migrations on test database..."
+	@DATABASE_URL="postgresql://postgres:postgres@localhost:5433/manageros_test" \
+	cd backend && uv run alembic upgrade head
+	@echo "✅ Test database reset complete!"
+
+.PHONY: test-db-clean
+test-db-clean:
+	@echo "⚠️  WARNING: This will DELETE all test database data!"
+	@echo "This action cannot be undone."
+	@read -p "Are you sure you want to continue? [y/N] " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "❌ Test database clean cancelled."; \
+		exit 1; \
+	fi
+	@echo "🗑️  Stopping test database container..."
+	cd backend && docker compose -f docker-compose.dev.yml stop test-db
+	@echo "🗑️  Removing test database volume..."
+	docker volume rm backend_test_pgdata || true
+	@echo "🚀 Starting fresh test database..."
+	@make test-db-start
+	@echo "🔄 Running migrations..."
+	@DATABASE_URL="postgresql://postgres:postgres@localhost:5433/manageros_test" \
+	cd backend && uv run alembic upgrade head
+	@echo "✅ Test database cleaned and migrations applied!"
 
 # Frontend specific targets
 .PHONY: build-frontend

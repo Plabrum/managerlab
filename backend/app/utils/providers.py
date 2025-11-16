@@ -21,7 +21,7 @@ from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
 from app.utils.configure import Config, config
 from app.utils.db import set_rls_variables
-from app.utils.db_filters import apply_soft_delete_filter
+from app.utils.db_filters import create_query_filter
 
 logger = structlog.get_logger(__name__)
 
@@ -32,17 +32,30 @@ def provide_viewer_store(request: Request) -> ThreadViewerStore:
 
 
 async def provide_transaction(db_session: AsyncSession, request: Request) -> AsyncGenerator[AsyncSession]:
-    """Provide a database transaction with RLS session variables and soft delete filtering."""
+    """Provide a database transaction with RLS variables and query filtering.
+
+    Defense-in-depth security:
+    - Layer 1: PostgreSQL RLS (database-level)
+    - Layer 2: SQLAlchemy loader criteria (ORM-level)
+    """
 
     def _raiseload_listener(execute_state):
         execute_state.statement = execute_state.statement.options(raiseload("*"))
 
-    # --- Attach listeners to this specific session only ---
-    event.listen(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+    # Create scope filter with captured request data
+    query_filter = create_query_filter(
+        team_id=request.session.get("team_id"),
+        campaign_id=request.session.get("campaign_id"),
+        scope_type=request.session.get("scope_type"),
+    )
+
+    # Attach event listeners
+    event.listen(db_session.sync_session, "do_orm_execute", query_filter)
     event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
     try:
         async with db_session.begin():
+            # Layer 1: Set PostgreSQL RLS variables
             await set_rls_variables(db_session, request)
             yield db_session
 
@@ -50,8 +63,8 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
 
     finally:
-        # --- Remove the same listener objects ---
-        event.remove(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        # Remove event listeners
+        event.remove(db_session.sync_session, "do_orm_execute", query_filter)
         event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
 

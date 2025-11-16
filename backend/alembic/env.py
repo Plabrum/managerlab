@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 
 from alembic import context
 from app.base.models import BaseDBModel
-from app.base.scope_mixins import RLS_POLICY_REGISTRY
+from app.base.scope_mixins import RLS_ENABLED_REGISTRY, RLS_POLICY_REGISTRY
 from app.utils.configure import config as app_config
 
 # Import your models and config
@@ -15,8 +15,9 @@ from app.utils.sqids import SqidType
 
 discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
-# Register RLS policies for auto-diffing
+# Register RLS policies and enablement entities for auto-diffing
 register_entities(RLS_POLICY_REGISTRY)
+register_entities(RLS_ENABLED_REGISTRY)
 
 
 # Custom renderer for SqidType to ensure proper rendering in migrations

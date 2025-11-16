@@ -214,22 +214,23 @@ async def create_model[T: BaseDBModel](
 
 
 async def set_rls_variables(session: AsyncSession, request: Request) -> None:
-    """Set PostgreSQL RLS session variables within an active transaction.
+    """Set PostgreSQL RLS session variables for database-level security.
 
-    Sets session variables for Row-Level Security based on session scope:
+    Session variables for RLS:
     - app.team_id: Set when user has team scope
     - app.campaign_id: Set when user has campaign scope
     - app.is_system_mode: Set to true for admin/system operations that bypass RLS
 
     Note: Must be called within an active transaction (after begin()).
     SET LOCAL is transaction-scoped and doesn't support parameter binding.
-    """
-    # Set system mode flag first
-    if config.IS_SYSTEM_MODE:
-        await session.execute(text(f"SET LOCAL app.is_system_mode = {'true'}"))
 
-    # Only set scope variables if not in system mode
-    if not config.IS_SYSTEM_MODE:
+    Application-level filters are set via session.info in provide_transaction().
+    """
+    # Set system mode flag
+    if config.IS_SYSTEM_MODE:
+        await session.execute(text("SET LOCAL app.is_system_mode = true"))
+    else:
+        # Only set scope variables if not in system mode
         scope_type = request.session.get("scope_type")
 
         if scope_type == ScopeType.TEAM.value:
@@ -237,6 +238,7 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
             if team_id:
                 # Validate team_id is an integer to prevent SQL injection
                 team_id_int = int(team_id)
+                # Set PostgreSQL RLS variable
                 await session.execute(text(f"SET LOCAL app.team_id = {team_id_int}"))
 
         elif scope_type == ScopeType.CAMPAIGN.value:
@@ -244,4 +246,5 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
             if campaign_id:
                 # Validate campaign_id is an integer to prevent SQL injection
                 campaign_id_int = int(campaign_id)
+                # Set PostgreSQL RLS variable
                 await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id_int}"))
