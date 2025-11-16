@@ -36,6 +36,7 @@ from app.base.models import BaseDBModel
 from app.base.routes import health_check
 from app.brands.routes import brand_router
 from app.campaigns.routes import campaign_router
+from app.client.openai_client import provide_openai_client
 from app.client.s3_client import provide_s3_client
 from app.dashboard.routes import dashboard_router
 from app.deliverables.routes import deliverable_router
@@ -127,6 +128,7 @@ def create_app(
         "http_client": Provide(providers.provide_http, sync_to_thread=False),
         "config": Provide(lambda: config, sync_to_thread=False),
         "s3_client": Provide(provide_s3_client, sync_to_thread=False),
+        "openai_client": Provide(provide_openai_client, sync_to_thread=False),
         "email_client": Provide(provide_email_client, sync_to_thread=False),
         "email_service": Provide(providers.provide_email_service, sync_to_thread=False),
         "action_registry": Provide(provide_action_registry, sync_to_thread=False),

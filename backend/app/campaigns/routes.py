@@ -4,9 +4,14 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
+from app.agents.campaign_decoder import campaign_decoder_agent
+from app.agents.schemas import ExtractFromContractRequestSchema, ExtractFromContractResponseSchema
 from app.auth.guards import requires_session
 from app.campaigns.models import Campaign
 from app.campaigns.schemas import CampaignSchema, CampaignUpdateSchema
+from app.client.openai_client import BaseOpenAIClient
+from app.client.s3_client import BaseS3Client
+from app.documents.models import Document
 from app.threads.models import Thread
 from app.utils.db import get_or_404, update_model
 from app.utils.sqids import Sqid
@@ -132,12 +137,61 @@ async def update_campaign(
     )
 
 
+@post("/extract-from-contract")
+async def extract_from_contract(
+    data: ExtractFromContractRequestSchema,
+    request: Request,
+    transaction: AsyncSession,
+    s3_client: BaseS3Client,
+    openai_client: BaseOpenAIClient,
+) -> ExtractFromContractResponseSchema:
+    """
+    Extract structured campaign data from a contract document using OpenAI agent.
+
+    This endpoint:
+    1. Fetches the document by ID (with team access validation via RLS)
+    2. Downloads file from S3
+    3. Runs OpenAI extraction agent
+    4. Returns structured campaign data for form pre-fill
+
+    Args:
+        data: Request with document_id
+        request: Litestar request (for user context)
+        transaction: Database session
+        s3_client: S3 client for file download
+        openai_client: OpenAI client for extraction
+
+    Returns:
+        ExtractFromContractResponseSchema with extracted campaign data
+    """
+    # Fetch document - RLS will ensure user has access
+    from app.utils.sqids import sqid_decode
+
+    document = await get_or_404(transaction, Document, sqid_decode(data.document_id))
+
+    # Download file from S3
+    file_bytes = s3_client.get_file_bytes(document.file_key)
+
+    # Run extraction agent
+    extraction_result = await campaign_decoder_agent.run(
+        file_bytes=file_bytes,
+        filename=document.file_name,
+        openai_client=openai_client,
+    )
+
+    return ExtractFromContractResponseSchema(
+        data=extraction_result,
+        message=f"Successfully extracted campaign data from {document.file_name}",
+    )
+
+
 campaign_router = Router(
     path="/campaigns",
     guards=[requires_session],
     route_handlers=[
         get_campaign,
         update_campaign,
+        extract_from_contract,
     ],
     tags=["campaigns"],
 )

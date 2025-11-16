@@ -33,6 +33,7 @@ dependencies = [
   "pillow>=11.3.0",
   "alembic-utils>=0.8.8",
   "structlog>=24.1.0",
+  "openai>=2.8.0",
 ]
 
 [dependency-groups]

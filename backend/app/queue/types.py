@@ -5,6 +5,7 @@ from typing import Required
 from saq.types import Context
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from app.client.openai_client import BaseOpenAIClient
 from app.client.s3_client import S3Client
 from app.utils.configure import Config
 
@@ -23,3 +24,4 @@ class AppContext(Context):
     db_sessionmaker: Required[async_sessionmaker]
     config: Required[Config]
     s3_client: Required[S3Client]
+    openai_client: Required[BaseOpenAIClient]
