@@ -37,7 +37,6 @@ TEAM_SCOPED_TABLES = [
     "documents",
     "invoices",
     "threads",
-    "dashboard_widgets",
 ]
 
 # All tables with both team_id and campaign_id (dual-scoped)

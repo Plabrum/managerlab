@@ -14,10 +14,41 @@ Usage:
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from alembic_utils.replaceable_entity import ReplaceableEntity
 from sqlalchemy import TextClause, text
+
+
+def _validate_pg_identifier(identifier: str, name: str = "identifier") -> None:
+    """Validate a PostgreSQL identifier to prevent SQL injection.
+
+    PostgreSQL unquoted identifiers must:
+    - Start with a letter (a-z) or underscore
+    - Contain only letters, digits, underscores, and dollar signs
+    - Be at most 63 characters long
+
+    Args:
+        identifier: The identifier to validate
+        name: Name of the identifier for error messages
+
+    Raises:
+        ValueError: If identifier is invalid
+    """
+    if not identifier:
+        raise ValueError(f"{name} cannot be empty")
+
+    if len(identifier) > 63:
+        raise ValueError(f"{name} '{identifier}' exceeds PostgreSQL's 63 character limit")
+
+    # PostgreSQL identifier pattern: starts with letter or underscore,
+    # followed by letters, digits, underscores, or dollar signs
+    if not re.match(r"^[a-z_][a-z0-9_$]*$", identifier, re.IGNORECASE):
+        raise ValueError(
+            f"{name} '{identifier}' contains invalid characters. "
+            "Must start with letter or underscore and contain only letters, digits, underscores, or dollar signs."
+        )
 
 
 class PGRLSEnabled(ReplaceableEntity):
@@ -44,7 +75,14 @@ class PGRLSEnabled(ReplaceableEntity):
             schema: Database schema name (e.g., 'public')
             table: Table name (e.g., 'campaigns')
             force: Whether to use FORCE ROW LEVEL SECURITY (default: True)
+
+        Raises:
+            ValueError: If schema or table names are invalid PostgreSQL identifiers
         """
+        # Validate identifiers to prevent SQL injection
+        _validate_pg_identifier(schema, "schema")
+        _validate_pg_identifier(table, "table")
+
         self.schema = schema
         self.table = table
         self.force = force

@@ -40,6 +40,7 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                     tablename = getattr(cls, "__tablename__")
 
                     # Create RLS policy for dual-scoped table
+                    # Explicit NULL checks prevent unintended access when RLS context is not set
                     policy = PGPolicy(
                         schema="public",
                         signature="dual_scope_policy",
@@ -48,8 +49,10 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                             AS PERMISSIVE
                             FOR ALL
                             USING (
-                                (team_id = current_setting('app.team_id', true)::int)
-                                OR (campaign_id = current_setting('app.campaign_id', true)::int)
+                                (current_setting('app.team_id', true) IS NOT NULL
+                                 AND team_id = current_setting('app.team_id', true)::int)
+                                OR (current_setting('app.campaign_id', true) IS NOT NULL
+                                    AND campaign_id = current_setting('app.campaign_id', true)::int)
                                 OR (current_setting('app.is_system_mode', true)::boolean IS TRUE)
                             )
                         """,
@@ -80,6 +83,7 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                     tablename = getattr(cls, "__tablename__")
 
                     # Create RLS policy for team-scoped table
+                    # Explicit NULL check prevents unintended access when RLS context is not set
                     policy = PGPolicy(
                         schema="public",
                         signature="team_scope_policy",
@@ -88,7 +92,8 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                             AS PERMISSIVE
                             FOR ALL
                             USING (
-                                team_id = current_setting('app.team_id', true)::int
+                                (current_setting('app.team_id', true) IS NOT NULL
+                                 AND team_id = current_setting('app.team_id', true)::int)
                                 OR current_setting('app.is_system_mode', true)::boolean IS TRUE
                             )
                         """,

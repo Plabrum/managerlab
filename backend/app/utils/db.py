@@ -213,6 +213,35 @@ async def create_model[T: BaseDBModel](
     return obj
 
 
+def _validate_rls_id(value: Any, name: str) -> int:
+    """Validate and convert RLS ID value to prevent SQL injection.
+
+    Args:
+        value: Value from session (should be an integer or convertible to int)
+        name: Name of the ID for error messages
+
+    Returns:
+        Validated integer ID
+
+    Raises:
+        ValueError: If value is not a valid positive integer
+    """
+    try:
+        id_value = int(value)
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"{name} must be an integer, got {type(value).__name__}") from e
+
+    # Ensure ID is a positive integer (PostgreSQL serial/bigserial are positive)
+    if id_value <= 0:
+        raise ValueError(f"{name} must be a positive integer, got {id_value}")
+
+    # Ensure ID is within PostgreSQL bigint range
+    if id_value > 9223372036854775807:  # 2^63 - 1
+        raise ValueError(f"{name} exceeds maximum PostgreSQL bigint value")
+
+    return id_value
+
+
 async def set_rls_variables(session: AsyncSession, request: Request) -> None:
     """Set PostgreSQL RLS session variables for database-level security.
 
@@ -223,6 +252,8 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
 
     Note: Must be called within an active transaction (after begin()).
     SET LOCAL is transaction-scoped and doesn't support parameter binding.
+    We use f-strings with validated integer IDs, which is safe since PostgreSQL
+    expects numeric literals for SET LOCAL with integer values.
 
     Application-level filters are set via session.info in provide_transaction().
     """
@@ -236,15 +267,15 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
         if scope_type == ScopeType.TEAM.value:
             team_id = request.session.get("team_id")
             if team_id:
-                # Validate team_id is an integer to prevent SQL injection
-                team_id_int = int(team_id)
-                # Set PostgreSQL RLS variable
+                # Validate and convert to int - raises ValueError if invalid
+                team_id_int = _validate_rls_id(team_id, "team_id")
+                # Safe to use f-string: team_id_int is validated as a positive integer
                 await session.execute(text(f"SET LOCAL app.team_id = {team_id_int}"))
 
         elif scope_type == ScopeType.CAMPAIGN.value:
             campaign_id = request.session.get("campaign_id")
             if campaign_id:
-                # Validate campaign_id is an integer to prevent SQL injection
-                campaign_id_int = int(campaign_id)
-                # Set PostgreSQL RLS variable
+                # Validate and convert to int - raises ValueError if invalid
+                campaign_id_int = _validate_rls_id(campaign_id, "campaign_id")
+                # Safe to use f-string: campaign_id_int is validated as a positive integer
                 await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id_int}"))

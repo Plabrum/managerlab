@@ -239,10 +239,97 @@ class TestRLSDualScope:
             assert table in found_tables, f"dual_scope_policy missing for {table}"
 
     async def test_campaign_scoped_access(self, db_session: AsyncSession, multi_team_setup):
-        """Verify campaign-scoped access works for dual-scoped tables."""
-        # This test would create deliverables/messages and verify they're isolated by campaign_id
-        # Skipping implementation for now as it requires setting up full campaign context
-        pytest.skip("Requires full dual-scope implementation")
+        """Verify campaign-scoped access works for dual-scoped tables.
+
+        Tests that dual-scoped tables (with both team_id and campaign_id) allow access via:
+        1. team_id match (team-wide resources)
+        2. campaign_id match (campaign-specific resources)
+        """
+        from sqlalchemy import event, select, text
+
+        from app.deliverables.models import Deliverable
+        from app.utils.db_filters import create_query_filter
+        from tests.factories.brands import BrandFactory
+        from tests.factories.campaigns import CampaignFactory
+        from tests.factories.deliverables import DeliverableFactory
+
+        team1 = multi_team_setup["team1"]
+        team2 = multi_team_setup["team2"]
+
+        # Create brands and campaigns for both teams
+        brand1 = await BrandFactory.create_async(session=db_session, team_id=team1.id)
+        brand2 = await BrandFactory.create_async(session=db_session, team_id=team2.id)
+
+        campaign1 = await CampaignFactory.create_async(
+            session=db_session, team_id=team1.id, brand_id=brand1.id, name="Team 1 Campaign"
+        )
+        campaign2 = await CampaignFactory.create_async(
+            session=db_session, team_id=team2.id, brand_id=brand2.id, name="Team 2 Campaign"
+        )
+        await db_session.commit()
+
+        # Create deliverables with different scoping:
+        # 1. Team-wide deliverable (team_id set, campaign_id NULL)
+        team_wide_deliverable = await DeliverableFactory.create_async(
+            session=db_session,
+            team_id=team1.id,
+            campaign_id=None,  # Team-wide, not specific to a campaign
+            title="Team-wide Deliverable",
+        )
+
+        # 2. Campaign-specific deliverable (both team_id and campaign_id set)
+        campaign_specific_deliverable = await DeliverableFactory.create_async(
+            session=db_session,
+            team_id=team1.id,
+            campaign_id=campaign1.id,
+            title="Campaign-specific Deliverable",
+        )
+
+        # 3. Different team's deliverable (should not be accessible)
+        team2_deliverable = await DeliverableFactory.create_async(
+            session=db_session,
+            team_id=team2.id,
+            campaign_id=campaign2.id,
+            title="Team 2 Deliverable",
+        )
+        await db_session.commit()
+
+        # Test 1: Campaign scope should see BOTH team-wide and campaign-specific deliverables
+        await db_session.execute(text(f"SET LOCAL app.campaign_id = {campaign1.id}"))
+        query_filter = create_query_filter(team_id=team1.id, campaign_id=campaign1.id, scope_type="campaign")
+        event.listen(db_session.sync_session, "do_orm_execute", query_filter)
+
+        result = await db_session.execute(select(Deliverable).order_by(Deliverable.title))
+        deliverables = result.scalars().all()
+
+        # Should see both team-wide and campaign-specific (but not team2's)
+        assert len(deliverables) == 2, f"Expected 2 deliverables in campaign scope, got {len(deliverables)}"
+        deliverable_ids = {d.id for d in deliverables}
+        assert (
+            team_wide_deliverable.id in deliverable_ids
+        ), "Team-wide deliverable should be accessible in campaign scope"
+        assert campaign_specific_deliverable.id in deliverable_ids, "Campaign-specific deliverable should be accessible"
+        assert team2_deliverable.id not in deliverable_ids, "Team 2 deliverable should not be accessible"
+
+        event.remove(db_session.sync_session, "do_orm_execute", query_filter)
+        await db_session.rollback()
+
+        # Test 2: Team scope should see ALL deliverables for that team
+        await db_session.execute(text(f"SET LOCAL app.team_id = {team1.id}"))
+        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type="team")
+        event.listen(db_session.sync_session, "do_orm_execute", query_filter)
+
+        result = await db_session.execute(select(Deliverable).order_by(Deliverable.title))
+        deliverables = result.scalars().all()
+
+        # Should see both deliverables for team1
+        assert len(deliverables) == 2, f"Expected 2 deliverables in team scope, got {len(deliverables)}"
+        deliverable_ids = {d.id for d in deliverables}
+        assert team_wide_deliverable.id in deliverable_ids
+        assert campaign_specific_deliverable.id in deliverable_ids
+        assert team2_deliverable.id not in deliverable_ids
+
+        event.remove(db_session.sync_session, "do_orm_execute", query_filter)
 
 
 class TestRLSWithORM:
