@@ -23,11 +23,11 @@ def build_team_scope_filter(entity, team_id: int) -> ColumnElement[bool]:
 
 
 def build_campaign_scope_filter(entity, campaign_id: int) -> ColumnElement[bool]:
-    """Build campaign scope filter or return literal(True) if entity has no campaign_id."""
-    try:
-        return entity.campaign_id == campaign_id
-    except AttributeError:
-        return literal(True)
+    """Build campaign scope filter.
+
+    Note: Only call this for entities that have campaign_id attribute.
+    """
+    return entity.campaign_id == campaign_id
 
 
 # ---------------------------------------------------------------------------
@@ -42,15 +42,14 @@ def _build_scope_filter(
     if scope_type == ScopeType.TEAM and team_id:
         return build_team_scope_filter(entity, team_id)
     elif scope_type == ScopeType.CAMPAIGN and campaign_id:
-        # For campaign scope on dual-scoped tables, include:
-        # 1. Campaign-specific resources (campaign_id matches)
-        # 2. Team-wide resources (campaign_id IS NULL and team_id matches)
-        campaign_filter = build_campaign_scope_filter(entity, campaign_id)
-        if team_id and hasattr(entity, "campaign_id"):
-            # Add team-wide resources (campaign_id IS NULL) for dual-scoped entities
-            team_wide_filter = and_(entity.campaign_id.is_(None), entity.team_id == team_id)
-            return or_(campaign_filter, team_wide_filter)
-        return campaign_filter
+        # Only apply campaign filter to entities that have campaign_id attribute
+        if hasattr(entity, "campaign_id"):
+            return build_campaign_scope_filter(entity, campaign_id)
+        # For entities without campaign_id, fall back to team filtering
+        elif team_id:
+            return build_team_scope_filter(entity, team_id)
+        else:
+            return literal(True)
     else:
         return literal(False)
 
@@ -103,7 +102,7 @@ def create_query_filter(team_id: int | None, campaign_id: int | None, scope_type
                 raise ValueError("Scope type required for query filtering")
 
         execute_state.statement = execute_state.statement.options(
-            with_loader_criteria(BaseDBModel, build_criteria, include_aliases=True)
+            with_loader_criteria(BaseDBModel, build_criteria, include_aliases=True, track_closure_variables=False)
         )
 
     return apply_query_filters

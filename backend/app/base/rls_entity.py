@@ -1,23 +1,9 @@
-"""Custom alembic-utils entity for tracking RLS enablement on tables.
-
-This allows Alembic autogenerate to detect when:
-1. A table should have RLS enabled but doesn't
-2. A table has RLS enabled but shouldn't
-3. FORCE RLS setting changes
-
-Usage:
-    from app.base.rls_entity import PGRLSEnabled
-
-    # Register for a table
-    rls_entity = PGRLSEnabled(schema="public", table="campaigns", force=True)
-"""
-
 from __future__ import annotations
 
 import re
-from typing import Any
 
 from alembic_utils.replaceable_entity import ReplaceableEntity
+from alembic_utils.reversible_op import CreateOp, ReplaceOp
 from sqlalchemy import TextClause, text
 
 
@@ -68,6 +54,7 @@ class PGRLSEnabled(ReplaceableEntity):
         schema: str,
         table: str,
         force: bool = True,
+        enabled: bool = True,
     ):
         """Initialize RLS enablement entity.
 
@@ -75,6 +62,7 @@ class PGRLSEnabled(ReplaceableEntity):
             schema: Database schema name (e.g., 'public')
             table: Table name (e.g., 'campaigns')
             force: Whether to use FORCE ROW LEVEL SECURITY (default: True)
+            enabled: Whether RLS is enabled at all (default: True)
 
         Raises:
             ValueError: If schema or table names are invalid PostgreSQL identifiers
@@ -86,10 +74,14 @@ class PGRLSEnabled(ReplaceableEntity):
         self.schema = schema
         self.table = table
         self.force = force
+        self.enabled = enabled
 
         # ReplaceableEntity requires schema, signature, and definition
         # For RLS enablement, we use a simple marker definition
-        definition = f"ENABLED{' FORCED' if force else ''}"
+        if enabled:
+            definition = f"ENABLED{' FORCED' if force else ''}"
+        else:
+            definition = "DISABLED"
 
         super().__init__(
             schema=schema,
@@ -106,12 +98,58 @@ class PGRLSEnabled(ReplaceableEntity):
         """
         raise NotImplementedError("RLS entities are not created from SQL")
 
+    @classmethod
+    def from_database(cls, connection, schema: str) -> list[PGRLSEnabled]:  # type: ignore[override]
+        """Get all RLS-enabled tables from database for a given schema.
+
+        Args:
+            connection: SQLAlchemy connection to query database
+            schema: Database schema name (e.g., 'public')
+
+        Returns:
+            List of PGRLSEnabled instances for all tables with RLS enabled
+        """
+        result = connection.execute(
+            text(
+                f"""
+                SELECT
+                    t.schemaname,
+                    t.tablename,
+                    t.rowsecurity::boolean as rls_enabled,
+                    c.relforcerowsecurity::boolean as force_rls
+                FROM pg_tables t
+                JOIN pg_class c ON c.relname = t.tablename
+                JOIN pg_namespace n ON n.oid = c.relnamespace AND n.nspname = t.schemaname
+                WHERE t.schemaname = '{schema}'
+                  AND t.rowsecurity = true
+            """
+            )
+        )
+
+        entities = []
+        for row in result:
+            entities.append(
+                cls(
+                    schema=row[0],
+                    table=row[1],
+                    force=bool(row[3]) if row[3] is not None else False,
+                    enabled=bool(row[2]),  # rowsecurity column
+                )
+            )
+
+        return entities
+
     def to_sql_statement_create(self) -> TextClause:
         """Generate SQL to enable RLS on the table.
 
         Returns:
             SQL statement(s) to enable RLS
         """
+        if not self.enabled:
+            # If this entity represents disabled RLS, we shouldn't create anything
+            # This happens when comparing against a DB where RLS is disabled
+            return text("")
+
         statements = [f"ALTER TABLE {self.schema}.{self.table} ENABLE ROW LEVEL SECURITY"]
 
         if self.force:
@@ -128,6 +166,10 @@ class PGRLSEnabled(ReplaceableEntity):
         Returns:
             SQL statement(s) to disable RLS
         """
+        if not self.enabled:
+            # If this entity represents already-disabled RLS, we shouldn't drop anything
+            return text("")
+
         statements = []
 
         if self.force:
@@ -161,9 +203,28 @@ class PGRLSEnabled(ReplaceableEntity):
             PGRLSEnabled instance representing current DB state, or None if table doesn't exist
         """
         connection = sess
+
+        # First check if table exists at all
+        table_check = connection.execute(
+            text(
+                f"""
+                SELECT COUNT(*)
+                FROM pg_tables
+                WHERE schemaname = '{self.schema}'
+                  AND tablename = '{self.table}'
+            """
+            )
+        )
+
+        if table_check.fetchone()[0] == 0:
+            # Table doesn't exist - skip this entity entirely
+            # This prevents errors when models are defined but tables aren't created yet
+            return None
+
         # Query to check RLS state
         result = connection.execute(
-            text(f"""
+            text(
+                f"""
                 SELECT
                     t.schemaname,
                     t.tablename,
@@ -174,26 +235,45 @@ class PGRLSEnabled(ReplaceableEntity):
                 JOIN pg_namespace n ON n.oid = c.relnamespace AND n.nspname = t.schemaname
                 WHERE t.schemaname = '{self.schema}'
                   AND t.tablename = '{self.table}'
-            """)
+            """
+            )
         )
 
         row = result.fetchone()
         if not row:
+            # Shouldn't happen since we already checked table exists, but be safe
             return None
 
         rls_enabled = row[2]  # rowsecurity column
         force_rls = row[3]  # relforcerowsecurity column
 
-        # If RLS is not enabled in DB, return None to indicate it should be created
-        if not rls_enabled:
-            return None
-
-        # Return current state from database
+        # Always return an entity - if RLS is disabled, return with enabled=False
+        # This prevents alembic-utils from crashing when trying to access .identity on None
         return PGRLSEnabled(
             schema=row[0],
             table=row[1],
             force=bool(force_rls) if force_rls is not None else False,
+            enabled=bool(rls_enabled),
         )
+
+    def get_required_migration_op(self, sess, dependencies=False):  # type: ignore[override]
+        """Determine what migration operation is needed for this entity.
+
+        Override to handle None from get_database_definition properly.
+        """
+
+        db_def = self.get_database_definition(sess)
+
+        # If table doesn't exist or RLS is not enabled, create it
+        if db_def is None:
+            return CreateOp(self)
+
+        # If definitions are equal, no operation needed
+        if self.is_equal_definition(db_def):
+            return None
+
+        # Definitions differ, replace it
+        return ReplaceOp(self)
 
     def is_equal_definition(self, other: PGRLSEnabled | None) -> bool:
         """Compare this entity with another to detect changes.
@@ -211,6 +291,7 @@ class PGRLSEnabled(ReplaceableEntity):
             self.schema == other.schema
             and self.table == other.table
             and self.force == other.force
+            and self.enabled == other.enabled
             and self.definition == other.definition
         )
 
@@ -221,6 +302,14 @@ class PGRLSEnabled(ReplaceableEntity):
         Used by alembic-utils to track entities across migrations.
         """
         return f"{self.schema}.{self.table}"
+
+    @property
+    def type_(self) -> str:
+        """Return the type identifier for this entity.
+
+        Required by ReplaceableEntity interface.
+        """
+        return "rls_enabled"
 
     def __repr__(self) -> str:
         """String representation for debugging."""
@@ -238,6 +327,23 @@ class PGRLSEnabled(ReplaceableEntity):
         Returns:
             Python code string to create this entity
         """
-        # Python code to recreate this entity
-        # Note: Alembic will automatically add necessary imports
-        return f'PGRLSEnabled(schema="{self.schema}", table="{self.table}", force={self.force})'
+        var_name = self.to_variable_name()
+        class_name = self.__class__.__name__
+
+        # Only include enabled parameter if it's False (default is True)
+        enabled_param = f",\n    enabled={self.enabled}" if not self.enabled else ""
+
+        return f"""{var_name} = {class_name}(
+    schema="{self.schema}",
+    table="{self.table}",
+    force={self.force}{enabled_param}
+)
+"""
+
+    def to_variable_name(self) -> str:
+        """Generate a variable name for this entity in migration files.
+
+        Returns:
+            Variable name like 'public_campaigns_rls'
+        """
+        return f"{self.schema}_{self.table}_rls"

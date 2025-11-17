@@ -6,11 +6,9 @@ from alembic_utils.pg_policy import PGPolicy
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.base.models import BaseDBModel
-from app.base.rls_entity import PGRLSEnabled
 
-# Global registries for RLS entities - consumed by alembic env.py
+# Global registry for RLS policies - consumed by alembic env.py
 RLS_POLICY_REGISTRY: list[PGPolicy] = []
-RLS_ENABLED_REGISTRY: list[PGRLSEnabled] = []
 
 
 def RLSMixin(scope_with_campaign_id: bool = False) -> type:
@@ -39,8 +37,14 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
 
                 tablename: str = cls.__tablename__  # type: ignore[misc]
 
+                # Register table for RLS enablement in metadata
+                # This is used by the RLS comparator to detect when RLS needs to be enabled
+                if "rls" not in BaseDBModel.metadata.info:
+                    BaseDBModel.metadata.info["rls"] = set()
+                BaseDBModel.metadata.info["rls"].add(tablename)
+
                 # Create RLS policy for dual-scoped table
-                # Explicit NULL checks prevent unintended access when RLS context is not set
+                # Check IS NOT NULL before casting to prevent errors
                 policy = PGPolicy(
                     schema="public",
                     signature="dual_scope_policy",
@@ -58,10 +62,6 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                     """,
                 )
                 RLS_POLICY_REGISTRY.append(policy)
-
-                # Register RLS enablement for this table
-                rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
-                RLS_ENABLED_REGISTRY.append(rls_enabled)
 
         return _DualScopedMixin
 
@@ -84,8 +84,14 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
 
                 tablename: str = cls.__tablename__  # type: ignore[misc]
 
+                # Register table for RLS enablement in metadata
+                # This is used by the RLS comparator to detect when RLS needs to be enabled
+                if "rls" not in BaseDBModel.metadata.info:
+                    BaseDBModel.metadata.info["rls"] = set()
+                BaseDBModel.metadata.info["rls"].add(tablename)
+
                 # Create RLS policy for team-scoped table
-                # Explicit NULL check prevents unintended access when RLS context is not set
+                # Check IS NOT NULL before casting to prevent errors
                 policy = PGPolicy(
                     schema="public",
                     signature="team_scope_policy",
@@ -101,9 +107,5 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                     """,
                 )
                 RLS_POLICY_REGISTRY.append(policy)
-
-                # Register RLS enablement for this table
-                rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
-                RLS_ENABLED_REGISTRY.append(rls_enabled)
 
         return _TeamScopedMixin

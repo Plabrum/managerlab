@@ -27,6 +27,7 @@ class TestBrands:
         self,
         authenticated_client: tuple[AsyncTestClient, dict],
         brand,
+        db_session,
     ):
         """Test POST /brands/{id} updates brand."""
         client, _ = authenticated_client

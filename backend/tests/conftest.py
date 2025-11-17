@@ -370,7 +370,7 @@ def test_app(
         dependencies_overrides={
             # SQLAlchemy plugin provides db_session automatically
             # Use real provide_transaction to test RLS properly (it will use plugin's db_session)
-            "transaction": Provide(provide_transaction, sync_to_thread=False),
+            "transaction": Provide(provide_transaction),
             "http_client": Provide(provide_test_http_client, sync_to_thread=False),
             "s3_client": Provide(provide_test_s3_client, sync_to_thread=False),
             "task_queues": Provide(provide_test_task_queues, sync_to_thread=False),
