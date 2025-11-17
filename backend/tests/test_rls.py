@@ -11,6 +11,8 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.enums import ScopeType
+
 
 class TestRLSConfiguration:
     """Test that RLS is properly configured in the database."""
@@ -123,7 +125,7 @@ class TestRLSDataIsolation:
 
         # Test team 1 isolation
         await db_session.execute(text(f"SET LOCAL app.team_id = {team1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type="team")
+        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(text("SELECT id, name FROM campaigns ORDER BY name"))
@@ -138,7 +140,7 @@ class TestRLSDataIsolation:
 
         # Test team 2 isolation
         await db_session.execute(text(f"SET LOCAL app.team_id = {team2.id}"))
-        query_filter = create_query_filter(team_id=team2.id, campaign_id=None, scope_type="team")
+        query_filter = create_query_filter(team_id=team2.id, campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(text("SELECT id, name FROM campaigns ORDER BY name"))
@@ -296,7 +298,7 @@ class TestRLSDualScope:
 
         # Test 1: Campaign scope should see BOTH team-wide and campaign-specific deliverables
         await db_session.execute(text(f"SET LOCAL app.campaign_id = {campaign1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=campaign1.id, scope_type="campaign")
+        query_filter = create_query_filter(team_id=team1.id, campaign_id=campaign1.id, scope_type=ScopeType.CAMPAIGN)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(select(Deliverable).order_by(Deliverable.title))
@@ -316,7 +318,7 @@ class TestRLSDualScope:
 
         # Test 2: Team scope should see ALL deliverables for that team
         await db_session.execute(text(f"SET LOCAL app.team_id = {team1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type="team")
+        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(select(Deliverable).order_by(Deliverable.title))
@@ -358,7 +360,7 @@ class TestRLSWithORM:
 
         # Set RLS context for team 1
         await db_session.execute(text(f"SET LOCAL app.team_id = {team1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type="team")
+        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         # Use ORM query - should have team_id filter applied automatically
