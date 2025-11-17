@@ -36,6 +36,9 @@ TEAM_SCOPED_TABLES = [
     "brand_contacts",
     "roster",
     "threads",
+    "dashboards",
+    "events",
+    "payment_blocks",
 ]
 
 # Tables with dual_scope_policy (both team_id and campaign_id)

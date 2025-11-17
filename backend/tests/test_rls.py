@@ -50,7 +50,7 @@ class TestRLSConfiguration:
             assert tables[table] is True, f"RLS not enabled on {table}"
 
     async def test_rls_policies_exist(self, db_session: AsyncSession):
-        """Verify RLS policies exist for team-scoped tables."""
+        """Verify RLS policies exist for team-scoped and dual-scoped tables."""
         result = await db_session.execute(
             text("""
                 SELECT schemaname, tablename, policyname, permissive, cmd
@@ -63,16 +63,24 @@ class TestRLSConfiguration:
 
         assert len(policies) > 0, "No RLS policies found in database"
 
-        # Check that team_scope_policy exists for team-scoped tables
+        # Check that policies exist for tables
         policy_dict = {(row[1], row[2]): row for row in policies}
 
-        # Verify team scope policies exist
-        team_tables = ["campaigns", "brands", "brand_contacts", "roster", "documents", "invoices", "threads"]
+        # Verify team scope policies exist (team_id only)
+        team_tables = ["campaigns", "brands", "brand_contacts", "roster", "threads"]
         for table in team_tables:
             assert (
                 table,
                 "team_scope_policy",
             ) in policy_dict, f"team_scope_policy missing for {table}"
+
+        # Verify dual scope policies exist (team_id + campaign_id)
+        dual_tables = ["documents", "invoices", "deliverables", "media", "messages"]
+        for table in dual_tables:
+            assert (
+                table,
+                "dual_scope_policy",
+            ) in policy_dict, f"dual_scope_policy missing for {table}"
 
     async def test_rls_policy_uses_system_mode(self, db_session: AsyncSession):
         """Verify RLS policies check app.is_system_mode for bypass."""
@@ -110,44 +118,55 @@ class TestRLSDataIsolation:
         team1 = multi_team_setup["team1"]
         team2 = multi_team_setup["team2"]
 
+        # Capture team IDs before any rollbacks that might expire them
+        team1_id = int(team1.id)
+        team2_id = int(team2.id)
+
         # Create brands for each team
-        brand1 = await BrandFactory.create_async(session=db_session, team_id=team1.id)
-        brand2 = await BrandFactory.create_async(session=db_session, team_id=team2.id)
+        brand1 = await BrandFactory.create_async(session=db_session, team_id=team1_id)
+        brand2 = await BrandFactory.create_async(session=db_session, team_id=team2_id)
 
         # Create campaigns for each team
         campaign1 = await CampaignFactory.create_async(
-            session=db_session, team_id=team1.id, brand_id=brand1.id, name="Team 1 Campaign"
+            session=db_session, team_id=team1_id, brand_id=brand1.id, name="Team 1 Campaign"
         )
         campaign2 = await CampaignFactory.create_async(
-            session=db_session, team_id=team2.id, brand_id=brand2.id, name="Team 2 Campaign"
+            session=db_session, team_id=team2_id, brand_id=brand2.id, name="Team 2 Campaign"
         )
-        await db_session.commit()
+        # Flush to database so queries can see the data (but don't commit)
+        await db_session.flush()
+        # Capture campaign IDs before rollback that might expire them
+        campaign1_id = int(campaign1.id)
+        campaign2_id = int(campaign2.id)
 
         # Test team 1 isolation
-        await db_session.execute(text(f"SET LOCAL app.team_id = {team1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type=ScopeType.TEAM)
+        # Disable system mode to test RLS (fixture sets it to true by default)
+        await db_session.execute(text("SET LOCAL app.is_system_mode = false"))
+        await db_session.execute(text(f"SET LOCAL app.team_id = {team1_id}"))
+        query_filter = create_query_filter(team_id=team1_id, campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(text("SELECT id, name FROM campaigns ORDER BY name"))
         campaigns = list(result)
 
         assert len(campaigns) == 1, f"Expected 1 campaign for team 1, got {len(campaigns)}"
-        assert campaigns[0][0] == campaign1.id
+        assert campaigns[0][0] == campaign1_id
         assert campaigns[0][1] == "Team 1 Campaign"
 
         event.remove(db_session.sync_session, "do_orm_execute", query_filter)
-        await db_session.rollback()
 
         # Test team 2 isolation
-        await db_session.execute(text(f"SET LOCAL app.team_id = {team2.id}"))
-        query_filter = create_query_filter(team_id=team2.id, campaign_id=None, scope_type=ScopeType.TEAM)
+        # Disable system mode to test RLS (fixture sets it to true by default)
+        await db_session.execute(text("SET LOCAL app.is_system_mode = false"))
+        await db_session.execute(text(f"SET LOCAL app.team_id = {team2_id}"))
+        query_filter = create_query_filter(team_id=team2_id, campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(text("SELECT id, name FROM campaigns ORDER BY name"))
         campaigns = list(result)
 
         assert len(campaigns) == 1, f"Expected 1 campaign for team 2, got {len(campaigns)}"
-        assert campaigns[0][0] == campaign2.id
+        assert campaigns[0][0] == campaign2_id
         assert campaigns[0][1] == "Team 2 Campaign"
 
         event.remove(db_session.sync_session, "do_orm_execute", query_filter)
@@ -169,14 +188,17 @@ class TestRLSDataIsolation:
         brand1 = await BrandFactory.create_async(session=db_session, team_id=team1.id)
         brand2 = await BrandFactory.create_async(session=db_session, team_id=team2.id)
 
-        # Create campaigns for each team
-        await CampaignFactory.create_async(
-            session=db_session, team_id=team1.id, brand_id=brand1.id, name="Team 1 Campaign"
+        # Create campaigns for each team with unique names
+        campaign1 = await CampaignFactory.create_async(
+            session=db_session, team_id=team1.id, brand_id=brand1.id, name="System Mode Test Campaign 1"
         )
-        await CampaignFactory.create_async(
-            session=db_session, team_id=team2.id, brand_id=brand2.id, name="Team 2 Campaign"
+        campaign2 = await CampaignFactory.create_async(
+            session=db_session, team_id=team2.id, brand_id=brand2.id, name="System Mode Test Campaign 2"
         )
-        await db_session.commit()
+        # Flush to database so queries can see the data (but don't commit)
+        await db_session.flush()
+        campaign1_id = int(campaign1.id)
+        campaign2_id = int(campaign2.id)
 
         # Set system mode
         await db_session.execute(text("SET LOCAL app.is_system_mode = true"))
@@ -185,10 +207,16 @@ class TestRLSDataIsolation:
             query_filter = create_query_filter(team_id=None, campaign_id=None, scope_type=None)
             event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
-            result = await db_session.execute(text("SELECT COUNT(*) FROM campaigns"))
-            count = result.scalar()
+            # Verify we can see campaigns from BOTH teams (system mode bypasses RLS)
+            result = await db_session.execute(
+                text("SELECT id FROM campaigns WHERE deleted_at IS NULL AND id IN (:id1, :id2)"),
+                {"id1": campaign1_id, "id2": campaign2_id},
+            )
+            campaign_ids = [row[0] for row in result]
 
-            assert count == 2, f"Expected 2 campaigns in system mode, got {count}"
+            assert len(campaign_ids) == 2, f"Expected to see both campaigns in system mode, got {len(campaign_ids)}"
+            assert campaign1_id in campaign_ids, "Should see team 1 campaign"
+            assert campaign2_id in campaign_ids, "Should see team 2 campaign"
 
             event.remove(db_session.sync_session, "do_orm_execute", query_filter)
 
@@ -204,7 +232,8 @@ class TestRLSDataIsolation:
         await CampaignFactory.create_async(
             session=db_session, team_id=team1.id, brand_id=brand1.id, name="Team 1 Campaign"
         )
-        await db_session.commit()
+        # Flush to database so queries can see the data (but don't commit)
+        await db_session.flush()
 
         # Don't set any RLS context variables
         # Query campaigns - should see nothing (or everything if policy has IS NULL check)
@@ -258,23 +287,29 @@ class TestRLSDualScope:
         team1 = multi_team_setup["team1"]
         team2 = multi_team_setup["team2"]
 
+        # Capture team IDs before any rollbacks that might expire them
+        team1_id = int(team1.id)
+        team2_id = int(team2.id)
+
         # Create brands and campaigns for both teams
-        brand1 = await BrandFactory.create_async(session=db_session, team_id=team1.id)
-        brand2 = await BrandFactory.create_async(session=db_session, team_id=team2.id)
+        brand1 = await BrandFactory.create_async(session=db_session, team_id=team1_id)
+        brand2 = await BrandFactory.create_async(session=db_session, team_id=team2_id)
 
         campaign1 = await CampaignFactory.create_async(
-            session=db_session, team_id=team1.id, brand_id=brand1.id, name="Team 1 Campaign"
+            session=db_session, team_id=team1_id, brand_id=brand1.id, name="Team 1 Campaign"
         )
         campaign2 = await CampaignFactory.create_async(
-            session=db_session, team_id=team2.id, brand_id=brand2.id, name="Team 2 Campaign"
+            session=db_session, team_id=team2_id, brand_id=brand2.id, name="Team 2 Campaign"
         )
-        await db_session.commit()
+        # Flush to database so queries can see the data (but don't commit)
+        await db_session.flush()
+        campaign1_id = int(campaign1.id)
 
         # Create deliverables with different scoping:
         # 1. Team-wide deliverable (team_id set, campaign_id NULL)
         team_wide_deliverable = await DeliverableFactory.create_async(
             session=db_session,
-            team_id=team1.id,
+            team_id=team1_id,
             campaign_id=None,  # Team-wide, not specific to a campaign
             title="Team-wide Deliverable",
         )
@@ -282,23 +317,32 @@ class TestRLSDualScope:
         # 2. Campaign-specific deliverable (both team_id and campaign_id set)
         campaign_specific_deliverable = await DeliverableFactory.create_async(
             session=db_session,
-            team_id=team1.id,
-            campaign_id=campaign1.id,
+            team_id=team1_id,
+            campaign_id=campaign1_id,
             title="Campaign-specific Deliverable",
         )
 
         # 3. Different team's deliverable (should not be accessible)
         team2_deliverable = await DeliverableFactory.create_async(
             session=db_session,
-            team_id=team2.id,
-            campaign_id=campaign2.id,
+            team_id=team2_id,
+            campaign_id=int(campaign2.id),
             title="Team 2 Deliverable",
         )
-        await db_session.commit()
+        # Flush to database so queries can see the data (but don't commit)
+        await db_session.flush()
+        # Capture deliverable IDs before rollback that might expire them
+        team_wide_id = int(team_wide_deliverable.id)
+        campaign_specific_id = int(campaign_specific_deliverable.id)
+        team2_deliverable_id = int(team2_deliverable.id)
 
         # Test 1: Campaign scope should see BOTH team-wide and campaign-specific deliverables
-        await db_session.execute(text(f"SET LOCAL app.campaign_id = {campaign1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=campaign1.id, scope_type=ScopeType.CAMPAIGN)
+        # Disable system mode to test RLS (fixture sets it to true by default)
+        await db_session.execute(text("SET LOCAL app.is_system_mode = false"))
+        # Set BOTH team_id and campaign_id for dual-scoped RLS to work correctly
+        await db_session.execute(text(f"SET LOCAL app.team_id = {team1_id}"))
+        await db_session.execute(text(f"SET LOCAL app.campaign_id = {campaign1_id}"))
+        query_filter = create_query_filter(team_id=team1_id, campaign_id=campaign1_id, scope_type=ScopeType.CAMPAIGN)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(select(Deliverable).order_by(Deliverable.title))
@@ -306,19 +350,18 @@ class TestRLSDualScope:
 
         # Should see both team-wide and campaign-specific (but not team2's)
         assert len(deliverables) == 2, f"Expected 2 deliverables in campaign scope, got {len(deliverables)}"
-        deliverable_ids = {d.id for d in deliverables}
-        assert (
-            team_wide_deliverable.id in deliverable_ids
-        ), "Team-wide deliverable should be accessible in campaign scope"
-        assert campaign_specific_deliverable.id in deliverable_ids, "Campaign-specific deliverable should be accessible"
-        assert team2_deliverable.id not in deliverable_ids, "Team 2 deliverable should not be accessible"
+        deliverable_ids = {int(d.id) for d in deliverables}
+        assert team_wide_id in deliverable_ids, "Team-wide deliverable should be accessible in campaign scope"
+        assert campaign_specific_id in deliverable_ids, "Campaign-specific deliverable should be accessible"
+        assert team2_deliverable_id not in deliverable_ids, "Team 2 deliverable should not be accessible"
 
         event.remove(db_session.sync_session, "do_orm_execute", query_filter)
-        await db_session.rollback()
 
         # Test 2: Team scope should see ALL deliverables for that team
-        await db_session.execute(text(f"SET LOCAL app.team_id = {team1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type=ScopeType.TEAM)
+        # Disable system mode to test RLS (fixture sets it to true by default)
+        await db_session.execute(text("SET LOCAL app.is_system_mode = false"))
+        await db_session.execute(text(f"SET LOCAL app.team_id = {team1_id}"))
+        query_filter = create_query_filter(team_id=team1_id, campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         result = await db_session.execute(select(Deliverable).order_by(Deliverable.title))
@@ -326,10 +369,10 @@ class TestRLSDualScope:
 
         # Should see both deliverables for team1
         assert len(deliverables) == 2, f"Expected 2 deliverables in team scope, got {len(deliverables)}"
-        deliverable_ids = {d.id for d in deliverables}
-        assert team_wide_deliverable.id in deliverable_ids
-        assert campaign_specific_deliverable.id in deliverable_ids
-        assert team2_deliverable.id not in deliverable_ids
+        deliverable_ids = {int(d.id) for d in deliverables}
+        assert team_wide_id in deliverable_ids
+        assert campaign_specific_id in deliverable_ids
+        assert team2_deliverable_id not in deliverable_ids
 
         event.remove(db_session.sync_session, "do_orm_execute", query_filter)
 
@@ -356,11 +399,14 @@ class TestRLSWithORM:
         # Create campaigns for each team
         await CampaignFactory.create_async(session=db_session, team_id=team1.id, brand_id=brand1.id)
         await CampaignFactory.create_async(session=db_session, team_id=team2.id, brand_id=brand2.id)
-        await db_session.commit()
+        # Flush to database so queries can see the data (but don't commit)
+        await db_session.flush()
 
         # Set RLS context for team 1
-        await db_session.execute(text(f"SET LOCAL app.team_id = {team1.id}"))
-        query_filter = create_query_filter(team_id=team1.id, campaign_id=None, scope_type=ScopeType.TEAM)
+        # Disable system mode to test RLS (fixture sets it to true by default)
+        await db_session.execute(text("SET LOCAL app.is_system_mode = false"))
+        await db_session.execute(text(f"SET LOCAL app.team_id = {int(team1.id)}"))
+        query_filter = create_query_filter(team_id=int(team1.id), campaign_id=None, scope_type=ScopeType.TEAM)
         event.listen(db_session.sync_session, "do_orm_execute", query_filter)
 
         # Use ORM query - should have team_id filter applied automatically

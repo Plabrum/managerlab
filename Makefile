@@ -238,29 +238,6 @@ docker-build:
 	@echo "🐳 Building backend Docker image..."
 	cd backend && docker build -t manageros-api:local .
 
-.PHONY: docker-test
-docker-test:
-	@echo "🧪 Testing backend Docker image with database..."
-	@echo "Starting services with docker-compose..."
-	cd backend && docker-compose -f docker-compose.test.yml up --build -d
-	@echo "Waiting for services to be healthy..."
-	@sleep 15
-	@echo "Testing health endpoint..."
-	@if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then \
-		echo "✅ Health check passed!"; \
-		echo "API logs:"; \
-		cd backend && docker-compose -f docker-compose.test.yml logs api; \
-	else \
-		echo "❌ Health check failed!"; \
-		echo "API logs:"; \
-		cd backend && docker-compose -f docker-compose.test.yml logs api; \
-		echo "DB logs:"; \
-		cd backend && docker-compose -f docker-compose.test.yml logs db; \
-		cd backend && docker-compose -f docker-compose.test.yml down; \
-		exit 1; \
-	fi
-	@echo "Cleaning up..."
-	cd backend && docker-compose -f docker-compose.test.yml down
 
 
 # AWS/ECS targets
@@ -318,6 +295,5 @@ clean:
 	cd frontend && rm -rf node_modules .next
 	cd backend && rm -rf .venv || true
 	docker stop manageros-dev-db || true
-	docker stop manageros-test || true
 	docker rmi manageros-api:local || true
 	docker rmi $$(docker images -q --filter "dangling=true") || true

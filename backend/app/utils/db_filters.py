@@ -23,8 +23,11 @@ def build_team_scope_filter(entity, team_id: int) -> ColumnElement[bool]:
 
 
 def build_campaign_scope_filter(entity, campaign_id: int) -> ColumnElement[bool]:
-    """Build campaign scope filter."""
-    return entity.campaign_id == campaign_id
+    """Build campaign scope filter or return literal(True) if entity has no campaign_id."""
+    try:
+        return entity.campaign_id == campaign_id
+    except AttributeError:
+        return literal(True)
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +42,15 @@ def _build_scope_filter(
     if scope_type == ScopeType.TEAM and team_id:
         return build_team_scope_filter(entity, team_id)
     elif scope_type == ScopeType.CAMPAIGN and campaign_id:
-        return build_campaign_scope_filter(entity, campaign_id)
+        # For campaign scope on dual-scoped tables, include:
+        # 1. Campaign-specific resources (campaign_id matches)
+        # 2. Team-wide resources (campaign_id IS NULL and team_id matches)
+        campaign_filter = build_campaign_scope_filter(entity, campaign_id)
+        if team_id and hasattr(entity, "campaign_id"):
+            # Add team-wide resources (campaign_id IS NULL) for dual-scoped entities
+            team_wide_filter = and_(entity.campaign_id.is_(None), entity.team_id == team_id)
+            return or_(campaign_filter, team_wide_filter)
+        return campaign_filter
     else:
         return literal(False)
 
