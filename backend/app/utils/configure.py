@@ -85,39 +85,68 @@ class Config:
 
     IS_SYSTEM_MODE: bool = os.getenv("SYSTEM_MODE", "false").lower() == "true"
 
+    def _build_database_url(self, user: str, password: str, driver: str = "") -> str:
+        """Build database URL with given credentials and optional driver."""
+        db_endpoint = os.getenv("DB_ENDPOINT", "localhost")
+        db_port = os.getenv("DB_PORT", "5432")
+        db_name = os.getenv("DB_NAME", "manageros")
+
+        protocol = f"postgresql{driver}"
+        return f"{protocol}://{user}:{password}@{db_endpoint}:{db_port}/{db_name}"
+
+    @property
+    def MIGRATION_DB_URL(self) -> str:
+        """Database URL for migrations (postgres/admin user with schema privileges).
+
+        Used by Alembic for running migrations.
+        """
+        # Check for override
+        if url := os.getenv("MIGRATION_DB_URL") or os.getenv("DATABASE_URL"):
+            return url
+
+        admin_user = os.getenv("DB_ADMIN_USER", "postgres")
+        admin_password = os.getenv("DB_ADMIN_PASSWORD", "postgres")
+        return self._build_database_url(admin_user, admin_password)
+
+    @property
+    def APP_DB_URL(self) -> str:
+        """Plain database URL for application runtime (arive user with RLS enforced).
+
+        Used by: SAQ queue, channels backend, and other non-SQLAlchemy clients.
+        """
+        # Check for override
+        if url := os.getenv("APP_DB_URL"):
+            return url
+
+        app_user = os.getenv("DB_USER", "arive")
+        app_password = os.getenv("DB_PASSWORD", "arive")
+        return self._build_database_url(app_user, app_password)
+
+    @property
+    def SQLALCHEMY_DB_URL(self) -> str:
+        """SQLAlchemy async database URL for application runtime (arive user with RLS enforced).
+
+        Used by SQLAlchemy for all ORM database operations.
+        Same as APP_DB_URL but with +psycopg driver for async support.
+        """
+        # Check for override
+        if url := os.getenv("SQLALCHEMY_DB_URL") or os.getenv("ASYNC_DATABASE_URL"):
+            return url
+
+        app_user = os.getenv("DB_USER", "arive")
+        app_password = os.getenv("DB_PASSWORD", "arive")
+        return self._build_database_url(app_user, app_password, driver="+psycopg")
+
+    # Backwards compatibility aliases
     @property
     def DATABASE_URL(self) -> str:
-        """Sync database URL for migrations and sync operations."""
-        # Check for full DATABASE_URL override first
-        if database_url := os.getenv("DATABASE_URL"):
-            return database_url
-
-        # Default URLs based on environment
-        if self.IS_DEV:
-            return "postgresql://postgres:postgres@localhost:5432/manageros_dev"
-        else:
-            # Production default - get endpoint from environment
-            db_endpoint = os.getenv("DB_ENDPOINT", "localhost")
-            return f"postgresql://postgres:postgres@{db_endpoint}:5432/manageros"
+        """Backwards compatibility - use MIGRATION_DB_URL instead."""
+        return self.MIGRATION_DB_URL
 
     @property
     def ASYNC_DATABASE_URL(self) -> str:
-        """Async database URL for application runtime with psycopg3."""
-        return self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
-
-    @property
-    def PSYCOPG_DATABASE_URL(self) -> str:
-        """Plain psycopg database URL for psycopg-only clients (channels, direct connections)."""
-        return self.DATABASE_URL  # Plain postgresql:// format without SQLAlchemy driver
-
-    @property
-    def QUEUE_DSN(self) -> str:
-        """Queue DSN for SAQ (uses same database as application)."""
-        # Check for override first
-        if queue_dsn := os.getenv("QUEUE_DSN"):
-            return queue_dsn
-        # Use standard DATABASE_URL for queue
-        return self.DATABASE_URL
+        """Backwards compatibility - use SQLALCHEMY_DB_URL instead."""
+        return self.SQLALCHEMY_DB_URL
 
 
 # Global config instance

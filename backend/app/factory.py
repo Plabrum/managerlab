@@ -169,7 +169,7 @@ def create_app(
         ),
         ChannelsPlugin(
             # in tesing backend = MemoryChannelsBackend()
-            backend=PsycoPgChannelsBackend(config.PSYCOPG_DATABASE_URL),
+            backend=PsycoPgChannelsBackend(config.APP_DB_URL),
             arbitrary_channels_allowed=True,
         ),
         StructlogPlugin(

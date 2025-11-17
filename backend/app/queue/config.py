@@ -31,12 +31,22 @@ async def queue_startup(ctx: Context) -> None:
     This runs when each SAQ worker starts up, injecting the necessary
     dependencies into the context for use by background tasks.
     """
+    from sqlalchemy import event
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
     from app.client.s3_client import provide_s3_client
 
     # Create database session factory
     engine = create_async_engine(config.ASYNC_DATABASE_URL, pool_pre_ping=True)
+
+    # Set system mode for all worker connections to bypass RLS
+    # Background tasks typically need to operate across all users
+    @event.listens_for(engine.sync_engine, "connect")
+    def set_system_mode(dbapi_conn, connection_record):
+        cursor = dbapi_conn.cursor()
+        cursor.execute("SET app.is_system_mode = true")
+        cursor.close()
+
     ctx["db_sessionmaker"] = async_sessionmaker(engine, expire_on_commit=False)
 
     # Inject S3 client
@@ -61,7 +71,7 @@ def get_queue_config() -> list[QueueConfig]:
     return [
         QueueConfig(
             name="default",
-            dsn=config.QUEUE_DSN,
+            dsn=config.APP_DB_URL,
             # Tasks are automatically collected from @task decorators
             tasks=registry.get_all_tasks(),
             # Scheduled tasks are automatically collected from @scheduled_task decorators

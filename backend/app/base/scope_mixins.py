@@ -5,14 +5,12 @@ import sqlalchemy as sa
 from alembic_utils.pg_policy import PGPolicy
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.base.models import BaseDBModel
 from app.base.rls_entity import PGRLSEnabled
 
 # Global registries for RLS entities - consumed by alembic env.py
 RLS_POLICY_REGISTRY: list[PGPolicy] = []
 RLS_ENABLED_REGISTRY: list[PGRLSEnabled] = []
-
-# Flag to disable policy registration during migration generation
-REGISTER_POLICIES = os.getenv("REGISTER_RLS_POLICIES", "true").lower() == "true"
 
 
 def RLSMixin(scope_with_campaign_id: bool = False) -> type:
@@ -35,33 +33,35 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                 """Auto-register RLS policy and enablement when model class is defined."""
                 super().__init_subclass__(**kwargs)
 
-                # Only register if this is an actual table model and policies are enabled
-                if REGISTER_POLICIES and hasattr(cls, "__tablename__"):
-                    tablename = getattr(cls, "__tablename__")
+                # Only register if this is an actual table model (not the mixin itself)
+                if not hasattr(cls, "__tablename__"):
+                    return
 
-                    # Create RLS policy for dual-scoped table
-                    # Explicit NULL checks prevent unintended access when RLS context is not set
-                    policy = PGPolicy(
-                        schema="public",
-                        signature="dual_scope_policy",
-                        on_entity=f"public.{tablename}",
-                        definition="""
-                            AS PERMISSIVE
-                            FOR ALL
-                            USING (
-                                (current_setting('app.team_id', true) IS NOT NULL
-                                 AND team_id = current_setting('app.team_id', true)::int)
-                                OR (current_setting('app.campaign_id', true) IS NOT NULL
-                                    AND campaign_id = current_setting('app.campaign_id', true)::int)
-                                OR (current_setting('app.is_system_mode', true)::boolean IS TRUE)
-                            )
-                        """,
-                    )
-                    RLS_POLICY_REGISTRY.append(policy)
+                tablename: str = cls.__tablename__  # type: ignore[misc]
 
-                    # Register RLS enablement for this table
-                    rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
-                    RLS_ENABLED_REGISTRY.append(rls_enabled)
+                # Create RLS policy for dual-scoped table
+                # Explicit NULL checks prevent unintended access when RLS context is not set
+                policy = PGPolicy(
+                    schema="public",
+                    signature="dual_scope_policy",
+                    on_entity=f"public.{tablename}",
+                    definition="""
+                        AS PERMISSIVE
+                        FOR ALL
+                        USING (
+                            (current_setting('app.team_id', true) IS NOT NULL
+                             AND team_id = current_setting('app.team_id', true)::int)
+                            OR (current_setting('app.campaign_id', true) IS NOT NULL
+                                AND campaign_id = current_setting('app.campaign_id', true)::int)
+                            OR (current_setting('app.is_system_mode', true)::boolean IS TRUE)
+                        )
+                    """,
+                )
+                RLS_POLICY_REGISTRY.append(policy)
+
+                # Register RLS enablement for this table
+                rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
+                RLS_ENABLED_REGISTRY.append(rls_enabled)
 
         return _DualScopedMixin
 
@@ -78,30 +78,32 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                 """Auto-register RLS policy and enablement when model class is defined."""
                 super().__init_subclass__(**kwargs)
 
-                # Only register if this is an actual table model and policies are enabled
-                if REGISTER_POLICIES and hasattr(cls, "__tablename__"):
-                    tablename = getattr(cls, "__tablename__")
+                # Only register if this is an actual table model (not the mixin itself)
+                if not hasattr(cls, "__tablename__"):
+                    return
 
-                    # Create RLS policy for team-scoped table
-                    # Explicit NULL check prevents unintended access when RLS context is not set
-                    policy = PGPolicy(
-                        schema="public",
-                        signature="team_scope_policy",
-                        on_entity=f"public.{tablename}",
-                        definition="""
-                            AS PERMISSIVE
-                            FOR ALL
-                            USING (
-                                (current_setting('app.team_id', true) IS NOT NULL
-                                 AND team_id = current_setting('app.team_id', true)::int)
-                                OR current_setting('app.is_system_mode', true)::boolean IS TRUE
-                            )
-                        """,
-                    )
-                    RLS_POLICY_REGISTRY.append(policy)
+                tablename: str = cls.__tablename__  # type: ignore[misc]
 
-                    # Register RLS enablement for this table
-                    rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
-                    RLS_ENABLED_REGISTRY.append(rls_enabled)
+                # Create RLS policy for team-scoped table
+                # Explicit NULL check prevents unintended access when RLS context is not set
+                policy = PGPolicy(
+                    schema="public",
+                    signature="team_scope_policy",
+                    on_entity=f"public.{tablename}",
+                    definition="""
+                        AS PERMISSIVE
+                        FOR ALL
+                        USING (
+                            (current_setting('app.team_id', true) IS NOT NULL
+                             AND team_id = current_setting('app.team_id', true)::int)
+                            OR current_setting('app.is_system_mode', true)::boolean IS TRUE
+                        )
+                    """,
+                )
+                RLS_POLICY_REGISTRY.append(policy)
+
+                # Register RLS enablement for this table
+                rls_enabled = PGRLSEnabled(schema="public", table=tablename, force=True)
+                RLS_ENABLED_REGISTRY.append(rls_enabled)
 
         return _TeamScopedMixin

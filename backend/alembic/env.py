@@ -45,7 +45,7 @@ if config.config_file_name is not None:
 target_metadata = BaseDBModel.metadata
 
 # Use the sync database URL for alembic
-database_url = app_config.DATABASE_URL
+database_url = app_config.MIGRATION_DB_URL
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

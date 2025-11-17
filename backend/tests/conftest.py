@@ -71,31 +71,16 @@ def memory_store() -> MemoryStore:
 
 
 @pytest.fixture(scope="session")
-def test_db_url() -> str:
-    """Test database URL using dedicated test database.
-
-    Uses dedicated PostgreSQL container on port 5433 locally (via docker-compose)
-    and port 5432 in CI (via GitHub Actions service container).
-
-    Make sure the test database is running:
-    - Local: make test-db-start
-    - CI: Configured in GitHub Actions workflow
-    """
-    # Check for CI environment or use local test database
-    db_host = os.getenv("TEST_DB_HOST", "localhost")
-    db_port = os.getenv("TEST_DB_PORT", "5433")  # 5433 locally, 5432 in CI
-    db_name = os.getenv("TEST_DB_NAME", "manageros_test")
-    db_user = os.getenv("TEST_DB_USER", "postgres")
-    db_password = os.getenv("TEST_DB_PASSWORD", "postgres")
-
-    return f"postgresql+psycopg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+def test_config() -> Config:
+    """Provide test configuration - created once per session."""
+    return Config()
 
 
 @pytest.fixture(scope="session")
-def test_engine(test_db_url: str):
+def test_engine(test_config: Config):
     """Create a test database engine for the entire test session."""
     engine = create_async_engine(
-        test_db_url,
+        test_config.SQLALCHEMY_DB_URL,
         echo=False,
         poolclass=NullPool,  # Don't use StaticPool with Docker postgres
     )
@@ -103,7 +88,7 @@ def test_engine(test_db_url: str):
 
 
 @pytest.fixture(scope="session")
-def setup_database(test_engine, test_db_url):
+def setup_database(test_engine, test_config: Config):
     """Set up test database schema by running Alembic migrations.
 
     This ensures:
@@ -111,28 +96,34 @@ def setup_database(test_engine, test_db_url):
     2. RLS policies are created and enabled properly
     3. Database state matches production
 
+    Uses the same dual-user setup as production:
+    - postgres user for migrations (schema modifications)
+    - arive user for application runtime (RLS enforced)
+
     Migrations are run once per test session and cleaned up at the end.
     """
     import asyncio
     import subprocess
 
-    async def _setup():
-        # Drop and recreate schema to ensure clean state
-        async with test_engine.begin() as conn:
-            await conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
-            await conn.execute(text("CREATE SCHEMA public"))
-            await conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
-            await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
+    from sqlalchemy import create_engine
 
-        # Run Alembic migrations to set up schema
-        # Set DATABASE_URL environment variable for alembic
-        env = os.environ.copy()
-        env["DATABASE_URL"] = test_db_url.replace("postgresql+psycopg://", "postgresql://")
+    # Create admin engine for schema operations (using postgres superuser)
+    # Use sync engine since we're just running simple SQL commands
+    admin_engine = create_engine(test_config.MIGRATION_DB_URL, poolclass=NullPool)
 
+    def _setup():
+        # Drop and recreate schema to ensure clean state (using admin engine)
+        with admin_engine.begin() as conn:
+            conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+            conn.execute(text("CREATE SCHEMA public"))
+            conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
+            conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
+
+        # Run Alembic migrations using postgres user (same as production)
+        # Alembic reads MIGRATION_DB_URL from config, no need to override env
         result = subprocess.run(
             ["uv", "run", "alembic", "upgrade", "head"],
             cwd=Path(__file__).parent.parent,
-            env=env,
             capture_output=True,
             text=True,
         )
@@ -140,22 +131,37 @@ def setup_database(test_engine, test_db_url):
         if result.returncode != 0:
             raise RuntimeError(f"Alembic migration failed:\n{result.stderr}")
 
-    async def _teardown():
-        # Drop schema and dispose engine
-        async with test_engine.begin() as conn:
-            await conn.execute(text("DROP SCHEMA public CASCADE"))
-            await conn.execute(text("CREATE SCHEMA public"))
-            await conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
-            await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
-        await test_engine.dispose()
+        # Grant permissions to arive user (same as production setup)
+        # Note: In production this is done via dc-start, here we do it in test setup
+        with admin_engine.begin() as conn:
+            conn.execute(text("GRANT USAGE ON SCHEMA public TO arive"))
+            conn.execute(text("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive"))
+            conn.execute(text("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive"))
+            conn.execute(
+                text(
+                    "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO arive"
+                )
+            )
+            conn.execute(text("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO arive"))
+
+    def _teardown():
+        # Drop schema and dispose engines (using admin engine)
+        with admin_engine.begin() as conn:
+            conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+            conn.execute(text("CREATE SCHEMA public"))
+            conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
+            conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
+        admin_engine.dispose()
+        # Dispose async test engine
+        asyncio.run(test_engine.dispose())
 
     # Run setup
-    asyncio.run(_setup())
+    _setup()
 
     yield
 
     # Run teardown
-    asyncio.run(_teardown())
+    _teardown()
 
 
 @pytest.fixture
@@ -181,6 +187,19 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 
     session = session_maker()
 
+    # Set system mode for test fixtures to bypass RLS
+    # This allows fixtures to create data for multiple teams without RLS interference
+    async def set_system_mode_on_connect(dbapi_conn, connection_record):
+        """Set system mode when a connection is checked out from the pool."""
+        pass  # Not used for async
+
+    @event.listens_for(test_engine.sync_engine, "connect")
+    def set_system_mode_sync(dbapi_conn, connection_record):
+        """Set system mode for all connections in the pool."""
+        cursor = dbapi_conn.cursor()
+        cursor.execute("SET app.is_system_mode = true")
+        cursor.close()
+
     # NOTE: Soft delete and raiseload listeners attached here for fixture-based tests
     # For HTTP request tests, provide_transaction will handle all filters
     try:
@@ -193,6 +212,7 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
         # Remove listeners
         event.remove(session.sync_session, "do_orm_execute", soft_delete_filter)
         event.remove(session.sync_session, "do_orm_execute", _raiseload_listener)
+        event.remove(test_engine.sync_engine, "connect", set_system_mode_sync)
 
         # Rollback any pending transaction
         await session.rollback()
@@ -204,26 +224,6 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 # ============================================================================
 # Test Configuration & Dependencies
 # ============================================================================
-
-
-@pytest.fixture
-def test_config(test_db_url: str, monkeypatch) -> Config:
-    """Provide test configuration with safe defaults."""
-
-    # Set environment variables before creating Config instance
-    # Config.DATABASE_URL reads from os.getenv("DATABASE_URL")
-    monkeypatch.setenv("ENV", "testing")
-    monkeypatch.setenv("DATABASE_URL", test_db_url.replace("postgresql+psycopg://", "postgresql://"))
-    monkeypatch.setenv("S3_BUCKET", "test-bucket")
-    monkeypatch.setenv("SESSION_COOKIE_DOMAIN", "localhost")
-    monkeypatch.setenv("FRONTEND_ORIGIN", "http://localhost:3000")
-    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
-    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "test-client-secret")
-    monkeypatch.setenv("WEBHOOK_SECRET", "test-webhook-secret-key")
-
-    # Create config after environment variables are set
-    config = Config()
-    return config
 
 
 @pytest.fixture
@@ -607,11 +607,11 @@ async def multi_team_setup(
 
     user1 = await UserFactory.create_async(
         session=db_session,
-        email="user1@team1.com",
+        # Let factory generate unique email to avoid collisions
     )
     user2 = await UserFactory.create_async(
         session=db_session,
-        email="user2@team2.com",
+        # Let factory generate unique email to avoid collisions
     )
 
     # Create roles to link users to teams
