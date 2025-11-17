@@ -231,18 +231,28 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
     # Set system mode flag
     if config.IS_SYSTEM_MODE:
         await session.execute(text("SET LOCAL app.is_system_mode = true"))
-    else:
-        # Only set scope variables if not in system mode
-        scope_type = request.session.get("scope_type")
+        return  # System mode bypasses all scope checks
 
-        if scope_type == ScopeType.TEAM.value:
-            team_id = request.session.get("team_id")
-            if team_id:
-                await session.execute(text(f"SET LOCAL app.team_id = {team_id}"))
+    # Not in system mode - require a valid scope_type
+    scope_type = request.session.get("scope_type")
 
-        elif scope_type == ScopeType.CAMPAIGN.value:
-            campaign_id = request.session.get("campaign_id")
-            if campaign_id:
-                await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id}"))
+    if not scope_type:
+        raise ValueError(
+            "No scope_type set in session and not in system mode. RLS requires either scope or system mode."
+        )
+
+    if scope_type == ScopeType.TEAM.value:
+        team_id = request.session.get("team_id")
+        if team_id:
+            await session.execute(text(f"SET LOCAL app.team_id = {team_id}"))
         else:
-            raise ValueError(f"Invalid scope_type in session: {scope_type}")
+            raise ValueError(f"scope_type is TEAM but no team_id in session")
+
+    elif scope_type == ScopeType.CAMPAIGN.value:
+        campaign_id = request.session.get("campaign_id")
+        if campaign_id:
+            await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id}"))
+        else:
+            raise ValueError(f"scope_type is CAMPAIGN but no campaign_id in session")
+    else:
+        raise ValueError(f"Invalid scope_type in session: {scope_type}")

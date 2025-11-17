@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
+from app.auth.enums import ScopeType
 from app.client.s3_client import S3Dep
 from app.emails.client import BaseEmailClient
 from app.emails.service import EmailService
@@ -20,7 +21,7 @@ from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
 from app.utils.configure import Config, config
 from app.utils.db import set_rls_variables
-from app.utils.db_filters import create_query_filter
+from app.utils.db_filters import create_query_filter, soft_delete_filter
 
 logger = structlog.get_logger(__name__)
 
@@ -41,15 +42,20 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
     def _raiseload_listener(execute_state):
         execute_state.statement = execute_state.statement.options(raiseload("*"))
 
-    # Create scope filter with captured request data
-    query_filter = create_query_filter(
+    # Convert scope_type from string to enum (session stores it as string)
+    scope_type_str = request.session.get("scope_type")
+    scope_type = ScopeType(scope_type_str) if scope_type_str else None
+
+    # Create RLS filter with captured scope values
+    rls_filter = create_query_filter(
         team_id=request.session.get("team_id"),
         campaign_id=request.session.get("campaign_id"),
-        scope_type=request.session.get("scope_type"),
+        scope_type=scope_type,
     )
 
-    # Attach event listeners
-    event.listen(db_session.sync_session, "do_orm_execute", query_filter)
+    # Attach event listeners (order matters: soft delete -> RLS -> raiseload)
+    event.listen(db_session.sync_session, "do_orm_execute", soft_delete_filter)
+    event.listen(db_session.sync_session, "do_orm_execute", rls_filter)
     event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
     try:
@@ -63,7 +69,8 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
 
     finally:
         # Remove event listeners
-        event.remove(db_session.sync_session, "do_orm_execute", query_filter)
+        event.remove(db_session.sync_session, "do_orm_execute", soft_delete_filter)
+        event.remove(db_session.sync_session, "do_orm_execute", rls_filter)
         event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
 

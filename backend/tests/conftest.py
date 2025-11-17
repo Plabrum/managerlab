@@ -56,7 +56,7 @@ from app.threads import thread_router
 from app.threads.websocket import thread_handler
 from app.users.routes import user_router
 from app.utils.configure import Config
-from app.utils.db_filters import create_query_filter
+from app.utils.db_filters import soft_delete_filter
 
 
 @pytest.fixture
@@ -181,18 +181,17 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 
     session = session_maker()
 
-    # Create query filter with no scope (for general testing)
-    query_filter = create_query_filter(team_id=None, campaign_id=None, scope_type=None)
-
+    # NOTE: Soft delete and raiseload listeners attached here for fixture-based tests
+    # For HTTP request tests, provide_transaction will handle all filters
     try:
-        # Attach listeners
-        event.listen(session.sync_session, "do_orm_execute", query_filter)
+        # Attach listeners to prevent lazy loading and filter soft deletes
+        event.listen(session.sync_session, "do_orm_execute", soft_delete_filter)
         event.listen(session.sync_session, "do_orm_execute", _raiseload_listener)
 
         yield session
     finally:
         # Remove listeners
-        event.remove(session.sync_session, "do_orm_execute", query_filter)
+        event.remove(session.sync_session, "do_orm_execute", soft_delete_filter)
         event.remove(session.sync_session, "do_orm_execute", _raiseload_listener)
 
         # Rollback any pending transaction
@@ -339,10 +338,11 @@ def test_app(
     )
 
     from app.base.models import BaseDBModel
+    from app.utils.providers import provide_transaction
 
     # Create provider functions that close over test fixtures
-    def provide_test_transaction() -> AsyncSession:
-        return db_session
+    # NOTE: We use the REAL provide_transaction to ensure RLS is tested properly
+    # SQLAlchemy plugin will provide db_session automatically
 
     def provide_test_http_client() -> Any:
         return mock_http_client
@@ -368,7 +368,9 @@ def test_app(
         config=test_config,
         # Override external service dependencies for testing
         dependencies_overrides={
-            "transaction": Provide(provide_test_transaction, sync_to_thread=False),
+            # SQLAlchemy plugin provides db_session automatically
+            # Use real provide_transaction to test RLS properly (it will use plugin's db_session)
+            "transaction": Provide(provide_transaction, sync_to_thread=False),
             "http_client": Provide(provide_test_http_client, sync_to_thread=False),
             "s3_client": Provide(provide_test_s3_client, sync_to_thread=False),
             "task_queues": Provide(provide_test_task_queues, sync_to_thread=False),
@@ -425,7 +427,7 @@ async def test_client(
         httponly=True,
     )
 
-    async with AsyncTestClient(app=test_app, session_config=session_config) as client:
+    async with AsyncTestClient(app=test_app, session_config=session_config, raise_server_exceptions=True) as client:
         yield client
 
 
