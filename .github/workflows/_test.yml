@@ -78,18 +78,6 @@ jobs:
           cd backend
           uv run basedpyright
 
-      - name: Run migrations on test database
-        env:
-          ENV: testing
-          DB_ENDPOINT: localhost
-          DB_PORT: 5433
-          DB_NAME: manageros
-          DB_ADMIN_USER: postgres
-          DB_ADMIN_PASSWORD: postgres
-        run: |
-          cd backend
-          uv run alembic upgrade head
-
       - name: Run tests
         env:
           ENV: testing
