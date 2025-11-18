@@ -219,6 +219,30 @@ async def process_inbound_email_task(
     if not inbound.ses_message_id:
         inbound.ses_message_id = f"local-{inbound.id}"
 
+    # Phase 3: Enqueue campaign creation for attachments (if any)
+    from app.utils.sqids import sqid_encode
+
+    if attachments_metadata:
+        task_queues = ctx.get("task_queues")
+        if task_queues:
+            from app.campaigns.tasks import create_campaign_from_attachment_task
+
+            queue = task_queues.get("default")
+            inbound_sqid = sqid_encode(inbound.id)
+
+            # Enqueue campaign creation task for first attachment
+            # (You could process all attachments by looping here)
+            try:
+                await queue.enqueue(
+                    create_campaign_from_attachment_task.__name__,
+                    inbound_email_id=inbound_sqid,
+                    attachment_index=0,
+                )
+                logger.info(f"Enqueued campaign creation task for InboundEmail {inbound_sqid}")
+            except Exception as enqueue_error:
+                logger.warning(f"Failed to enqueue campaign creation task: {enqueue_error}")
+                # Don't fail the task - email is already processed
+
     # Transaction auto-commits here with complete record
 
     return {

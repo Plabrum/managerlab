@@ -875,6 +875,10 @@ resource "aws_secretsmanager_secret_version" "app_secrets_v2" {
     BETTER_STACK_INGESTING_HOST = ""
     SES_CONFIGURATION_SET       = ""
     WEBHOOK_SECRET              = ""
+    OPENAI_API_KEY              = ""
+    OPENAI_ORG_ID               = ""
+    OPENAI_MODEL                = ""
+    FRONTEND_BASE_URL           = ""
   })
 
   lifecycle {

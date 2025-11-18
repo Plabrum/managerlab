@@ -3,6 +3,7 @@
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
+from sqlalchemy import Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
@@ -18,6 +19,7 @@ class Brand(ThreadableMixin, RLSMixin(), BaseDBModel):
     """Brand object model."""
 
     __tablename__ = "brands"
+    __table_args__ = (Index("ix_brands_team_id_name_lower", "team_id", "name", unique=True),)
 
     # Brand-specific fields
     name: Mapped[str] = mapped_column(sa.Text, nullable=False)

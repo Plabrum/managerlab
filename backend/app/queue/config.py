@@ -12,11 +12,13 @@ To add a new task:
 """
 
 from datetime import UTC
+from typing import cast
 
 from litestar_saq import QueueConfig
-from saq.types import Context
+from saq.types import ReceivesContext
 
 from app.queue.registry import get_registry
+from app.queue.types import AppContext
 from app.utils.configure import config
 from app.utils.discovery import discover_and_import
 
@@ -24,7 +26,7 @@ from app.utils.discovery import discover_and_import
 discover_and_import(["tasks.py", "tasks/**/*.py"], base_path="app")
 
 
-async def queue_startup(ctx: Context) -> None:
+async def queue_startup(ctx: AppContext) -> None:
     """
     Initialize SAQ worker context with dependencies.
 
@@ -34,6 +36,7 @@ async def queue_startup(ctx: Context) -> None:
     from sqlalchemy import event
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+    from app.client.openai_client import provide_openai_client
     from app.client.s3_client import provide_s3_client
 
     # Create database session factory
@@ -50,7 +53,11 @@ async def queue_startup(ctx: Context) -> None:
     ctx["db_sessionmaker"] = async_sessionmaker(engine, expire_on_commit=False)
 
     # Inject S3 client
-    ctx["s3_client"] = provide_s3_client(config)
+    s3_client = provide_s3_client(config)
+    ctx["s3_client"] = s3_client
+
+    # Inject OpenAI client (depends on S3 client)
+    ctx["openai_client"] = provide_openai_client(config, s3_client)
 
     # Inject config
     ctx["config"] = config
@@ -79,7 +86,7 @@ def get_queue_config() -> list[QueueConfig]:
             # Timezone for cron schedules
             cron_tz=UTC,
             # Worker lifecycle hooks
-            startup=queue_startup,  # Inject dependencies when worker starts
+            startup=cast(ReceivesContext, queue_startup),  # Inject dependencies when worker starts
             # Worker configuration
             concurrency=10,  # Number of concurrent tasks
             # Connection pool settings for Postgres
