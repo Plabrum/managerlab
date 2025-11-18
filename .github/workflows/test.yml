@@ -6,66 +6,15 @@ on:
     paths:
       - "backend/**"
       - ".github/workflows/test.yml"
+      - ".github/workflows/_test.yml"
   pull_request:
     branches: [main]
     paths:
       - "backend/**"
       - ".github/workflows/test.yml"
+      - ".github/workflows/_test.yml"
 
 jobs:
   test:
-    name: Test Backend
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: public.ecr.aws/docker/library/postgres:17.5
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: manageros_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v2
-
-      - name: Cache uv dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/uv
-            backend/.venv
-          key: ${{ runner.os }}-uv-${{ hashFiles('backend/uv.lock', 'backend/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-uv-
-
-      - name: Install dependencies
-        run: |
-          cd backend
-          uv sync --dev
-
-      - name: Run tests
-        env:
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: manageros_test
-          PGPORT: 5432
-        run: |
-          cd backend
-          uv run pytest -v
+    uses: ./.github/workflows/_test.yml
+    secrets: inherit

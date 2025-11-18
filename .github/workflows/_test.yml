@@ -14,9 +14,9 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: manageros_test
+          POSTGRES_DB: manageros
         ports:
-          - 5432:5432
+          - 5433:5432
         options: >-
           --health-cmd="pg_isready"
           --health-interval=10s
@@ -80,18 +80,26 @@ jobs:
 
       - name: Run migrations on test database
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/manageros_test
+          ENV: testing
+          DB_ENDPOINT: localhost
+          DB_PORT: 5433
+          DB_NAME: manageros
+          DB_ADMIN_USER: postgres
+          DB_ADMIN_PASSWORD: postgres
         run: |
           cd backend
           uv run alembic upgrade head
 
       - name: Run tests
         env:
-          TEST_DB_HOST: localhost
-          TEST_DB_PORT: 5432
-          TEST_DB_NAME: manageros_test
-          TEST_DB_USER: postgres
-          TEST_DB_PASSWORD: postgres
+          ENV: testing
+          DB_ENDPOINT: localhost
+          DB_PORT: 5433
+          DB_NAME: manageros
+          DB_ADMIN_USER: postgres
+          DB_ADMIN_PASSWORD: postgres
+          DB_USER: postgres
+          DB_PASSWORD: postgres
         run: |
           cd backend
           uv run pytest -v
