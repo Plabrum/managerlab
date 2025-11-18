@@ -57,6 +57,9 @@ class ConfigProtocol(Protocol):
     MAX_UPLOAD_SIZE: int
     MAX_DOCUMENT_SIZE: int
     IS_SYSTEM_MODE: bool
+    OPENAI_API_KEY: str
+    OPENAI_ORG_ID: str | None
+    OPENAI_MODEL: str
 
     @property
     def IS_DEV(self) -> bool: ...

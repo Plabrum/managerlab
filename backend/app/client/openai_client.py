@@ -12,7 +12,7 @@ from openai.types import FileObject
 from openai.types.file_purpose import FilePurpose
 
 from app.client.s3_client import BaseS3Client
-from app.utils.configure import Config
+from app.utils.configure import ConfigProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -183,26 +183,7 @@ class OpenAIClient:
             # Don't raise - file cleanup is best-effort
 
 
-def provide_openai_client(config: Config, s3_client: BaseS3Client) -> OpenAIClient:
-    """
-    Factory function to provide OpenAI client.
-
-    Args:
-        config: Application configuration
-        s3_client: S3 client for file downloads
-
-    Returns:
-        OpenAIClient instance
-
-    Raises:
-        ValueError: If OPENAI_API_KEY is not configured
-    """
-    if not config.OPENAI_API_KEY:
-        raise ValueError(
-            "OPENAI_API_KEY is required. Set it in your .env.local file or environment variables. "
-            "Get your API key from: https://platform.openai.com/api-keys"
-        )
-
+def provide_openai_client(config: ConfigProtocol, s3_client: BaseS3Client) -> OpenAIClient:
     logger.info("Initializing OpenAI client")
     return OpenAIClient(
         api_key=config.OPENAI_API_KEY,

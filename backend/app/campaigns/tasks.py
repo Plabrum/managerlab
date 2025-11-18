@@ -10,6 +10,7 @@ from app.agents.schemas import CampaignExtractionSchema
 from app.brands.utils import get_or_create_brand
 from app.campaigns.models import Campaign, PaymentBlock
 from app.emails.models import InboundEmail
+from app.emails.service import prepare_email_for_queue
 from app.emails.tasks import send_email_task
 from app.queue.registry import task
 from app.queue.transactions import with_transaction
@@ -176,19 +177,29 @@ async def create_campaign_from_attachment_task(
     # Step 6: Generate campaign link
     campaign_link = f"{config.FRONTEND_BASE_URL}/campaigns/{campaign_sqid}"
 
-    # Step 7: Enqueue auto-reply email
-    await queue.enqueue(
-        send_email_task.__name__,
-        email_type="campaign_created_from_attachment",
-        to_email=inbound_email.from_email,
-        context={
-            "campaign_name": campaign.name,
-            "campaign_link": campaign_link,
-            "sender_email": inbound_email.from_email,
-            "extraction_notes": extraction_result.extraction_notes,
-        },
-    )
-    logger.info(f"Enqueued auto-reply email to {inbound_email.from_email}")
+    # Step 7: Prepare and enqueue auto-reply email (if from_email exists)
+    if inbound_email.from_email:
+        email_message_id = await prepare_email_for_queue(
+            session=transaction,
+            template_name="campaign_created_from_attachment",
+            to_email=inbound_email.from_email,
+            subject=f"Campaign created: {campaign.name}",
+            context={
+                "campaign_name": campaign.name,
+                "campaign_link": campaign_link,
+                "sender_email": inbound_email.from_email,
+                "extraction_notes": extraction_result.extraction_notes,
+            },
+            team_id=inbound_email.team_id,
+        )
+
+        await queue.enqueue(
+            send_email_task.__name__,
+            email_message_id=email_message_id,
+        )
+        logger.info(f"Enqueued auto-reply email to {inbound_email.from_email} (EmailMessage ID: {email_message_id})")
+    else:
+        logger.warning(f"Skipping auto-reply email for campaign {campaign_sqid} - no from_email available")
 
     return {
         "status": "success",
