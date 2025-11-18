@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.actions.registry import ActionRegistry
 from app.client.s3_client import S3Client, S3Dep
 from app.emails.service import EmailService
-from app.utils.configure import BaseConfig
+from app.utils.configure import ConfigProtocol
 
 
 @dataclass
@@ -35,13 +35,13 @@ class ActionDeps:
     s3_client: S3Client
     task_queues: TaskQueues
     channels: ChannelsPlugin
-    config: Any  # BaseConfig or TestConfig - validated by DI system
+    config: ConfigProtocol
     email_service: EmailService
 
 
 def provide_action_registry(
     s3_client: S3Dep,
-    config: Any,  # BaseConfig or TestConfig - validated by DI system
+    config: ConfigProtocol,
     transaction: AsyncSession,
     task_queues: TaskQueues,
     request: Request,

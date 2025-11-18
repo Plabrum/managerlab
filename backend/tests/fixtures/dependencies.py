@@ -1,19 +1,14 @@
-"""Dependency injection providers and mock clients for testing."""
-
 from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock
 
 import pytest
+from litestar import Request
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.client.s3_client import BaseS3Client
-from app.utils.configure import BaseConfig, TestConfig
-
-if TYPE_CHECKING:
-    from litestar import Request
+from app.utils.configure import Config, TestConfig
 
 # ============================================================================
 # Mock Clients
@@ -79,7 +74,7 @@ def mock_email_client():
 # ============================================================================
 
 
-async def provide_test_transaction(db_session: AsyncSession, request: "Request") -> AsyncGenerator[AsyncSession, None]:
+async def provide_test_transaction(db_session: AsyncSession, request: "Request") -> AsyncGenerator[AsyncSession]:
     """Test transaction provider for HTTP requests.
 
     Reads team_id from the session data (set by authenticated_client) and configures
@@ -107,7 +102,7 @@ async def provide_test_transaction(db_session: AsyncSession, request: "Request")
             pass  # Connection might be closed
 
 
-def provide_test_config(test_config: TestConfig) -> BaseConfig:
+def provide_test_config(test_config: TestConfig) -> Config:
     """Dependency provider for test config."""
     return test_config
 

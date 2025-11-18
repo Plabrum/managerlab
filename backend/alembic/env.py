@@ -8,7 +8,10 @@ from alembic import context
 from alembic.autogenerate import comparators
 from app.base.models import BaseDBModel
 from app.base.rls_comparator import compare_rls
-from app.base.rls_operations import DisableRLSOp, EnableRLSOp  # noqa: F401 - needed for renderer registration
+from app.base.rls_operations import (
+    DisableRLSOp,
+    EnableRLSOp,
+)  # noqa: F401 - needed for renderer registration
 from app.base.scope_mixins import RLS_POLICY_REGISTRY
 from app.utils.configure import config as app_config
 
@@ -52,7 +55,7 @@ if config.config_file_name is not None:
 target_metadata = BaseDBModel.metadata
 
 # Use the sync database URL for alembic
-database_url = app_config.MIGRATION_DB_URL
+database_url = app_config.ADMIN_DB_URL
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

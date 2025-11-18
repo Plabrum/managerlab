@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
 import boto3
 from dotenv import load_dotenv
@@ -28,8 +29,59 @@ if secret_arn:
     logger.info(f"Loaded {len(secrets)} secrets from AWS Secrets Manager")
 
 
+@runtime_checkable
+class ConfigProtocol(Protocol):
+    """Protocol defining the interface for all configuration classes.
+
+    This allows dependency injection to accept any config type (DevelopmentConfig,
+    ProductionConfig, TestConfig) without msgspec validation errors.
+    """
+
+    ENV: str
+    SECRET_KEY: str
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    RECAPTCHA_SECRET_KEY: str
+    GOOGLE_REDIRECT_URI: str
+    SUCCESS_REDIRECT_URL: str
+    S3_BUCKET: str
+    SES_REGION: str
+    SES_FROM_NAME: str
+    SES_FROM_EMAIL: str
+    SES_REPLY_TO_EMAIL: str
+    EMAIL_TEMPLATES_DIR: str
+    ALLOW_LOCAL_SES: bool
+    WEBHOOK_SECRET: str
+    SESSION_COOKIE_DOMAIN: str | None
+    FRONTEND_ORIGIN: str
+    MAX_UPLOAD_SIZE: int
+    MAX_DOCUMENT_SIZE: int
+    IS_SYSTEM_MODE: bool
+
+    @property
+    def IS_DEV(self) -> bool: ...
+
+    @property
+    def SES_CONFIGURATION_SET(self) -> str: ...
+
+    @property
+    def INBOUND_EMAILS_BUCKET(self) -> str: ...
+
+    @property
+    def ADMIN_DB_URL(self) -> str: ...
+
+    @property
+    def SQLALCHEMY_DB_URL(self) -> str: ...
+
+    @property
+    def DATABASE_URL(self) -> str: ...
+
+    @property
+    def ASYNC_DATABASE_URL(self) -> str: ...
+
+
 @dataclass
-class BaseConfig:
+class Config:
     """Base application configuration."""
 
     ENV: str = "development"
@@ -107,7 +159,7 @@ class BaseConfig:
         return f"{protocol}://{user}:{password}@{endpoint}:{port}/{db_name}"
 
     @property
-    def MIGRATION_DB_URL(self) -> str:
+    def ADMIN_DB_URL(self) -> str:
         """Database URL for migrations (postgres/admin user with schema privileges).
 
         Used by Alembic for running migrations.
@@ -121,25 +173,11 @@ class BaseConfig:
         return self._build_database_url(admin_user, admin_password)
 
     @property
-    def APP_DB_URL(self) -> str:
-        """Plain database URL for application runtime (arive user with RLS enforced).
-
-        Used by: SAQ queue, channels backend, and other non-SQLAlchemy clients.
-        """
-        # Check for override
-        if url := os.getenv("APP_DB_URL"):
-            return url
-
-        app_user = os.getenv("DB_USER", "arive")
-        app_password = os.getenv("DB_PASSWORD", "arive")
-        return self._build_database_url(app_user, app_password)
-
-    @property
     def SQLALCHEMY_DB_URL(self) -> str:
         """SQLAlchemy async database URL for application runtime (arive user with RLS enforced).
 
         Used by SQLAlchemy for all ORM database operations.
-        Same as APP_DB_URL but with +psycopg driver for async support.
+        Same as MIGRATION_DB_URL but with +psycopg driver for async support.
         """
         # Check for override
         if url := os.getenv("SQLALCHEMY_DB_URL") or os.getenv("ASYNC_DATABASE_URL"):
@@ -153,7 +191,7 @@ class BaseConfig:
     @property
     def DATABASE_URL(self) -> str:
         """Backwards compatibility - use MIGRATION_DB_URL instead."""
-        return self.MIGRATION_DB_URL
+        return self.ADMIN_DB_URL
 
     @property
     def ASYNC_DATABASE_URL(self) -> str:
@@ -162,14 +200,14 @@ class BaseConfig:
 
 
 @dataclass
-class DevelopmentConfig(BaseConfig):
+class DevelopmentConfig(Config):
     """Development environment configuration."""
 
     ENV: str = "development"
 
 
 @dataclass
-class TestConfig(BaseConfig):
+class TestConfig(Config):
     """Test environment configuration."""
 
     ENV: str = "testing"
@@ -197,20 +235,6 @@ class TestConfig(BaseConfig):
         return self._build_database_url(admin_user, admin_password, port="5433")
 
     @property
-    def APP_DB_URL(self) -> str:
-        """Plain database URL for test runtime (arive user with RLS enforced).
-
-        Uses port 5433 (test database) with arive user.
-        """
-        # Check for override
-        if url := os.getenv("TEST_APP_DB_URL") or os.getenv("APP_DB_URL"):
-            return url
-
-        app_user = os.getenv("DB_USER", "arive")
-        app_password = os.getenv("DB_PASSWORD", "arive")
-        return self._build_database_url(app_user, app_password, port="5433")
-
-    @property
     def SQLALCHEMY_DB_URL(self) -> str:
         """SQLAlchemy async database URL for tests (arive user with RLS enforced).
 
@@ -230,13 +254,13 @@ class TestConfig(BaseConfig):
 
 
 @dataclass
-class ProductionConfig(BaseConfig):
+class ProductionConfig(Config):
     """Production environment configuration."""
 
     ENV: str = "production"
 
 
-def get_config() -> BaseConfig:
+def get_config() -> Config:
     """Get configuration based on environment variable."""
     env = os.getenv("ENV", "development")
 
@@ -250,6 +274,3 @@ def get_config() -> BaseConfig:
 
 # Global config instance
 config = get_config()
-
-# Backwards compatibility - keep Config class as alias to BaseConfig
-Config = BaseConfig

@@ -10,7 +10,7 @@ from typing import Annotated
 import aioboto3
 from litestar.params import Dependency
 
-from app.utils.configure import Config
+from app.utils.configure import ConfigProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class LocalEmailClient(BaseEmailClient):
 class SESEmailClient(BaseEmailClient):
     """AWS SES email client (async)."""
 
-    def __init__(self, config: Config):
+    def __init__(self, config: ConfigProtocol):
         self.region = config.SES_REGION
         self.configuration_set = config.SES_CONFIGURATION_SET
 
@@ -105,7 +105,7 @@ class SESEmailClient(BaseEmailClient):
             return response["MessageId"]
 
 
-def provide_email_client(config: Config) -> BaseEmailClient:
+def provide_email_client(config: ConfigProtocol) -> BaseEmailClient:
     """Factory function to create appropriate email client based on config."""
     if config.ALLOW_LOCAL_SES or not config.IS_DEV:
         return SESEmailClient(config)

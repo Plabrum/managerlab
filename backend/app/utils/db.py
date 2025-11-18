@@ -233,13 +233,14 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
         await session.execute(text("SET LOCAL app.is_system_mode = true"))
         return  # System mode bypasses all scope checks
 
-    # Not in system mode - require a valid scope_type
+    # Check for scope_type in session
     scope_type = request.session.get("scope_type")
 
     if not scope_type:
-        raise ValueError(
-            "No scope_type set in session and not in system mode. RLS requires either scope or system mode."
-        )
+        # No scope set - this is an unauthenticated request (e.g., login, signup)
+        # Don't set any RLS variables. Tables with RLS will return empty results,
+        # tables without RLS (sessions, users for lookup) will work normally.
+        return
 
     if scope_type == ScopeType.TEAM.value:
         team_id = request.session.get("team_id")

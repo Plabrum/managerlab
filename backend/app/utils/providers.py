@@ -18,7 +18,7 @@ from app.emails.service import EmailService
 from app.objects.base import ObjectRegistry
 from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
-from app.utils.configure import Config, config
+from app.utils.configure import ConfigProtocol, config
 from app.utils.db import set_rls_variables
 from app.utils.db_filters import soft_delete_filter
 
@@ -54,9 +54,15 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
 
     finally:
-        # Remove event listeners
-        event.remove(db_session.sync_session, "do_orm_execute", soft_delete_filter)
-        event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
+        # Remove event listeners (ignore if already removed)
+        try:
+            event.remove(db_session.sync_session, "do_orm_execute", soft_delete_filter)
+        except Exception:
+            pass
+        try:
+            event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
+        except Exception:
+            pass
 
 
 async def on_startup(app: Litestar) -> None:
@@ -101,7 +107,7 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
     return PostgreSQLSessionStore(session_factory)
 
 
-def provide_object_registry(s3_client: S3Dep, config: Config) -> ObjectRegistry:
+def provide_object_registry(s3_client: S3Dep, config: ConfigProtocol) -> ObjectRegistry:
     """Provide the ObjectRegistry singleton with dependencies."""
     return ObjectRegistry(s3_client=s3_client, config=config)
 

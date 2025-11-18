@@ -71,7 +71,7 @@ def get_queue_config() -> list[QueueConfig]:
     return [
         QueueConfig(
             name="default",
-            dsn=config.APP_DB_URL,
+            dsn=config.ADMIN_DB_URL,
             # Tasks are automatically collected from @task decorators
             tasks=registry.get_all_tasks(),
             # Scheduled tasks are automatically collected from @scheduled_task decorators

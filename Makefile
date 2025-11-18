@@ -130,12 +130,14 @@ db-clean:
 	cd backend && docker compose -f docker-compose.dev.yml down
 	@echo "🗑️  Removing database volume..."
 	docker volume rm backend_pgdata || true
-	@echo "🚀 Starting fresh database..."
-	cd backend && docker compose -f docker-compose.dev.yml up -d db
-	@echo "⏳ Waiting for database to be ready..."
-	@sleep 3
+	@echo "🚀 Starting fresh database with arive user..."
+	@make dc-start
 	@echo "🔄 Running migrations..."
 	cd backend && uv run alembic upgrade head
+	@echo "🔑 Granting permissions to arive user on all tables..."
+	@psql postgresql://postgres:postgres@localhost:5432/manageros -c "\
+		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive; \
+		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive;" 2>/dev/null || true
 	@echo "✅ Database cleaned and migrations applied!"
 
 .PHONY: db-migrate

@@ -52,7 +52,7 @@ from app.threads import thread_router
 from app.threads.websocket import thread_handler
 from app.users.routes import user_router
 from app.utils import providers
-from app.utils.configure import Config
+from app.utils.configure import ConfigProtocol
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils.logging_middleware import create_logging_middleware
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
@@ -73,7 +73,7 @@ def handle_options_disconnect(request: Request, exc: InternalServerException) ->
 
 
 def create_app(
-    config: Config,
+    config: ConfigProtocol,
     dependencies_overrides: dict[str, Provide] | None = None,
     plugins_overrides: list[Any] | None = None,
     stores_overrides: dict[str, Any] | None = None,
@@ -169,7 +169,7 @@ def create_app(
         ),
         ChannelsPlugin(
             # in tesing backend = MemoryChannelsBackend()
-            backend=PsycoPgChannelsBackend(config.APP_DB_URL),
+            backend=PsycoPgChannelsBackend(config.ADMIN_DB_URL),
             arbitrary_channels_allowed=True,
         ),
         StructlogPlugin(

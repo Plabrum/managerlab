@@ -6,7 +6,7 @@ from typing import Annotated
 import boto3
 from litestar.params import Dependency
 
-from app.utils.configure import Config
+from app.utils.configure import ConfigProtocol
 
 
 class BaseS3Client(ABC):
@@ -118,7 +118,7 @@ class LocalS3Client(BaseS3Client):
 class S3Client(BaseS3Client):
     """AWS S3 client implementation."""
 
-    def __init__(self, config: Config):
+    def __init__(self, config: ConfigProtocol):
         self.bucket_name = config.S3_BUCKET
         self.s3 = boto3.client("s3")
 
@@ -177,7 +177,7 @@ class S3Client(BaseS3Client):
         return fileobj.getvalue()
 
 
-def provide_s3_client(config: Config) -> BaseS3Client:
+def provide_s3_client(config: ConfigProtocol) -> BaseS3Client:
     """Factory function to create appropriate S3 client based on config."""
     if config.IS_DEV:
         return LocalS3Client(uploads_dir="uploads")
