@@ -71,6 +71,19 @@ def setup_database(test_engine, test_config: TestConfig):
             conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
             conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
 
+            # Create arive user if it doesn't exist
+            conn.execute(
+                text("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'arive') THEN
+                        CREATE USER arive WITH PASSWORD 'arive';
+                    END IF;
+                END
+                $$;
+            """)
+            )
+
         # Run Alembic migrations with explicit ENV=testing
         # Note: We must copy os.environ and modify it rather than just passing {"ENV": "testing"}
         # because the subprocess needs other env vars like PATH, HOME, etc. to run properly
@@ -169,26 +182,3 @@ async def transaction(db_session: AsyncSession, team) -> AsyncGenerator[AsyncSes
     await db_session.execute(text(f"SET LOCAL app.team_id = {int(team.id)}"))
     await db_session.execute(text("SET LOCAL app.is_system_mode = false"))
     yield db_session
-
-    # def _raiseload_listener(execute_state):
-    #     """Prevent lazy loading by raising an error."""
-    #     execute_state.statement = execute_state.statement.options(raiseload("*"))
-    #
-    # # Set team context and disable system mode for RLS enforcement
-    # await db_session.execute(text(f"SET LOCAL app.team_id = {int(team.id)}"))
-    # await db_session.execute(text("SET LOCAL app.is_system_mode = false"))
-    #
-    # # Attach event listeners
-    # event.listen(db_session.sync_session, "do_orm_execute", soft_delete_filter)
-    # event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
-    #
-    # try:
-    #     yield db_session
-    # finally:
-    #     # Remove event listeners first
-    #     event.remove(db_session.sync_session, "do_orm_execute", soft_delete_filter)
-    #     event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
-    #
-    #     # Rollback transaction to clean up test data
-    #     # Note: After rollback, we can't execute more SQL on this connection
-    #     await db_session.rollback()
