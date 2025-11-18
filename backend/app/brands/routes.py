@@ -1,5 +1,6 @@
 from litestar import Request, Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
@@ -25,8 +26,6 @@ async def get_brand(
     action_registry: ActionRegistry,
 ) -> BrandSchema:
     """Get a brand by SQID."""
-    from sqlalchemy.orm import joinedload, selectinload
-
     brand = await get_or_404(
         transaction,
         Brand,

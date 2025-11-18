@@ -1,6 +1,7 @@
 """Typed dependencies for actions."""
 
 from dataclasses import dataclass
+from typing import Any
 
 from litestar import Request
 from litestar.channels import ChannelsPlugin
@@ -10,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.actions.registry import ActionRegistry
 from app.client.s3_client import S3Client, S3Dep
 from app.emails.service import EmailService
-from app.utils.configure import Config
+from app.utils.configure import BaseConfig
 
 
 @dataclass
@@ -34,13 +35,13 @@ class ActionDeps:
     s3_client: S3Client
     task_queues: TaskQueues
     channels: ChannelsPlugin
-    config: Config
+    config: Any  # BaseConfig or TestConfig - validated by DI system
     email_service: EmailService
 
 
 def provide_action_registry(
     s3_client: S3Dep,
-    config: Config,
+    config: Any,  # BaseConfig or TestConfig - validated by DI system
     transaction: AsyncSession,
     task_queues: TaskQueues,
     request: Request,

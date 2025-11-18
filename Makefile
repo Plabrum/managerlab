@@ -10,13 +10,13 @@ help:
 	@echo "  dev-frontend     - Start frontend development server"
 	@echo "  dev-backend      - Start backend development server"
 	@echo "  dev-worker       - Start SAQ worker for async task processing"
-	@echo "  db-start         - Start development database"
-	@echo "  db-stop          - Stop development database"
+	@echo "  dc-start         - Start both dev (5432) and test (5433) databases with arive user"
+	@echo "  db-start         - Alias for dc-start"
+	@echo "  db-stop          - Stop all databases"
 	@echo "  db-clean         - Delete all database data and start fresh (requires confirmation)"
-	@echo "  db-migrate-generate - Generate new migration from model changes"
-	@echo "  db-migrate-up    - Run database migrations (upgrade)"
-	@echo "  db-migrate-down  - Rollback database migrations"
-	@echo "  db-migrate-prod  - Run production database migrations"
+	@echo "  db-migrate       - Generate new migration from model changes"
+	@echo "  db-upgrade       - Run database migrations (upgrade)"
+	@echo "  db-downgrade     - Rollback database migrations"
 	@echo "  db-fixtures      - Populate database with fake data for development"
 	@echo "  build-frontend   - Build frontend for production"
 	@echo "  start-frontend   - Start frontend production server"
@@ -76,9 +76,42 @@ dev-worker:
 	cd backend && export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES && uv run watchmedo auto-restart -d app/ -R -- uv run litestar --app app.index:app workers run
 
 # Database targets
+.PHONY: dc-start
+dc-start:
+	cd backend && docker compose -f docker-compose.dev.yml up -d
+	@echo "⏳ Waiting for databases to be ready..."
+	@sleep 3
+	@echo "👤 Creating 'arive' database user in dev database..."
+	@psql postgresql://postgres:postgres@localhost:5432/manageros -c "\
+		DO \$$\$$ BEGIN \
+			IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'arive') THEN \
+				CREATE ROLE arive WITH LOGIN PASSWORD 'arive'; \
+			END IF; \
+		END \$$\$$; \
+		GRANT CONNECT ON DATABASE manageros TO arive; \
+		GRANT USAGE ON SCHEMA public TO arive; \
+		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive; \
+		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO arive; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO arive;" 2>/dev/null || true
+	@echo "👤 Creating 'arive' database user in test database..."
+	@psql postgresql://postgres:postgres@localhost:5433/manageros -c "\
+		DO \$$\$$ BEGIN \
+			IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'arive') THEN \
+				CREATE ROLE arive WITH LOGIN PASSWORD 'arive'; \
+			END IF; \
+		END \$$\$$; \
+		GRANT CONNECT ON DATABASE manageros TO arive; \
+		GRANT USAGE ON SCHEMA public TO arive; \
+		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive; \
+		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO arive; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO arive;" 2>/dev/null || true
+	@echo "✅ Databases and users ready!"
+
+# Legacy aliases for backwards compatibility
 .PHONY: db-start
-db-start:
-	cd backend && docker compose -f docker-compose.dev.yml up -d db
+db-start: dc-start
 
 .PHONY: db-stop
 db-stop:
@@ -109,7 +142,7 @@ db-clean:
 db-migrate:
 	cd backend && \
 	read -p "Migration name: " msg; \
-	REGISTER_RLS_POLICIES=false uv run alembic revision --autogenerate -m "$$msg"
+	uv run alembic revision --autogenerate -m "$$msg"
 	
 .PHONY: db-upgrade
 db-upgrade:
@@ -123,6 +156,8 @@ db-downgrade:
 db-fixtures:
 	@echo "🎭 Creating database fixtures..."
 	cd backend && uv run python scripts/create_fixtures.py
+
+# Test Database targets (no longer needed - use dc-start to start both databases)
 
 # Frontend specific targets
 .PHONY: build-frontend
@@ -203,29 +238,6 @@ docker-build:
 	@echo "🐳 Building backend Docker image..."
 	cd backend && docker build -t manageros-api:local .
 
-.PHONY: docker-test
-docker-test:
-	@echo "🧪 Testing backend Docker image with database..."
-	@echo "Starting services with docker-compose..."
-	cd backend && docker-compose -f docker-compose.test.yml up --build -d
-	@echo "Waiting for services to be healthy..."
-	@sleep 15
-	@echo "Testing health endpoint..."
-	@if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then \
-		echo "✅ Health check passed!"; \
-		echo "API logs:"; \
-		cd backend && docker-compose -f docker-compose.test.yml logs api; \
-	else \
-		echo "❌ Health check failed!"; \
-		echo "API logs:"; \
-		cd backend && docker-compose -f docker-compose.test.yml logs api; \
-		echo "DB logs:"; \
-		cd backend && docker-compose -f docker-compose.test.yml logs db; \
-		cd backend && docker-compose -f docker-compose.test.yml down; \
-		exit 1; \
-	fi
-	@echo "Cleaning up..."
-	cd backend && docker-compose -f docker-compose.test.yml down
 
 
 # AWS/ECS targets
@@ -280,9 +292,16 @@ sqid:
 
 .PHONY: clean
 clean:
+	@echo "🧹 Cleaning all dependencies and build artifacts..."
 	cd frontend && rm -rf node_modules .next
 	cd backend && rm -rf .venv || true
-	docker stop manageros-dev-db || true
-	docker stop manageros-test || true
+	@echo "🐳 Stopping and removing Docker containers..."
+	cd backend && docker compose -f docker-compose.dev.yml down || true
+	@echo "🗑️  Removing Docker volumes..."
+	docker volume rm backend_pgdata backend_test_pgdata || true
+	@echo "🗑️  Removing Docker images..."
 	docker rmi manageros-api:local || true
-	docker rmi $$(docker images -q --filter "dangling=true") || true
+	@if [ -n "$$(docker images -q --filter 'dangling=true')" ]; then \
+		docker rmi $$(docker images -q --filter "dangling=true") || true; \
+	fi
+	@echo "✅ Clean completed!"

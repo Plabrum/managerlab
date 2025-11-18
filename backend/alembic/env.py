@@ -5,7 +5,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Connection
 
 from alembic import context
+from alembic.autogenerate import comparators
 from app.base.models import BaseDBModel
+from app.base.rls_comparator import compare_rls
+from app.base.rls_operations import DisableRLSOp, EnableRLSOp  # noqa: F401 - needed for renderer registration
 from app.base.scope_mixins import RLS_POLICY_REGISTRY
 from app.utils.configure import config as app_config
 
@@ -17,6 +20,11 @@ discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
 # Register RLS policies for auto-diffing
 register_entities(RLS_POLICY_REGISTRY)
+
+# Register RLS comparator for automatic RLS enablement detection
+# This comparator checks metadata.info["rls"] (populated by RLSMixin) vs database state
+# and generates op.enable_rls() / op.disable_rls() operations as needed
+comparators.dispatch_for("table")(compare_rls)
 
 
 # Custom renderer for SqidType to ensure proper rendering in migrations
@@ -44,7 +52,7 @@ if config.config_file_name is not None:
 target_metadata = BaseDBModel.metadata
 
 # Use the sync database URL for alembic
-database_url = app_config.DATABASE_URL
+database_url = app_config.MIGRATION_DB_URL
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

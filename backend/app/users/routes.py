@@ -12,6 +12,8 @@ from app.users.schemas import (
     UserAndRoleSchema,
     UserSchema,
 )
+from app.utils.db import get_or_404
+from app.utils.sqids import Sqid
 
 
 @get("/", guards=[requires_team])
@@ -59,12 +61,10 @@ async def get_current_user(request: Request, transaction: AsyncSession) -> UserS
     )
 
 
-@get("/{user_id:int}")
-async def get_user(user_id: int, transaction: AsyncSession) -> UserSchema:
+@get("/{user_id:str}")
+async def get_user(user_id: Sqid, transaction: AsyncSession) -> UserSchema:
     """Get a user by ID - requires authentication."""
-    stmt = select(User).where(User.id == user_id)
-    result = await transaction.execute(stmt)
-    user = result.scalar_one()
+    user = await get_or_404(transaction, User, user_id)
     return UserSchema(
         id=user.id,
         name=user.name,

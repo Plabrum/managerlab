@@ -214,34 +214,45 @@ async def create_model[T: BaseDBModel](
 
 
 async def set_rls_variables(session: AsyncSession, request: Request) -> None:
-    """Set PostgreSQL RLS session variables within an active transaction.
+    """Set PostgreSQL RLS session variables for database-level security.
 
-    Sets session variables for Row-Level Security based on session scope:
+    Session variables for RLS:
     - app.team_id: Set when user has team scope
     - app.campaign_id: Set when user has campaign scope
     - app.is_system_mode: Set to true for admin/system operations that bypass RLS
 
     Note: Must be called within an active transaction (after begin()).
     SET LOCAL is transaction-scoped and doesn't support parameter binding.
+    We use f-strings with validated integer IDs, which is safe since PostgreSQL
+    expects numeric literals for SET LOCAL with integer values.
+
+    Application-level filters are set via session.info in provide_transaction().
     """
-    # Set system mode flag first
+    # Set system mode flag
     if config.IS_SYSTEM_MODE:
-        await session.execute(text(f"SET LOCAL app.is_system_mode = {'true'}"))
+        await session.execute(text("SET LOCAL app.is_system_mode = true"))
+        return  # System mode bypasses all scope checks
 
-    # Only set scope variables if not in system mode
-    if not config.IS_SYSTEM_MODE:
-        scope_type = request.session.get("scope_type")
+    # Not in system mode - require a valid scope_type
+    scope_type = request.session.get("scope_type")
 
-        if scope_type == ScopeType.TEAM.value:
-            team_id = request.session.get("team_id")
-            if team_id:
-                # Validate team_id is an integer to prevent SQL injection
-                team_id_int = int(team_id)
-                await session.execute(text(f"SET LOCAL app.team_id = {team_id_int}"))
+    if not scope_type:
+        raise ValueError(
+            "No scope_type set in session and not in system mode. RLS requires either scope or system mode."
+        )
 
-        elif scope_type == ScopeType.CAMPAIGN.value:
-            campaign_id = request.session.get("campaign_id")
-            if campaign_id:
-                # Validate campaign_id is an integer to prevent SQL injection
-                campaign_id_int = int(campaign_id)
-                await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id_int}"))
+    if scope_type == ScopeType.TEAM.value:
+        team_id = request.session.get("team_id")
+        if team_id:
+            await session.execute(text(f"SET LOCAL app.team_id = {team_id}"))
+        else:
+            raise ValueError(f"scope_type is TEAM but no team_id in session")
+
+    elif scope_type == ScopeType.CAMPAIGN.value:
+        campaign_id = request.session.get("campaign_id")
+        if campaign_id:
+            await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id}"))
+        else:
+            raise ValueError(f"scope_type is CAMPAIGN but no campaign_id in session")
+    else:
+        raise ValueError(f"Invalid scope_type in session: {scope_type}")

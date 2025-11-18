@@ -1,41 +1,108 @@
-"""Database query filters for soft deletes.
+import structlog
+from sqlalchemy import and_, literal, or_, true
+from sqlalchemy.orm import with_loader_criteria
+from sqlalchemy.sql.elements import ColumnElement
 
-This module provides SQLAlchemy event listeners for automatic filtering
-of soft-deleted records. Scope filtering is handled by PostgreSQL RLS.
-"""
+from app.auth.enums import ScopeType
+from app.base.models import BaseDBModel
+from app.utils.configure import config
+
+logger = structlog.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# CORE FILTER BUILDERS
+# ---------------------------------------------------------------------------
 
 
-def apply_soft_delete_filter(execute_state):
-    """SQLAlchemy event listener that filters soft-deleted records from SELECT queries.
+def build_team_scope_filter(entity, team_id: int) -> ColumnElement[bool]:
+    """Build team scope filter or return literal(True) if entity has no team_id."""
+    try:
+        return entity.team_id == team_id
+    except AttributeError:
+        return literal(True)
 
-    This function is called for every ORM execute event and filters out
-    soft-deleted records (deleted_at IS NULL).
 
-    Note: Scope filtering (team_id/campaign_id) is handled by PostgreSQL
-    Row-Level Security policies. See app/base/scope_mixins.py for RLS setup.
+def build_campaign_scope_filter(entity, campaign_id: int) -> ColumnElement[bool]:
+    """Build campaign scope filter.
 
-    Args:
-        execute_state: SQLAlchemy execute state object
+    Note: Only call this for entities that have campaign_id attribute.
     """
-    if not execute_state.is_select:
+    return entity.campaign_id == campaign_id
+
+
+# ---------------------------------------------------------------------------
+# SCOPE DISPATCHER
+# ---------------------------------------------------------------------------
+
+
+def _build_scope_filter(
+    entity, team_id: int | None, campaign_id: int | None, scope_type: ScopeType
+) -> ColumnElement[bool]:
+    """Build scope filter based on scope type."""
+    if scope_type == ScopeType.TEAM and team_id:
+        return build_team_scope_filter(entity, team_id)
+    elif scope_type == ScopeType.CAMPAIGN and campaign_id:
+        # Only apply campaign filter to entities that have campaign_id attribute
+        if hasattr(entity, "campaign_id"):
+            return build_campaign_scope_filter(entity, campaign_id)
+        # For entities without campaign_id, fall back to team filtering
+        elif team_id:
+            return build_team_scope_filter(entity, team_id)
+        else:
+            return literal(True)
+    else:
+        return literal(False)
+
+
+# ---------------------------------------------------------------------------
+# EVENT LISTENER FACTORY
+# ---------------------------------------------------------------------------
+
+
+def soft_delete_filter(execute_state):
+    """Filter soft-deleted records. Bypass with execution_options(include_deleted=True)."""
+    if (
+        not execute_state.is_select
+        or execute_state.is_column_load
+        or execute_state.is_relationship_load
+        or execute_state.execution_options.get("include_deleted", False)
+    ):
         return
 
-    statement = execute_state.statement
+    def _filter(cls):
+        try:
+            return cls.deleted_at.is_(None)
+        except AttributeError:
+            return true()
 
-    # Get the model from the statement
-    from_clause = list(statement.get_final_froms())
-    if not from_clause:
-        return
+    execute_state.statement = execute_state.statement.options(
+        with_loader_criteria(BaseDBModel, _filter, include_aliases=True)
+    )
 
-    # Get the mapped class (model)
-    mapper = from_clause[0]
-    if not hasattr(mapper, "entity"):
-        return
 
-    model = mapper.entity
+def create_query_filter(team_id: int | None, campaign_id: int | None, scope_type: ScopeType | None):
+    """Create RLS query filter with captured scope values.
 
-    # Apply soft delete filter (all models have deleted_at from BaseDBModel)
-    if hasattr(model, "deleted_at"):
-        statement = statement.where(model.deleted_at.is_(None))
+    Uses default arguments to avoid SQLAlchemy's lambda wrapping of closure variables.
+    """
+    is_system_mode = config.IS_SYSTEM_MODE
 
-    execute_state.statement = statement
+    def apply_query_filters(execute_state):
+        if not execute_state.is_select or execute_state.is_column_load or execute_state.is_relationship_load:
+            return
+
+        def build_criteria(
+            cls, _sys=is_system_mode, _scope=scope_type, _team=team_id, _camp=campaign_id
+        ) -> ColumnElement[bool]:
+            if _sys:
+                return true()
+            elif _scope is not None:
+                return _build_scope_filter(cls, _team, _camp, _scope)
+            else:
+                raise ValueError("Scope type required for query filtering")
+
+        execute_state.statement = execute_state.statement.options(
+            with_loader_criteria(BaseDBModel, build_criteria, include_aliases=True, track_closure_variables=False)
+        )
+
+    return apply_query_filters

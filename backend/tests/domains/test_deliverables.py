@@ -16,25 +16,23 @@ class TestDeliverables:
 
     async def test_get_deliverable(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         deliverable,
     ):
         """Test GET /deliverables/{id} returns deliverable details."""
-        client, _ = authenticated_client
 
-        response = await client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
+        response = await authenticated_client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
         assert response.status_code == 200
         assert response.json() is not None
 
     async def test_update_deliverable(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         deliverable,
     ):
         """Test POST /deliverables/{id} updates deliverable."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/deliverables/{sqid_encode(deliverable.id)}",
             json={
                 "title": "Updated Title",
@@ -46,13 +44,12 @@ class TestDeliverables:
 
     async def test_update_deliverable_caption_requirements(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         deliverable,
     ):
         """Test updating deliverable caption requirements."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/deliverables/{sqid_encode(deliverable.id)}",
             json={
                 "handles": ["@brand", "@partner"],
@@ -65,14 +62,13 @@ class TestDeliverables:
 
     async def test_list_deliverable_actions(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         deliverable,
     ):
         """Test GET /actions/deliverable_actions/{id} returns available actions."""
-        client, user_data = authenticated_client
 
         # Get available actions
-        actions = await get_available_actions(client, "deliverable_actions", sqid_encode(deliverable.id))
+        actions = await get_available_actions(authenticated_client, "deliverable_actions", sqid_encode(deliverable.id))
 
         # Should have at least update and delete actions
         action_keys = [action["action"] for action in actions]
@@ -81,15 +77,14 @@ class TestDeliverables:
 
     async def test_execute_deliverable_update_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         deliverable,
         db_session: AsyncSession,
     ):
         """Test executing deliverable update action."""
-        client, _ = authenticated_client
 
         result = await execute_action(
-            client,
+            authenticated_client,
             "deliverable_actions",
             "deliverable_actions__deliverable_update",
             {"title": "Updated via Action"},
@@ -100,15 +95,14 @@ class TestDeliverables:
 
     async def test_execute_deliverable_delete_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         deliverable,
         db_session: AsyncSession,
     ):
         """Test executing deliverable delete action."""
-        client, _ = authenticated_client
 
         result = await execute_action(
-            client,
+            authenticated_client,
             "deliverable_actions",
             "deliverable_actions__deliverable_delete",
             {},
@@ -119,26 +113,24 @@ class TestDeliverables:
 
     async def test_get_deliverable_not_found(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test GET /deliverables/{id} with non-existent ID returns 404."""
-        client, user_data = authenticated_client
 
         # Try to get a non-existent deliverable
-        response = await client.get(f"/deliverables/{sqid_encode(99999)}")
+        response = await authenticated_client.get(f"/deliverables/{sqid_encode(99999)}")
         assert response.status_code == 404
 
     async def test_deliverable_with_campaign(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         campaign,
         deliverable,
     ):
         """Test deliverable associated with a campaign."""
-        client, user_data = authenticated_client
 
         # Get the deliverable
-        response = await client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
+        response = await authenticated_client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -150,13 +142,12 @@ class TestDeliverableStates:
 
     async def test_deliverable_initial_state(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         deliverable,
     ):
         """Test that new deliverables start in DRAFT state."""
-        client, user_data = authenticated_client
 
-        response = await client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
+        response = await authenticated_client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -172,13 +163,12 @@ class TestDeliverablePlatforms:
 
     async def test_deliverable_with_instagram_platform(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         team,
         campaign,
         db_session: AsyncSession,
     ):
         """Test deliverable configured for Instagram."""
-        client, user_data = authenticated_client
 
         # Create a specific deliverable with Instagram platform
         deliverable = await DeliverableFactory.create_async(
@@ -190,7 +180,7 @@ class TestDeliverablePlatforms:
         )
         await db_session.commit()
 
-        response = await client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
+        response = await authenticated_client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -199,13 +189,12 @@ class TestDeliverablePlatforms:
 
     async def test_deliverable_posting_dates(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         team,
         campaign,
         db_session: AsyncSession,
     ):
         """Test deliverable posting date fields."""
-        client, user_data = authenticated_client
 
         posting_date = datetime.now(tz=UTC) + timedelta(days=7)
         start_date = date.today() + timedelta(days=7)
@@ -222,7 +211,7 @@ class TestDeliverablePlatforms:
         )
         await db_session.commit()
 
-        response = await client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
+        response = await authenticated_client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -231,13 +220,12 @@ class TestDeliverablePlatforms:
 
     async def test_deliverable_approval_settings(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         team,
         campaign,
         db_session: AsyncSession,
     ):
         """Test deliverable approval settings."""
-        client, user_data = authenticated_client
 
         # Create a specific deliverable with approval settings
         deliverable = await DeliverableFactory.create_async(
@@ -249,7 +237,7 @@ class TestDeliverablePlatforms:
         )
         await db_session.commit()
 
-        response = await client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
+        response = await authenticated_client.get(f"/deliverables/{sqid_encode(deliverable.id)}")
         assert response.status_code == 200
 
         data = response.json()

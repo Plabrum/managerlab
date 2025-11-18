@@ -6,7 +6,6 @@ from litestar import Litestar, Request
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
-from litestar.template import TemplateEngineProtocol
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -21,7 +20,7 @@ from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
 from app.utils.configure import Config, config
 from app.utils.db import set_rls_variables
-from app.utils.db_filters import apply_soft_delete_filter
+from app.utils.db_filters import soft_delete_filter
 
 logger = structlog.get_logger(__name__)
 
@@ -32,17 +31,22 @@ def provide_viewer_store(request: Request) -> ThreadViewerStore:
 
 
 async def provide_transaction(db_session: AsyncSession, request: Request) -> AsyncGenerator[AsyncSession]:
-    """Provide a database transaction with RLS session variables and soft delete filtering."""
+    """Provide a database transaction with PostgreSQL RLS for multi-tenant isolation.
+
+    Security is enforced via PostgreSQL Row-Level Security (RLS) policies at the database level.
+    This provides strong isolation guarantees that cannot be bypassed at the application layer.
+    """
 
     def _raiseload_listener(execute_state):
         execute_state.statement = execute_state.statement.options(raiseload("*"))
 
-    # --- Attach listeners to this specific session only ---
-    event.listen(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+    # Attach event listeners (soft delete filter and raiseload)
+    event.listen(db_session.sync_session, "do_orm_execute", soft_delete_filter)
     event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
     try:
         async with db_session.begin():
+            # Set PostgreSQL RLS variables for multi-tenant isolation
             await set_rls_variables(db_session, request)
             yield db_session
 
@@ -50,8 +54,8 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
 
     finally:
-        # --- Remove the same listener objects ---
-        event.remove(db_session.sync_session, "do_orm_execute", apply_soft_delete_filter)
+        # Remove event listeners
+        event.remove(db_session.sync_session, "do_orm_execute", soft_delete_filter)
         event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
 

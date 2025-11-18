@@ -16,25 +16,23 @@ class TestCampaigns:
 
     async def test_get_campaign(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         campaign,
     ):
         """Test GET /campaigns/{id} returns campaign details."""
-        client, _ = authenticated_client
 
-        response = await client.get(f"/campaigns/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
         assert response.json() is not None
 
     async def test_update_campaign(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         campaign,
     ):
         """Test POST /campaigns/{id} updates campaign."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/campaigns/{sqid_encode(campaign.id)}",
             json={"name": "Updated Campaign"},
         )
@@ -43,13 +41,12 @@ class TestCampaigns:
 
     async def test_update_campaign_compensation(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         campaign,
     ):
         """Test updating campaign compensation details."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/campaigns/{sqid_encode(campaign.id)}",
             json={
                 "compensation_structure": CompensationStructure.FLAT_FEE.value,
@@ -61,25 +58,23 @@ class TestCampaigns:
 
     async def test_list_campaign_actions(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         campaign,
     ):
         """Test GET /actions/campaign_actions/{id} returns available actions."""
-        client, _ = authenticated_client
 
-        response = await client.get(f"/actions/campaign_actions/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/actions/campaign_actions/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
         assert response.json() is not None
 
     async def test_execute_campaign_update_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         campaign,
     ):
         """Test executing campaign update action."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/actions/campaign_actions/{sqid_encode(campaign.id)}",
             json={"action": "campaign_actions__campaign_update", "data": {"name": "Updated via Action"}},
         )
@@ -88,13 +83,12 @@ class TestCampaigns:
 
     async def test_execute_campaign_delete_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         campaign,
     ):
         """Test executing campaign delete action."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/actions/campaign_actions/{sqid_encode(campaign.id)}",
             json={"action": "campaign_actions__campaign_delete", "data": {}},
         )
@@ -103,13 +97,12 @@ class TestCampaigns:
 
     async def test_get_campaign_not_found(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test GET /campaigns/{id} with non-existent ID returns 404."""
-        client, user_data = authenticated_client
 
         # Try to get a non-existent campaign
-        response = await client.get(f"/campaigns/{sqid_encode(99999)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(99999)}")
         assert response.status_code == 404
 
 
@@ -118,13 +111,13 @@ class TestCampaignStates:
 
     async def test_campaign_initial_state(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         campaign,
     ):
         """Test that new campaigns start in DRAFT state."""
-        client, _ = authenticated_client
 
-        response = await client.get(f"/campaigns/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -141,19 +134,19 @@ class TestCampaignCounterparty:
 
     async def test_campaign_with_brand_counterparty(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         db_session: AsyncSession,
     ):
         """Test campaign with brand as counterparty."""
-        client, user_data = authenticated_client
 
         brand = await BrandFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
         )
         campaign = await CampaignFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
             brand_id=brand.id,
             counterparty_type=CounterpartyType.BRAND,
             counterparty_name="Test Brand",
@@ -161,7 +154,7 @@ class TestCampaignCounterparty:
         )
         await db_session.commit()
 
-        response = await client.get(f"/campaigns/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -170,19 +163,19 @@ class TestCampaignCounterparty:
 
     async def test_campaign_with_agency_counterparty(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         db_session: AsyncSession,
     ):
         """Test campaign with agency as counterparty."""
-        client, user_data = authenticated_client
 
         brand = await BrandFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
         )
         campaign = await CampaignFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
             brand_id=brand.id,
             counterparty_type=CounterpartyType.AGENCY,
             counterparty_name="Test Agency",
@@ -190,7 +183,7 @@ class TestCampaignCounterparty:
         )
         await db_session.commit()
 
-        response = await client.get(f"/campaigns/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -203,29 +196,29 @@ class TestCampaignFlightDates:
 
     async def test_campaign_flight_dates(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         db_session: AsyncSession,
     ):
         """Test campaign flight start and end dates."""
-        client, user_data = authenticated_client
 
         start_date = date.today() + timedelta(days=7)
         end_date = date.today() + timedelta(days=30)
 
         brand = await BrandFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
         )
         campaign = await CampaignFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
             brand_id=brand.id,
             flight_start_date=start_date,
             flight_end_date=end_date,
         )
         await db_session.commit()
 
-        response = await client.get(f"/campaigns/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -238,19 +231,19 @@ class TestCampaignUsageRights:
 
     async def test_campaign_usage_rights(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         db_session: AsyncSession,
     ):
         """Test campaign usage rights configuration."""
-        client, user_data = authenticated_client
 
         brand = await BrandFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
         )
         campaign = await CampaignFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
             brand_id=brand.id,
             usage_duration="12 months",
             usage_territory="Worldwide",
@@ -258,7 +251,7 @@ class TestCampaignUsageRights:
         )
         await db_session.commit()
 
-        response = await client.get(f"/campaigns/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -268,19 +261,19 @@ class TestCampaignUsageRights:
 
     async def test_campaign_exclusivity(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         db_session: AsyncSession,
     ):
         """Test campaign exclusivity settings."""
-        client, user_data = authenticated_client
 
         brand = await BrandFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
         )
         campaign = await CampaignFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
             brand_id=brand.id,
             exclusivity_category="Beverages",
             exclusivity_days_before=30,
@@ -288,7 +281,7 @@ class TestCampaignUsageRights:
         )
         await db_session.commit()
 
-        response = await client.get(f"/campaigns/{sqid_encode(campaign.id)}")
+        response = await authenticated_client.get(f"/campaigns/{sqid_encode(campaign.id)}")
         assert response.status_code == 200
 
         data = response.json()

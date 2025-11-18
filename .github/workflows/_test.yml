@@ -78,13 +78,20 @@ jobs:
           cd backend
           uv run basedpyright
 
+      - name: Run migrations on test database
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/manageros_test
+        run: |
+          cd backend
+          uv run alembic upgrade head
+
       - name: Run tests
         env:
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: manageros_test
-          PGPORT: 5432
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: manageros_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: postgres
         run: |
           cd backend
           uv run pytest -v

@@ -11,7 +11,11 @@ if TYPE_CHECKING:
 
 
 class Team(BaseDBModel):
-    """Organization/workspace that users belong to."""
+    """Organization/workspace that users belong to.
+
+    Note: This table does NOT have RLS because users need to query all teams
+    they belong to when switching teams. The roles table controls access.
+    """
 
     __tablename__ = "teams"
 

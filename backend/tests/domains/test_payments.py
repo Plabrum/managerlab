@@ -16,25 +16,23 @@ class TestInvoices:
 
     async def test_get_invoice(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         invoice,
     ):
         """Test GET /invoices/{id} returns invoice details."""
-        client, _ = authenticated_client
 
-        response = await client.get(f"/invoices/{sqid_encode(invoice.id)}")
+        response = await authenticated_client.get(f"/invoices/{sqid_encode(invoice.id)}")
         assert response.status_code == 200
         assert response.json() is not None
 
     async def test_update_invoice(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         invoice,
     ):
         """Test POST /invoices/{id} updates invoice."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/invoices/{sqid_encode(invoice.id)}",
             json={
                 "customer_name": "Updated Customer",
@@ -46,13 +44,12 @@ class TestInvoices:
 
     async def test_update_invoice_payment(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         invoice,
     ):
         """Test updating invoice payment amount."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/invoices/{sqid_encode(invoice.id)}",
             json={"amount_paid": "500.00"},
         )
@@ -61,14 +58,13 @@ class TestInvoices:
 
     async def test_list_invoice_actions(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         invoice,
     ):
         """Test GET /actions/invoice_actions/{id} returns available actions."""
-        client, user_data = authenticated_client
 
         # Get available actions
-        actions = await get_available_actions(client, "invoice_actions", sqid_encode(invoice.id))
+        actions = await get_available_actions(authenticated_client, "invoice_actions", sqid_encode(invoice.id))
 
         # Should have at least update and delete actions
         action_keys = [action["action"] for action in actions]
@@ -77,15 +73,14 @@ class TestInvoices:
 
     async def test_execute_invoice_update_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         invoice,
         db_session: AsyncSession,
     ):
         """Test executing invoice update action."""
-        client, _ = authenticated_client
 
         result = await execute_action(
-            client,
+            authenticated_client,
             "invoice_actions",
             "invoice_actions__invoice_update",
             {"customer_name": "Updated via Action"},
@@ -96,15 +91,14 @@ class TestInvoices:
 
     async def test_execute_invoice_delete_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         invoice,
         db_session: AsyncSession,
     ):
         """Test executing invoice delete action."""
-        client, _ = authenticated_client
 
         result = await execute_action(
-            client,
+            authenticated_client,
             "invoice_actions",
             "invoice_actions__invoice_delete",
             {},
@@ -115,34 +109,34 @@ class TestInvoices:
 
     async def test_get_invoice_not_found(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
     ):
         """Test GET /invoices/{id} with non-existent ID returns 404."""
-        client, user_data = authenticated_client
 
         # Try to get a non-existent invoice
-        response = await client.get(f"/invoices/{sqid_encode(99999)}")
+        response = await authenticated_client.get(f"/invoices/{sqid_encode(99999)}")
         assert response.status_code == 404
 
     async def test_invoice_with_campaign(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         campaign,
         db_session: AsyncSession,
     ):
         """Test invoice associated with a campaign."""
-        client, user_data = authenticated_client
 
         # Create invoice linked to campaign using factory
         invoice = await InvoiceFactory.create_async(
             session=db_session,
-            team_id=user_data["team_id"],
+            team_id=team.id,
             campaign_id=campaign.id,
         )
         await db_session.commit()
 
         # Get the invoice
-        response = await client.get(f"/invoices/{sqid_encode(invoice.id)}")
+        response = await authenticated_client.get(f"/invoices/{sqid_encode(invoice.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -154,13 +148,13 @@ class TestInvoiceStates:
 
     async def test_invoice_initial_state(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         invoice,
     ):
         """Test that new invoices start in DRAFT state."""
-        client, user_data = authenticated_client
 
-        response = await client.get(f"/invoices/{sqid_encode(invoice.id)}")
+        response = await authenticated_client.get(f"/invoices/{sqid_encode(invoice.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -169,12 +163,11 @@ class TestInvoiceStates:
 
     async def test_invoice_dates(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         team,
         db_session: AsyncSession,
     ):
         """Test invoice date fields."""
-        client, user_data = authenticated_client
 
         today = date.today()
         due_date = today + timedelta(days=30)
@@ -188,7 +181,7 @@ class TestInvoiceStates:
         )
         await db_session.commit()
 
-        response = await client.get(f"/invoices/{sqid_encode(invoice.id)}")
+        response = await authenticated_client.get(f"/invoices/{sqid_encode(invoice.id)}")
         assert response.status_code == 200
 
         data = response.json()
