@@ -44,7 +44,7 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                 BaseDBModel.metadata.info["rls"].add(tablename)
 
                 # Create RLS policy for dual-scoped table
-                # Check IS NOT NULL before casting to prevent errors
+                # Use NULLIF to convert empty strings to NULL on all current_setting calls
                 policy = PGPolicy(
                     schema="public",
                     signature="dual_scope_policy",
@@ -53,11 +53,11 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                         AS PERMISSIVE
                         FOR ALL
                         USING (
-                            (current_setting('app.team_id', true) IS NOT NULL
-                             AND team_id = current_setting('app.team_id', true)::int)
-                            OR (current_setting('app.campaign_id', true) IS NOT NULL
-                                AND campaign_id = current_setting('app.campaign_id', true)::int)
-                            OR (current_setting('app.is_system_mode', true)::boolean IS TRUE)
+                            NULLIF(current_setting('app.is_system_mode', true), '')::boolean IS TRUE
+                            OR (NULLIF(current_setting('app.team_id', true), '') IS NOT NULL
+                                AND team_id = NULLIF(current_setting('app.team_id', true), '')::int)
+                            OR (NULLIF(current_setting('app.campaign_id', true), '') IS NOT NULL
+                                AND campaign_id = NULLIF(current_setting('app.campaign_id', true), '')::int)
                         )
                     """,
                 )
@@ -91,7 +91,7 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                 BaseDBModel.metadata.info["rls"].add(tablename)
 
                 # Create RLS policy for team-scoped table
-                # Check IS NOT NULL before casting to prevent errors
+                # Use NULLIF to convert empty strings to NULL on all current_setting calls
                 policy = PGPolicy(
                     schema="public",
                     signature="team_scope_policy",
@@ -100,9 +100,9 @@ def RLSMixin(scope_with_campaign_id: bool = False) -> type:
                         AS PERMISSIVE
                         FOR ALL
                         USING (
-                            (current_setting('app.team_id', true) IS NOT NULL
-                             AND team_id = current_setting('app.team_id', true)::int)
-                            OR current_setting('app.is_system_mode', true)::boolean IS TRUE
+                            NULLIF(current_setting('app.is_system_mode', true), '')::boolean IS TRUE
+                            OR (NULLIF(current_setting('app.team_id', true), '') IS NOT NULL
+                                AND team_id = NULLIF(current_setting('app.team_id', true), '')::int)
                         )
                     """,
                 )

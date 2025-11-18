@@ -95,13 +95,13 @@ dc-start:
 		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO arive; \
 		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO arive;" 2>/dev/null || true
 	@echo "👤 Creating 'arive' database user in test database..."
-	@psql postgresql://postgres:postgres@localhost:5433/manageros_test -c "\
+	@psql postgresql://postgres:postgres@localhost:5433/manageros -c "\
 		DO \$$\$$ BEGIN \
 			IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'arive') THEN \
 				CREATE ROLE arive WITH LOGIN PASSWORD 'arive'; \
 			END IF; \
 		END \$$\$$; \
-		GRANT CONNECT ON DATABASE manageros_test TO arive; \
+		GRANT CONNECT ON DATABASE manageros TO arive; \
 		GRANT USAGE ON SCHEMA public TO arive; \
 		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive; \
 		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive; \
@@ -292,8 +292,16 @@ sqid:
 
 .PHONY: clean
 clean:
+	@echo "🧹 Cleaning all dependencies and build artifacts..."
 	cd frontend && rm -rf node_modules .next
 	cd backend && rm -rf .venv || true
-	docker stop manageros-dev-db || true
+	@echo "🐳 Stopping and removing Docker containers..."
+	cd backend && docker compose -f docker-compose.dev.yml down || true
+	@echo "🗑️  Removing Docker volumes..."
+	docker volume rm backend_pgdata backend_test_pgdata || true
+	@echo "🗑️  Removing Docker images..."
 	docker rmi manageros-api:local || true
-	docker rmi $$(docker images -q --filter "dangling=true") || true
+	@if [ -n "$$(docker images -q --filter 'dangling=true')" ]; then \
+		docker rmi $$(docker images -q --filter "dangling=true") || true; \
+	fi
+	@echo "✅ Clean completed!"

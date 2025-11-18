@@ -20,7 +20,7 @@ services:
     image: postgres:16-alpine
     container_name: managerlab-test-db
     environment:
-      POSTGRES_DB: manageros_test
+      POSTGRES_DB: manageros
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       PGDATA: /var/lib/postgresql/data/pgdata

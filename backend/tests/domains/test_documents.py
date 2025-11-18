@@ -12,14 +12,13 @@ class TestDocuments:
 
     async def test_get_document(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         document,
     ):
         """Test GET /documents/{id} returns document details."""
-        client, user_data = authenticated_client
 
         # Get the document
-        response = await client.get(f"/documents/{sqid_encode(document.id)}")
+        response = await authenticated_client.get(f"/documents/{sqid_encode(document.id)}")
         assert response.status_code == 200
 
         data = response.json()
@@ -31,13 +30,12 @@ class TestDocuments:
 
     async def test_presigned_upload_request(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test POST /documents/presigned-upload returns presigned URL."""
-        client, user_data = authenticated_client
 
         # Request presigned upload URL
-        response = await client.post(
+        response = await authenticated_client.post(
             "/documents/presigned-upload",
             json={
                 "file_name": "test.pdf",
@@ -55,13 +53,12 @@ class TestDocuments:
 
     async def test_register_document(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         db_session: AsyncSession,
     ):
         """Test POST /documents/register creates document record."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             "/documents/register",
             json={
                 "file_key": "documents/test-key/test.pdf",
@@ -75,14 +72,13 @@ class TestDocuments:
 
     async def test_list_document_actions(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         document,
     ):
         """Test GET /actions/document_actions/{id} returns available actions."""
-        client, user_data = authenticated_client
 
         # Get available actions
-        actions = await get_available_actions(client, "document_actions", sqid_encode(document.id))
+        actions = await get_available_actions(authenticated_client, "document_actions", sqid_encode(document.id))
 
         # Should have at least delete action
         action_keys = [action["action"] for action in actions]
@@ -90,15 +86,14 @@ class TestDocuments:
 
     async def test_execute_document_delete_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         document,
         db_session: AsyncSession,
     ):
         """Test executing document delete action."""
-        client, _ = authenticated_client
 
         result = await execute_action(
-            client,
+            authenticated_client,
             "document_actions",
             "document_actions__document_delete",
             {},
@@ -109,13 +104,12 @@ class TestDocuments:
 
     async def test_get_document_not_found(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test GET /documents/{id} with non-existent ID returns 404."""
-        client, user_data = authenticated_client
 
         # Try to get a non-existent document
-        response = await client.get(f"/documents/{sqid_encode(99999)}")
+        response = await authenticated_client.get(f"/documents/{sqid_encode(99999)}")
         assert response.status_code == 404
 
     # Removed test_document_with_campaign_scope - RLS/scope testing should be in integration tests
@@ -126,13 +120,12 @@ class TestDocumentFileValidation:
 
     async def test_file_size_validation(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test that file size limit is enforced."""
-        client, user_data = authenticated_client
 
         # Try to upload a file that's too large (>100MB)
-        response = await client.post(
+        response = await authenticated_client.post(
             "/documents/presigned-upload",
             json={
                 "file_name": "huge.pdf",

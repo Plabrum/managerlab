@@ -1,9 +1,11 @@
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
+from alembic_utils.pg_policy import PGPolicy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
+from app.base.scope_mixins import RLS_POLICY_REGISTRY, RLSMixin
 from app.state_machine.models import StateMachineMixin
 from app.users.enums import RoleLevel, UserStates
 
@@ -47,7 +49,11 @@ class User(
 
 
 class Role(BaseDBModel):
-    """Join table linking Users to Teams with a role level."""
+    """Join table linking Users to Teams with a role level.
+
+    Note: This table does NOT have RLS because it defines team membership.
+    Users must be able to see all their roles across all teams to switch teams.
+    """
 
     __tablename__ = "roles"
 
@@ -57,7 +63,7 @@ class Role(BaseDBModel):
         index=True,
     )
     team_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("teams.id", ondelete="CASCADE"),
+        sa.ForeignKey("teams.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
@@ -72,3 +78,28 @@ class Role(BaseDBModel):
 
     # Unique constraint: a user can only have one role per team
     __table_args__ = (sa.UniqueConstraint("user_id", "team_id", name="uq_user_team"),)
+
+
+# Register custom RLS policy for users table (role-based access)
+# Use NULLIF to convert empty strings to NULL, and check is_system_mode first
+_users_rls_policy = PGPolicy(
+    schema="public",
+    signature="team_member_access_policy",
+    on_entity="public.users",
+    definition="""AS PERMISSIVE
+                        FOR ALL
+                        USING (
+                            NULLIF(current_setting('app.is_system_mode', true), '')::boolean IS TRUE
+                            OR (NULLIF(current_setting('app.team_id', true), '') IS NOT NULL
+                                AND id IN (
+                                    SELECT user_id FROM roles
+                                    WHERE team_id = NULLIF(current_setting('app.team_id', true), '')::int
+                                ))
+                        )""",
+)
+RLS_POLICY_REGISTRY.append(_users_rls_policy)
+
+# Register RLS enablement for users table
+if "rls" not in BaseDBModel.metadata.info:
+    BaseDBModel.metadata.info["rls"] = set()
+BaseDBModel.metadata.info["rls"].add("users")

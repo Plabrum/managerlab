@@ -13,26 +13,22 @@ class TestBrands:
 
     async def test_get_brand(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         brand,
     ):
         """Test GET /brands/{id} returns brand details."""
-        client, _ = authenticated_client
-
-        response = await client.get(f"/brands/{sqid_encode(brand.id)}")
+        response = await authenticated_client.get(f"/brands/{sqid_encode(brand.id)}")
         assert response.status_code == 200, f"Got {response.status_code}: {response.text}"
         assert response.json() is not None
 
     async def test_update_brand(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         brand,
         db_session,
     ):
         """Test POST /brands/{id} updates brand."""
-        client, _ = authenticated_client
-
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/brands/{sqid_encode(brand.id)}",
             json={"name": "Updated Name"},
         )
@@ -41,12 +37,10 @@ class TestBrands:
 
     async def test_list_top_level_brand_actions(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test GET /actions/brand_actions returns only top-level actions (no object)."""
-        client, _ = authenticated_client
-
-        response = await client.get("/actions/brand_actions")
+        response = await authenticated_client.get("/actions/brand_actions")
         assert response.status_code == 200
         data = response.json()
         assert data is not None
@@ -64,13 +58,11 @@ class TestBrands:
 
     async def test_list_brand_object_actions(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         brand,
     ):
         """Test GET /actions/brand_actions/{id} returns only object actions."""
-        client, _ = authenticated_client
-
-        response = await client.get(f"/actions/brand_actions/{sqid_encode(brand.id)}")
+        response = await authenticated_client.get(f"/actions/brand_actions/{sqid_encode(brand.id)}")
         assert response.status_code == 200
         data = response.json()
         assert data is not None
@@ -88,13 +80,11 @@ class TestBrands:
 
     async def test_execute_brand_update_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         brand,
     ):
         """Test executing brand update action."""
-        client, _ = authenticated_client
-
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/actions/{ActionGroupType.BrandActions}/{sqid_encode(brand.id)}",
             json={
                 "action": "brand_actions__brand_update",
@@ -110,13 +100,11 @@ class TestBrands:
 
     async def test_execute_brand_delete_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         brand,
     ):
         """Test executing brand delete action."""
-        client, _ = authenticated_client
-
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/actions/brand_actions/{sqid_encode(brand.id)}",
             json={"action": "brand_actions__brand_delete", "data": {}},
         )
@@ -125,14 +113,12 @@ class TestBrands:
 
     async def test_get_brand_not_found(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test GET /brands/{id} returns 404 for non-existent brand."""
-        client, _ = authenticated_client
-
         # Use a valid SQID for a non-existent ID
         fake_id = sqid_encode(999999999)
-        response = await client.get(f"/brands/{fake_id}")
+        response = await authenticated_client.get(f"/brands/{fake_id}")
         assert response.status_code == 404
 
 
@@ -141,41 +127,39 @@ class TestBrandContacts:
 
     async def test_get_brand_contact(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         brand,
+        team,
         db_session: AsyncSession,
     ):
         """Test GET /brands/contacts/{contact_id} returns contact details."""
-        client, user_data = authenticated_client
-
         contact = await BrandContactFactory.create_async(
             session=db_session,
             brand_id=brand.id,
-            team_id=user_data["team_id"],
+            team_id=team.id,
         )
-        await db_session.commit()
+        await db_session.flush()
 
-        response = await client.get(f"/brands/contacts/{sqid_encode(contact.id)}")
+        response = await authenticated_client.get(f"/brands/contacts/{sqid_encode(contact.id)}")
         assert response.status_code == 200
         assert response.json() is not None
 
     async def test_update_brand_contact(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         brand,
+        team,
         db_session: AsyncSession,
     ):
         """Test POST /brands/contacts/{contact_id} updates contact."""
-        client, user_data = authenticated_client
-
         contact = await BrandContactFactory.create_async(
             session=db_session,
             brand_id=brand.id,
-            team_id=user_data["team_id"],
+            team_id=team.id,
         )
-        await db_session.commit()
+        await db_session.flush()
 
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/brands/contacts/{sqid_encode(contact.id)}",
             json={"first_name": "Updated"},
         )

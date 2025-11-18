@@ -13,49 +13,44 @@ class TestUsers:
 
     async def test_get_current_user(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        user,
     ):
         """Test GET /users/current_user returns authenticated user."""
-        client, user_data = authenticated_client
 
-        response = await client.get("/users/current_user")
+        response = await authenticated_client.get("/users/current_user")
         assert response.status_code == 200
 
         data = response.json()
-        assert data["id"] == sqid_encode(user_data["user_id"])
-        assert data["email"] == user_data["email"]
+        assert data["id"] == sqid_encode(user.id)
+        assert data["email"] == user.email
 
     async def test_get_user_by_id(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
-        db_session: AsyncSession,
+        authenticated_client: AsyncTestClient,
+        user,
     ):
         """Test GET /users/{id} returns user details."""
-        client, user_data = authenticated_client
-
-        response = await client.get(f"/users/{user_data['user_id']}")
+        response = await authenticated_client.get(f"/users/{user.id}")
         assert response.status_code == 200
 
         data = response.json()
-        assert data["id"] == sqid_encode(user_data["user_id"])
-        assert data["email"] == user_data["email"]
+        assert data["id"] == sqid_encode(user.id)
+        assert data["email"] == user.email
 
     async def test_get_teams(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
-        db_session: AsyncSession,
+        authenticated_client: AsyncTestClient,
     ):
         """Test GET /teams/ returns user's teams."""
-        client, _ = authenticated_client
 
-        response = await client.get("/teams/")
+        response = await authenticated_client.get("/teams/")
         assert response.status_code == 200
         assert response.json() is not None
 
     async def test_create_user(
         self,
         test_client: AsyncTestClient,
-        db_session: AsyncSession,
     ):
         """Test POST /users/signup creates a new user."""
         response = await test_client.post(
@@ -72,24 +67,24 @@ class TestUsers:
 
     async def test_switch_team(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        user,
         db_session: AsyncSession,
     ):
         """Test POST /users/switch-team switches user's active team."""
-        client, user_data = authenticated_client
 
         team2 = await TeamFactory.create_async(session=db_session, name="Team 2")
         role2 = Role(
-            user_id=user_data["user"].id,
+            user_id=user.id,
             team_id=team2.id,
             role_level="member",
         )
         db_session.add(role2)
-        await db_session.commit()
+        await db_session.flush()
 
-        response = await client.post(
+        response = await authenticated_client.post(
             "/users/switch-team",
-            json={"team_id": int(team2.id)},
+            json={"team_id": str(team2.id)},
         )
         assert response.status_code in [200, 201, 204]
 
@@ -99,21 +94,19 @@ class TestTeams:
 
     async def test_get_teams_list(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Smoke test: GET /teams/ returns 200."""
-        client, _ = authenticated_client
-        response = await client.get("/teams/")
+        response = await authenticated_client.get("/teams/")
         assert response.status_code == 200
 
     async def test_create_team(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Smoke test: POST /teams/ creates a team."""
-        client, _ = authenticated_client
 
-        response = await client.post(
+        response = await authenticated_client.post(
             "/teams/",
             json={
                 "name": "New Team",

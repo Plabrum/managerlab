@@ -12,32 +12,31 @@ class TestRoster:
 
     async def test_get_roster(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
+        team,
         roster,
     ):
         """Test GET /roster/{id} returns roster member details."""
-        client, user_data = authenticated_client
 
         # Get the roster member
-        response = await client.get(f"/roster/{sqid_encode(roster.id)}")
+        response = await authenticated_client.get(f"/roster/{sqid_encode(roster.id)}")
         assert response.status_code == 200
 
         data = response.json()
         assert data["id"] == sqid_encode(roster.id)
         assert data["name"] == roster.name
-        assert data["team_id"] == sqid_encode(user_data["team_id"])
+        assert data["team_id"] == sqid_encode(team.id)
         assert "actions" in data  # Should include available actions
 
     async def test_update_roster(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         roster,
     ):
         """Test POST /roster/{id} updates roster member."""
-        client, user_data = authenticated_client
 
         # Update the roster member
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/roster/{sqid_encode(roster.id)}",
             json={"name": "Updated Name"},
         )
@@ -48,14 +47,13 @@ class TestRoster:
 
     async def test_list_roster_actions(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         roster,
     ):
         """Test GET /actions/roster_actions/{id} returns available actions."""
-        client, user_data = authenticated_client
 
         # Get available actions using SQID-encoded ID
-        actions = await get_available_actions(client, "roster_actions", sqid_encode(roster.id))
+        actions = await get_available_actions(authenticated_client, "roster_actions", sqid_encode(roster.id))
 
         # Should have at least update and delete actions
         action_keys = [action["action"] for action in actions]
@@ -64,16 +62,15 @@ class TestRoster:
 
     async def test_execute_roster_update_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         roster,
         db_session: AsyncSession,
     ):
         """Test executing roster update action."""
-        client, user_data = authenticated_client
 
         # Execute update action using SQID-encoded ID
         response = await execute_action(
-            client,
+            authenticated_client,
             "roster_actions",
             "roster_actions__roster_update",
             data={"name": "After Update", "email": "newemail@example.com"},
@@ -89,17 +86,16 @@ class TestRoster:
 
     async def test_execute_roster_delete_action(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         roster,
         db_session: AsyncSession,
     ):
         """Test executing roster delete action."""
-        client, user_data = authenticated_client
         roster_id = roster.id
 
         # Execute delete action using SQID-encoded ID
         response = await execute_action(
-            client,
+            authenticated_client,
             "roster_actions",
             "roster_actions__roster_delete",
             data={},
@@ -120,26 +116,24 @@ class TestRoster:
 
     async def test_get_roster_not_found(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
     ):
         """Test GET /roster/{id} returns 404 for non-existent roster member."""
-        client, _ = authenticated_client
 
         # Use a valid SQID for a non-existent ID
         fake_id = sqid_encode(999999999)
-        response = await client.get(f"/roster/{fake_id}")
+        response = await authenticated_client.get(f"/roster/{fake_id}")
         assert response.status_code == 404
 
     async def test_update_roster_with_social_handles(
         self,
-        authenticated_client: tuple[AsyncTestClient, dict],
+        authenticated_client: AsyncTestClient,
         roster,
     ):
         """Test updating roster with social media handles."""
-        client, user_data = authenticated_client
 
         # Update with social handles
-        response = await client.post(
+        response = await authenticated_client.post(
             f"/roster/{sqid_encode(roster.id)}",
             json={
                 "instagram_handle": "@influencer",

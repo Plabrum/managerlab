@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
-from app.auth.enums import ScopeType
 from app.client.s3_client import S3Dep
 from app.emails.client import BaseEmailClient
 from app.emails.service import EmailService
@@ -21,7 +20,7 @@ from app.sessions.store import PostgreSQLSessionStore
 from app.threads.services import ThreadViewerStore
 from app.utils.configure import Config, config
 from app.utils.db import set_rls_variables
-from app.utils.db_filters import create_query_filter, soft_delete_filter
+from app.utils.db_filters import soft_delete_filter
 
 logger = structlog.get_logger(__name__)
 
@@ -32,35 +31,22 @@ def provide_viewer_store(request: Request) -> ThreadViewerStore:
 
 
 async def provide_transaction(db_session: AsyncSession, request: Request) -> AsyncGenerator[AsyncSession]:
-    """Provide a database transaction with RLS variables and query filtering.
+    """Provide a database transaction with PostgreSQL RLS for multi-tenant isolation.
 
-    Defense-in-depth security:
-    - Layer 1: PostgreSQL RLS (database-level)
-    - Layer 2: SQLAlchemy loader criteria (ORM-level)
+    Security is enforced via PostgreSQL Row-Level Security (RLS) policies at the database level.
+    This provides strong isolation guarantees that cannot be bypassed at the application layer.
     """
 
     def _raiseload_listener(execute_state):
         execute_state.statement = execute_state.statement.options(raiseload("*"))
 
-    # Convert scope_type from string to enum (session stores it as string)
-    scope_type_str = request.session.get("scope_type")
-    scope_type = ScopeType(scope_type_str) if scope_type_str else None
-
-    # Create RLS filter with captured scope values
-    rls_filter = create_query_filter(
-        team_id=request.session.get("team_id"),
-        campaign_id=request.session.get("campaign_id"),
-        scope_type=scope_type,
-    )
-
-    # Attach event listeners (order matters: soft delete -> RLS -> raiseload)
+    # Attach event listeners (soft delete filter and raiseload)
     event.listen(db_session.sync_session, "do_orm_execute", soft_delete_filter)
-    event.listen(db_session.sync_session, "do_orm_execute", rls_filter)
     event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
     try:
         async with db_session.begin():
-            # Layer 1: Set PostgreSQL RLS variables
+            # Set PostgreSQL RLS variables for multi-tenant isolation
             await set_rls_variables(db_session, request)
             yield db_session
 
@@ -70,7 +56,6 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
     finally:
         # Remove event listeners
         event.remove(db_session.sync_session, "do_orm_execute", soft_delete_filter)
-        event.remove(db_session.sync_session, "do_orm_execute", rls_filter)
         event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
 
 
