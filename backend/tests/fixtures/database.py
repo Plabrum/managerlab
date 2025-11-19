@@ -146,8 +146,6 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 
     System mode bypasses RLS policies so test fixtures can be created without
     requiring team/campaign context.
-
-    This fixture uses a transaction that rolls back after each test to ensure isolation.
     """
     session_maker = async_sessionmaker(
         test_engine,
@@ -159,16 +157,14 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 
     session = session_maker()
 
-    # Start a transaction
-    await session.begin()
-
     # Enable system mode to bypass RLS for fixture creation
     await session.execute(text("SET LOCAL app.is_system_mode = true"))
 
     yield session
 
-    # Rollback the transaction to ensure test isolation
-    await session.rollback()
+    # Rollback any uncommitted changes for test isolation
+    if session.in_transaction():
+        await session.rollback()
     await session.close()
 
 
