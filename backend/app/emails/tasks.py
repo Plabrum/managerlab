@@ -186,9 +186,9 @@ async def process_inbound_email_task(
             "inbound_email_id": existing.id,
             "from": from_email,
             "subject": subject,
-            "attachment_count": len(existing.attachments_json.get("attachments", []))
-            if existing.attachments_json
-            else 0,
+            "attachment_count": (
+                len(existing.attachments_json.get("attachments", [])) if existing.attachments_json else 0
+            ),
         }
 
     # Now upload attachments with the DB ID
@@ -224,25 +224,23 @@ async def process_inbound_email_task(
     from app.utils.sqids import sqid_encode
 
     if attachments_metadata:
-        task_queues = ctx.get("task_queues")
-        if task_queues:
-            from app.campaigns.tasks import create_campaign_from_attachment_task
+        from app.campaigns.tasks import create_campaign_from_attachment_task
 
-            queue = task_queues.get("default")
-            inbound_sqid = sqid_encode(inbound.id)
+        queue = ctx["queue"]
+        inbound_sqid = sqid_encode(inbound.id)
 
-            # Enqueue campaign creation task for first attachment
-            # (You could process all attachments by looping here)
-            try:
-                await queue.enqueue(
-                    create_campaign_from_attachment_task.__name__,
-                    inbound_email_id=inbound_sqid,
-                    attachment_index=0,
-                )
-                logger.info(f"Enqueued campaign creation task for InboundEmail {inbound_sqid}")
-            except Exception as enqueue_error:
-                logger.warning(f"Failed to enqueue campaign creation task: {enqueue_error}")
-                # Don't fail the task - email is already processed
+        # Enqueue campaign creation task for first attachment
+        # (You could process all attachments by looping here)
+        try:
+            await queue.enqueue(
+                create_campaign_from_attachment_task.__name__,
+                inbound_email_id=inbound_sqid,
+                attachment_index=0,
+            )
+            logger.info(f"Enqueued campaign creation task for InboundEmail {inbound_sqid}")
+        except Exception as enqueue_error:
+            logger.warning(f"Failed to enqueue campaign creation task: {enqueue_error}")
+            # Don't fail the task - email is already processed
 
     # Transaction auto-commits here with complete record
 
