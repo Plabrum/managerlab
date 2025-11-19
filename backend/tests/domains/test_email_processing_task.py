@@ -1,7 +1,7 @@
 """Smoke tests for inbound email processing task."""
 
 from email.message import EmailMessage
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -33,10 +33,13 @@ async def test_task_processes_email_with_metadata(
     sessionmaker = async_sessionmaker(bind=db_session.bind, expire_on_commit=False)
     mock_job = Mock()
     mock_job.key = "test-task-id-123"
+    mock_queue = Mock()
+    mock_queue.enqueue = AsyncMock()
     mock_context = {
         "db_sessionmaker": sessionmaker,
         "s3_client": mock_s3,
         "job": mock_job,
+        "queue": mock_queue,
     }
 
     # Run task with bucket and s3_key
@@ -90,10 +93,13 @@ async def test_task_extracts_attachments(
     sessionmaker = async_sessionmaker(bind=db_session.bind, expire_on_commit=False)
     mock_job = Mock()
     mock_job.key = "test-task-id-456"
+    mock_queue = Mock()
+    mock_queue.enqueue = AsyncMock()
     mock_context = {
         "db_sessionmaker": sessionmaker,
         "s3_client": mock_s3,
         "job": mock_job,
+        "queue": mock_queue,
     }
 
     # Run task with bucket and s3_key
@@ -118,6 +124,13 @@ async def test_task_extracts_attachments(
     assert attachment["filename"] == "contract.pdf"
     assert attachment["content_type"] == "application/pdf"
 
+    # Verify campaign creation task was enqueued for the attachment
+    assert mock_queue.enqueue.call_count == 1
+    call_args = mock_queue.enqueue.call_args
+    assert call_args[0][0] == "create_campaign_from_attachment_task"
+    assert "inbound_email_id" in call_args[1]
+    assert call_args[1]["attachment_index"] == 0
+
 
 async def test_task_handles_s3_error(
     db_session: AsyncSession,
@@ -131,10 +144,13 @@ async def test_task_handles_s3_error(
     sessionmaker = async_sessionmaker(bind=db_session.bind, expire_on_commit=False)
     mock_job = Mock()
     mock_job.key = "test-task-id-789"
+    mock_queue = Mock()
+    mock_queue.enqueue = AsyncMock()
     mock_context = {
         "db_sessionmaker": sessionmaker,
         "s3_client": mock_s3,
         "job": mock_job,
+        "queue": mock_queue,
     }
 
     # Run task - should raise exception
@@ -182,10 +198,13 @@ async def test_task_handles_duplicate_calls(
     sessionmaker = async_sessionmaker(bind=db_session.bind, expire_on_commit=False)
     mock_job = Mock()
     mock_job.key = "test-task-id-duplicate"
+    mock_queue = Mock()
+    mock_queue.enqueue = AsyncMock()
     mock_context = {
         "db_sessionmaker": sessionmaker,
         "s3_client": mock_s3,
         "job": mock_job,
+        "queue": mock_queue,
     }
 
     # First call - should process normally

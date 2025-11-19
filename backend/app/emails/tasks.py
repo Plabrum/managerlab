@@ -100,6 +100,7 @@ async def process_inbound_email_task(
         dict with status and processing details
     """
     s3_client = ctx["s3_client"]
+    queue = ctx["queue"]
 
     # Phase 1: Fetch and parse email from S3 (no database interaction)
     logger.info(f"Fetching email from s3://{bucket}/{s3_key}")
@@ -165,7 +166,7 @@ async def process_inbound_email_task(
             processed_at=datetime.now(UTC),
             team_id=None,  # Matched later if needed
             task_id=task_id,
-            attachments_json={"attachments": []},  # Initialize empty, populated later if attachments exist
+            attachments_json={"attachments": []},
         )
         .on_conflict_do_nothing(index_elements=["s3_key"])
         .returning(InboundEmail)
@@ -224,8 +225,6 @@ async def process_inbound_email_task(
     from app.utils.sqids import sqid_encode
 
     if attachments_metadata:
-        from app.campaigns.tasks import create_campaign_from_attachment_task
-
         queue = ctx["queue"]
         inbound_sqid = sqid_encode(inbound.id)
 
@@ -233,14 +232,13 @@ async def process_inbound_email_task(
         # (You could process all attachments by looping here)
         try:
             await queue.enqueue(
-                create_campaign_from_attachment_task.__name__,
+                "create_campaign_from_attachment_task",
                 inbound_email_id=inbound_sqid,
                 attachment_index=0,
             )
             logger.info(f"Enqueued campaign creation task for InboundEmail {inbound_sqid}")
         except Exception as enqueue_error:
             logger.warning(f"Failed to enqueue campaign creation task: {enqueue_error}")
-            # Don't fail the task - email is already processed
 
     # Transaction auto-commits here with complete record
 
