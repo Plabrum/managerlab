@@ -21,8 +21,29 @@ from app.utils.sqids import SqidType
 
 discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
-# Register RLS policies for auto-diffing
-register_entities(RLS_POLICY_REGISTRY)
+
+# Register RLS policies for auto-diffing, but only for tables that already exist
+# This prevents simulation errors when adding new tables with RLS policies
+def get_existing_policies():
+    """Filter RLS_POLICY_REGISTRY to only include policies for existing tables."""
+    from sqlalchemy import create_engine, inspect
+
+    # Get list of existing tables from database
+    try:
+        engine = create_engine(app_config.ADMIN_DB_URL)
+        inspector = inspect(engine)
+        existing_tables = set(inspector.get_table_names())
+        engine.dispose()
+    except Exception:
+        # If we can't connect to DB (e.g., offline mode), register all policies
+        return RLS_POLICY_REGISTRY
+
+    # Only register policies for tables that exist
+    filtered_policies = [policy for policy in RLS_POLICY_REGISTRY if policy.on_entity.split(".")[-1] in existing_tables]
+    return filtered_policies
+
+
+register_entities(get_existing_policies())
 
 # Register RLS comparator for automatic RLS enablement detection
 # This comparator checks metadata.info["rls"] (populated by RLSMixin) vs database state
@@ -30,8 +51,9 @@ register_entities(RLS_POLICY_REGISTRY)
 comparators.dispatch_for("table")(compare_rls)
 
 
-# Custom renderer for SqidType to ensure proper rendering in migrations
+# Custom renderers for custom types
 from alembic.autogenerate import renderers
+from app.state_machine.models import TextEnum
 
 
 @renderers.dispatch_for(SqidType)
@@ -39,6 +61,13 @@ def render_sqid_type(type_, object_, autogen_context):
     """Render SqidType with proper import in migration files."""
     autogen_context.imports.add("from app.utils.sqids import SqidType")
     return "SqidType()"
+
+
+@renderers.dispatch_for(TextEnum)
+def render_text_enum(type_, object_, autogen_context):
+    """Render TextEnum with proper import in migration files."""
+    autogen_context.imports.add("from app.state_machine.models import TextEnum")
+    return "TextEnum()"
 
 
 # this is the Alembic Config object, which provides
@@ -97,11 +126,33 @@ def include_object(object, name, type_, reflected, compare_to):
     return True
 
 
+def process_revision_directives(context, revision, directives):
+    """Post-process generated migrations to add required imports."""
+    if directives[0].upgrade_ops:
+        # Add imports for custom types
+        directives[0].imports.add("from app.utils.sqids import SqidType")
+        directives[0].imports.add("from app.state_machine.models import TextEnum")
+
+
+def custom_writer(path, content):
+    """Custom writer to fix qualified type names in generated migrations."""
+    # Replace qualified type names with simple names (since we import them)
+    content = content.replace("app.utils.sqids.SqidType()", "SqidType()")
+    content = content.replace("app.state_machine.models.TextEnum()", "TextEnum()")
+
+    # Write the modified content
+    with open(path, "w") as f:
+        f.write(content)
+    return path
+
+
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
         include_object=include_object,
+        process_revision_directives=process_revision_directives,
+        template_args={"script_py_writer": custom_writer},
     )
 
     with context.begin_transaction():
