@@ -61,6 +61,7 @@ async def queue_startup(ctx: AppContext) -> None:
 
     # Inject config
     ctx["config"] = config
+    ctx["queue"] = ctx["worker"].queue
 
 
 def get_queue_config() -> list[QueueConfig]:
