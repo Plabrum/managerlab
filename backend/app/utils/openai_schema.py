@@ -198,7 +198,8 @@ def _add_strict_requirements(schema: dict) -> None:
 
     OpenAI's strict mode enforces that:
     1. All objects must set "additionalProperties": false
-    2. Only non-nullable properties should be marked as required
+    2. ALL properties must be in the "required" array (even nullable ones)
+       - Nullable fields can still have null values, but the field itself must be present
 
     This modifies the schema in-place.
 
@@ -212,20 +213,16 @@ def _add_strict_requirements(schema: dict) -> None:
     if schema.get("type") == "object":
         schema["additionalProperties"] = False
 
-        # Build required array based on which properties are NOT nullable
+        # OpenAI requires ALL properties to be in the required array
+        # Nullable fields must still be present (they just accept null as a value)
         if "properties" in schema:
-            required = []
-            for prop_name, prop_schema in schema["properties"].items():
-                # Check if this property is marked as nullable
-                if isinstance(prop_schema, dict) and not prop_schema.get("_nullable", False):
-                    required.append(prop_name)
-                # Clean up internal marker
+            # Clean up internal _nullable markers
+            for prop_schema in schema["properties"].values():
                 if isinstance(prop_schema, dict) and "_nullable" in prop_schema:
                     del prop_schema["_nullable"]
 
-            # Set required array (only if there are required properties)
-            if required:
-                schema["required"] = required
+            # All properties must be required in strict mode
+            schema["required"] = list(schema["properties"].keys())
 
     # Recursively process all nested structures
     for value in schema.values():
