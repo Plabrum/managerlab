@@ -53,7 +53,20 @@ async def test_responses_api() -> None:
     try:
         # Generate schema
         schema_dict = msgspec.json.schema(SimpleSchema)
-        logger.info(f"Schema: {json.dumps(schema_dict, indent=2)}")
+
+        # Extract actual schema if it uses $ref
+        if "$ref" in schema_dict and "$defs" in schema_dict:
+            ref_name = schema_dict["$ref"].split("/")[-1]
+            actual_schema = schema_dict["$defs"][ref_name]
+        else:
+            actual_schema = schema_dict
+
+        # OpenAI strict mode requirements
+        actual_schema["additionalProperties"] = False
+        if "properties" in actual_schema:
+            actual_schema["required"] = list(actual_schema["properties"].keys())
+
+        logger.info(f"Schema: {json.dumps(actual_schema, indent=2)}")
 
         # Test 1: Simple text input
         logger.info("\n" + "=" * 80)
@@ -68,7 +81,7 @@ async def test_responses_api() -> None:
                     "type": "json_schema",
                     "name": "SimpleSchema",
                     "strict": True,
-                    "schema": schema_dict,
+                    "schema": actual_schema,
                 }
             },
         )
@@ -114,7 +127,7 @@ async def test_responses_api() -> None:
                     "type": "json_schema",
                     "name": "SimpleSchema",
                     "strict": True,
-                    "schema": schema_dict,
+                    "schema": actual_schema,
                 }
             },
         )
