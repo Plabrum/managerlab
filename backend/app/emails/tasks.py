@@ -244,6 +244,7 @@ async def process_inbound_email_task(
                 "create_campaign_from_attachment_task",
                 inbound_email_id=inbound_sqid,
                 attachment_index=0,
+                timeout=300,  # 5 minutes for OpenAI PDF extraction
             )
             logger.info(f"Enqueued campaign creation task for InboundEmail {inbound_sqid}")
         except Exception as enqueue_error:

@@ -23,7 +23,7 @@ from app.utils.sqids import sqid_decode, sqid_encode
 logger = logging.getLogger(__name__)
 
 
-@task(timeout=300)  # 5 minutes for OpenAI PDF extraction
+@task
 @with_transaction
 async def create_campaign_from_attachment_task(
     ctx: AppContext,
