@@ -3,7 +3,7 @@
 import logging
 from datetime import UTC, datetime
 from email import message_from_bytes
-from email.utils import parsedate_to_datetime
+from email.utils import parseaddr, parsedate_to_datetime
 from io import BytesIO
 
 import sqlalchemy as sa
@@ -110,8 +110,17 @@ async def process_inbound_email_task(
     msg = message_from_bytes(email_bytes)
 
     # Extract metadata from headers
-    from_email = msg.get("From", "unknown@unknown.com")
-    to_email = msg.get("To", "unknown@unknown.com")
+    # parseaddr extracts just the email address from "Display Name <email@example.com>" format
+    from_header = msg.get("From", "unknown@unknown.com")
+    _, from_email = parseaddr(from_header)
+    if not from_email:
+        from_email = "unknown@unknown.com"
+
+    to_header = msg.get("To", "unknown@unknown.com")
+    _, to_email = parseaddr(to_header)
+    if not to_email:
+        to_email = "unknown@unknown.com"
+
     subject = msg.get("Subject", "(no subject)")
     message_id = msg.get("Message-ID")
 
