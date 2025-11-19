@@ -127,7 +127,6 @@ class Config:
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_ORG_ID: str | None = os.getenv("OPENAI_ORG_ID")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o")
-    FRONTEND_BASE_URL: str = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
 
     IS_SYSTEM_MODE: bool = os.getenv("SYSTEM_MODE", "false").lower() == "true"
 

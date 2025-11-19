@@ -85,20 +85,26 @@ async def create_campaign_from_attachment_task(
     logger.info(f"Created campaign {campaign_sqid}: {campaign.name}")
 
     # Step 6: Generate campaign link
-    campaign_link = generate_campaign_link(config.FRONTEND_BASE_URL, campaign_sqid)
+    campaign_link = generate_campaign_link(config.FRONTEND_ORIGIN, campaign_sqid)
 
     # Step 7: Prepare and enqueue auto-reply email (if from_email exists)
     if inbound_email.from_email:
+        # Fetch user to get their name
+        stmt = select(User).where(User.email == inbound_email.from_email).limit(1)
+        result = await transaction.execute(stmt)
+        user = result.scalar_one_or_none()
+        user_name = user.name if user else inbound_email.from_email.split("@")[0]
+
         email_message_id = await prepare_email_for_queue(
             session=transaction,
             template_name="campaign_created_from_attachment",
             to_email=inbound_email.from_email,
             subject=f"Campaign created: {campaign.name}",
             context={
+                "user_name": user_name,
                 "campaign_name": campaign.name,
                 "campaign_link": campaign_link,
                 "sender_email": inbound_email.from_email,
-                "extraction_notes": extraction_result.extraction_notes,
             },
             team_id=inbound_email.team_id,
         )
