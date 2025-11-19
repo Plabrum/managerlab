@@ -165,6 +165,7 @@ async def process_inbound_email_task(
             processed_at=datetime.now(UTC),
             team_id=None,  # Matched later if needed
             task_id=task_id,
+            attachments_json={"attachments": []},  # Initialize empty, populated later if attachments exist
         )
         .on_conflict_do_nothing(index_elements=["s3_key"])
         .returning(InboundEmail)

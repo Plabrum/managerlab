@@ -1592,96 +1592,6 @@ def upgrade() -> None:
     )
     op.drop_entity(public_roster_arive_update)
 
-    public_saq_jobs_arive_insert = PGGrantTable(
-        schema="public",
-        table="saq_jobs",
-        columns=["expire_at", "group_key", "job", "key", "lock_key", "priority", "queue", "scheduled", "status"],
-        role="arive",
-        grant="INSERT",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_jobs_arive_insert)
-
-    public_saq_jobs_arive_select = PGGrantTable(
-        schema="public",
-        table="saq_jobs",
-        columns=["expire_at", "group_key", "job", "key", "lock_key", "priority", "queue", "scheduled", "status"],
-        role="arive",
-        grant="SELECT",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_jobs_arive_select)
-
-    public_saq_jobs_arive_update = PGGrantTable(
-        schema="public",
-        table="saq_jobs",
-        columns=["expire_at", "group_key", "job", "key", "lock_key", "priority", "queue", "scheduled", "status"],
-        role="arive",
-        grant="UPDATE",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_jobs_arive_update)
-
-    public_saq_stats_arive_insert = PGGrantTable(
-        schema="public",
-        table="saq_stats",
-        columns=["expire_at", "metadata", "queue_key", "stats", "worker_id"],
-        role="arive",
-        grant="INSERT",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_stats_arive_insert)
-
-    public_saq_stats_arive_select = PGGrantTable(
-        schema="public",
-        table="saq_stats",
-        columns=["expire_at", "metadata", "queue_key", "stats", "worker_id"],
-        role="arive",
-        grant="SELECT",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_stats_arive_select)
-
-    public_saq_stats_arive_update = PGGrantTable(
-        schema="public",
-        table="saq_stats",
-        columns=["expire_at", "metadata", "queue_key", "stats", "worker_id"],
-        role="arive",
-        grant="UPDATE",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_stats_arive_update)
-
-    public_saq_versions_arive_insert = PGGrantTable(
-        schema="public",
-        table="saq_versions",
-        columns=["version"],
-        role="arive",
-        grant="INSERT",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_versions_arive_insert)
-
-    public_saq_versions_arive_select = PGGrantTable(
-        schema="public",
-        table="saq_versions",
-        columns=["version"],
-        role="arive",
-        grant="SELECT",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_versions_arive_select)
-
-    public_saq_versions_arive_update = PGGrantTable(
-        schema="public",
-        table="saq_versions",
-        columns=["version"],
-        role="arive",
-        grant="UPDATE",
-        with_grant_option=False,
-    )
-    op.drop_entity(public_saq_versions_arive_update)
-
     public_sessions_arive_insert = PGGrantTable(
         schema="public",
         table="sessions",
@@ -1924,21 +1834,6 @@ def upgrade() -> None:
         with_grant_option=False,
     )
     op.drop_entity(public_users_arive_update)
-
-    public_saq_versions_arive_delete = PGGrantTable(
-        schema="public", table="saq_versions", columns=[], role="arive", grant="DELETE", with_grant_option=False
-    )
-    op.drop_entity(public_saq_versions_arive_delete)
-
-    public_saq_jobs_arive_delete = PGGrantTable(
-        schema="public", table="saq_jobs", columns=[], role="arive", grant="DELETE", with_grant_option=False
-    )
-    op.drop_entity(public_saq_jobs_arive_delete)
-
-    public_saq_stats_arive_delete = PGGrantTable(
-        schema="public", table="saq_stats", columns=[], role="arive", grant="DELETE", with_grant_option=False
-    )
-    op.drop_entity(public_saq_stats_arive_delete)
 
     public_messages_arive_delete = PGGrantTable(
         schema="public", table="messages", columns=[], role="arive", grant="DELETE", with_grant_option=False
@@ -2276,21 +2171,6 @@ def downgrade() -> None:
     )
     op.create_entity(public_messages_arive_delete)
 
-    public_saq_stats_arive_delete = PGGrantTable(
-        schema="public", table="saq_stats", columns=[], role="arive", grant="DELETE", with_grant_option=False
-    )
-    op.create_entity(public_saq_stats_arive_delete)
-
-    public_saq_jobs_arive_delete = PGGrantTable(
-        schema="public", table="saq_jobs", columns=[], role="arive", grant="DELETE", with_grant_option=False
-    )
-    op.create_entity(public_saq_jobs_arive_delete)
-
-    public_saq_versions_arive_delete = PGGrantTable(
-        schema="public", table="saq_versions", columns=[], role="arive", grant="DELETE", with_grant_option=False
-    )
-    op.create_entity(public_saq_versions_arive_delete)
-
     public_users_arive_update = PGGrantTable(
         schema="public",
         table="users",
@@ -2533,96 +2413,6 @@ def downgrade() -> None:
         with_grant_option=False,
     )
     op.create_entity(public_sessions_arive_insert)
-
-    public_saq_versions_arive_update = PGGrantTable(
-        schema="public",
-        table="saq_versions",
-        columns=["version"],
-        role="arive",
-        grant="UPDATE",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_versions_arive_update)
-
-    public_saq_versions_arive_select = PGGrantTable(
-        schema="public",
-        table="saq_versions",
-        columns=["version"],
-        role="arive",
-        grant="SELECT",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_versions_arive_select)
-
-    public_saq_versions_arive_insert = PGGrantTable(
-        schema="public",
-        table="saq_versions",
-        columns=["version"],
-        role="arive",
-        grant="INSERT",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_versions_arive_insert)
-
-    public_saq_stats_arive_update = PGGrantTable(
-        schema="public",
-        table="saq_stats",
-        columns=["expire_at", "metadata", "queue_key", "stats", "worker_id"],
-        role="arive",
-        grant="UPDATE",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_stats_arive_update)
-
-    public_saq_stats_arive_select = PGGrantTable(
-        schema="public",
-        table="saq_stats",
-        columns=["expire_at", "metadata", "queue_key", "stats", "worker_id"],
-        role="arive",
-        grant="SELECT",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_stats_arive_select)
-
-    public_saq_stats_arive_insert = PGGrantTable(
-        schema="public",
-        table="saq_stats",
-        columns=["expire_at", "metadata", "queue_key", "stats", "worker_id"],
-        role="arive",
-        grant="INSERT",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_stats_arive_insert)
-
-    public_saq_jobs_arive_update = PGGrantTable(
-        schema="public",
-        table="saq_jobs",
-        columns=["expire_at", "group_key", "job", "key", "lock_key", "priority", "queue", "scheduled", "status"],
-        role="arive",
-        grant="UPDATE",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_jobs_arive_update)
-
-    public_saq_jobs_arive_select = PGGrantTable(
-        schema="public",
-        table="saq_jobs",
-        columns=["expire_at", "group_key", "job", "key", "lock_key", "priority", "queue", "scheduled", "status"],
-        role="arive",
-        grant="SELECT",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_jobs_arive_select)
-
-    public_saq_jobs_arive_insert = PGGrantTable(
-        schema="public",
-        table="saq_jobs",
-        columns=["expire_at", "group_key", "job", "key", "lock_key", "priority", "queue", "scheduled", "status"],
-        role="arive",
-        grant="INSERT",
-        with_grant_option=False,
-    )
-    op.create_entity(public_saq_jobs_arive_insert)
 
     public_roster_arive_update = PGGrantTable(
         schema="public",

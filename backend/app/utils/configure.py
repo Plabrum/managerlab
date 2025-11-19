@@ -174,7 +174,7 @@ class Config:
         Used by Alembic for running migrations.
         """
         # Check for override
-        if url := os.getenv("MIGRATION_DB_URL") or os.getenv("DATABASE_URL"):
+        if url := os.getenv("ADMIN_DB_URL") or os.getenv("DATABASE_URL"):
             return url
 
         admin_user = os.getenv("DB_ADMIN_USER", "postgres")
@@ -186,7 +186,7 @@ class Config:
         """SQLAlchemy async database URL for application runtime (arive user with RLS enforced).
 
         Used by SQLAlchemy for all ORM database operations.
-        Same as MIGRATION_DB_URL but with +psycopg driver for async support.
+        Same as ADMIN_DB_URL but with +psycopg driver for async support.
         """
         # Check for override
         if url := os.getenv("SQLALCHEMY_DB_URL") or os.getenv("ASYNC_DATABASE_URL"):
@@ -199,7 +199,7 @@ class Config:
     # Backwards compatibility aliases
     @property
     def DATABASE_URL(self) -> str:
-        """Backwards compatibility - use MIGRATION_DB_URL instead."""
+        """Backwards compatibility - use ADMIN_DB_URL instead."""
         return self.ADMIN_DB_URL
 
     @property
@@ -230,13 +230,13 @@ class TestConfig(Config):
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "test-client-secret")
 
     @property
-    def MIGRATION_DB_URL(self) -> str:
-        """Database URL for test migrations (postgres/admin user).
+    def ADMIN_DB_URL(self) -> str:
+        """Database URL for migrations (postgres/admin user with schema privileges).
 
         Uses port 5433 (test database) with postgres user.
         """
         # Check for override
-        if url := os.getenv("TEST_MIGRATION_DB_URL") or os.getenv("MIGRATION_DB_URL") or os.getenv("DATABASE_URL"):
+        if url := os.getenv("TEST_ADMIN_DB_URL") or os.getenv("ADMIN_DB_URL") or os.getenv("DATABASE_URL"):
             return url
 
         admin_user = os.getenv("DB_ADMIN_USER", "postgres")

@@ -8,13 +8,11 @@ from pathlib import Path
 
 import pytest
 from litestar.stores.memory import MemoryStore
-from sqlalchemy import create_engine, event, text
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import raiseload
 from sqlalchemy.pool import NullPool
 
 from app.utils.configure import TestConfig
-from app.utils.db_filters import soft_delete_filter
 
 # ============================================================================
 # Configuration & Utilities
@@ -61,7 +59,7 @@ def setup_database(test_engine, test_config: TestConfig):
     - arive user for application runtime (RLS enforced)
     """
     # Create admin engine for schema operations (using postgres superuser)
-    admin_engine = create_engine(test_config.MIGRATION_DB_URL, poolclass=NullPool)
+    admin_engine = create_engine(test_config.ADMIN_DB_URL, poolclass=NullPool)
 
     def _setup():
         # Drop and recreate schema to ensure clean state
@@ -73,7 +71,8 @@ def setup_database(test_engine, test_config: TestConfig):
 
             # Create arive user if it doesn't exist
             conn.execute(
-                text("""
+                text(
+                    """
                 DO $$
                 BEGIN
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'arive') THEN
@@ -81,7 +80,8 @@ def setup_database(test_engine, test_config: TestConfig):
                     END IF;
                 END
                 $$;
-            """)
+            """
+                )
             )
 
         # Run Alembic migrations with explicit ENV=testing
@@ -97,6 +97,12 @@ def setup_database(test_engine, test_config: TestConfig):
 
         if result.returncode != 0:
             raise RuntimeError(f"Alembic migration failed:\n{result.stderr}")
+
+        # Debug: Print migration output
+        if result.stdout:
+            print(f"Migration stdout:\n{result.stdout}")
+        if result.stderr:
+            print(f"Migration stderr:\n{result.stderr}")
 
         # Grant permissions to arive user
         with admin_engine.begin() as conn:
