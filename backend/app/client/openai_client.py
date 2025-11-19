@@ -127,12 +127,26 @@ class OpenAIClient:
             # Generate JSON schema from msgspec type
             schema_dict = msgspec.json.schema(schema_type)
 
-            # Use the Responses API which supports file attachments
+            # Use the Responses API with correct input format for file attachments
+            # Files must be specified in the input array with type "input_file"
             # Note: Type ignore needed due to dynamic API structure
             response = await self.client.responses.create(  # type: ignore
                 model=model,
-                input=instructions,  # User message/instructions
-                attachments=[{"file_id": file_id}],  # File attachments
+                input=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_file",
+                                "file_id": file_id,
+                            },
+                            {
+                                "type": "input_text",
+                                "text": instructions,
+                            },
+                        ],
+                    },
+                ],
                 response_format={
                     "type": "json_schema",
                     "json_schema": {
