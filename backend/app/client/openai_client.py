@@ -13,6 +13,7 @@ from openai.types.file_purpose import FilePurpose
 
 from app.client.s3_client import BaseS3Client
 from app.utils.configure import ConfigProtocol
+from app.utils.openai_schema import parse_structured_response, to_openai_json_schema
 
 logger = logging.getLogger(__name__)
 
@@ -124,22 +125,10 @@ class OpenAIClient:
         logger.info(f"Running structured extraction with model {model}, file_id={file_id}")
 
         try:
-            # Generate JSON schema from msgspec type
-            schema_dict = msgspec.json.schema(schema_type)
-
-            # Extract actual schema if it uses $ref (msgspec wraps schemas in $ref/$defs)
-            if "$ref" in schema_dict and "$defs" in schema_dict:
-                ref_name = schema_dict["$ref"].split("/")[-1]
-                actual_schema = schema_dict["$defs"][ref_name]
-            else:
-                actual_schema = schema_dict
-
-            # OpenAI strict mode requires:
-            # 1. additionalProperties: false
-            # 2. All properties must be in required array
-            actual_schema["additionalProperties"] = False
-            if "properties" in actual_schema:
-                actual_schema["required"] = list(actual_schema["properties"].keys())
+            # Convert msgspec schema to OpenAI-compatible format
+            # This handles: stripping unsupported keys, resolving unions,
+            # and adding strict mode requirements
+            openai_schema = to_openai_json_schema(schema_type)
 
             # Use the Responses API with correct input format for file attachments
             # Files must be specified in the input array with type "input_file"
@@ -167,31 +156,16 @@ class OpenAIClient:
                         "type": "json_schema",
                         "name": schema_type.__name__,
                         "strict": True,
-                        "schema": actual_schema,
+                        "schema": openai_schema,
                     }
                 },
                 temperature=0.1,  # Low temperature for consistent extraction
             )
 
-            # Extract structured output from response
-            # Response.output is a list of output items (messages, tool calls, etc.)
-            # For structured outputs, we expect a message with JSON text
-            if not response.output:
-                raise ValueError("Empty output from OpenAI response")
-
-            # Find the first message in the output
-            for item in response.output:
-                if item.type == "message" and hasattr(item, "content"):
-                    # item.content is a list of content blocks (text, refusal, etc.)
-                    for content_block in item.content:
-                        if content_block.type == "output_text":
-                            # Parse JSON and validate with msgspec
-                            json_bytes = content_block.text.encode("utf-8")
-                            result = msgspec.json.decode(json_bytes, type=schema_type)
-                            logger.info(f"Structured extraction completed successfully: {type(result).__name__}")
-                            return result
-
-            raise ValueError(f"No text content found in OpenAI response output: {response.output}")
+            # Parse and validate the structured output
+            result = parse_structured_response(response, schema_type)
+            logger.info(f"Structured extraction completed successfully: {type(result).__name__}")
+            return result
 
         except Exception as e:
             logger.error(f"Structured extraction failed: {e}")
