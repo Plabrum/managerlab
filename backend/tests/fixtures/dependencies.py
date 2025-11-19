@@ -46,6 +46,9 @@ def mock_s3_client():
         def get_file_bytes(self, key: str) -> bytes:
             return b"test file contents"
 
+        def get_file_bytes_from_bucket(self, bucket: str, key: str) -> bytes:
+            return b"test file contents"
+
     return TestS3Client()
 
 

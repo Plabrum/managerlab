@@ -103,7 +103,7 @@ async def process_inbound_email_task(
 
     # Phase 1: Fetch and parse email from S3 (no database interaction)
     logger.info(f"Fetching email from s3://{bucket}/{s3_key}")
-    email_bytes = s3_client.get_file_bytes(s3_key)
+    email_bytes = s3_client.get_file_bytes_from_bucket(bucket, s3_key)
 
     # Parse MIME message
     msg = message_from_bytes(email_bytes)

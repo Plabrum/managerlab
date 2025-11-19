@@ -26,7 +26,7 @@ async def test_task_processes_email_with_metadata(
 
     # Mock S3 client
     mock_s3 = Mock()
-    mock_s3.get_file_bytes = Mock(return_value=email_bytes)
+    mock_s3.get_file_bytes_from_bucket = Mock(return_value=email_bytes)
     mock_s3.upload_fileobj = Mock()
 
     # Create mock context (with mock job for task_id)
@@ -83,7 +83,7 @@ async def test_task_extracts_attachments(
 
     # Mock S3 client
     mock_s3 = Mock()
-    mock_s3.get_file_bytes = Mock(return_value=msg.as_bytes())
+    mock_s3.get_file_bytes_from_bucket = Mock(return_value=msg.as_bytes())
     mock_s3.upload_fileobj = Mock()
 
     # Create mock context
@@ -125,7 +125,7 @@ async def test_task_handles_s3_error(
     """Test task handles S3 fetch errors gracefully - no orphaned records."""
     # Mock S3 client to raise error
     mock_s3 = Mock()
-    mock_s3.get_file_bytes = Mock(side_effect=Exception("S3 bucket not found"))
+    mock_s3.get_file_bytes_from_bucket = Mock(side_effect=Exception("S3 bucket not found"))
 
     # Create mock context
     sessionmaker = async_sessionmaker(bind=db_session.bind, expire_on_commit=False)
@@ -175,7 +175,7 @@ async def test_task_handles_duplicate_calls(
 
     # Mock S3 client
     mock_s3 = Mock()
-    mock_s3.get_file_bytes = Mock(return_value=email_bytes)
+    mock_s3.get_file_bytes_from_bucket = Mock(return_value=email_bytes)
     mock_s3.upload_fileobj = Mock()
 
     # Create mock context

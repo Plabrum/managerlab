@@ -52,6 +52,11 @@ class BaseS3Client(ABC):
         """Get file contents as bytes."""
         pass
 
+    @abstractmethod
+    def get_file_bytes_from_bucket(self, bucket: str, key: str) -> bytes:
+        """Get file contents as bytes from a specific bucket."""
+        pass
+
 
 class LocalS3Client(BaseS3Client):
     """Local filesystem implementation for development."""
@@ -114,6 +119,10 @@ class LocalS3Client(BaseS3Client):
         """Get file contents as bytes."""
         return self._get_local_storage_path(key).read_bytes()
 
+    def get_file_bytes_from_bucket(self, bucket: str, key: str) -> bytes:
+        """Get file contents as bytes from a specific bucket (ignored in local mode)."""
+        return self.get_file_bytes(key)
+
 
 class S3Client(BaseS3Client):
     """AWS S3 client implementation."""
@@ -174,6 +183,14 @@ class S3Client(BaseS3Client):
 
         fileobj = BytesIO()
         self.s3.download_fileobj(self.bucket_name, key, fileobj)
+        return fileobj.getvalue()
+
+    def get_file_bytes_from_bucket(self, bucket: str, key: str) -> bytes:
+        """Get file contents as bytes from a specific S3 bucket."""
+        from io import BytesIO
+
+        fileobj = BytesIO()
+        self.s3.download_fileobj(bucket, key, fileobj)
         return fileobj.getvalue()
 
 
