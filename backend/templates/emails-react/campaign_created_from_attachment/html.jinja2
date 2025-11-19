@@ -82,14 +82,16 @@
                               cellpadding="0"
                               cellspacing="0"
                               role="presentation"
-                              style="margin-bottom:1.5rem">
+                              style="margin-bottom:2rem">
                               <tbody>
                                 <tr>
                                   <td>
-                                    <h1
-                                      style="margin-right:0rem;margin-left:0rem;margin-bottom:30px;margin-top:30px;padding:0rem;text-align:center;font-weight:400;font-size:28px;color:rgb(0,0,0)">
-                                      Your Campaign Has Been Created
-                                    </h1>
+                                    <p
+                                      class="text-foreground"
+                                      style="font-size:1rem;line-height:1.625;margin-bottom:0rem;font-weight:400;margin-top:16px">
+                                      Hi
+                                      <!-- -->{{ user_name }}<!-- -->,
+                                    </p>
                                   </td>
                                 </tr>
                               </tbody>
@@ -97,8 +99,12 @@
                             <p
                               class="text-muted-foreground"
                               style="font-size:1rem;line-height:1.625;margin-bottom:1.5rem;font-weight:400;margin-top:16px">
-                              Thanks for sending your contract! We&#x27;ve
-                              processed the document and created a new campaign:
+                              Great news! We&#x27;ve processed the contract you
+                              sent from
+                              <strong class="text-foreground"
+                                >{{ sender_email }}</strong
+                              >
+                              and created a new campaign for you:
                             </p>
                             <table
                               align="center"
@@ -196,72 +202,23 @@
                               cellpadding="0"
                               cellspacing="0"
                               role="presentation"
-                              style="margin-top:2rem;margin-bottom:1.5rem;padding:1rem;background-color:rgb(239,246,255);border-radius:0.5rem;border-style:solid;border-width:1px;border-color:rgb(190,219,255)">
+                              style="margin-top:2rem;margin-bottom:1.5rem">
                               <tbody>
                                 <tr>
                                   <td>
                                     <p
                                       class="text-foreground"
-                                      style="font-size:0.875rem;line-height:1.625;margin:0rem;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
-                                      <strong
-                                        style="color:rgb(20,71,230);font-weight:600"
-                                        >Note from our AI:</strong
-                                      ><br />{{ extraction_notes }}
+                                      style="font-size:1rem;line-height:1.5;font-weight:600;margin-bottom:0.75rem;margin-top:0rem">
+                                      What&#x27;s next?
                                     </p>
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                            <table
-                              align="center"
-                              width="100%"
-                              border="0"
-                              cellpadding="0"
-                              cellspacing="0"
-                              role="presentation"
-                              class="border-success"
-                              style="margin-top:2rem;margin-bottom:1.5rem;padding:1rem;background-color:rgb(240,253,244);border-radius:0.5rem;border-style:solid;border-width:1px">
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <p
-                                      class="text-foreground"
-                                      style="font-size:0.875rem;line-height:1.625;margin:0rem;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
-                                      <strong
-                                        class="text-success"
-                                        style="font-weight:600"
-                                        >Next Steps:</strong
-                                      ><br />1. Review the extracted campaign
-                                      details for accuracy<br />2. Make any
-                                      necessary adjustments<br />3. Invite
-                                      collaborators or start planning
-                                      deliverables
-                                    </p>
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                            <table
-                              align="center"
-                              width="100%"
-                              border="0"
-                              cellpadding="0"
-                              cellspacing="0"
-                              role="presentation"
-                              style="margin-top:1.5rem;padding:1rem;background-color:rgb(250,250,250);border-radius:0.5rem;border-style:solid;border-width:1px;border-color:rgb(245,245,245)">
-                              <tbody>
-                                <tr>
-                                  <td>
                                     <p
                                       class="text-muted-foreground"
                                       style="font-size:0.875rem;line-height:1.625;margin:0rem;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
-                                      <strong
-                                        class="text-foreground"
-                                        style="font-weight:600"
-                                        >Questions?</strong
-                                      ><br />If anything looks incorrect or you
-                                      need help, just reply to this email and
-                                      we&#x27;ll be happy to assist.
+                                      • Review the campaign details to make sure
+                                      everything looks right<br />• Add any
+                                      missing information or make adjustments<br />•
+                                      Invite team members or start planning your
+                                      deliverables
                                     </p>
                                   </td>
                                 </tr>

@@ -3,28 +3,29 @@ import * as React from 'react';
 import { BaseLayout, Button } from './components';
 
 interface CampaignCreatedFromAttachmentProps {
+  user_name: string;
   campaign_name: string;
   campaign_link: string;
   sender_email: string;
-  extraction_notes?: string;
 }
 
 export default function CampaignCreatedFromAttachment({
+  user_name = 'Alex',
   campaign_name = 'Summer Beauty Campaign 2025',
   campaign_link = 'https://tryarive.com/campaigns/abc123',
   sender_email = 'partner@brand.com',
-  extraction_notes = null,
 }: CampaignCreatedFromAttachmentProps) {
   return (
     <BaseLayout preview={`Your campaign "${campaign_name}" has been created`}>
-      <Section className="mb-6">
-        <Heading className="mx-0 my-[30px] p-0 text-center font-normal text-[28px] text-black">
-          Your Campaign Has Been Created
-        </Heading>
+      {/* Personal Greeting */}
+      <Section className="mb-8">
+        <Text className="text-foreground text-base leading-relaxed mb-0 font-normal">
+          Hi {user_name},
+        </Text>
       </Section>
 
       <Text className="text-muted-foreground text-base leading-relaxed mb-6 font-normal">
-        Thanks for sending your contract! We've processed the document and created a new campaign:
+        Great news! We've processed the contract you sent from <strong className="text-foreground">{sender_email}</strong> and created a new campaign for you:
       </Text>
 
       <Section className="my-8 p-6 bg-neutral-50 border border-border rounded-lg">
@@ -52,37 +53,17 @@ export default function CampaignCreatedFromAttachment({
         </div>
       </Section>
 
-      {/* Extraction notes if available */}
-      {extraction_notes && (
-        <Section className="mt-8 mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <Text className="text-foreground text-sm leading-relaxed m-0">
-            <strong className="text-blue-700 font-semibold">Note from our AI:</strong>
-            <br />
-            {extraction_notes}
-          </Text>
-        </Section>
-      )}
-
       {/* Next steps */}
-      <Section className="mt-8 mb-6 p-4 bg-green-50 rounded-lg border border-success">
-        <Text className="text-foreground text-sm leading-relaxed m-0">
-          <strong className="text-success font-semibold">Next Steps:</strong>
-          <br />
-          1. Review the extracted campaign details for accuracy
-          <br />
-          2. Make any necessary adjustments
-          <br />
-          3. Invite collaborators or start planning deliverables
+      <Section className="mt-8 mb-6">
+        <Text className="text-foreground text-base font-semibold mb-3 mt-0">
+          What's next?
         </Text>
-      </Section>
-
-      {/* Footer note */}
-      <Section className="mt-6 p-4 bg-neutral-50 rounded-lg border border-neutral-100">
         <Text className="text-muted-foreground text-sm leading-relaxed m-0">
-          <strong className="text-foreground font-semibold">Questions?</strong>
+          • Review the campaign details to make sure everything looks right
           <br />
-          If anything looks incorrect or you need help, just reply to this email
-          and we'll be happy to assist.
+          • Add any missing information or make adjustments
+          <br />
+          • Invite team members or start planning your deliverables
         </Text>
       </Section>
     </BaseLayout>

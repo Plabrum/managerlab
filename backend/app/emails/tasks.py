@@ -82,7 +82,7 @@ async def process_inbound_email_task(
     transaction: AsyncSession,
     *,
     bucket: str,
-    key: str,
+    s3_key: str,
 ) -> dict:
     """
     SAQ task to process an inbound email from S3.
@@ -94,7 +94,7 @@ async def process_inbound_email_task(
         ctx: SAQ context with db_sessionmaker, s3_client, and config
         transaction: Database session with active transaction (injected by decorator)
         bucket: S3 bucket containing the email
-        key: S3 key of the email file
+        s3_key: S3 key of the email file
 
     Returns:
         dict with status and processing details
@@ -102,8 +102,8 @@ async def process_inbound_email_task(
     s3_client = ctx["s3_client"]
 
     # Phase 1: Fetch and parse email from S3 (no database interaction)
-    logger.info(f"Fetching email from s3://{bucket}/{key}")
-    email_bytes = s3_client.get_file_bytes(key)
+    logger.info(f"Fetching email from s3://{bucket}/{s3_key}")
+    email_bytes = s3_client.get_file_bytes(s3_key)
 
     # Parse MIME message
     msg = message_from_bytes(email_bytes)
@@ -156,7 +156,7 @@ async def process_inbound_email_task(
         insert(InboundEmail)
         .values(
             s3_bucket=bucket,
-            s3_key=key,
+            s3_key=s3_key,
             from_email=from_email,
             to_email=to_email,
             subject=subject,
@@ -176,11 +176,11 @@ async def process_inbound_email_task(
 
     if inbound is None:
         # Conflict occurred - record already exists, skip attachment processing
-        stmt = sa.select(InboundEmail).where(InboundEmail.s3_key == key)
+        stmt = sa.select(InboundEmail).where(InboundEmail.s3_key == s3_key)
         result = await transaction.execute(stmt)
         existing = result.scalar_one()
 
-        logger.info(f"Email already processed: {key} (id={existing.id})")
+        logger.info(f"Email already processed: {s3_key} (id={existing.id})")
         return {
             "status": "processed",
             "inbound_email_id": existing.id,

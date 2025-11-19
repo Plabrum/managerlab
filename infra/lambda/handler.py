@@ -52,7 +52,8 @@ def lambda_handler(event, context):
                 raise ValueError(f"Missing bucket or key in S3 event: {record}")
 
             # Build minimal payload - just S3 location
-            payload = json.dumps({"bucket": bucket, "key": key})
+            # Note: Use 's3_key' instead of 'key' to avoid SAQ reserved parameter
+            payload = json.dumps({"bucket": bucket, "s3_key": key})
 
             # Sign payload with HMAC-SHA256
             signature = hmac.new(

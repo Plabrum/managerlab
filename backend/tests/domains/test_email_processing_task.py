@@ -39,11 +39,11 @@ async def test_task_processes_email_with_metadata(
         "job": mock_job,
     }
 
-    # Run task with bucket and key
+    # Run task with bucket and s3_key
     result = await process_inbound_email_task(
         mock_context,
         bucket="test-inbound-emails-bucket",
-        key="emails/test-email.eml",
+        s3_key="emails/test-email.eml",
     )
 
     # Verify result
@@ -96,11 +96,11 @@ async def test_task_extracts_attachments(
         "job": mock_job,
     }
 
-    # Run task with bucket and key
+    # Run task with bucket and s3_key
     result = await process_inbound_email_task(
         mock_context,
         bucket="test-inbound-emails-bucket",
-        key="emails/test-email-with-attachment.eml",
+        s3_key="emails/test-email-with-attachment.eml",
     )
 
     # Verify attachment was uploaded
@@ -143,7 +143,7 @@ async def test_task_handles_s3_error(
         await process_inbound_email_task(
             mock_context,
             bucket="test-inbound-emails-bucket",
-            key="emails/test-email-error.eml",
+            s3_key="emails/test-email-error.eml",
         )
     except Exception:
         task_raised = True
@@ -192,7 +192,7 @@ async def test_task_handles_duplicate_calls(
     result1 = await process_inbound_email_task(
         mock_context,
         bucket="test-inbound-emails-bucket",
-        key="emails/duplicate-email.eml",
+        s3_key="emails/duplicate-email.eml",
     )
 
     assert result1["status"] == "processed"
@@ -203,7 +203,7 @@ async def test_task_handles_duplicate_calls(
     result2 = await process_inbound_email_task(
         mock_context,
         bucket="test-inbound-emails-bucket",
-        key="emails/duplicate-email.eml",
+        s3_key="emails/duplicate-email.eml",
     )
 
     assert result2["status"] == "processed"  # Same status as first call

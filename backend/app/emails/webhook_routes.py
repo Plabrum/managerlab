@@ -16,7 +16,7 @@ class InboundEmailWebhookPayload(Struct):
     """Schema for inbound email webhook payload from Lambda."""
 
     bucket: str
-    key: str
+    s3_key: str
 
 
 @post("/inbound", guards=[requires_webhook_signature])
@@ -28,7 +28,7 @@ async def handle_inbound_email_webhook(
     await queue.enqueue(
         "process_inbound_email_task",
         bucket=data.bucket,
-        key=data.key,
+        s3_key=data.s3_key,
     )
     return Response(
         {"status": "queued"},
