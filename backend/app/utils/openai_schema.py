@@ -39,7 +39,7 @@ def to_openai_json_schema(type_: type) -> dict:
 
     This function:
     1. Generates a JSON schema from the msgspec type
-    2. Inlines the root schema definition (removes $ref wrapper)
+    2. Inlines all $ref references recursively
     3. Strips unsupported keywords
     4. Resolves union types (anyOf/oneOf) to their first alternative
     5. Adds strict mode requirements (additionalProperties, required)
@@ -60,11 +60,13 @@ def to_openai_json_schema(type_: type) -> dict:
     # Generate full JSON schema from msgspec
     full_schema = msgspec.json.schema(type_)
 
+    # Extract definitions before inlining
+    defs = full_schema.get("$defs", {})
+
     # msgspec puts the actual schema under "$defs" with a "$ref" at the root
     # We need to inline the referenced definition
     if "$ref" in full_schema:
         ref_name = full_schema["$ref"].split("/")[-1]
-        defs = full_schema.get("$defs", {})
         root = defs.get(ref_name)
         if root is None:
             logger.warning(f"Referenced schema '{ref_name}' not found in $defs")
@@ -72,8 +74,11 @@ def to_openai_json_schema(type_: type) -> dict:
     else:
         root = full_schema
 
+    # Inline all $ref references recursively
+    inlined = _inline_refs(root, defs)
+
     # Strip unsupported keys and resolve unions
-    clean = _strip_unsupported(root)
+    clean = _strip_unsupported(inlined)
 
     # Add OpenAI strict mode requirements
     if isinstance(clean, dict):
@@ -83,6 +88,49 @@ def to_openai_json_schema(type_: type) -> dict:
         # Should not happen if root is a valid schema, but handle it
         logger.warning(f"Unexpected schema type after stripping: {type(clean)}")
         return {} if not isinstance(clean, dict) else clean
+
+
+def _inline_refs(value, defs: dict) -> dict | list | str | int | float | bool | None:  # type: ignore
+    """
+    Recursively inline all $ref references using the definitions dictionary.
+
+    This resolves references like {"$ref": "#/$defs/CounterpartyType"} by replacing
+    them with the actual schema from the $defs dictionary.
+
+    Args:
+        value: The schema value to process (dict, list, or primitive)
+        defs: Dictionary of definitions from the $defs section
+
+    Returns:
+        Value with all $ref references replaced by their actual schemas
+    """
+    if isinstance(value, dict):
+        # Handle $ref at this level
+        if "$ref" in value:
+            ref_path = value["$ref"]
+            # Extract the definition name from the reference
+            # e.g., "#/$defs/CounterpartyType" -> "CounterpartyType"
+            ref_name = ref_path.split("/")[-1]
+
+            # Look up the definition
+            if ref_name in defs:
+                # Recursively inline the referenced schema
+                return _inline_refs(defs[ref_name], defs)
+            else:
+                logger.warning(f"Reference '{ref_name}' not found in definitions")
+                return value
+
+        # Recursively process all nested values
+        out = {}
+        for k, v in value.items():
+            out[k] = _inline_refs(v, defs)
+        return out
+
+    elif isinstance(value, list):
+        return [_inline_refs(v, defs) for v in value]
+
+    else:
+        return value
 
 
 def _strip_unsupported(value) -> dict | list | str | int | float | bool | None:  # type: ignore
@@ -107,9 +155,14 @@ def _strip_unsupported(value) -> dict | list | str | int | float | bool | None: 
                 continue
 
             # Handle union types (anyOf, oneOf, allOf)
-            # OpenAI doesn't support unions, so we take the first non-null alternative
+            # For nullable types (e.g., anyOf: [string, null]), OpenAI requires a different format
             if k in ("oneOf", "anyOf", "allOf"):
-                # Find first alternative that isn't just {"type": "null"}
+                # Check if this is a nullable type (has null as one alternative)
+                has_null = any(
+                    isinstance(alt, dict) and alt.get("type") == "null" for alt in v if isinstance(alt, dict)
+                )
+
+                # Find first non-null alternative
                 for alternative in v:
                     if isinstance(alternative, dict) and alternative.get("type") != "null":
                         v = alternative
@@ -122,6 +175,10 @@ def _strip_unsupported(value) -> dict | list | str | int | float | bool | None: 
                 # The union key itself is removed, we inline the chosen alternative
                 stripped = _strip_unsupported(v)
                 if isinstance(stripped, dict):
+                    # For nullable fields, add "nullable": true to indicate optionality
+                    # (this is converted to proper format later)
+                    if has_null:
+                        stripped["_nullable"] = True
                     out.update(stripped)
                 continue
 
@@ -141,7 +198,7 @@ def _add_strict_requirements(schema: dict) -> None:
 
     OpenAI's strict mode enforces that:
     1. All objects must set "additionalProperties": false
-    2. All object properties must be listed in "required"
+    2. Only non-nullable properties should be marked as required
 
     This modifies the schema in-place.
 
@@ -154,9 +211,21 @@ def _add_strict_requirements(schema: dict) -> None:
     # Add strict requirements to object types
     if schema.get("type") == "object":
         schema["additionalProperties"] = False
+
+        # Build required array based on which properties are NOT nullable
         if "properties" in schema:
-            # All properties must be required in strict mode
-            schema["required"] = list(schema["properties"].keys())
+            required = []
+            for prop_name, prop_schema in schema["properties"].items():
+                # Check if this property is marked as nullable
+                if isinstance(prop_schema, dict) and not prop_schema.get("_nullable", False):
+                    required.append(prop_name)
+                # Clean up internal marker
+                if isinstance(prop_schema, dict) and "_nullable" in prop_schema:
+                    del prop_schema["_nullable"]
+
+            # Set required array (only if there are required properties)
+            if required:
+                schema["required"] = required
 
     # Recursively process all nested structures
     for value in schema.values():
