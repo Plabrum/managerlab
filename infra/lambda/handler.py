@@ -35,15 +35,25 @@ def lambda_handler(event, context):
     Returns:
         dict with statusCode 200
     """
+    # Log the full event for debugging
+    print(f"Received SES event: {json.dumps(event)}")
+
     for record in event["Records"]:
         try:
             # Extract S3 location from SES event
             s3_info = record["ses"]["receipt"]["action"]
 
+            print(f"S3 action info: {json.dumps(s3_info)}")
+
+            # Handle both naming conventions (bucketName/bucket, objectKey/key)
+            bucket = s3_info.get("bucketName") or s3_info.get("bucket")
+            key = s3_info.get("objectKey") or s3_info.get("key")
+
+            if not bucket or not key:
+                raise ValueError(f"Missing bucket or key in S3 action: {s3_info}")
+
             # Build minimal payload - just S3 location
-            payload = json.dumps(
-                {"bucket": s3_info["bucketName"], "key": s3_info["objectKey"]}
-            )
+            payload = json.dumps({"bucket": bucket, "key": key})
 
             # Sign payload with HMAC-SHA256
             signature = hmac.new(
@@ -63,8 +73,8 @@ def lambda_handler(event, context):
             )
 
             print(
-                f"Forwarded email notification: bucket={s3_info['bucketName']}, "
-                f"key={s3_info['objectKey']}, response_status={response.status}"
+                f"Forwarded email notification: bucket={bucket}, "
+                f"key={key}, response_status={response.status}"
             )
 
             # Transient failure (5xx) - let SES retry
