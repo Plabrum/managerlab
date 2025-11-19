@@ -131,7 +131,7 @@ class TaskRegistry:
 _registry = TaskRegistry()
 
 
-def task(func: Callable) -> Callable:
+def task(func: Callable | None = None, *, timeout: int | None = None) -> Callable:
     """
     Decorator to register a task function.
 
@@ -140,13 +140,31 @@ def task(func: Callable) -> Callable:
         async def my_task(ctx: Context, *, arg: str) -> dict:
             return {"result": arg}
 
+        @task(timeout=300)
+        async def long_task(ctx: Context, *, arg: str) -> dict:
+            return {"result": arg}
+
     Args:
         func: The task function to register
+        timeout: Optional timeout in seconds for this task
 
     Returns:
-        The original function (unchanged)
+        The original function (unchanged) or a decorator if called with parameters
     """
-    return _registry.register_task(func)
+
+    def decorator(f: Callable) -> Callable:
+        # Set timeout as function attribute if provided
+        if timeout is not None:
+            f.__saq_timeout__ = timeout  # type: ignore
+        return _registry.register_task(f)
+
+    # Handle both @task and @task(timeout=X) syntax
+    if func is None:
+        # Called with parameters: @task(timeout=X)
+        return decorator
+    else:
+        # Called without parameters: @task
+        return decorator(func)
 
 
 def scheduled_task(
