@@ -126,13 +126,13 @@ resource "aws_security_group" "lambda_email_webhook" {
   }
 }
 
-# Allow SES to invoke Lambda
-resource "aws_lambda_permission" "ses_invoke" {
-  statement_id   = "AllowSESInvoke"
-  action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.email_webhook.function_name
-  principal      = "ses.amazonaws.com"
-  source_account = data.aws_caller_identity.current.account_id
+# Allow S3 to invoke Lambda
+resource "aws_lambda_permission" "s3_invoke" {
+  statement_id  = "AllowS3Invoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.email_webhook.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.inbound_emails.arn
 }
 
 # CloudWatch Log Group

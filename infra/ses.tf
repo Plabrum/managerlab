@@ -137,6 +137,19 @@ resource "aws_s3_bucket_policy" "inbound_emails" {
   })
 }
 
+# S3 Event Notification to trigger Lambda when emails are written
+resource "aws_s3_bucket_notification" "inbound_emails" {
+  bucket = aws_s3_bucket.inbound_emails.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.email_webhook.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "emails/"
+  }
+
+  depends_on = [aws_lambda_permission.s3_invoke]
+}
+
 # SES Receipt Rule Set
 resource "aws_ses_receipt_rule_set" "main" {
   rule_set_name = "manageros-${var.environment}"
@@ -155,18 +168,11 @@ resource "aws_ses_receipt_rule" "contracts" {
   enabled       = true
   scan_enabled  = true
 
-  # Store in S3 first
+  # Store in S3 - Lambda will be triggered by S3 event notification
   s3_action {
     bucket_name       = aws_s3_bucket.inbound_emails.bucket
     object_key_prefix = "emails/"
     position          = 1
-  }
-
-  # Then trigger Lambda
-  lambda_action {
-    function_arn    = aws_lambda_function.email_webhook.arn
-    invocation_type = "Event"
-    position        = 2
   }
 }
 
