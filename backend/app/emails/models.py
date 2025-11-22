@@ -39,9 +39,7 @@ class EmailMessage(
         return f"<EmailMessage(id={self.id}, to={self.to_email}, subject={self.subject[:30]})>"
 
 
-class InboundEmail(
-    BaseDBModel,
-):
+class InboundEmail(BaseDBModel):
     """Inbound emails received via SES."""
 
     __tablename__ = "inbound_emails"
@@ -50,8 +48,8 @@ class InboundEmail(
     s3_bucket: Mapped[str] = mapped_column(sa.Text, nullable=False)
     s3_key: Mapped[str] = mapped_column(sa.Text, nullable=False, unique=True, index=True)
 
-    # Email metadata (parsed from S3 by task, nullable until processed)
-    from_email: Mapped[str | None] = mapped_column(sa.Text, index=True)
+    # Email metadata (parsed from S3 by task)
+    from_email: Mapped[str] = mapped_column(sa.Text, nullable=False, index=True)
     to_email: Mapped[str | None] = mapped_column(sa.Text)
     subject: Mapped[str | None] = mapped_column(sa.Text)
     ses_message_id: Mapped[str | None] = mapped_column(sa.Text, unique=True)
@@ -68,14 +66,13 @@ class InboundEmail(
     task_id: Mapped[str | None] = mapped_column(sa.Text, index=True)
     processed_at: Mapped[datetime | None]
 
-    # Team linking (nullable - matched later if needed)
-    team_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("teams.id", ondelete="SET NULL"),
-        nullable=True,
+    # Team linking (determined from sender's primary_team)
+    team_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("teams.id", ondelete="CASCADE"),
+        nullable=False,
         index=True,
     )
 
     def __repr__(self) -> str:
-        from_addr = self.from_email or "unknown"
         subj = self.subject[:30] if self.subject else "no subject"
-        return f"<InboundEmail(id={self.id}, from={from_addr}, subject={subj})>"
+        return f"<InboundEmail(id={self.id}, from={self.from_email}, subject={subj})>"

@@ -9,12 +9,14 @@ from io import BytesIO
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.emails.client import EmailMessage as ClientEmailMessage, SESEmailClient
 from app.emails.models import EmailMessage, InboundEmail
 from app.queue.registry import task
 from app.queue.transactions import with_transaction
 from app.queue.types import AppContext
+from app.users.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +89,10 @@ async def process_inbound_email_task(
     """
     SAQ task to process an inbound email from S3.
 
-    Fetches raw email from S3, parses headers and metadata, extracts attachments,
-    then atomically creates InboundEmail record with all data.
+    Fetches raw email from S3, parses headers and metadata, validates sender is a registered
+    user with a primary team, extracts attachments, then atomically creates InboundEmail record.
+
+    **Validation**: Emails from non-users or users without a primary team are rejected and not stored.
 
     Args:
         ctx: SAQ context with db_sessionmaker, s3_client, and config
@@ -97,7 +101,7 @@ async def process_inbound_email_task(
         s3_key: S3 key of the email file
 
     Returns:
-        dict with status and processing details
+        dict with status and processing details, or early return if validation fails
     """
     s3_client = ctx["s3_client"]
     queue = ctx["queue"]
@@ -111,10 +115,39 @@ async def process_inbound_email_task(
 
     # Extract metadata from headers
     # parseaddr extracts just the email address from "Display Name <email@example.com>" format
-    from_header = msg.get("From", "unknown@unknown.com")
+    from_header = msg.get("From", "")
     _, from_email = parseaddr(from_header)
     if not from_email:
-        from_email = "unknown@unknown.com"
+        logger.warning(f"Email has no valid From address, skipping: {s3_key}")
+        return {
+            "status": "rejected",
+            "reason": "no_from_address",
+            "s3_key": s3_key,
+        }
+
+    # Validate sender is a registered user with a primary team
+    stmt = sa.select(User).options(selectinload(User.primary_team)).where(User.email == from_email)
+    result = await transaction.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        logger.warning(f"Email from non-user {from_email}, skipping: {s3_key}")
+        return {
+            "status": "rejected",
+            "reason": "non_user",
+            "from_email": from_email,
+            "s3_key": s3_key,
+        }
+
+    if user.primary_team_id is None:
+        logger.error(f"User {from_email} has no primary team (not OWNER of any team), skipping: {s3_key}")
+        return {
+            "status": "rejected",
+            "reason": "no_primary_team",
+            "from_email": from_email,
+            "user_id": user.id,
+            "s3_key": s3_key,
+        }
 
     to_header = msg.get("To", "unknown@unknown.com")
     _, to_email = parseaddr(to_header)
@@ -133,7 +166,7 @@ async def process_inbound_email_task(
         except Exception as date_error:
             logger.warning(f"Failed to parse date '{date_str}': {date_error}")
 
-    logger.info(f"Processing email from {from_email}")
+    logger.info(f"Processing email from {from_email} (user_id={user.id}, team_id={user.primary_team_id})")
     logger.info(f"Subject: {subject}")
 
     # Extract attachment data (in memory, not uploaded yet)
@@ -173,7 +206,7 @@ async def process_inbound_email_task(
             ses_message_id=message_id,
             received_at=received_at,
             processed_at=datetime.now(UTC),
-            team_id=None,  # Matched later if needed
+            team_id=user.primary_team_id,  # Determined from sender's primary team
             task_id=task_id,
             attachments_json={"attachments": []},
         )
