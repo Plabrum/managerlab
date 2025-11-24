@@ -120,8 +120,13 @@ def include_object(object, name, type_, reflected, compare_to):
     Exclude SAQ tables from autogenerate migrations.
 
     SAQ (Simple Async Queue) manages its own tables (saq_jobs, saq_stats, saq_versions).
+    Also excludes PGGrantTable objects for SAQ tables (alembic_utils doesn't use
+    include_object for its own entities, so we filter by type_ and table attribute).
     """
     if type_ == "table" and name.startswith("saq_"):
+        return False
+    # Filter out alembic_utils PGGrantTable objects for saq_* tables
+    if type_ == "grant_table" and hasattr(object, "table") and object.table.startswith("saq_"):
         return False
     return True
 
