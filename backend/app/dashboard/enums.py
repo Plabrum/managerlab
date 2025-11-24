@@ -3,13 +3,6 @@
 from enum import StrEnum
 
 
-class DashboardOwnerType(StrEnum):
-    """Dashboard ownership types."""
-
-    USER = "user"
-    TEAM = "team"
-
-
 class DashboardActions(StrEnum):
     """Dashboard action keys."""
 

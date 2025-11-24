@@ -95,7 +95,7 @@ export function DashboardContent({ dashboardId }: DashboardContentProps = {}) {
       const newDashboard = await dashboardsCreateDashboard({
         name: newDashboardName,
         config: { widgets: [] },
-        owner_type: 'user',
+        is_personal: true,
         is_default: false,
       });
 

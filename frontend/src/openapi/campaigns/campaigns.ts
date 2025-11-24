@@ -30,8 +30,11 @@ import type {
 import type {
   CampaignSchema,
   CampaignUpdateSchema,
+  CampaignsExtractFromContractExtractFromContract400,
   CampaignsIdGetCampaign400,
-  CampaignsIdUpdateCampaign400
+  CampaignsIdUpdateCampaign400,
+  ExtractFromContractRequestSchema,
+  ExtractFromContractResponseSchema
 } from '../ariveAPI.schemas';
 
 import { customInstance } from '.././custom-instance';
@@ -246,6 +249,70 @@ export const useCampaignsIdUpdateCampaign = <TError = CampaignsIdUpdateCampaign4
       > => {
 
       const mutationOptions = getCampaignsIdUpdateCampaignMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary ExtractFromContract
+ */
+export const campaignsExtractFromContractExtractFromContract = (
+    extractFromContractRequestSchema: ExtractFromContractRequestSchema,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ExtractFromContractResponseSchema>(
+      {url: `/campaigns/extract-from-contract`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: extractFromContractRequestSchema, signal
+    },
+      );
+    }
+  
+
+
+export const getCampaignsExtractFromContractExtractFromContractMutationOptions = <TError = CampaignsExtractFromContractExtractFromContract400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsExtractFromContractExtractFromContract>>, TError,{data: ExtractFromContractRequestSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof campaignsExtractFromContractExtractFromContract>>, TError,{data: ExtractFromContractRequestSchema}, TContext> => {
+
+const mutationKey = ['campaignsExtractFromContractExtractFromContract'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof campaignsExtractFromContractExtractFromContract>>, {data: ExtractFromContractRequestSchema}> = (props) => {
+          const {data} = props ?? {};
+
+          return  campaignsExtractFromContractExtractFromContract(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CampaignsExtractFromContractExtractFromContractMutationResult = NonNullable<Awaited<ReturnType<typeof campaignsExtractFromContractExtractFromContract>>>
+    export type CampaignsExtractFromContractExtractFromContractMutationBody = ExtractFromContractRequestSchema
+    export type CampaignsExtractFromContractExtractFromContractMutationError = CampaignsExtractFromContractExtractFromContract400
+
+    /**
+ * @summary ExtractFromContract
+ */
+export const useCampaignsExtractFromContractExtractFromContract = <TError = CampaignsExtractFromContractExtractFromContract400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsExtractFromContractExtractFromContract>>, TError,{data: ExtractFromContractRequestSchema}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof campaignsExtractFromContractExtractFromContract>>,
+        TError,
+        {data: ExtractFromContractRequestSchema},
+        TContext
+      > => {
+
+      const mutationOptions = getCampaignsExtractFromContractExtractFromContractMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

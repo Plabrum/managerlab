@@ -3,8 +3,8 @@
 from datetime import datetime
 from typing import Any
 
+from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
-from app.dashboard.enums import DashboardOwnerType
 from app.utils.sqids import Sqid
 
 
@@ -14,22 +14,25 @@ class DashboardSchema(BaseSchema):
     id: Sqid
     name: str
     config: dict[str, Any]
-    owner_type: DashboardOwnerType
-    user_id: int | None
-    team_id: int | None
+    user_id: int | None  # NULL = team-wide, set = personal dashboard
+    team_id: int
     is_default: bool
+    is_personal: bool  # Convenience field
     created_at: datetime
     updated_at: datetime
+    actions: list[ActionDTO]
 
 
 class CreateDashboardSchema(BaseSchema):
-    """Schema for creating a new dashboard."""
+    """Schema for creating a new dashboard.
+
+    - To create a personal dashboard: set is_personal=True (user_id will be set automatically)
+    - To create a team-wide dashboard: set is_personal=False or omit it
+    """
 
     name: str
-    config: dict[str, Any]
-    owner_type: DashboardOwnerType
-    user_id: int | None = None
-    team_id: int | None = None
+    config: dict[str, Any] = {}
+    is_personal: bool = False  # If True, dashboard is personal to the creating user
     is_default: bool = False
 
 

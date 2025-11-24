@@ -15,41 +15,16 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/components/providers/auth-provider';
-import { dashboardsListDashboards } from '@/openapi/dashboards/dashboards';
-import type { DashboardSchema } from '@/openapi/ariveAPI.schemas';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
-  const [dashboards, setDashboards] = React.useState<DashboardSchema[]>([]);
-
-  React.useEffect(() => {
-    const fetchDashboards = async () => {
-      try {
-        const data = await dashboardsListDashboards();
-        setDashboards(data);
-      } catch (error) {
-        console.error('Failed to fetch dashboards:', error);
-      }
-    };
-
-    fetchDashboards();
-  }, []);
-
-  const dashboardItems =
-    dashboards.length > 0
-      ? dashboards.map((dashboard) => ({
-          title: dashboard.name,
-          url: `/dashboard/${dashboard.id}`,
-        }))
-      : undefined;
 
   const navMain = [
     {
       title: 'Dashboard',
       url: '/dashboard',
       icon: LayoutDashboard,
-      items: dashboardItems,
     },
     {
       title: 'Management',

@@ -5,111 +5,98 @@ from litestar.exceptions import NotFoundException, PermissionDeniedException
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.auth.guards import requires_scoped_session
-from app.dashboard.enums import DashboardOwnerType
 from app.dashboard.models import Dashboard
 from app.dashboard.schemas import (
     CreateDashboardSchema,
     DashboardSchema,
     UpdateDashboardSchema,
 )
-from app.users.models import Role
 from app.utils.db import get_or_404
 from app.utils.sqids import Sqid
+
+
+def _dashboard_to_schema(dashboard: Dashboard, action_registry: ActionRegistry) -> DashboardSchema:
+    """Convert Dashboard model to schema."""
+    # Compute actions for this dashboard
+    action_group = action_registry.get_class(ActionGroupType.DashboardActions)
+    actions = action_group.get_available_actions(obj=dashboard)
+
+    return DashboardSchema(
+        id=dashboard.id,
+        name=dashboard.name,
+        config=dashboard.config,
+        user_id=dashboard.user_id,
+        team_id=dashboard.team_id,
+        is_default=dashboard.is_default,
+        is_personal=dashboard.is_personal,
+        created_at=dashboard.created_at,
+        updated_at=dashboard.updated_at,
+        actions=actions,
+    )
 
 
 @get("/")
 async def list_dashboards(
     transaction: AsyncSession,
     request: Request,
-    team_id: int,
+    action_registry: ActionRegistry,
 ) -> list[DashboardSchema]:
-    """List all dashboards accessible to the current user (personal + team dashboards)."""
+    """List all dashboards accessible to the current user.
 
-    # Query for both user dashboards and team dashboards
-    stmt = select(Dashboard).where(or_(Dashboard.user_id == request.user, Dashboard.team_id == team_id))
+    Returns both personal dashboards (owned by the user) and team-wide dashboards.
+    RLS automatically filters to the user's current team.
+    """
+    user_id: int = request.user
+
+    # Query for both user's personal dashboards and team-wide dashboards
+    # RLS will automatically filter to the current team
+    stmt = select(Dashboard).where(
+        or_(
+            Dashboard.user_id == user_id,  # Personal dashboards
+            Dashboard.user_id.is_(None),  # Team-wide dashboards
+        )
+    )
     result = await transaction.execute(stmt)
     dashboards = result.scalars().all()
 
-    # Manually convert to DashboardSchema
-    return [
-        DashboardSchema(
-            id=dashboard.id,
-            name=dashboard.name,
-            config=dashboard.config,
-            owner_type=dashboard.owner_type,
-            user_id=dashboard.user_id,
-            team_id=dashboard.team_id,
-            is_default=dashboard.is_default,
-            created_at=dashboard.created_at,
-            updated_at=dashboard.updated_at,
-        )
-        for dashboard in dashboards
-    ]
+    return [_dashboard_to_schema(dashboard, action_registry) for dashboard in dashboards]
 
 
 @get("/{id:str}")
-async def get_dashboard(id: Sqid, transaction: AsyncSession) -> DashboardSchema:
+async def get_dashboard(id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry) -> DashboardSchema:
+    """Get a specific dashboard by ID."""
     dashboard = await get_or_404(transaction, Dashboard, id)
-    return DashboardSchema(
-        id=dashboard.id,
-        name=dashboard.name,
-        config=dashboard.config,
-        owner_type=dashboard.owner_type,
-        user_id=dashboard.user_id,
-        team_id=dashboard.team_id,
-        is_default=dashboard.is_default,
-        created_at=dashboard.created_at,
-        updated_at=dashboard.updated_at,
-    )
+    return _dashboard_to_schema(dashboard, action_registry)
 
 
 @post("/")
-async def create_dashboard(data: CreateDashboardSchema, request: Request, transaction: AsyncSession) -> DashboardSchema:
-    """Create a new dashboard."""
-    user_id: int = request.user
+async def create_dashboard(
+    data: CreateDashboardSchema,
+    request: Request,
+    transaction: AsyncSession,
+    team_id: int,
+    action_registry: ActionRegistry,
+) -> DashboardSchema:
+    """Create a new dashboard.
 
-    # Validate owner type and IDs
-    if data.owner_type == DashboardOwnerType.USER:
-        # For user dashboards, use current user's ID
-        actual_user_id = user_id
-        actual_team_id = None
-    elif data.owner_type == DashboardOwnerType.TEAM:
-        if not data.team_id:
-            raise ValueError("team_id is required for team dashboards")
-
-        # Verify user is member of the team
-        team_query = select(Role).where(Role.user_id == user_id, Role.team_id == data.team_id)
-        team_result = await transaction.execute(team_query)
-        if not team_result.scalar_one_or_none():
-            raise PermissionDeniedException("You are not a member of this team")
-
-        actual_user_id = None
-        actual_team_id = data.team_id
-    else:
-        raise ValueError(f"Invalid owner_type: {data.owner_type}")
+    - Personal dashboards are visible only to the creating user within the team
+    - Team-wide dashboards are visible to all team members
+    """
 
     dashboard = Dashboard(
         name=data.name,
         config=data.config,
-        owner_type=data.owner_type,
-        user_id=actual_user_id,
-        team_id=actual_team_id,
+        user_id=request.user if data.is_personal else None,
+        team_id=team_id,
         is_default=data.is_default,
     )
     transaction.add(dashboard)
     await transaction.flush()
-    return DashboardSchema(
-        id=dashboard.id,
-        name=dashboard.name,
-        config=dashboard.config,
-        owner_type=dashboard.owner_type,
-        user_id=dashboard.user_id,
-        team_id=dashboard.team_id,
-        is_default=dashboard.is_default,
-        created_at=dashboard.created_at,
-        updated_at=dashboard.updated_at,
-    )
+
+    return _dashboard_to_schema(dashboard, action_registry)
 
 
 @patch("/{id:str}")
@@ -118,9 +105,13 @@ async def update_dashboard(
     data: UpdateDashboardSchema,
     request: Request,
     transaction: AsyncSession,
+    action_registry: ActionRegistry,
 ) -> DashboardSchema:
-    """Update a dashboard's configuration."""
-    # id is already decoded from SQID string to int by msgspec
+    """Update a dashboard's configuration.
+
+    Users can update their personal dashboards.
+    Team-wide dashboards can be updated by any team member.
+    """
     dashboard = await transaction.get(Dashboard, id)
 
     if not dashboard:
@@ -128,14 +119,10 @@ async def update_dashboard(
 
     # Verify user has access to this dashboard
     user_id: int = request.user
-    team_query = select(Role.team_id).where(Role.user_id == user_id)
-    team_result = await transaction.execute(team_query)
-    team_ids = [row[0] for row in team_result.all()]
 
-    has_access = dashboard.user_id == user_id or (dashboard.team_id and dashboard.team_id in team_ids)
-
-    if not has_access:
-        raise PermissionDeniedException("You don't have access to this dashboard")
+    # For personal dashboards, only the owner can update
+    if dashboard.is_personal and dashboard.user_id != user_id:
+        raise PermissionDeniedException("You can only update your own personal dashboards")
 
     # Apply updates
     if data.name is not None:
@@ -146,17 +133,7 @@ async def update_dashboard(
         dashboard.is_default = data.is_default
 
     await transaction.flush()
-    return DashboardSchema(
-        id=dashboard.id,
-        name=dashboard.name,
-        config=dashboard.config,
-        owner_type=dashboard.owner_type,
-        user_id=dashboard.user_id,
-        team_id=dashboard.team_id,
-        is_default=dashboard.is_default,
-        created_at=dashboard.created_at,
-        updated_at=dashboard.updated_at,
-    )
+    return _dashboard_to_schema(dashboard, action_registry)
 
 
 # Dashboard router

@@ -1,20 +1,48 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { EmptyState } from '@/components/empty-state';
+import { PageTopBar } from '@/components/page-topbar';
 import { dashboardsListDashboards } from '@/openapi/dashboards/dashboards';
-import { DashboardContent } from '@/components/dashboard-content';
 
-export const dynamic = 'force-dynamic';
+export default function DashboardPage() {
+  const router = useRouter();
 
-export default async function DashboardPage() {
-  // Fetch dashboards to find the first one to redirect to
-  const dashboards = await dashboardsListDashboards();
+  useEffect(() => {
+    const redirectToDashboard = async () => {
+      try {
+        const dashboards = await dashboardsListDashboards();
 
-  // If there are dashboards, redirect to the first one (prioritizing default)
-  if (dashboards.length > 0) {
-    const firstDashboard =
-      dashboards.find((d) => d.is_default) || dashboards[0];
-    redirect(`/dashboard/${firstDashboard.id}`);
-  }
+        if (dashboards.length > 0) {
+          const firstDashboard =
+            dashboards.find((d) => d.is_default) || dashboards[0];
+          router.replace(`/dashboard/${firstDashboard.id}`);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboards:', error);
+      }
+    };
 
-  // If no dashboards exist, show the create dashboard UI
-  return <DashboardContent />;
+    redirectToDashboard();
+  }, [router]);
+
+  // If no dashboards exist, show empty state
+  return (
+    <PageTopBar title="Dashboard">
+      <div className="container mx-auto space-y-6 p-6">
+        <EmptyState
+          title="Create your first dashboard to start visualizing your data"
+          cta={{
+            label: 'Create Dashboard',
+            onClick: () => {
+              // TODO: Create dashboard via action when available
+              console.log('Create dashboard');
+            },
+          }}
+          className="rounded-lg border-2 border-dashed py-12"
+        />
+      </div>
+    </PageTopBar>
+  );
 }
