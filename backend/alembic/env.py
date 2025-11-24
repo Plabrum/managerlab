@@ -6,6 +6,7 @@ from sqlalchemy.engine import Connection
 
 from alembic import context
 from alembic.autogenerate import comparators
+from app.base.grants import get_table_grants
 from app.base.models import BaseDBModel
 from app.base.rls_comparator import compare_rls
 from app.base.rls_operations import (
@@ -43,7 +44,7 @@ def get_existing_policies():
     return filtered_policies
 
 
-register_entities(get_existing_policies())
+register_entities(get_existing_policies() + get_table_grants())
 
 # Register RLS comparator for automatic RLS enablement detection
 # This comparator checks metadata.info["rls"] (populated by RLSMixin) vs database state
