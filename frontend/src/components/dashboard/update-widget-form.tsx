@@ -3,7 +3,7 @@
 import { createTypedForm } from '@/components/forms/base';
 import type {
   WidgetSchema,
-  UpdateWidgetSchema,
+  EditWidgetSchema,
 } from '@/openapi/ariveAPI.schemas';
 import {
   ObjectTypes,
@@ -12,8 +12,8 @@ import {
 } from '@/openapi/ariveAPI.schemas';
 import { getAllWidgetTypes, widgetRegistry } from '@/lib/widgets/registry';
 
-const { FormSheet, FormString, FormSelect, FormCustom } =
-  createTypedForm<UpdateWidgetSchema>();
+const { FormModal, FormString, FormSelect, FormCustom } =
+  createTypedForm<EditWidgetSchema>();
 
 // Object types that make sense for dashboard widgets
 const WIDGET_OBJECT_TYPES = [
@@ -54,7 +54,7 @@ interface UpdateWidgetFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   widget?: WidgetSchema;
-  onSubmit: (data: UpdateWidgetSchema) => void;
+  onSubmit: (data: EditWidgetSchema) => void;
   isSubmitting: boolean;
   actionLabel: string;
 }
@@ -70,13 +70,14 @@ export function UpdateWidgetForm({
   isSubmitting,
   actionLabel,
 }: UpdateWidgetFormProps) {
+  const handleClose = () => onOpenChange(false);
   const widgetTypes = getAllWidgetTypes();
   const typeOptions = widgetTypes.map((type) => ({
     value: type,
     label: widgetRegistry[type].metadata.name,
   }));
 
-  const defaultValues: Partial<UpdateWidgetSchema> = widget
+  const defaultValues: Partial<EditWidgetSchema> = widget
     ? {
         type: widget.type,
         title: widget.title,
@@ -86,15 +87,14 @@ export function UpdateWidgetForm({
     : {};
 
   return (
-    <FormSheet
+    <FormModal
       isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      onClose={handleClose}
       title={actionLabel}
-      subTitle="Update widget settings"
       onSubmit={onSubmit}
       defaultValues={defaultValues}
       isSubmitting={isSubmitting}
-      submitText="Update Widget"
+      submitText="Edit Widget"
     >
       <FormSelect name="type" label="Widget Type" options={typeOptions} />
       <FormString name="title" label="Title" placeholder="Widget title" />
@@ -181,6 +181,6 @@ export function UpdateWidgetForm({
           }}
         </FormCustom>
       </div>
-    </FormSheet>
+    </FormModal>
   );
 }

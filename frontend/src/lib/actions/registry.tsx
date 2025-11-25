@@ -25,6 +25,7 @@ import { UpdateBrandForm } from '@/components/actions/update-brand-form';
 import { AddDeliverableToCampaignForm } from '@/components/actions/add-deliverable-to-campaign-form';
 import { InviteUserToTeamForm } from '@/components/actions/invite-user-to-team-form';
 import { UpdateDashboardForm } from '@/components/actions/update-dashboard-form';
+import { UpdateWidgetForm } from '@/components/dashboard/update-widget-form';
 import React from 'react';
 
 /**
@@ -454,8 +455,28 @@ export const actionRegistry: ActionRegistry = {
   widget_actions__create: {
     render: () => null, // Widget creation is handled in dashboard-content.tsx
   },
-  widget_actions__update: {
-    render: () => null, // TODO: Implement UpdateWidgetForm in widget-container.tsx
+  widget_actions__edit: {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
+      return (
+        <UpdateWidgetForm
+          isOpen={isOpen}
+          onOpenChange={(open) => {
+            if (!open) onClose();
+          }}
+          widget={objectData as WidgetSchema}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
+        />
+      );
+    },
   },
   widget_actions__delete: {
     render: () => null,

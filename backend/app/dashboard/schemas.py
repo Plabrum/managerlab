@@ -44,7 +44,7 @@ class CreateWidgetSchema(BaseSchema):
     size_h: int = 1
 
 
-class UpdateWidgetSchema(BaseSchema):
+class EditWidgetSchema(BaseSchema):
     """Schema for updating a widget (partial updates)."""
 
     type: str | None = None

@@ -17,8 +17,8 @@ from app.dashboard.enums import WidgetActions
 from app.dashboard.models import Dashboard, Widget
 from app.dashboard.schemas import (
     CreateWidgetSchema,
+    EditWidgetSchema,
     ReorderWidgetsSchema,
-    UpdateWidgetSchema,
 )
 from app.utils.db import update_model
 
@@ -72,11 +72,11 @@ class CreateWidget(BaseTopLevelAction[CreateWidgetSchema]):
 
 
 @widget_actions
-class EditWidget(BaseObjectAction[Widget, UpdateWidgetSchema]):
+class EditWidget(BaseObjectAction[Widget, EditWidgetSchema]):
     """Update a widget."""
 
-    action_key = WidgetActions.update
-    label = "Edit"
+    action_key = WidgetActions.edit
+    label = "Edit Widget Query"
     priority = 10
     icon = ActionIcon.edit
 
@@ -84,7 +84,7 @@ class EditWidget(BaseObjectAction[Widget, UpdateWidgetSchema]):
     async def execute(
         cls,
         obj: Widget,
-        data: UpdateWidgetSchema,
+        data: EditWidgetSchema,
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:

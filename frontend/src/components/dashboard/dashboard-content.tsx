@@ -15,7 +15,7 @@ import {
   type ReorderWidgetsSchema,
   type WidgetSchema,
 } from '@/openapi/ariveAPI.schemas';
-import type { WidgetType } from '@/types/dashboard';
+import type { WidgetType, WidgetQuery } from '@/types/dashboard';
 
 interface DashboardContentProps {
   dashboard: DashboardSchema;
@@ -103,13 +103,7 @@ export function DashboardContent({
     }
     const Component = entry.component;
     // Cast query to WidgetQuery since the generated type is more permissive
-    return (
-      <Component
-        query={
-          widget.query as unknown as import('@/types/dashboard').WidgetQuery
-        }
-      />
-    );
+    return <Component query={widget.query as unknown as WidgetQuery} />;
   };
 
   return (

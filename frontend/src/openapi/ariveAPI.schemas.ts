@@ -997,8 +997,37 @@ export interface EditDeliverableAction {
 }
 
 export interface EditWidgetAction {
-  data: UpdateWidgetSchema;
-  action: 'widget_actions__update';
+  data: EditWidgetSchema;
+  action: 'widget_actions__edit';
+}
+
+export type EditWidgetSchemaType = string | null;
+
+export type EditWidgetSchemaTitle = string | null;
+
+export type EditWidgetSchemaDescription = string | null;
+
+export type EditWidgetSchemaQueryOneOf = {[key: string]: unknown};
+
+export type EditWidgetSchemaQuery = EditWidgetSchemaQueryOneOf | null;
+
+export type EditWidgetSchemaPositionX = number | null;
+
+export type EditWidgetSchemaPositionY = number | null;
+
+export type EditWidgetSchemaSizeW = number | null;
+
+export type EditWidgetSchemaSizeH = number | null;
+
+export interface EditWidgetSchema {
+  type?: EditWidgetSchemaType;
+  title?: EditWidgetSchemaTitle;
+  description?: EditWidgetSchemaDescription;
+  query?: EditWidgetSchemaQuery;
+  position_x?: EditWidgetSchemaPositionX;
+  position_y?: EditWidgetSchemaPositionY;
+  size_w?: EditWidgetSchemaSizeW;
+  size_h?: EditWidgetSchemaSizeH;
 }
 
 export interface EmailFieldValue {
@@ -1857,35 +1886,6 @@ export interface UpdateMessageAction {
 export interface UpdateRosterAction {
   data: RosterUpdateSchema;
   action: 'roster_actions__roster_update';
-}
-
-export type UpdateWidgetSchemaType = string | null;
-
-export type UpdateWidgetSchemaTitle = string | null;
-
-export type UpdateWidgetSchemaDescription = string | null;
-
-export type UpdateWidgetSchemaQueryOneOf = {[key: string]: unknown};
-
-export type UpdateWidgetSchemaQuery = UpdateWidgetSchemaQueryOneOf | null;
-
-export type UpdateWidgetSchemaPositionX = number | null;
-
-export type UpdateWidgetSchemaPositionY = number | null;
-
-export type UpdateWidgetSchemaSizeW = number | null;
-
-export type UpdateWidgetSchemaSizeH = number | null;
-
-export interface UpdateWidgetSchema {
-  type?: UpdateWidgetSchemaType;
-  title?: UpdateWidgetSchemaTitle;
-  description?: UpdateWidgetSchemaDescription;
-  query?: UpdateWidgetSchemaQuery;
-  position_x?: UpdateWidgetSchemaPositionX;
-  position_y?: UpdateWidgetSchemaPositionY;
-  size_w?: UpdateWidgetSchemaSizeW;
-  size_h?: UpdateWidgetSchemaSizeH;
 }
 
 export interface UserAndRoleSchema {

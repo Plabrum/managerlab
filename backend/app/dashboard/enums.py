@@ -1,6 +1,6 @@
 """Dashboard enums."""
 
-from enum import StrEnum
+from enum import StrEnum, auto
 
 
 class DashboardActions(StrEnum):
@@ -14,10 +14,10 @@ class DashboardActions(StrEnum):
 class WidgetActions(StrEnum):
     """Widget action keys."""
 
-    create = "create"
-    update = "update"
-    delete = "delete"
-    reorder = "reorder"
+    create = auto()
+    edit = auto()
+    delete = auto()
+    reorder = auto()
 
 
 class WidgetType(StrEnum):
