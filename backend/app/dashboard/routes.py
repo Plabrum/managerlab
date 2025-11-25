@@ -4,18 +4,42 @@ from litestar import Request, Router, get, patch, post
 from litestar.exceptions import NotFoundException, PermissionDeniedException
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.auth.guards import requires_scoped_session
-from app.dashboard.models import Dashboard
+from app.dashboard.models import Dashboard, Widget
 from app.dashboard.schemas import (
     CreateDashboardSchema,
     DashboardSchema,
     UpdateDashboardSchema,
+    WidgetSchema,
 )
 from app.utils.db import get_or_404
 from app.utils.sqids import Sqid
+
+
+def _widget_to_schema(widget: Widget, action_registry: ActionRegistry) -> WidgetSchema:
+    """Convert Widget model to schema."""
+    action_group = action_registry.get_class(ActionGroupType.WidgetActions)
+    actions = action_group.get_available_actions(obj=widget)
+
+    return WidgetSchema(
+        id=widget.id,
+        dashboard_id=Sqid(widget.dashboard_id),
+        type=widget.type,
+        title=widget.title,
+        description=widget.description,
+        query=widget.query,
+        position_x=widget.position_x,
+        position_y=widget.position_y,
+        size_w=widget.size_w,
+        size_h=widget.size_h,
+        created_at=widget.created_at,
+        updated_at=widget.updated_at,
+        actions=actions,
+    )
 
 
 def _dashboard_to_schema(dashboard: Dashboard, action_registry: ActionRegistry) -> DashboardSchema:
@@ -23,6 +47,9 @@ def _dashboard_to_schema(dashboard: Dashboard, action_registry: ActionRegistry) 
     # Compute actions for this dashboard
     action_group = action_registry.get_class(ActionGroupType.DashboardActions)
     actions = action_group.get_available_actions(obj=dashboard)
+
+    # Convert widgets to schemas with their actions
+    widgets = [_widget_to_schema(widget, action_registry) for widget in dashboard.widgets]
 
     return DashboardSchema(
         id=dashboard.id,
@@ -34,6 +61,7 @@ def _dashboard_to_schema(dashboard: Dashboard, action_registry: ActionRegistry) 
         is_personal=dashboard.is_personal,
         created_at=dashboard.created_at,
         updated_at=dashboard.updated_at,
+        widgets=widgets,
         actions=actions,
     )
 
@@ -53,11 +81,15 @@ async def list_dashboards(
 
     # Query for both user's personal dashboards and team-wide dashboards
     # RLS will automatically filter to the current team
-    stmt = select(Dashboard).where(
-        or_(
-            Dashboard.user_id == user_id,  # Personal dashboards
-            Dashboard.user_id.is_(None),  # Team-wide dashboards
+    stmt = (
+        select(Dashboard)
+        .where(
+            or_(
+                Dashboard.user_id == user_id,  # Personal dashboards
+                Dashboard.user_id.is_(None),  # Team-wide dashboards
+            )
         )
+        .options(selectinload(Dashboard.widgets))
     )
     result = await transaction.execute(stmt)
     dashboards = result.scalars().all()
@@ -68,7 +100,11 @@ async def list_dashboards(
 @get("/{id:str}")
 async def get_dashboard(id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry) -> DashboardSchema:
     """Get a specific dashboard by ID."""
-    dashboard = await get_or_404(transaction, Dashboard, id)
+    stmt = select(Dashboard).where(Dashboard.id == id).options(selectinload(Dashboard.widgets))
+    result = await transaction.execute(stmt)
+    dashboard = result.scalar_one_or_none()
+    if not dashboard:
+        raise NotFoundException(f"Dashboard with id {id} not found")
     return _dashboard_to_schema(dashboard, action_registry)
 
 
@@ -96,6 +132,8 @@ async def create_dashboard(
     transaction.add(dashboard)
     await transaction.flush()
 
+    # Refresh with widgets relationship loaded
+    await transaction.refresh(dashboard, attribute_names=["widgets"])
     return _dashboard_to_schema(dashboard, action_registry)
 
 

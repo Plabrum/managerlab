@@ -7,6 +7,75 @@ from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 
+# =============================================================================
+# Widget Schemas
+# =============================================================================
+
+
+class WidgetSchema(BaseSchema):
+    """Response schema for Widget."""
+
+    id: Sqid
+    dashboard_id: Sqid
+    type: str
+    title: str
+    description: str | None
+    query: dict[str, Any]
+    position_x: int
+    position_y: int
+    size_w: int
+    size_h: int
+    created_at: datetime
+    updated_at: datetime
+    actions: list[ActionDTO]
+
+
+class CreateWidgetSchema(BaseSchema):
+    """Schema for creating a widget."""
+
+    dashboard_id: Sqid
+    type: str  # bar_chart, line_chart, pie_chart, stat_number
+    title: str
+    description: str | None = None
+    query: dict[str, Any] = {}
+    position_x: int = 0
+    position_y: int = 0
+    size_w: int = 1
+    size_h: int = 1
+
+
+class UpdateWidgetSchema(BaseSchema):
+    """Schema for updating a widget (partial updates)."""
+
+    type: str | None = None
+    title: str | None = None
+    description: str | None = None
+    query: dict[str, Any] | None = None
+    position_x: int | None = None
+    position_y: int | None = None
+    size_w: int | None = None
+    size_h: int | None = None
+
+
+class WidgetPositionSchema(BaseSchema):
+    """Position data for a single widget during reorder."""
+
+    id: Sqid
+    position_x: int
+    position_y: int
+
+
+class ReorderWidgetsSchema(BaseSchema):
+    """Schema for reordering widgets (batch position update)."""
+
+    dashboard_id: Sqid
+    widgets: list[WidgetPositionSchema]
+
+
+# =============================================================================
+# Dashboard Schemas
+# =============================================================================
+
 
 class DashboardSchema(BaseSchema):
     """Manual schema for Dashboard responses with explicit Sqid type."""
@@ -20,6 +89,7 @@ class DashboardSchema(BaseSchema):
     is_personal: bool  # Convenience field
     created_at: datetime
     updated_at: datetime
+    widgets: list[WidgetSchema]  # Widgets within this dashboard
     actions: list[ActionDTO]
 
 

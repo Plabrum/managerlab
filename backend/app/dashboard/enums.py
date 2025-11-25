@@ -6,8 +6,18 @@ from enum import StrEnum
 class DashboardActions(StrEnum):
     """Dashboard action keys."""
 
+    edit = "edit"
     update = "update"
     delete = "delete"
+
+
+class WidgetActions(StrEnum):
+    """Widget action keys."""
+
+    create = "create"
+    update = "update"
+    delete = "delete"
+    reorder = "reorder"
 
 
 class WidgetType(StrEnum):

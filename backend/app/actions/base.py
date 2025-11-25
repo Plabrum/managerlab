@@ -44,6 +44,7 @@ class BaseAction[O: BaseDBModel, D: Struct](ABC):
     icon: ClassVar[ActionIcon] = ActionIcon.default
     confirmation_message: ClassVar[str | None] = None  # Optional confirmation message
     should_redirect_to_parent: ClassVar[bool] = False  # Whether to redirect to parent after execution
+    is_hidden: ClassVar[bool] = False  # Hidden actions are not shown in dropdown but can still be executed
 
     # Model and load options for default get_object implementation
     model: ClassVar[type[BaseDBModel] | None] = None
@@ -257,6 +258,9 @@ class ActionGroup:
 
         available = []
         for action_key, action_class in actions_dict.items():
+            # Skip hidden actions (they can still be executed but won't show in dropdown)
+            if action_class.is_hidden:
+                continue
             if action_class.is_available(obj, deps):
                 available.append((action_key, action_class))
 

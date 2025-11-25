@@ -5,7 +5,8 @@ import { useDashboardsIdGetDashboardSuspense } from '@/openapi/dashboards/dashbo
 import { PageTopBar } from '@/components/page-topbar';
 import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import { ObjectActions } from '@/components/object-detail';
-import { DashboardWidgets } from '@/components/dashboard/dashboard-widgets';
+import { DashboardContent } from '@/components/dashboard/dashboard-content';
+import { useEditAction } from '@/hooks/use-edit-action';
 
 export default function DashboardByIdPage({
   params,
@@ -15,6 +16,11 @@ export default function DashboardByIdPage({
   const { id } = use(params);
   const { data: dashboard, refetch } = useDashboardsIdGetDashboardSuspense(id);
 
+  // URL parameter-based edit mode with permission checking
+  const { isEditMode, openEdit, closeEdit } = useEditAction({
+    actions: dashboard.actions || [],
+  });
+
   return (
     <PageTopBar
       title={dashboard.name}
@@ -23,10 +29,20 @@ export default function DashboardByIdPage({
           data={dashboard}
           actionGroup={ActionGroupType.dashboard_actions}
           onRefetch={refetch}
+          editMode={{
+            isOpen: isEditMode,
+            onOpen: openEdit,
+            onClose: closeEdit,
+          }}
         />
       }
     >
-      <DashboardWidgets dashboard={dashboard} onUpdate={refetch} />
+      <DashboardContent
+        dashboard={dashboard}
+        onUpdate={refetch}
+        isEditMode={isEditMode}
+        onCloseEditMode={closeEdit}
+      />
     </PageTopBar>
   );
 }

@@ -15,6 +15,33 @@ if TYPE_CHECKING:
     from app.users.models import User
 
 
+class Widget(RLSMixin(), BaseDBModel):
+    """Widget within a dashboard."""
+
+    __tablename__ = "widgets"
+
+    dashboard_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("dashboards.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    type: Mapped[str] = mapped_column(sa.String(50), nullable=False)  # bar_chart, line_chart, etc.
+    title: Mapped[str] = mapped_column(sa.String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
+    query: Mapped[dict[str, Any]] = mapped_column(
+        MutableDict.as_mutable(JSONB),
+        nullable=False,
+        server_default=sa.text("'{}'::jsonb"),
+    )
+    position_x: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    position_y: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    size_w: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
+    size_h: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
+
+    # Relationships
+    dashboard: Mapped["Dashboard"] = relationship(back_populates="widgets")
+
+
 class Dashboard(RLSMixin(), BaseDBModel):
     """Dashboard configuration storage for users and teams.
 
@@ -52,6 +79,11 @@ class Dashboard(RLSMixin(), BaseDBModel):
     # Relationships
     user: Mapped["User | None"] = relationship("User", foreign_keys=[user_id])
     team: Mapped["Team"] = relationship("Team", foreign_keys="Dashboard.team_id")
+    widgets: Mapped[list["Widget"]] = relationship(
+        back_populates="dashboard",
+        cascade="all, delete-orphan",
+        order_by="Widget.position_y, Widget.position_x",
+    )
 
     # Table constraints
     __table_args__ = (

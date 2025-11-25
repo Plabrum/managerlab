@@ -13,6 +13,7 @@ class ActionGroupType(StrEnum):
     InvoiceActions = "invoice_actions"
     RosterActions = "roster_actions"
     DashboardActions = "dashboard_actions"
+    WidgetActions = "widget_actions"
     TeamActions = "team_actions"
     MessageActions = "message_actions"
 

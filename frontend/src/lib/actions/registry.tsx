@@ -9,6 +9,7 @@ import type {
   InvoiceSchema,
   TeamSchema,
   DashboardSchema,
+  WidgetSchema,
 } from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from '@/types/domain-objects';
 import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
@@ -129,8 +130,15 @@ export type ActionToObjectMap = {
   deliverable_media_actions__deliverable_media_remove_media: never;
 
   // Dashboard actions
+  dashboard_actions__edit: DashboardSchema;
   dashboard_actions__delete: DashboardSchema;
   dashboard_actions__update: DashboardSchema;
+
+  // Widget actions
+  widget_actions__create: never; // Top-level action
+  widget_actions__update: WidgetSchema;
+  widget_actions__delete: WidgetSchema;
+  widget_actions__reorder: never; // Top-level action, hidden from UI
 
   // Team actions
   team_actions__team_delete: TeamSchema;
@@ -413,6 +421,10 @@ export const actionRegistry: ActionRegistry = {
   },
 
   // Dashboard actions
+  dashboard_actions__edit: {
+    // Edit mode toggle - no form needed, handled by editMode prop in ObjectActions
+    render: () => null,
+  },
   dashboard_actions__delete: {
     render: () => null,
   },
@@ -436,6 +448,20 @@ export const actionRegistry: ActionRegistry = {
         />
       );
     },
+  },
+
+  // Widget actions
+  widget_actions__create: {
+    render: () => null, // Widget creation is handled in dashboard-content.tsx
+  },
+  widget_actions__update: {
+    render: () => null, // TODO: Implement UpdateWidgetForm in widget-container.tsx
+  },
+  widget_actions__delete: {
+    render: () => null,
+  },
+  widget_actions__reorder: {
+    render: () => null, // Reorder is called programmatically from dashboard-content.tsx
   },
 
   // Team actions

@@ -69,17 +69,18 @@ export function ObjectActions(props: ObjectActionsProps) {
   );
   const [primaryAction, ...remainingActions] = sortedActions;
 
-  // Helper to check if an action is an update/edit action
-  const isUpdateAction = (action: ActionDTO) => {
-    return action.action.includes('_update') || action.action.includes('_edit');
+  // Helper to check if an action is an edit-mode action (distinct from update actions)
+  // Edit actions toggle edit mode UI, while update actions show forms to modify data
+  const isEditModeAction = (action: ActionDTO) => {
+    return action.action.endsWith('__edit');
   };
 
-  // Find the update action (needed for external edit mode rendering)
-  const updateAction = availableActions.find(isUpdateAction);
+  // Find the edit action (needed for external edit mode handling)
+  const editAction = availableActions.find(isEditModeAction);
 
-  // Handler for action clicks - uses external edit mode for update actions if provided
+  // Handler for action clicks - uses external edit mode for edit actions if provided
   const handleActionClick = (action: ActionDTO) => {
-    if (isUpdateAction(action) && props.editMode) {
+    if (isEditModeAction(action) && props.editMode) {
       props.editMode.onOpen();
     } else {
       executor.initiateAction(action);
@@ -87,17 +88,15 @@ export function ObjectActions(props: ObjectActionsProps) {
   };
 
   // Determine which action/state to use for form rendering
-  // External edit mode takes precedence for update actions
+  // External edit mode takes precedence for edit actions
   const formAction =
-    props.editMode?.isOpen && updateAction
-      ? updateAction
-      : executor.pendingAction;
+    props.editMode?.isOpen && editAction ? editAction : executor.pendingAction;
   const formIsOpen =
-    props.editMode?.isOpen && updateAction
+    props.editMode?.isOpen && editAction
       ? props.editMode.isOpen
       : executor.showForm;
   const formOnClose =
-    props.editMode?.isOpen && updateAction
+    props.editMode?.isOpen && editAction
       ? props.editMode.onClose
       : executor.cancelAction;
 
