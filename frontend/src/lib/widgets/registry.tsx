@@ -23,13 +23,19 @@ export const widgetRegistry: WidgetRegistry = {
       category: 'chart',
     },
     defaults: {
-      size: { w: 1, h: 1 },
+      size: { w: 3, h: 2 },
       query: {
         object_type: 'brands',
         field: 'created_at',
         time_range: 'last_30_days',
         granularity: 'automatic',
       },
+    },
+    sizeConstraints: {
+      minW: 2,
+      minH: 2,
+      defaultW: 3,
+      defaultH: 2,
     },
     component: BarChartWidget,
     preview: BarChartPreview,
@@ -43,13 +49,19 @@ export const widgetRegistry: WidgetRegistry = {
       category: 'chart',
     },
     defaults: {
-      size: { w: 1, h: 1 },
+      size: { w: 3, h: 2 },
       query: {
         object_type: 'brands',
         field: 'created_at',
         time_range: 'last_30_days',
         granularity: 'automatic',
       },
+    },
+    sizeConstraints: {
+      minW: 2,
+      minH: 2,
+      defaultW: 3,
+      defaultH: 2,
     },
     component: LineChartWidget,
     preview: LineChartPreview,
@@ -63,12 +75,18 @@ export const widgetRegistry: WidgetRegistry = {
       category: 'chart',
     },
     defaults: {
-      size: { w: 1, h: 1 },
+      size: { w: 2, h: 2 },
       query: {
         object_type: 'brands',
         field: 'status',
         time_range: 'last_30_days',
       },
+    },
+    sizeConstraints: {
+      minW: 2,
+      minH: 2,
+      defaultW: 2,
+      defaultH: 2,
     },
     component: PieChartWidget,
     preview: PieChartPreview,
@@ -89,6 +107,12 @@ export const widgetRegistry: WidgetRegistry = {
         time_range: 'last_30_days',
         aggregation: 'count_',
       },
+    },
+    sizeConstraints: {
+      minW: 1,
+      minH: 1,
+      defaultW: 1,
+      defaultH: 1,
     },
     component: StatWidget,
     preview: StatPreview,
@@ -115,4 +139,8 @@ export function getWidgetsByCategory(category: string) {
   return Object.values(widgetRegistry).filter(
     (entry) => entry.metadata.category === category
   );
+}
+
+export function getWidgetSizeConstraints(type: WidgetType) {
+  return widgetRegistry[type].sizeConstraints;
 }

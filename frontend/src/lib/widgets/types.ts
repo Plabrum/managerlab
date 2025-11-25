@@ -17,9 +17,19 @@ export interface WidgetDefaultConfig {
   query: Partial<WidgetQuery>;
 }
 
+export interface WidgetSizeConstraints {
+  minW: number;
+  minH: number;
+  maxW?: number;
+  maxH?: number;
+  defaultW: number;
+  defaultH: number;
+}
+
 export interface WidgetRegistryEntry {
   metadata: WidgetMetadata;
   defaults: WidgetDefaultConfig;
+  sizeConstraints: WidgetSizeConstraints;
   component: ComponentType<{ query: WidgetQuery }>;
   preview: ComponentType<{ className?: string }>;
 }

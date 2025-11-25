@@ -1,5 +1,6 @@
 'use client';
 
+import { GripVertical, ArrowDownRight } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -12,6 +13,7 @@ import { ActionConfirmationDialog } from '@/components/actions/action-confirmati
 import { ActionGroupType, type WidgetSchema } from '@/openapi/ariveAPI.schemas';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
+import { cn } from '@/lib/utils';
 
 interface WidgetContainerProps {
   widget: WidgetSchema;
@@ -40,6 +42,7 @@ export function WidgetContainer({
   });
 
   const handleEdit = () => {
+    console.log('Edit action triggered');
     if (editAction) {
       executor.initiateAction(editAction);
     }
@@ -58,14 +61,45 @@ export function WidgetContainer({
       )}
 
       <CardHeader className="space-y-0 p-0">
-        <CardTitle className="text-base font-medium">{widget.title}</CardTitle>
-        {widget.description && (
-          <CardDescription className="text-sm">
-            {widget.description}
-          </CardDescription>
-        )}
+        <div className="flex items-start gap-2">
+          {isEditMode && (
+            <div
+              className={cn(
+                'widget-drag-handle text-muted-foreground mt-0.5 cursor-grab active:cursor-grabbing',
+                'hover:text-foreground transition-colors'
+              )}
+              title="Drag to move widget"
+            >
+              <GripVertical className="size-4" />
+            </div>
+          )}
+          <div className="flex-1">
+            <CardTitle className="text-base font-medium">
+              {widget.title}
+            </CardTitle>
+            {widget.description && (
+              <CardDescription className="text-sm">
+                {widget.description}
+              </CardDescription>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 px-0">{children}</CardContent>
+
+      {/* Resize indicator - bottom right corner */}
+      {isEditMode && (
+        <div
+          className={cn(
+            'pointer-events-none absolute bottom-1 right-1',
+            'text-muted-foreground/40',
+            'flex items-center gap-1'
+          )}
+          title="Drag corner to resize"
+        >
+          <ArrowDownRight className="size-4" strokeWidth={1.5} />
+        </div>
+      )}
 
       <ActionConfirmationDialog
         open={executor.showConfirmation}

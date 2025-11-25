@@ -58,11 +58,13 @@ class EditWidgetSchema(BaseSchema):
 
 
 class WidgetPositionSchema(BaseSchema):
-    """Position data for a single widget during reorder."""
+    """Position and size data for a single widget during reorder/resize."""
 
     id: Sqid
     position_x: int
     position_y: int
+    size_w: int | None = None
+    size_h: int | None = None
 
 
 class ReorderWidgetsSchema(BaseSchema):

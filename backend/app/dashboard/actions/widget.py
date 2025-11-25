@@ -50,6 +50,11 @@ class CreateWidget(BaseTopLevelAction[CreateWidgetSchema]):
         if not dashboard:
             raise ValueError("Dashboard not found")
 
+        # Get default size for widget type
+        from app.dashboard.enums import get_widget_size_constraints
+
+        constraints = get_widget_size_constraints(data.type)
+
         widget = Widget(
             dashboard_id=data.dashboard_id,
             team_id=deps.team_id,
@@ -59,8 +64,8 @@ class CreateWidget(BaseTopLevelAction[CreateWidgetSchema]):
             query=data.query,
             position_x=data.position_x,
             position_y=data.position_y,
-            size_w=data.size_w,
-            size_h=data.size_h,
+            size_w=data.size_w or constraints["default_w"],
+            size_h=data.size_h or constraints["default_h"],
         )
         transaction.add(widget)
         await transaction.flush()
@@ -151,12 +156,18 @@ class ReorderWidgets(BaseTopLevelAction[ReorderWidgetsSchema]):
         if not dashboard:
             raise ValueError("Dashboard not found")
 
-        # Update each widget's position
+        # Update each widget's position and size
         for widget_pos in data.widgets:
             widget = await transaction.get(Widget, widget_pos.id)
             if widget and widget.dashboard_id == data.dashboard_id:
                 widget.position_x = widget_pos.position_x
                 widget.position_y = widget_pos.position_y
+
+                # Update size if provided
+                if widget_pos.size_w is not None:
+                    widget.size_w = max(1, min(6, widget_pos.size_w))  # Clamp 1-6
+                if widget_pos.size_h is not None:
+                    widget.size_h = max(1, widget_pos.size_h)  # Clamp ≥1
 
         return ActionExecutionResponse(
             message="Widgets reordered successfully",

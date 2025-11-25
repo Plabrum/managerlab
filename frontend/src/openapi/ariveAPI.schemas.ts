@@ -1909,10 +1909,16 @@ export interface UserSchema {
   updated_at: string;
 }
 
+export type WidgetPositionSchemaSizeW = number | null;
+
+export type WidgetPositionSchemaSizeH = number | null;
+
 export interface WidgetPositionSchema {
   id: unknown;
   position_x: number;
   position_y: number;
+  size_w?: WidgetPositionSchemaSizeW;
+  size_h?: WidgetPositionSchemaSizeH;
 }
 
 export type WidgetSchemaDescription = string | null;
