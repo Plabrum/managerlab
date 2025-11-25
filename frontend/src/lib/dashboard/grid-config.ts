@@ -4,11 +4,11 @@ import type { WidgetSchema } from '@/openapi/ariveAPI.schemas';
 // Grid configuration
 export const GRID_CONFIG = {
   desktop: { cols: 6, rowHeight: 100, breakpoint: 768 },
-  mobile: { cols: 3, rowHeight: 80 },
+  mobile: { cols: 2, rowHeight: 80 },
 } as const;
 
 export const GRID_BREAKPOINTS = { lg: 768, sm: 0 };
-export const GRID_COLS = { lg: 6, sm: 3 };
+export const GRID_COLS = { lg: 6, sm: 2 };
 
 /**
  * Convert widget to react-grid-layout item
@@ -42,12 +42,14 @@ export function gridItemToWidgetUpdate(item: Layout) {
 export function buildResponsiveLayouts(widgets: WidgetSchema[]): Layouts {
   const desktopLayouts = widgets.map(widgetToGridItem);
 
-  // Mobile: scale to fit 3 columns
+  // Mobile: simple scaling rule
+  // 1 col desktop → 1 col mobile
+  // 2+ cols desktop → 2 cols mobile (full width)
   const mobileLayouts = desktopLayouts.map((item) => ({
     ...item,
-    w: Math.min(Math.ceil(item.w / 2), 3), // 6 cols → 3 cols
-    minW: Math.min(item.minW || 1, 3),
-    maxW: 3,
+    w: item.w === 1 ? 1 : 2,
+    minW: Math.min(item.minW || 1, 2),
+    maxW: 2,
   }));
 
   return { lg: desktopLayouts, sm: mobileLayouts };

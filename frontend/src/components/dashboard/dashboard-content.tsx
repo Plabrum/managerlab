@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardGrid } from './dashboard-grid';
-import { DashboardGridOverlay } from './dashboard-grid-overlay';
 import { DashboardWidgetPalette } from './dashboard-widget-palette';
 import { CreateWidgetForm } from './create-widget-form';
 import { widgetRegistry } from '@/lib/widgets/registry';
@@ -163,11 +162,8 @@ export function DashboardContent({
   return (
     <div className="relative min-h-screen">
       {/* Grid-based layout replaces DashboardEditMode */}
-      <div className={cn('relative min-h-full p-6', isEditMode && 'pb-96')}>
-        {/* Grid overlay - only visible in edit mode */}
-        {isEditMode && <DashboardGridOverlay />}
-
-        <div className="relative z-10">
+      <div className={cn('relative min-h-screen', isEditMode && 'pb-96')}>
+        <div className="relative z-10 min-h-screen">
           {widgets.length === 0 ? (
             <div className="container mx-auto">
               <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-12">

@@ -4,6 +4,11 @@
   transition-property: left, top, width, height;
 }
 
+/* Ensure grid items and their children fill the full height */
+.react-grid-item > div {
+  height: 100%;
+}
+
 .react-grid-item.resizing {
   transition: none;
   z-index: 100;
@@ -24,4 +29,18 @@
 .react-grid-item > .react-resizable-handle::after {
   border-right: 2px solid hsl(var(--muted-foreground));
   border-bottom: 2px solid hsl(var(--muted-foreground));
+}
+
+/* Grid background pattern for edit mode */
+.layout.edit-mode {
+  background-image:
+    /* Horizontal dotted lines */
+    url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="100" y2="0" stroke="rgba(128,128,128,0.3)" stroke-width="1" stroke-dasharray="4,4" vector-effect="non-scaling-stroke"/></svg>'),
+    /* Vertical dotted lines */
+      url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="0" y2="100" stroke="rgba(128,128,128,0.3)" stroke-width="1" stroke-dasharray="4,4" vector-effect="non-scaling-stroke"/></svg>');
+  background-size:
+    100% 100px,
+    16.666% 100%;
+  background-repeat: repeat-y, repeat-x;
+  min-height: 100vh;
 }

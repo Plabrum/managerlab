@@ -69,9 +69,9 @@ export function DashboardGrid({
           widgetRegistry[widget.type as WidgetType].sizeConstraints;
         return {
           ...item,
-          minW: Math.min(constraints.minW, 3),
+          minW: Math.min(constraints.minW, 2),
           minH: constraints.minH,
-          maxW: 3,
+          maxW: 2,
         };
       }),
     };
@@ -118,7 +118,7 @@ export function DashboardGrid({
 
   return (
     <ResponsiveGridLayout
-      className="layout"
+      className={isEditMode ? 'layout edit-mode' : 'layout'}
       layouts={layouts}
       breakpoints={GRID_BREAKPOINTS}
       cols={GRID_COLS}
@@ -132,11 +132,11 @@ export function DashboardGrid({
       droppingItem={droppingItem}
       compactType={null}
       preventCollision={true}
-      margin={[24, 24]}
-      containerPadding={[24, 24]}
+      margin={[0, 0]}
+      containerPadding={[0, 0]}
     >
       {widgets.map((widget) => (
-        <div key={String(widget.id)}>
+        <div key={String(widget.id)} className="p-2">
           <WidgetContainer
             widget={widget}
             onRefetch={onUpdate}

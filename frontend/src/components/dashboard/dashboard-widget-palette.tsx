@@ -55,27 +55,24 @@ export function DashboardWidgetPalette({
     >
       <div className="flex h-16 shrink-0 items-center justify-between border-b px-6">
         <div className="flex items-center gap-2">
-          {isPaletteExpanded ? (
-            <>
-              <PlusCircleIcon className="text-muted-foreground size-5" />
-              <h2 className="font-semibold">Add Widgets</h2>
-              <span className="text-muted-foreground text-sm">
-                Drag a widget onto the dashboard or click to configure
-              </span>
-            </>
-          ) : (
-            <>
-              <PlusCircleIcon className="text-muted-foreground size-5" />
-              <span className="text-muted-foreground text-sm">
-                Hover to add widgets
-              </span>
-            </>
+          <PlusCircleIcon className="text-muted-foreground size-5" />
+          <h2 className="font-semibold">Add Widgets</h2>
+          {/* Desktop expanded: show subtitle */}
+          {isPaletteExpanded && (
+            <span className="text-muted-foreground hidden text-sm md:block">
+              Drag a widget onto the dashboard or click to configure
+            </span>
           )}
         </div>
         {onCloseEditMode && (
           <Button onClick={onCloseEditMode} variant="default" size="sm">
-            <CheckIcon className="mr-2 size-4" />
-            Finish editing
+            {/* Mobile: "Finish" */}
+            <span className="md:hidden">Finish</span>
+            {/* Desktop: "Finish editing" with icon */}
+            <span className="hidden md:flex md:items-center">
+              <CheckIcon className="mr-2 size-4" />
+              Finish editing
+            </span>
           </Button>
         )}
       </div>
