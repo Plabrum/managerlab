@@ -55,7 +55,7 @@ from app.users.routes import user_router
 from app.utils import providers
 from app.utils.configure import ConfigProtocol
 from app.utils.exceptions import ApplicationError, exception_to_http_response
-from app.utils.logging_middleware import create_logging_middleware
+from app.utils.logging_middleware import create_logging_middleware, drop_verbose_http_keys
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 
 
@@ -191,6 +191,7 @@ def create_app(
                         structlog.processors.StackInfoRenderer(),
                         (structlog.dev.set_exc_info if config.IS_DEV else structlog.processors.format_exc_info),
                         structlog.processors.TimeStamper(fmt="iso", utc=True),
+                        drop_verbose_http_keys,  # Filter out verbose HTTP details (cookies, body, headers)
                         (structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer()),
                     ],
                     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
