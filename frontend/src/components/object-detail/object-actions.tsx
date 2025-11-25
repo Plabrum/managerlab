@@ -63,11 +63,11 @@ export function ObjectActions(props: ObjectActionsProps) {
     return null;
   }
 
-  // Sort by priority and extract primary action
+  // Sort by priority and extract primary and secondary actions
   const sortedActions = availableActions.sort(
     (a: ActionDTO, b: ActionDTO) => (a.priority || 0) - (b.priority || 0)
   );
-  const [primaryAction, ...remainingActions] = sortedActions;
+  const [primaryAction, secondaryAction, ...remainingActions] = sortedActions;
 
   // Helper to check if an action is an edit-mode action (distinct from update actions)
   // Edit actions toggle edit mode UI, while update actions show forms to modify data
@@ -103,36 +103,64 @@ export function ObjectActions(props: ObjectActionsProps) {
   return (
     <>
       <div className="flex items-center gap-2">
-        {/* Primary action button */}
+        {/* Primary action button - hidden on mobile */}
         <Button
           variant="default"
           size="sm"
           onClick={() => handleActionClick(primaryAction)}
+          className="hidden md:inline-flex"
         >
           {primaryAction.label}
         </Button>
 
-        {/* Dropdown for remaining actions */}
-        {remainingActions.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {remainingActions.map((action: ActionDTO, index: number) => (
-                <DropdownMenuItem
-                  key={`${action.action}-${index}`}
-                  onClick={() => handleActionClick(action)}
-                  className="cursor-pointer"
-                >
-                  {action.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Secondary action button - hidden on mobile, shown on desktop if exists */}
+        {secondaryAction && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleActionClick(secondaryAction)}
+            className="hidden md:inline-flex"
+          >
+            {secondaryAction.label}
+          </Button>
         )}
+
+        {/* Dropdown menu - shows all actions on mobile, remaining actions on desktop */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {/* On mobile: show primary action */}
+            <DropdownMenuItem
+              onClick={() => handleActionClick(primaryAction)}
+              className="cursor-pointer md:hidden"
+            >
+              {primaryAction.label}
+            </DropdownMenuItem>
+            {/* On mobile: show secondary action if exists */}
+            {secondaryAction && (
+              <DropdownMenuItem
+                onClick={() => handleActionClick(secondaryAction)}
+                className="cursor-pointer md:hidden"
+              >
+                {secondaryAction.label}
+              </DropdownMenuItem>
+            )}
+            {/* Remaining actions shown on all screen sizes */}
+            {remainingActions.map((action: ActionDTO, index: number) => (
+              <DropdownMenuItem
+                key={`${action.action}-${index}`}
+                onClick={() => handleActionClick(action)}
+                className="cursor-pointer"
+              >
+                {action.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <ActionConfirmationDialog
