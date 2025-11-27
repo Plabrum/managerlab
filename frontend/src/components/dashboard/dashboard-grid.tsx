@@ -14,7 +14,7 @@ import {
   GRID_COLS,
   buildResponsiveLayouts,
 } from '@/lib/dashboard/grid-config';
-import type { WidgetSchema } from '@/openapi/ariveAPI.schemas';
+import type { WidgetSchema, DashboardSchema } from '@/openapi/ariveAPI.schemas';
 import type { WidgetType, WidgetQuery } from '@/types/dashboard';
 import 'react-grid-layout/css/styles.css';
 import '@/app/react-grid-layout.css';
@@ -22,6 +22,7 @@ import '@/app/react-grid-layout.css';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface DashboardGridProps {
+  dashboard: DashboardSchema;
   widgets: WidgetSchema[];
   isEditMode: boolean;
   onLayoutChange: (layouts: Layouts) => void;
@@ -36,6 +37,7 @@ interface DashboardGridProps {
 }
 
 export function DashboardGrid({
+  dashboard,
   widgets,
   isEditMode,
   onLayoutChange,
@@ -44,38 +46,8 @@ export function DashboardGrid({
   onWidgetDrop,
 }: DashboardGridProps) {
   const layouts = useMemo(() => {
-    const baseLayouts = buildResponsiveLayouts(widgets);
-
-    // Apply per-widget size constraints
-    return {
-      lg: baseLayouts.lg.map((item) => {
-        const widget = widgets.find((w) => String(w.id) === item.i);
-        if (!widget) return item;
-
-        const constraints =
-          widgetRegistry[widget.type as WidgetType].sizeConstraints;
-        return {
-          ...item,
-          minW: constraints.minW,
-          minH: constraints.minH,
-          maxW: 6,
-        };
-      }),
-      sm: baseLayouts.sm.map((item) => {
-        const widget = widgets.find((w) => String(w.id) === item.i);
-        if (!widget) return item;
-
-        const constraints =
-          widgetRegistry[widget.type as WidgetType].sizeConstraints;
-        return {
-          ...item,
-          minW: Math.min(constraints.minW, 2),
-          minH: constraints.minH,
-          maxW: 2,
-        };
-      }),
-    };
-  }, [widgets]);
+    return buildResponsiveLayouts(widgets, dashboard);
+  }, [widgets, dashboard]);
 
   const droppingItem = useMemo(() => {
     if (!draggingWidgetType) return undefined;

@@ -14,6 +14,7 @@ from app.dashboard.schemas import (
     CreateDashboardSchema,
     DashboardSchema,
     UpdateDashboardSchema,
+    WidgetQuerySchema,
     WidgetSchema,
 )
 from app.utils.db import get_or_404
@@ -25,17 +26,18 @@ def _widget_to_schema(widget: Widget, action_registry: ActionRegistry) -> Widget
     action_group = action_registry.get_class(ActionGroupType.WidgetActions)
     actions = action_group.get_available_actions(obj=widget)
 
+    # Convert dict query to WidgetQuerySchema
+    import msgspec
+
+    query_schema = msgspec.convert(widget.query, type=WidgetQuerySchema)
+
     return WidgetSchema(
         id=widget.id,
         dashboard_id=Sqid(widget.dashboard_id),
         type=widget.type,
         title=widget.title,
         description=widget.description,
-        query=widget.query,
-        position_x=widget.position_x,
-        position_y=widget.position_y,
-        size_w=widget.size_w,
-        size_h=widget.size_h,
+        query=query_schema,
         created_at=widget.created_at,
         updated_at=widget.updated_at,
         actions=actions,

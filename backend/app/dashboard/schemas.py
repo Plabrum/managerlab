@@ -5,11 +5,19 @@ from typing import Any
 
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
+from app.objects.enums import ObjectTypes
+from app.objects.schemas import TimeSeriesDataRequest
 from app.utils.sqids import Sqid
 
 # =============================================================================
 # Widget Schemas
 # =============================================================================
+
+
+class WidgetQuerySchema(TimeSeriesDataRequest, kw_only=True):
+    """Widget query extending TimeSeriesDataRequest with object_type."""
+
+    object_type: ObjectTypes
 
 
 class WidgetSchema(BaseSchema):
@@ -20,11 +28,7 @@ class WidgetSchema(BaseSchema):
     type: str
     title: str
     description: str | None
-    query: dict[str, Any]
-    position_x: int
-    position_y: int
-    size_w: int
-    size_h: int
+    query: WidgetQuerySchema
     created_at: datetime
     updated_at: datetime
     actions: list[ActionDTO]
@@ -36,8 +40,8 @@ class CreateWidgetSchema(BaseSchema):
     dashboard_id: Sqid
     type: str  # bar_chart, line_chart, pie_chart, stat_number
     title: str
+    query: WidgetQuerySchema
     description: str | None = None
-    query: dict[str, Any] = {}
     position_x: int = 0
     position_y: int = 0
     size_w: int = 1
@@ -50,28 +54,7 @@ class EditWidgetSchema(BaseSchema):
     type: str | None = None
     title: str | None = None
     description: str | None = None
-    query: dict[str, Any] | None = None
-    position_x: int | None = None
-    position_y: int | None = None
-    size_w: int | None = None
-    size_h: int | None = None
-
-
-class WidgetPositionSchema(BaseSchema):
-    """Position and size data for a single widget during reorder/resize."""
-
-    id: Sqid
-    position_x: int
-    position_y: int
-    size_w: int | None = None
-    size_h: int | None = None
-
-
-class ReorderWidgetsSchema(BaseSchema):
-    """Schema for reordering widgets (batch position update)."""
-
-    dashboard_id: Sqid
-    widgets: list[WidgetPositionSchema]
+    query: WidgetQuerySchema | None = None
 
 
 # =============================================================================

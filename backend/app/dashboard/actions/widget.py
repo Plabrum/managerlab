@@ -1,7 +1,9 @@
 """Widget actions for CRUD operations."""
 
+import msgspec
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.actions import (
     ActionGroupType,
@@ -18,9 +20,8 @@ from app.dashboard.models import Dashboard, Widget
 from app.dashboard.schemas import (
     CreateWidgetSchema,
     EditWidgetSchema,
-    ReorderWidgetsSchema,
 )
-from app.utils.db import update_model
+from app.utils.db import get_or_404
 
 widget_actions = action_group_factory(
     ActionGroupType.WidgetActions,
@@ -45,30 +46,40 @@ class CreateWidget(BaseTopLevelAction[CreateWidgetSchema]):
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:
-        # Verify dashboard exists and user has access
-        dashboard = await transaction.get(Dashboard, data.dashboard_id)
-        if not dashboard:
-            raise ValueError("Dashboard not found")
+        # Verify dashboard exists and load for update
+        dashboard = await get_or_404(transaction, Dashboard, data.dashboard_id)
 
-        # Get default size for widget type
-        from app.dashboard.enums import get_widget_size_constraints
+        # Convert WidgetQuerySchema to dict for JSONB storage
+        query_dict = msgspec.structs.asdict(data.query)
 
-        constraints = get_widget_size_constraints(data.type)
-
+        # Create widget WITHOUT position columns
         widget = Widget(
             dashboard_id=data.dashboard_id,
             team_id=deps.team_id,
             type=data.type,
             title=data.title,
             description=data.description,
-            query=data.query,
-            position_x=data.position_x,
-            position_y=data.position_y,
-            size_w=data.size_w or constraints["default_w"],
-            size_h=data.size_h or constraints["default_h"],
+            query=query_dict,
         )
         transaction.add(widget)
-        await transaction.flush()
+        await transaction.flush()  # Get widget.id
+
+        # Add to dashboard layout
+        if "layout" not in dashboard.config:
+            dashboard.config["layout"] = []
+
+        dashboard.config["layout"].append(
+            {
+                "i": str(widget.id),
+                "x": data.position_x,
+                "y": data.position_y,
+                "w": data.size_w,
+                "h": data.size_h,
+            }
+        )
+
+        # Mark config as modified so SQLAlchemy tracks the change
+        flag_modified(dashboard, "config")
 
         return ActionExecutionResponse(
             message="Widget created successfully",
@@ -93,13 +104,27 @@ class EditWidget(BaseObjectAction[Widget, EditWidgetSchema]):
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:
-        await update_model(
-            session=transaction,
-            model_instance=obj,
-            update_vals=data,
-            user_id=deps.user,
-            team_id=obj.team_id,
-        )
+        # Convert WidgetQuerySchema to dict if query is being updated
+        if data.query is not None:
+            import msgspec
+
+            query_dict = msgspec.structs.asdict(data.query)
+            # Directly update the widget with the dict query
+            obj.query = query_dict
+
+        # Update other fields using update_model, but exclude query
+        # Build update dict with only non-None values (excluding query)
+        update_dict = {}
+        if data.type is not None:
+            update_dict["type"] = data.type
+        if data.title is not None:
+            update_dict["title"] = data.title
+        if data.description is not None:
+            update_dict["description"] = data.description
+
+        # Apply updates to the object
+        for key, value in update_dict.items():
+            setattr(obj, key, value)
 
         return ActionExecutionResponse(
             message="Widget updated successfully",
@@ -116,6 +141,7 @@ class DeleteWidget(BaseObjectAction[Widget, EmptyActionData]):
     priority = 100
     icon = ActionIcon.trash
     confirmation_message = "Are you sure you want to delete this widget?"
+    load_options = [joinedload(Widget.dashboard)]
 
     @classmethod
     async def execute(
@@ -125,51 +151,18 @@ class DeleteWidget(BaseObjectAction[Widget, EmptyActionData]):
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:
+        widget_id = str(obj.id)
+        dashboard = obj.dashboard
+
+        # Remove from dashboard layout
+        if "layout" in dashboard.config:
+            dashboard.config["layout"] = [item for item in dashboard.config["layout"] if item["i"] != widget_id]
+            # Mark config as modified so SQLAlchemy tracks the change
+            flag_modified(dashboard, "config")
+
         await transaction.delete(obj)
 
         return ActionExecutionResponse(
             message="Widget deleted successfully",
-            invalidate_queries=["dashboards", "widgets"],
-        )
-
-
-@widget_actions
-class ReorderWidgets(BaseTopLevelAction[ReorderWidgetsSchema]):
-    """Reorder widgets (batch position update)."""
-
-    action_key = WidgetActions.reorder
-    label = "Reorder Widgets"
-    priority = 20
-    icon = ActionIcon.edit
-    # This action is typically called programmatically, not shown in UI
-    hidden = True
-
-    @classmethod
-    async def execute(
-        cls,
-        data: ReorderWidgetsSchema,
-        transaction: AsyncSession,
-        deps: ActionDeps,
-    ) -> ActionExecutionResponse:
-        # Verify dashboard exists and user has access
-        dashboard = await transaction.get(Dashboard, data.dashboard_id)
-        if not dashboard:
-            raise ValueError("Dashboard not found")
-
-        # Update each widget's position and size
-        for widget_pos in data.widgets:
-            widget = await transaction.get(Widget, widget_pos.id)
-            if widget and widget.dashboard_id == data.dashboard_id:
-                widget.position_x = widget_pos.position_x
-                widget.position_y = widget_pos.position_y
-
-                # Update size if provided
-                if widget_pos.size_w is not None:
-                    widget.size_w = max(1, min(6, widget_pos.size_w))  # Clamp 1-6
-                if widget_pos.size_h is not None:
-                    widget.size_h = max(1, widget_pos.size_h)  # Clamp ≥1
-
-        return ActionExecutionResponse(
-            message="Widgets reordered successfully",
             invalidate_queries=["dashboards", "widgets"],
         )

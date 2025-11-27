@@ -1,5 +1,7 @@
-import type { Layouts, Layout } from 'react-grid-layout';
-import type { WidgetSchema } from '@/openapi/ariveAPI.schemas';
+import type { Layouts } from 'react-grid-layout';
+import type { WidgetSchema, DashboardSchema } from '@/openapi/ariveAPI.schemas';
+import { widgetRegistry } from '@/lib/widgets/registry';
+import type { WidgetType } from '@/types/dashboard';
 
 // Grid configuration
 export const GRID_CONFIG = {
@@ -11,46 +13,92 @@ export const GRID_BREAKPOINTS = { lg: 768, sm: 0 };
 export const GRID_COLS = { lg: 6, sm: 2 };
 
 /**
- * Convert widget to react-grid-layout item
+ * Build responsive layouts for react-grid-layout from dashboard config
  */
-export function widgetToGridItem(widget: WidgetSchema): Layout {
-  return {
-    i: String(widget.id),
-    x: widget.position_x,
-    y: widget.position_y,
-    w: widget.size_w,
-    h: widget.size_h,
-  };
+export function buildResponsiveLayouts(
+  widgets: WidgetSchema[],
+  dashboard: DashboardSchema
+): Layouts {
+  const configLayout = dashboard.config?.layout as
+    | Array<{
+        i: string;
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+      }>
+    | undefined;
+
+  if (configLayout && configLayout.length > 0) {
+    // Use stored layout from config
+    const desktopLayout = configLayout.map((item) => {
+      const widget = widgets.find((w) => String(w.id) === item.i);
+
+      // Apply size constraints from registry
+      const widgetType = widget?.type as WidgetType | undefined;
+      const constraints = widgetType
+        ? widgetRegistry[widgetType]?.sizeConstraints
+        : undefined;
+
+      return {
+        ...item,
+        minW: constraints?.minW,
+        minH: constraints?.minH,
+        maxW: 6,
+      };
+    });
+
+    // Derive mobile layout
+    const mobileLayout = desktopLayout.map((item) => ({
+      i: item.i,
+      x: item.x,
+      y: item.y,
+      w: item.w === 1 ? 1 : 2,
+      h: item.h,
+      minW: Math.min(item.minW || 1, 2),
+      minH: item.minH,
+      maxW: 2,
+    }));
+
+    return { lg: desktopLayout, sm: mobileLayout };
+  }
+
+  // Fallback: build default layout (for new dashboards or missing config)
+  return buildDefaultLayout(widgets);
 }
 
 /**
- * Convert grid item back to widget position/size update
+ * Build default stacked layout for widgets
  */
-export function gridItemToWidgetUpdate(item: Layout) {
-  return {
-    id: item.i,
-    position_x: item.x,
-    position_y: item.y,
-    size_w: item.w,
-    size_h: item.h,
-  };
-}
+function buildDefaultLayout(widgets: WidgetSchema[]): Layouts {
+  let currentY = 0;
+  const desktopLayout = widgets.map((widget) => {
+    const widgetType = widget.type as WidgetType;
+    const constraints = widgetRegistry[widgetType]?.sizeConstraints;
+    const w = constraints?.defaultW || 2;
+    const h = constraints?.defaultH || 2;
 
-/**
- * Build responsive layouts for react-grid-layout
- */
-export function buildResponsiveLayouts(widgets: WidgetSchema[]): Layouts {
-  const desktopLayouts = widgets.map(widgetToGridItem);
+    const item = {
+      i: String(widget.id),
+      x: 0,
+      y: currentY,
+      w,
+      h,
+      minW: constraints?.minW,
+      minH: constraints?.minH,
+      maxW: 6,
+    };
 
-  // Mobile: simple scaling rule
-  // 1 col desktop → 1 col mobile
-  // 2+ cols desktop → 2 cols mobile (full width)
-  const mobileLayouts = desktopLayouts.map((item) => ({
+    currentY += h;
+    return item;
+  });
+
+  const mobileLayout = desktopLayout.map((item) => ({
     ...item,
     w: item.w === 1 ? 1 : 2,
     minW: Math.min(item.minW || 1, 2),
     maxW: 2,
   }));
 
-  return { lg: desktopLayouts, sm: mobileLayouts };
+  return { lg: desktopLayout, sm: mobileLayout };
 }

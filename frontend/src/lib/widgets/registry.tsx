@@ -25,10 +25,13 @@ export const widgetRegistry: WidgetRegistry = {
     defaults: {
       size: { w: 3, h: 2 },
       query: {
-        object_type: 'brands',
+        object_type: 'brands' as const,
         field: 'created_at',
-        time_range: 'last_30_days',
-        granularity: 'automatic',
+        time_range: 'last_30_days' as const,
+        granularity: 'automatic' as const,
+        aggregation: 'count_' as const,
+        filters: [],
+        fill_missing: true,
       },
     },
     sizeConstraints: {
@@ -51,10 +54,13 @@ export const widgetRegistry: WidgetRegistry = {
     defaults: {
       size: { w: 3, h: 2 },
       query: {
-        object_type: 'brands',
+        object_type: 'brands' as const,
         field: 'created_at',
-        time_range: 'last_30_days',
-        granularity: 'automatic',
+        time_range: 'last_30_days' as const,
+        granularity: 'automatic' as const,
+        aggregation: 'count_' as const,
+        filters: [],
+        fill_missing: true,
       },
     },
     sizeConstraints: {
@@ -77,9 +83,11 @@ export const widgetRegistry: WidgetRegistry = {
     defaults: {
       size: { w: 2, h: 2 },
       query: {
-        object_type: 'brands',
+        object_type: 'brands' as const,
         field: 'status',
-        time_range: 'last_30_days',
+        time_range: 'last_30_days' as const,
+        filters: [],
+        fill_missing: true,
       },
     },
     sizeConstraints: {
@@ -102,10 +110,13 @@ export const widgetRegistry: WidgetRegistry = {
     defaults: {
       size: { w: 1, h: 1 },
       query: {
-        object_type: 'brands',
+        object_type: 'brands' as const,
         field: 'created_at',
-        time_range: 'last_30_days',
-        aggregation: 'count_',
+        time_range: 'last_30_days' as const,
+        aggregation: 'count_' as const,
+        granularity: 'automatic' as const,
+        filters: [],
+        fill_missing: true,
       },
     },
     sizeConstraints: {

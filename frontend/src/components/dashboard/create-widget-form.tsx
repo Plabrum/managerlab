@@ -1,14 +1,7 @@
 'use client';
 
 import { createTypedForm } from '@/components/forms/base';
-import {
-  ObjectTypes,
-  TimeRange,
-  AggregationType,
-  type CreateWidgetSchema,
-} from '@/openapi/ariveAPI.schemas';
-import { widgetRegistry } from '@/lib/widgets/registry';
-import type { WidgetType } from '@/lib/widgets/types';
+import { type CreateWidgetSchema } from '@/openapi/ariveAPI.schemas';
 import { WidgetFormFields } from './widget-form';
 
 const { FormModal } = createTypedForm<CreateWidgetSchema>();
@@ -37,24 +30,11 @@ export function CreateWidgetForm({
 }: CreateWidgetFormProps) {
   const handleClose = () => onOpenChange(false);
 
-  // Get default query from registry based on prefilled type
-  const defaultQuery = prefilledType
-    ? widgetRegistry[prefilledType as WidgetType]?.defaults?.query
-    : undefined;
-
   const defaultValues: Partial<CreateWidgetSchema> = {
     dashboard_id: dashboardId,
     type: prefilledType,
     title: '',
     description: '',
-    query: defaultQuery
-      ? {
-          object_type: defaultQuery.object_type || ObjectTypes.brands,
-          field: defaultQuery.field || 'created_at',
-          time_range: defaultQuery.time_range || TimeRange.last_30_days,
-          aggregation: defaultQuery.aggregation || AggregationType.count_,
-        }
-      : undefined,
     position_x: 0,
     position_y: 0,
     size_w: 1,

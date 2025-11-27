@@ -139,7 +139,6 @@ export type ActionToObjectMap = {
   widget_actions__create: never; // Top-level action
   widget_actions__update: WidgetSchema;
   widget_actions__delete: WidgetSchema;
-  widget_actions__reorder: never; // Top-level action, hidden from UI
 
   // Team actions
   team_actions__team_delete: TeamSchema;
@@ -480,9 +479,6 @@ export const actionRegistry: ActionRegistry = {
   },
   widget_actions__delete: {
     render: () => null,
-  },
-  widget_actions__reorder: {
-    render: () => null, // Reorder is called programmatically from dashboard-content.tsx
   },
 
   // Team actions

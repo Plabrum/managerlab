@@ -33,10 +33,6 @@ class Widget(RLSMixin(), BaseDBModel):
         nullable=False,
         server_default=sa.text("'{}'::jsonb"),
     )
-    position_x: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
-    position_y: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
-    size_w: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
-    size_h: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
 
     # Relationships
     dashboard: Mapped["Dashboard"] = relationship(back_populates="widgets")
@@ -82,7 +78,6 @@ class Dashboard(RLSMixin(), BaseDBModel):
     widgets: Mapped[list["Widget"]] = relationship(
         back_populates="dashboard",
         cascade="all, delete-orphan",
-        order_by="Widget.position_y, Widget.position_x",
     )
 
     # Table constraints

@@ -189,12 +189,12 @@ def create_app(
                         structlog.contextvars.merge_contextvars,
                         structlog.processors.add_log_level,
                         structlog.processors.StackInfoRenderer(),
-                        (structlog.dev.set_exc_info if config.IS_DEV else structlog.processors.format_exc_info),
+                        structlog.processors.format_exc_info,  # Use standard formatter in all environments
                         structlog.processors.TimeStamper(fmt="iso", utc=True),
                         drop_verbose_http_keys,  # Filter out verbose HTTP details (cookies, body, headers)
                         (structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer()),
                     ],
-                    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+                    wrapper_class=structlog.make_filtering_bound_logger(getattr(logging, config.LOG_LEVEL)),
                     logger_factory=structlog.PrintLoggerFactory(),
                     cache_logger_on_first_use=False,
                     log_exceptions="always",  # Always log exceptions, even in production
@@ -221,7 +221,7 @@ def create_app(
                         },
                         handlers={
                             "default": {
-                                "level": "INFO",
+                                "level": config.LOG_LEVEL,
                                 "class": "logging.StreamHandler",
                                 "formatter": "structlog",
                             },
@@ -229,17 +229,17 @@ def create_app(
                         loggers={
                             "uvicorn": {
                                 "handlers": ["default"],
-                                "level": "INFO",
+                                "level": config.LOG_LEVEL,
                                 "propagate": False,
                             },
                             "uvicorn.access": {
                                 "handlers": ["default"],
-                                "level": "INFO",
+                                "level": config.LOG_LEVEL,
                                 "propagate": False,
                             },
                             "uvicorn.error": {
                                 "handlers": ["default"],
-                                "level": "INFO",
+                                "level": config.LOG_LEVEL,
                                 "propagate": False,
                             },
                         },

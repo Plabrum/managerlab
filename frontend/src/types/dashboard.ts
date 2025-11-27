@@ -1,10 +1,4 @@
-import type {
-  TimeSeriesDataRequestFiltersItem,
-  TimeRange,
-  Granularity,
-  AggregationType,
-  ObjectTypes,
-} from '@/openapi/ariveAPI.schemas';
+import type { WidgetQuerySchema } from '@/openapi/ariveAPI.schemas';
 
 export type WidgetType =
   | 'bar_chart'
@@ -22,16 +16,8 @@ export interface WidgetSize {
   h: number;
 }
 
-export interface WidgetQuery {
-  object_type: ObjectTypes;
-  field: string;
-  time_range?: TimeRange;
-  start_date?: string;
-  end_date?: string;
-  aggregation?: AggregationType;
-  filters?: TimeSeriesDataRequestFiltersItem[];
-  granularity?: Granularity;
-}
+// Use the generated type from backend
+export type WidgetQuery = WidgetQuerySchema;
 
 export interface WidgetDisplay {
   title: string;

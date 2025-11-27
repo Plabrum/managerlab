@@ -14,7 +14,7 @@ export interface WidgetMetadata {
 
 export interface WidgetDefaultConfig {
   size: WidgetSize;
-  query: Partial<WidgetQuery>;
+  query: WidgetQuery;
 }
 
 export interface WidgetSizeConstraints {

@@ -6,13 +6,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DashboardGrid } from './dashboard-grid';
 import { DashboardWidgetPalette } from './dashboard-widget-palette';
 import { CreateWidgetForm } from './create-widget-form';
-import { widgetRegistry } from '@/lib/widgets/registry';
 import { useActionsActionGroupExecuteAction } from '@/openapi/actions/actions';
 import {
   ActionGroupType,
   type CreateWidgetSchema,
   type DashboardSchema,
-  type ReorderWidgetsSchema,
 } from '@/openapi/ariveAPI.schemas';
 import type { WidgetType } from '@/types/dashboard';
 import type { Layouts } from 'react-grid-layout';
@@ -36,13 +34,20 @@ export function DashboardContent({
   const [prefilledType, setPrefilledType] = useState<WidgetType | null>(null);
   const [draggingWidgetType, setDraggingWidgetType] =
     useState<WidgetType | null>(null);
+  const [pendingLayout, setPendingLayout] = useState<Layouts | null>(null);
+  const [pendingPosition, setPendingPosition] = useState<{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  } | null>(null);
 
   // Use widgets from the new relationship
   const widgets = dashboard.widgets || [];
 
-  // Mutations for widget operations
+  // Mutations for widget and dashboard operations
   const createWidgetMutation = useActionsActionGroupExecuteAction();
-  const reorderWidgetsMutation = useActionsActionGroupExecuteAction();
+  const updateDashboardMutation = useActionsActionGroupExecuteAction();
 
   const handleWidgetClick = useCallback((widgetType: WidgetType) => {
     setPrefilledType(widgetType);
@@ -58,63 +63,42 @@ export function DashboardContent({
   }, []);
 
   const handleWidgetDropOnGrid = useCallback(
-    async (layout: { x: number; y: number; w: number; h: number }) => {
+    (layout: { x: number; y: number; w: number; h: number }) => {
       if (!draggingWidgetType) return;
 
-      const widgetEntry = widgetRegistry[draggingWidgetType];
-      const defaultQuery = widgetEntry.defaults.query;
-
-      const createData: CreateWidgetSchema = {
-        dashboard_id: dashboard.id as string,
-        type: draggingWidgetType,
-        title: widgetEntry.metadata.name,
-        description: widgetEntry.metadata.description,
-        query: defaultQuery,
-        position_x: layout.x,
-        position_y: layout.y,
-        size_w: layout.w,
-        size_h: layout.h,
-      };
-
-      try {
-        await createWidgetMutation.mutateAsync({
-          actionGroup: ActionGroupType.widget_actions,
-          data: {
-            action: 'widget_actions__create',
-            data: createData,
-          },
-        });
-        toast.success('Widget created successfully');
-        queryClient.invalidateQueries({ queryKey: ['dashboards'] });
-        onUpdate();
-      } catch (error) {
-        console.error('Failed to create widget:', error);
-        toast.error('Failed to create widget');
-      } finally {
-        setDraggingWidgetType(null);
-      }
+      // Open the create form with the widget type and position pre-filled
+      setPrefilledType(draggingWidgetType);
+      setPendingPosition(layout);
+      setCreateFormOpen(true);
+      setDraggingWidgetType(null);
     },
-    [
-      draggingWidgetType,
-      dashboard.id,
-      createWidgetMutation,
-      queryClient,
-      onUpdate,
-    ]
+    [draggingWidgetType]
   );
 
   const handleCreateWidget = async (data: CreateWidgetSchema) => {
     try {
+      // Use pending position if available (from drag/drop)
+      const widgetData = pendingPosition
+        ? {
+            ...data,
+            position_x: pendingPosition.x,
+            position_y: pendingPosition.y,
+            size_w: pendingPosition.w,
+            size_h: pendingPosition.h,
+          }
+        : data;
+
       await createWidgetMutation.mutateAsync({
         actionGroup: ActionGroupType.widget_actions,
         data: {
           action: 'widget_actions__create',
-          data,
+          data: widgetData,
         },
       });
       toast.success('Widget created successfully');
       setCreateFormOpen(false);
       setPrefilledType(null);
+      setPendingPosition(null);
       // Invalidate queries to refresh dashboard
       queryClient.invalidateQueries({ queryKey: ['dashboards'] });
       onUpdate();
@@ -125,57 +109,78 @@ export function DashboardContent({
   };
 
   const handleLayoutChange = useCallback(
-    async (layouts: Layouts) => {
+    (layouts: Layouts) => {
       if (!isEditMode) return;
-
-      const desktopLayout = layouts.lg || [];
-
-      const reorderData: ReorderWidgetsSchema = {
-        dashboard_id: dashboard.id as string,
-        widgets: desktopLayout.map((item) => ({
-          id: item.i,
-          position_x: item.x,
-          position_y: item.y,
-          size_w: item.w,
-          size_h: item.h,
-        })),
-      };
-
-      try {
-        await reorderWidgetsMutation.mutateAsync({
-          actionGroup: ActionGroupType.widget_actions,
-          data: {
-            action: 'widget_actions__reorder',
-            data: reorderData,
-          },
-        });
-        queryClient.invalidateQueries({ queryKey: ['dashboards'] });
-      } catch (error) {
-        console.error('Failed to update widget layout:', error);
-        toast.error('Failed to save widget layout');
-        onUpdate();
-      }
+      // Store the layout changes in state, don't save yet
+      setPendingLayout(layouts);
     },
-    [isEditMode, dashboard.id, reorderWidgetsMutation, queryClient, onUpdate]
+    [isEditMode]
   );
+
+  const handleSaveLayout = useCallback(async () => {
+    if (!pendingLayout) return;
+
+    const desktopLayout = pendingLayout.lg || [];
+
+    // Don't save if there are no widgets
+    if (desktopLayout.length === 0) return;
+
+    // Build layout array (no size constraints, just positions)
+    const layoutData = desktopLayout.map((item) => ({
+      i: item.i,
+      x: item.x,
+      y: item.y,
+      w: item.w,
+      h: item.h,
+    }));
+
+    try {
+      await updateDashboardMutation.mutateAsync({
+        actionGroup: ActionGroupType.dashboard_actions,
+        data: {
+          action: 'dashboard_actions__update',
+          data: {
+            config: {
+              ...dashboard.config,
+              layout: layoutData,
+            },
+          },
+        },
+      });
+      queryClient.invalidateQueries({ queryKey: ['dashboards'] });
+      setPendingLayout(null);
+    } catch (error) {
+      console.error('Failed to update widget layout:', error);
+      toast.error('Failed to save widget layout');
+      onUpdate();
+    }
+  }, [
+    pendingLayout,
+    dashboard.config,
+    updateDashboardMutation,
+    queryClient,
+    onUpdate,
+  ]);
+
+  const handleFinishEditing = useCallback(async () => {
+    // Save layout if there are pending changes
+    if (pendingLayout) {
+      await handleSaveLayout();
+    }
+    // Close edit mode
+    if (onCloseEditMode) {
+      onCloseEditMode();
+    }
+  }, [pendingLayout, handleSaveLayout, onCloseEditMode]);
 
   return (
     <div className="relative min-h-screen">
       {/* Grid-based layout replaces DashboardEditMode */}
       <div className={cn('relative min-h-screen', isEditMode && 'pb-96')}>
         <div className="relative z-10 min-h-screen">
-          {widgets.length === 0 ? (
-            <div className="container mx-auto">
-              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-12">
-                <p className="text-muted-foreground">
-                  {isEditMode
-                    ? 'Drag a widget from the sidebar or click to add it to your dashboard'
-                    : 'No widgets configured. Click customize to add widgets.'}
-                </p>
-              </div>
-            </div>
-          ) : (
+          {
             <DashboardGrid
+              dashboard={dashboard}
               widgets={widgets}
               isEditMode={isEditMode}
               onLayoutChange={handleLayoutChange}
@@ -183,7 +188,7 @@ export function DashboardContent({
               draggingWidgetType={draggingWidgetType}
               onWidgetDrop={handleWidgetDropOnGrid}
             />
-          )}
+          }
         </div>
       </div>
 
@@ -193,7 +198,7 @@ export function DashboardContent({
           onWidgetClick={handleWidgetClick}
           onWidgetDragStart={handleWidgetDragStart}
           onWidgetDragEnd={handleWidgetDragEnd}
-          onCloseEditMode={onCloseEditMode}
+          onCloseEditMode={handleFinishEditing}
         />
       )}
 
@@ -203,6 +208,7 @@ export function DashboardContent({
           if (!open) {
             setCreateFormOpen(false);
             setPrefilledType(null);
+            setPendingPosition(null);
           }
         }}
         dashboardId={dashboard.id as string}

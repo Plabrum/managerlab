@@ -640,14 +640,12 @@ export interface CreateWidgetAction {
 
 export type CreateWidgetSchemaDescription = string | null;
 
-export type CreateWidgetSchemaQuery = {[key: string]: unknown};
-
 export interface CreateWidgetSchema {
   dashboard_id: unknown;
   type: string;
   title: string;
+  query: WidgetQuerySchema;
   description?: CreateWidgetSchemaDescription;
-  query?: CreateWidgetSchemaQuery;
   position_x?: number;
   position_y?: number;
   size_w?: number;
@@ -1007,27 +1005,13 @@ export type EditWidgetSchemaTitle = string | null;
 
 export type EditWidgetSchemaDescription = string | null;
 
-export type EditWidgetSchemaQueryOneOf = {[key: string]: unknown};
-
-export type EditWidgetSchemaQuery = EditWidgetSchemaQueryOneOf | null;
-
-export type EditWidgetSchemaPositionX = number | null;
-
-export type EditWidgetSchemaPositionY = number | null;
-
-export type EditWidgetSchemaSizeW = number | null;
-
-export type EditWidgetSchemaSizeH = number | null;
+export type EditWidgetSchemaQuery = WidgetQuerySchema | null;
 
 export interface EditWidgetSchema {
   type?: EditWidgetSchemaType;
   title?: EditWidgetSchemaTitle;
   description?: EditWidgetSchemaDescription;
   query?: EditWidgetSchemaQuery;
-  position_x?: EditWidgetSchemaPositionX;
-  position_y?: EditWidgetSchemaPositionY;
-  size_w?: EditWidgetSchemaSizeW;
-  size_h?: EditWidgetSchemaSizeH;
 }
 
 export interface EmailFieldValue {
@@ -1517,16 +1501,6 @@ export interface RemoveMediaFromDeliverableAction {
   action: 'deliverable_media_actions__deliverable_media_remove_media';
 }
 
-export interface ReorderWidgetsAction {
-  data: ReorderWidgetsSchema;
-  action: 'widget_actions__reorder';
-}
-
-export interface ReorderWidgetsSchema {
-  dashboard_id: unknown;
-  widgets: WidgetPositionSchema[];
-}
-
 export interface ReplaceContractAction {
   data: ReplaceContractSchema;
   action: 'campaign_actions__campaign_replace_contract';
@@ -1909,21 +1883,29 @@ export interface UserSchema {
   updated_at: string;
 }
 
-export type WidgetPositionSchemaSizeW = number | null;
+export type WidgetQuerySchemaTimeRange = TimeRange | null;
 
-export type WidgetPositionSchemaSizeH = number | null;
+export type WidgetQuerySchemaStartDate = string | null;
 
-export interface WidgetPositionSchema {
-  id: unknown;
-  position_x: number;
-  position_y: number;
-  size_w?: WidgetPositionSchemaSizeW;
-  size_h?: WidgetPositionSchemaSizeH;
+export type WidgetQuerySchemaEndDate = string | null;
+
+export type WidgetQuerySchemaAggregation = AggregationType | null;
+
+export type WidgetQuerySchemaFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition | ObjectFilterDefinition;
+
+export interface WidgetQuerySchema {
+  field: string;
+  time_range?: WidgetQuerySchemaTimeRange;
+  start_date?: WidgetQuerySchemaStartDate;
+  end_date?: WidgetQuerySchemaEndDate;
+  granularity?: Granularity;
+  aggregation?: WidgetQuerySchemaAggregation;
+  filters?: WidgetQuerySchemaFiltersItem[];
+  fill_missing?: boolean;
+  object_type: ObjectTypes;
 }
 
 export type WidgetSchemaDescription = string | null;
-
-export type WidgetSchemaQuery = {[key: string]: unknown};
 
 export interface WidgetSchema {
   id: unknown;
@@ -1931,11 +1913,7 @@ export interface WidgetSchema {
   type: string;
   title: string;
   description?: WidgetSchemaDescription;
-  query: WidgetSchemaQuery;
-  position_x: number;
-  position_y: number;
-  size_w: number;
-  size_h: number;
+  query: WidgetQuerySchema;
   created_at: string;
   updated_at: string;
   actions: ActionDTO[];
@@ -2184,7 +2162,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | ReorderWidgetsAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2212,7 +2190,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | ReorderWidgetsAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
