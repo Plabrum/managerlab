@@ -109,6 +109,8 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
             instagram_handle=data.instagram_handle,
         )
         transaction.add(roster)
+        await transaction.flush()
         return ActionExecutionResponse(
             message="Created roster member",
+            created_id=roster.id,
         )

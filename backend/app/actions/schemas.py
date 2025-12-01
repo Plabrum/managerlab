@@ -58,6 +58,7 @@ class ActionExecutionResponse(BaseSchema):
     message: str = ""
     invalidate_queries: list[str] = []  # Query keys to invalidate
     action_result: ActionResult | None = None  # Frontend action to perform
+    created_id: Sqid | None = None  # ID of newly created object (for create actions)
 
 
 class ActionListResponse(BaseSchema):

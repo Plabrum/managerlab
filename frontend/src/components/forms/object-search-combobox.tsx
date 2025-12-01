@@ -18,10 +18,19 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useListObjects } from '@/openapi/objects/objects';
-import { useActionsActionGroupExecuteAction } from '@/openapi/actions/actions';
-import type { ObjectTypes, ActionGroupType } from '@/openapi/ariveAPI.schemas';
+import {
+  useActionsActionGroupExecuteAction,
+  useActionsActionGroupObjectIdExecuteObjectAction,
+} from '@/openapi/actions/actions';
+import type {
+  ObjectTypes,
+  ActionGroupType,
+  ActionDTO,
+} from '@/openapi/ariveAPI.schemas';
 import { Label } from '@/components/ui/label';
+import { executeActionApi } from '@/hooks/action-executor/execute-action-api';
 import { useQueryClient } from '@tanstack/react-query';
+import { handleQueryInvalidation } from '@/hooks/action-executor/handle-query-invalidation';
 
 interface ObjectSearchComboboxProps {
   /** The type of object to search for (brands, campaigns, etc.) */
@@ -91,10 +100,10 @@ const OBJECT_CREATE_ACTIONS: Record<
  *
  * Features:
  * - Client-side search/filtering
- * - Automatic inline creation when no matches found
+ * - Inline creation when no matches found
  * - Type-safe with auto-generated schemas
  * - Reusable across all object types
- * - Handles cache invalidation automatically
+ * - Automatic query invalidation via backend response
  *
  * @example
  * ```tsx
@@ -125,7 +134,9 @@ export function ObjectSearchCombobox({
   const [isCreating, setIsCreating] = React.useState(false);
 
   const queryClient = useQueryClient();
-  const createMutation = useActionsActionGroupExecuteAction();
+  const executeGroupActionMutation = useActionsActionGroupExecuteAction();
+  const executeObjectActionMutation =
+    useActionsActionGroupObjectIdExecuteObjectAction();
 
   // Fetch objects - uses client-side filtering for now
   const { data, isLoading } = useListObjects(objectType, {
@@ -152,12 +163,13 @@ export function ObjectSearchCombobox({
   // Get the create action config for this object type
   const createActionConfig = OBJECT_CREATE_ACTIONS[objectType];
 
-  // Check if we should show the "create new" option
-  const showCreateNew =
-    allowCreate &&
-    createActionConfig &&
-    searchValue.trim() &&
-    !filteredObjects.some(
+  // Show create button if allowed and action is configured
+  const showCreateButton = allowCreate && createActionConfig;
+
+  // Disable create if no search value or if exact match exists
+  const isCreateDisabled =
+    !searchValue.trim() ||
+    filteredObjects.some(
       (obj) => obj.title.toLowerCase() === searchValue.toLowerCase()
     );
 
@@ -169,46 +181,38 @@ export function ObjectSearchCombobox({
 
     setIsCreating(true);
     try {
-      // Determine the field name based on object type
-      // Most use 'name', campaigns use 'name', etc.
-      const fieldName =
-        objectType === 'brands'
-          ? 'name'
-          : objectType === 'campaigns'
-            ? 'name'
-            : objectType === 'roster'
-              ? 'name'
-              : 'title';
+      // Create a minimal ActionDTO for the create action
+      const action: ActionDTO = {
+        action: createActionConfig.action,
+        label: 'Create',
+        action_group_type: createActionConfig.actionGroup,
+        is_bulk_allowed: false,
+        available: true,
+        priority: 0,
+      };
 
-      const result = await createMutation.mutateAsync({
+      const result = await executeActionApi({
+        action,
         actionGroup: createActionConfig.actionGroup,
-        data: {
+        actionBody: {
           action: createActionConfig.action,
-          data: { [fieldName]: searchValue.trim() },
-        } as unknown as Parameters<
-          typeof createMutation.mutateAsync
-        >[0]['data'],
+          data: { name: searchValue.trim() },
+        },
+        executeGroupActionMutation,
+        executeObjectActionMutation,
       });
 
-      // Backend returns ActionExecutionResponse with a redirect to the new object
-      // Extract the ID from the redirect path
-      let newId: string | null = null;
-      if (
-        result.action_result &&
-        result.action_result.type === 'redirect' &&
-        'path' in result.action_result
-      ) {
-        // Extract ID from path like "/brands/abc123" -> "abc123"
-        const pathParts = result.action_result.path.split('/');
-        newId = pathParts[pathParts.length - 1];
-      }
-
+      // Backend returns the new object's ID in created_id
+      const newId = result.created_id as string | null | undefined;
       if (!newId) {
-        throw new Error('Failed to extract ID from create action response');
+        throw new Error('Failed to get ID from create action response');
       }
 
-      // Invalidate cache so the list refreshes
-      await queryClient.invalidateQueries({
+      // Handle query invalidation from backend response
+      handleQueryInvalidation(queryClient, result);
+
+      // Wait for the query to refetch so the new object appears in the list
+      await queryClient.refetchQueries({
         queryKey: [`/o/${objectType}`],
       });
 
@@ -300,17 +304,19 @@ export function ObjectSearchCombobox({
                   ))}
                 </CommandGroup>
               )}
-              {showCreateNew && (
+              {showCreateButton && (
                 <CommandGroup>
                   <CommandItem
                     onSelect={handleCreateNew}
-                    disabled={isCreating}
+                    disabled={isCreating || isCreateDisabled}
                     className="text-primary"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     {isCreating
                       ? 'Creating...'
-                      : `${defaultCreateLabel}: "${searchValue}"`}
+                      : searchValue.trim()
+                        ? `${defaultCreateLabel}: "${searchValue}"`
+                        : defaultCreateLabel}
                   </CommandItem>
                 </CommandGroup>
               )}

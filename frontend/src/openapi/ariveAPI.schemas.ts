@@ -28,10 +28,13 @@ export interface ActionDTO {
 
 export type ActionExecutionResponseActionResult = RedirectActionResult | DownloadFileActionResult | null;
 
+export type ActionExecutionResponseCreatedId = unknown | null;
+
 export interface ActionExecutionResponse {
   message?: string;
   invalidate_queries?: string[];
   action_result?: ActionExecutionResponseActionResult;
+  created_id?: ActionExecutionResponseCreatedId;
 }
 
 /**
