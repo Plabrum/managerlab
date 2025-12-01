@@ -1,66 +1,54 @@
-"""Schemas for AI agent extraction outputs."""
+"""Schemas for AI agent extraction outputs.
 
-from datetime import date
+These schemas inherit from base field schemas defined in domain modules to ensure
+they stay in sync with the actual model fields. When a field is added to a model,
+it should be added to the corresponding base schema in the domain module
+(campaigns/schemas.py or deliverables/schemas.py), which will automatically
+propagate to both create and extraction schemas.
+"""
 
 from app.base.schemas import BaseSchema
-from app.campaigns.enums import CompensationStructure, CounterpartyType, OwnershipMode
+
+# Import base field schemas from domain modules
+# This ensures extraction schemas stay in sync with create schemas
+from app.campaigns.schemas import CampaignFieldsBase, PaymentBlockFieldsBase
+from app.deliverables.schemas import DeliverableFieldsBase
+
+# =============================================================================
+# EXTRACTION SCHEMAS - Used by AI agents, inherit from base + add metadata
+# =============================================================================
 
 
-class PaymentBlockExtractionSchema(BaseSchema):
-    """Schema for extracted payment block data."""
+class PaymentBlockExtractionSchema(PaymentBlockFieldsBase):
+    """Schema for extracted payment block data.
 
-    label: str | None = None
-    trigger: str | None = None
-    amount_usd: float | None = None
-    percent: float | None = None
-    net_days: int | None = None
-
-
-class CampaignExtractionSchema(BaseSchema):
-    """Schema for structured campaign data extracted by OpenAI agent.
-
-    This schema matches CampaignCreateSchema but includes additional metadata
-    from the extraction process (confidence score, notes).
+    Inherits from PaymentBlockFieldsBase to stay in sync with payment block fields.
     """
 
-    # Required fields
-    name: str
-    description: str | None = None
+    pass  # No additional fields needed for payment blocks
 
-    # Counterparty
-    counterparty_type: CounterpartyType | None = None
-    counterparty_name: str | None = None
-    counterparty_email: str | None = None
 
-    # Compensation
-    compensation_structure: CompensationStructure | None = None
-    compensation_total_usd: float | None = None
-    payment_terms_days: int | None = None
+class DeliverableExtractionSchema(DeliverableFieldsBase):
+    """Schema for extracted deliverable data.
 
-    # Payment schedule
+    Inherits from DeliverableFieldsBase to stay in sync with deliverable fields.
+    Adds extraction-specific metadata.
+    """
+
+    # Extraction metadata
+    extraction_notes: str | None = None
+
+
+class CampaignExtractionSchema(CampaignFieldsBase):
+    """Schema for structured campaign data extracted by OpenAI agent.
+
+    Inherits from CampaignFieldsBase to stay in sync with campaign fields.
+    Adds extraction-specific metadata and nested extraction schemas.
+    """
+
+    # Nested extracted data
     payment_blocks: list[PaymentBlockExtractionSchema] = []
-
-    # Flight dates
-    flight_start_date: date | None = None
-    flight_end_date: date | None = None
-
-    # FTC & Usage
-    ftc_string: str | None = None
-    usage_duration: str | None = None
-    usage_territory: str | None = None
-    usage_paid_media_option: bool | None = None
-
-    # Exclusivity
-    exclusivity_category: str | None = None
-    exclusivity_days_before: int | None = None
-    exclusivity_days_after: int | None = None
-
-    # Ownership
-    ownership_mode: OwnershipMode | None = None
-
-    # Approval
-    approval_rounds: int | None = None
-    approval_sla_hours: int | None = None
+    deliverables: list[DeliverableExtractionSchema] = []
 
     # Extraction metadata
     confidence_score: float | None = None
