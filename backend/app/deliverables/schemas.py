@@ -15,8 +15,45 @@ from app.roster.models import Roster
 from app.threads.schemas import ThreadUnreadInfo
 from app.utils.sqids import Sqid
 
+# =============================================================================
+# BASE FIELD SCHEMAS - Shared between Create, Update, and Extraction schemas
+# =============================================================================
 
-# Response Schemas
+
+class DeliverableFieldsBase(BaseSchema):
+    """Base schema with core deliverable fields.
+
+    Inherited by:
+    - DeliverableCreateSchema (below)
+    - DeliverableExtractionSchema (in agents/schemas.py)
+
+    Note: DeliverableUpdateSchema intentionally duplicates these fields with UnsetType
+    due to msgspec limitations. This is an acceptable trade-off for clarity.
+    """
+
+    title: str
+    platforms: SocialMediaPlatforms
+    posting_date: datetime
+    deliverable_type: DeliverableType | None = None
+    count: int = 1
+    posting_start_date: date | None = None
+    posting_end_date: date | None = None
+
+    # Caption requirements
+    handles: list[str] | None = None
+    hashtags: list[str] | None = None
+    disclosures: list[str] | None = None
+
+    # Approval
+    approval_required: bool = True
+    approval_rounds: int | None = None
+
+    content: str | None = None
+
+
+# =============================================================================
+# RESPONSE SCHEMAS
+# =============================================================================
 class DeliverableMediaAssociationSchema(BaseSchema):
     """Association between deliverable and media with approval status."""
 
@@ -193,27 +230,16 @@ class DeliverableUpdateSchema(BaseSchema):
     campaign_id: int | None | UnsetType = UNSET
 
 
-class DeliverableCreateSchema(BaseSchema):
-    """Schema for creating a Deliverable."""
+class DeliverableCreateSchema(DeliverableFieldsBase, kw_only=True):
+    """Schema for creating a Deliverable.
 
-    title: str
-    platforms: SocialMediaPlatforms
-    posting_date: datetime
-    deliverable_type: DeliverableType | None = None
-    count: int = 1
-    posting_start_date: date | None = None
-    posting_end_date: date | None = None
+    Inherits from DeliverableFieldsBase to stay in sync with deliverable fields.
+    Adds create-specific fields like notes and campaign_id.
 
-    # Caption requirements
-    handles: list[str] | None = None
-    hashtags: list[str] | None = None
-    disclosures: list[str] | None = None
+    Note: kw_only=True is set for consistency and to allow flexible field ordering.
+    """
 
-    # Approval
-    approval_required: bool = True
-    approval_rounds: int | None = None
-
-    content: str | None = None
+    # Create-specific fields
     notes: dict[str, Any] | None = None
     campaign_id: int | None = None
 

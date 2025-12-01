@@ -9,6 +9,7 @@ from app.agents.schemas import CampaignExtractionSchema
 from app.brands.utils import get_or_create_brand
 from app.campaigns.models import Campaign, PaymentBlock
 from app.client.openai_client import OpenAIClient
+from app.deliverables.models import Deliverable
 from app.emails.models import InboundEmail
 
 logger = logging.getLogger(__name__)
@@ -122,8 +123,33 @@ async def create_campaign_from_extraction(
         )
         session.add(payment_block)
 
+    # Create deliverables
+    for deliv_data in extraction.deliverables:
+        deliverable = Deliverable(
+            campaign_id=campaign.id,
+            team_id=team_id,
+            title=deliv_data.title,
+            content=deliv_data.content,
+            platforms=deliv_data.platforms,
+            deliverable_type=deliv_data.deliverable_type,
+            count=deliv_data.count,
+            posting_date=deliv_data.posting_date,
+            posting_start_date=deliv_data.posting_start_date,
+            posting_end_date=deliv_data.posting_end_date,
+            handles=deliv_data.handles or [],
+            hashtags=deliv_data.hashtags or [],
+            disclosures=deliv_data.disclosures or [],
+            approval_required=deliv_data.approval_required,
+            approval_rounds=deliv_data.approval_rounds,
+            notes={},  # Empty dict for now, can add extraction_notes if needed
+        )
+        session.add(deliverable)
+
     await session.flush()
-    logger.info(f"Created campaign ID {campaign.id}: {campaign.name}")
+    logger.info(
+        f"Created campaign ID {campaign.id}: {campaign.name} "
+        f"with {len(extraction.payment_blocks)} payment blocks and {len(extraction.deliverables)} deliverables"
+    )
 
     return campaign
 

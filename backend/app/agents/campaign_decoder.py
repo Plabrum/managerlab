@@ -82,62 +82,86 @@ SECTION 1 — GENERAL EXTRACTION RULES
 SECTION 2 — DELIVERABLE EXTRACTION RULES
 ========================================
 
-8. Extract a structured list of deliverables, including:
-   - platform (instagram, tiktok, youtube, etc.)
-   - deliverable_type (instagram_feed_post, instagram_story, tiktok_video, etc.)
-   - count
-   - posting_window (start/end/date normalization rules above apply)
-   - caption_requirements
-   - approval_required
-   - approval_rounds (default = 1 if unspecified)
-   - any additional notes
+8. Extract a structured list of deliverables, each containing:
+   - title (string): Short descriptive title (e.g., "Instagram Feed Post", "TikTok Video #1")
+   - platforms (enum): ONE of: instagram, tiktok, youtube, facebook, twitter, linkedin, pinterest, snapchat, other
+   - deliverable_type (enum or null): Specific type like instagram_feed_post, instagram_story, tiktok_video, youtube_video, etc.
+   - count (integer): Number of this deliverable type (default: 1)
+   - posting_date (datetime): ISO 8601 datetime for when content should be posted
+   - posting_start_date (date or null): Start of posting window if range is specified
+   - posting_end_date (date or null): End of posting window if range is specified
+   - handles (array of strings or null): Social media handles to tag (e.g., ["@brand", "@partner"])
+   - hashtags (array of strings or null): Hashtags to include (e.g., ["#ad", "#sponsored"])
+   - disclosures (array of strings or null): FTC disclosure requirements (e.g., ["#ad", "#BrandPartner"])
+   - approval_required (boolean): Whether brand approval is required (default: true)
+   - approval_rounds (integer or null): Number of revision rounds allowed (default: 1 if approval required)
+   - content (string or null): Any specific content/script requirements or notes
+   - extraction_notes (string or null): Any ambiguities or clarifications about this deliverable
 
-9. Normalization rule:
-   - If the deliverable mentions syndication, reposting, or amplification on Instagram → deliverable_type = "instagram_feed_post".
+9. Deliverable type normalization rules:
+   - If the deliverable mentions syndication, reposting, or amplification on Instagram → deliverable_type = "instagram_feed_post"
+   - "Feed Post" → instagram_feed_post
+   - "Story" or "Stories" → instagram_story
+   - "Reel" or "Reels" → instagram_reel
+   - For TikTok content → tiktok_video
+   - For YouTube content → youtube_video
+   - If type is unclear → set deliverable_type = null
 
-10. If the contract is usage-only for pre-existing assets → return deliverables = [].
+10. Posting date handling:
+    - If specific date/time → set posting_date to that datetime
+    - If date range → set posting_start_date and posting_end_date, use midpoint for posting_date
+    - If only "by [date]" → set posting_date to that date at noon UTC
+    - Format all dates as ISO 8601 (e.g., "2024-03-15T12:00:00Z")
+
+11. If the contract is usage-only for pre-existing assets → return deliverables = [].
 
 ========================================
 SECTION 3 — FTC DISCLOSURE RULES
 ========================================
 
-11. Extract FTC disclosures as an array of short tokens (hashtags, handles).
-    - Preserve order.
-    - Do NOT include long policy text or verbose instructions.
-    - Cap total string length at 500 characters.
+12. Extract FTC disclosures and place them in the appropriate location:
+    - If disclosures are specified per-deliverable → add to that deliverable's disclosures array
+    - If disclosures are campaign-wide → add to campaign's ftc_string field
+    - Extract as short tokens (hashtags, handles), preserving order
+    - Do NOT include long policy text or verbose instructions
+    - Cap total string length at 500 characters
     - Examples:
-      “#ad #DownyPartner @downy” → ["#ad", "#DownyPartner", "@downy"]
+      "#ad #DownyPartner @downy" → ["#ad", "#DownyPartner", "@downy"]
+      "#ad; #Guinness_Partner" → ["#ad", "#Guinness_Partner"]
 
-12. If disclosures appear as a single block with punctuation, split appropriately:
-    "#ad; #Guinness_Partner" → ["#ad", "#Guinness_Partner"]
+13. Distinguish between handles, hashtags, and disclosures:
+    - handles: Social media accounts to tag (e.g., ["@brand", "@agency"])
+    - hashtags: Campaign-specific hashtags (e.g., ["#summervibes", "#newproduct"])
+    - disclosures: FTC-required disclosure tags (e.g., ["#ad", "#sponsored", "#BrandPartner"])
 
 ========================================
 SECTION 4 — USAGE, EXCLUSIVITY & APPROVALS
 ========================================
 
-13. Usage:
-    - Extract duration (days or text like “Perpetual”),
-      territory (e.g., “Worldwide”, “USA-only”),
+14. Usage:
+    - Extract duration (days or text like "Perpetual"),
+      territory (e.g., "Worldwide", "USA-only"),
       and paid media permissions.
 
-14. Exclusivity:
-    - Extract category (e.g., “Beauty”, “Apps”, “Alcohol”).
+15. Exclusivity:
+    - Extract category (e.g., "Beauty", "Apps", "Alcohol").
     - Extract before/after periods.
-    - If only “after” is specified → exclusivity_days_before = 0.
+    - If only "after" is specified → exclusivity_days_before = 0.
     - If none are present → both null.
 
-15. Approvals:
-    - approval_required = true/false
-    - approval_rounds (default = 1 if approval required but not defined)
-    - approval_sla_hours (convert turnaround times into integer hours)
+16. Approvals:
+    - Campaign-level: approval_required, approval_rounds, approval_sla_hours
+    - Deliverable-level: approval_required and approval_rounds per deliverable
+    - If campaign has global approval settings, apply to all deliverables unless overridden
+    - Convert turnaround times into integer hours (e.g., "48 hours" → 48)
 
 ========================================
 SECTION 5 — DESCRIPTION / PURPOSE
 ========================================
 
-16. If the contract includes a purpose or campaign description, extract it verbatim.
-17. If not explicit but implied, provide a concise inferred phrase such as:
-    “Influencer campaign promoting [brand/product] via social media posts.”
+17. If the contract includes a purpose or campaign description, extract it verbatim.
+18. If not explicit but implied, provide a concise inferred phrase such as:
+    "Influencer campaign promoting [brand/product] via social media posts."
     - Do NOT invent new products or claims.
     - Base inference solely on deliverables and usage context.
 
@@ -145,15 +169,21 @@ SECTION 5 — DESCRIPTION / PURPOSE
 SECTION 6 — FINAL OUTPUT RULES
 ========================================
 
-18. You must return:
+19. You must return:
     - ONLY one JSON object
-    - STRICTLY matching the provided JSON Schema
+    - STRICTLY matching the provided JSON Schema (CampaignExtractionSchema)
+    - Include nested arrays for payment_blocks and deliverables
     - With null or [] for any missing fields
     - No commentary, no markdown, no explanations
 
-19. If any date, number, or field is ambiguous → return null rather than guessing.
+20. If any date, number, or field is ambiguous → return null rather than guessing.
 
-20. Ensure all enums match EXACT strings defined in the schema.
+21. Ensure all enums match EXACT strings defined in the schema.
+
+22. Deliverables array requirements:
+    - Extract ALL deliverables mentioned in the contract
+    - Each deliverable should be a complete object with all relevant fields
+    - If multiple deliverables of the same type exist, create separate entries or use count field appropriately
 
 END OF INSTRUCTIONS
 """
