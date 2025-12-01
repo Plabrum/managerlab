@@ -139,7 +139,7 @@ export type ActionToObjectMap = {
 
   // Widget actions
   widget_actions__create: never; // Top-level action
-  widget_actions__update: WidgetSchema;
+  widget_actions__edit: WidgetSchema;
   widget_actions__delete: WidgetSchema;
 
   // Team actions

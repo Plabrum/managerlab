@@ -19,7 +19,29 @@ import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
 } from '@/components/data-table/utils';
-import type { ObjectListSchema, ObjectTypes } from '@/openapi/ariveAPI.schemas';
+import type {
+  ObjectListSchema,
+  ObjectTypes,
+  ActionDTO,
+  ActionsActionGroupObjectIdExecuteObjectActionBody,
+} from '@/openapi/ariveAPI.schemas';
+import { useActionsActionGroupObjectIdExecuteObjectAction } from '@/openapi/actions/actions';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { getErrorMessage } from '@/lib/error-handler';
+import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import type { DomainObject } from '@/types/domain-objects';
 
 interface ObjectListProps {
   objectType: ObjectTypes;
@@ -65,6 +87,23 @@ export function ObjectList({
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
   const [isPending, startTransition] = useTransition();
 
+  // Action execution state
+  const [pendingAction, setPendingAction] = useState<{
+    action: ActionDTO;
+    rows: ObjectListSchema[];
+  } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
+
+  // Query client and router for action handling
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  // Mutation for executing object actions
+  const executeObjectActionMutation =
+    useActionsActionGroupObjectIdExecuteObjectAction();
+
   // Fetch schema metadata (cacheable)
   const { data: schema } =
     useOObjectTypeSchemaGetObjectSchemaSuspense(objectType);
@@ -102,21 +141,235 @@ export function ObjectList({
   // Fetch data
   const { data } = useListObjectsSuspense(objectType, request);
 
-  // Default row action handler (no-op for now)
-  const handleRowActionClick = (
-    _actionName: string,
-    _row: ObjectListSchema
+  // Convert ObjectListSchema fields array to a typed object
+  // This converts the list view data to a shape compatible with domain objects
+  const objectListToPartialDomainObject = (
+    obj: ObjectListSchema
+  ): Partial<DomainObject> => {
+    if (!obj.fields || obj.fields.length === 0) {
+      return { id: obj.id };
+    }
+
+    // Convert fields array to object with field keys
+    // Each field has a nested value structure (e.g., { value: "foo", type: "string" })
+    // We extract the actual value from this structure
+    const fieldData: Record<string, unknown> = {};
+    for (const field of obj.fields) {
+      if (
+        field.value &&
+        typeof field.value === 'object' &&
+        'value' in field.value
+      ) {
+        // Extract the actual value from the field value object
+        fieldData[field.key] = field.value.value;
+      }
+    }
+
+    return {
+      id: obj.id,
+      ...fieldData,
+    } as Partial<DomainObject>;
+  };
+
+  // Validate and build action body with proper typing
+  const buildActionBody = (
+    action: ActionDTO,
+    actionData?: unknown
+  ): ActionsActionGroupObjectIdExecuteObjectActionBody | null => {
+    // The action string comes from the backend and should match the discriminated union
+    const actionString = action.action;
+
+    // Check if action is in the registry (basic validation)
+    const renderer = getActionRenderer(actionString as ActionType);
+    if (renderer === undefined && actionData) {
+      console.error('Action not found in registry:', actionString);
+      return null;
+    }
+
+    // Build the action body
+    // We trust the backend's action string since it comes from the API's type system
+    // The type assertion is necessary because we're building this dynamically
+    return {
+      action: actionString,
+      data: actionData || {},
+    } as ActionsActionGroupObjectIdExecuteObjectActionBody;
+  };
+
+  // Execute action with API call
+  const executeAction = async (
+    action: ActionDTO,
+    rows: ObjectListSchema[],
+    actionData?: unknown
   ) => {
-    // TODO: Implement row action handling with dynamic objectId
-    if (onRowClick) {
-      onRowClick(_row);
+    setIsExecuting(true);
+
+    try {
+      // Determine if this is a bulk action or single row action
+      const isBulk = rows.length > 1;
+      const row = rows[0];
+
+      // Build and validate action body
+      const actionBody = buildActionBody(action, actionData);
+      if (!actionBody) {
+        throw new Error(`Invalid action: ${action.action}`);
+      }
+
+      let response;
+
+      if (isBulk) {
+        // For bulk actions, we need to execute the action for each row
+        // TODO: Backend should support bulk operations natively
+        const promises = rows.map((r) =>
+          executeObjectActionMutation.mutateAsync({
+            actionGroup: action.action_group_type,
+            objectId: r.id,
+            data: actionBody,
+          })
+        );
+        const results = await Promise.all(promises);
+        response = results[0]; // Use first response for success message
+      } else {
+        // Single row action
+        response = await executeObjectActionMutation.mutateAsync({
+          actionGroup: action.action_group_type,
+          objectId: row.id,
+          data: actionBody,
+        });
+      }
+
+      // Show success toast
+      toast.success(
+        response.message || `${action.label} completed successfully`
+      );
+
+      // Handle query invalidation
+      if (response.invalidate_queries) {
+        response.invalidate_queries.forEach((queryKey) => {
+          queryClient.invalidateQueries({ queryKey: [queryKey] });
+        });
+      }
+
+      // Also invalidate the objects list
+      queryClient.invalidateQueries({ queryKey: ['objects', objectType] });
+
+      // Handle redirects
+      if (response.action_result?.type === 'redirect') {
+        router.push(response.action_result.path);
+      }
+
+      // Handle downloads
+      if (response.action_result?.type === 'download_file') {
+        window.open(response.action_result.url, '_blank');
+      }
+
+      // Close dialogs
+      setShowConfirmation(false);
+      setShowForm(false);
+      setPendingAction(null);
+    } catch (err) {
+      const errorMessage = getErrorMessage(
+        err,
+        `Failed to execute ${action.label}`
+      );
+      toast.error(errorMessage);
+    } finally {
+      setIsExecuting(false);
     }
   };
 
-  // Default bulk action handler
-  const handleBulkAction = (action: string, rows: ObjectListSchema[]) => {
+  // Check if action has a custom form
+  const hasCustomForm = (action: ActionDTO): boolean => {
+    // Cast action.action to ActionType since it comes from the backend as a string
+    const renderer = getActionRenderer(action.action as ActionType);
+    if (!renderer) return false;
+
+    // Check if renderer returns non-null
+    return (
+      renderer({
+        objectData: undefined,
+        onSubmit: () => {},
+        onClose: () => {},
+        isSubmitting: false,
+        isOpen: false,
+        actionLabel: action.label,
+      }) !== null
+    );
+  };
+
+  // Initiate an action (single or bulk)
+  const initiateAction = (action: ActionDTO, rows: ObjectListSchema[]) => {
+    setPendingAction({ action, rows });
+
+    // If action has custom form, show form dialog
+    if (hasCustomForm(action)) {
+      setShowForm(true);
+      return;
+    }
+
+    // If action has confirmation message, show confirmation dialog
+    if (action.confirmation_message) {
+      setShowConfirmation(true);
+      return;
+    }
+
+    // Execute simple actions directly
+    executeAction(action, rows);
+  };
+
+  // Row action handler
+  const handleRowActionClick = (actionName: string, row: ObjectListSchema) => {
+    // Find the action in the row's actions
+    const action = row.actions?.find((a) => a.action === actionName);
+    if (!action) {
+      console.error('Action not found:', actionName);
+      return;
+    }
+
+    initiateAction(action, [row]);
+
+    // Also call the onRowClick callback if provided
+    if (onRowClick) {
+      onRowClick(row);
+    }
+  };
+
+  // Bulk action handler
+  const handleBulkAction = (actionName: string, rows: ObjectListSchema[]) => {
+    if (rows.length === 0) return;
+
+    // Find the action from the first row (all selected rows should have the same actions)
+    const action = rows[0].actions?.find((a) => a.action === actionName);
+    if (!action) {
+      console.error('Action not found:', actionName);
+      return;
+    }
+
+    initiateAction(action, rows);
+
+    // Also call the onBulkAction callback if provided
     if (onBulkAction) {
-      onBulkAction(action, rows);
+      onBulkAction(actionName, rows);
+    }
+  };
+
+  // Confirm and execute pending action
+  const confirmAction = () => {
+    if (pendingAction) {
+      executeAction(pendingAction.action, pendingAction.rows);
+    }
+  };
+
+  // Cancel pending action
+  const cancelAction = () => {
+    setShowConfirmation(false);
+    setShowForm(false);
+    setPendingAction(null);
+  };
+
+  // Execute action with form data
+  const executeWithFormData = (data: unknown) => {
+    if (pendingAction) {
+      executeAction(pendingAction.action, pendingAction.rows, data);
     }
   };
 
@@ -158,6 +411,56 @@ export function ObjectList({
         onActionClick={handleRowActionClick}
         onBulkActionClick={handleBulkAction}
       />
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingAction?.action.label || 'Confirm Action'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingAction?.action.confirmation_message ||
+                'Are you sure you want to perform this action?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelAction} disabled={isExecuting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAction} disabled={isExecuting}>
+              {isExecuting ? 'Processing...' : 'Continue'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Form Dialog */}
+      {showForm &&
+        pendingAction &&
+        (() => {
+          const renderer = getActionRenderer(
+            pendingAction.action.action as ActionType
+          );
+          if (!renderer) return null;
+
+          // Get object data from the first row (for single row actions)
+          // Convert ObjectListSchema to partial domain object shape
+          // The forms accept Partial<T> as defaultValues, so this is type-safe at runtime
+          const partialData =
+            pendingAction.rows.length === 1
+              ? objectListToPartialDomainObject(pendingAction.rows[0])
+              : undefined;
+
+          return renderer({
+            objectData: partialData as DomainObject | undefined,
+            onSubmit: executeWithFormData,
+            onClose: cancelAction,
+            isSubmitting: isExecuting,
+            isOpen: showForm,
+            actionLabel: pendingAction.action.label,
+          });
+        })()}
     </div>
   );
 }
