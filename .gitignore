@@ -143,6 +143,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Neovim
+.neoconf.json
+
 # ================================
 # Deployment / Cloud
 # ================================

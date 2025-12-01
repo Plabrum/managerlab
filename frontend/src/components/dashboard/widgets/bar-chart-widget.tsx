@@ -21,7 +21,7 @@ interface BarChartWidgetProps {
  * Custom tooltip that filters out zero values
  */
 function FilteredTooltipContent(props: TooltipProps<number, string>) {
-  const { payload, ...rest } = props;
+  const { payload, active, label } = props;
 
   // Filter out items with zero or null values
   const filteredPayload = payload?.filter((item) => {
@@ -31,8 +31,9 @@ function FilteredTooltipContent(props: TooltipProps<number, string>) {
 
   return (
     <ChartTooltipContent
-      {...rest}
+      active={active}
       payload={filteredPayload}
+      label={label}
       className="min-w-[12rem]"
     />
   );
