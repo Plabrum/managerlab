@@ -1,21 +1,56 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.actions import ActionGroupType, BaseObjectAction, action_group_factory
+from app.actions import ActionGroupType, BaseObjectAction, BaseTopLevelAction, action_group_factory
 from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
 from app.dashboard.enums import DashboardActions
 from app.dashboard.models import Dashboard
-from app.dashboard.schemas import UpdateDashboardSchema
-from app.utils.db import update_model
+from app.dashboard.schemas import CreateDashboardSchema, UpdateDashboardSchema
+from app.utils.db import create_model, update_model
 
 dashboard_actions = action_group_factory(
     ActionGroupType.DashboardActions,
     model_type=Dashboard,
     load_options=[selectinload(Dashboard.widgets)],
 )
+
+
+@dashboard_actions
+class CreateDashboard(BaseTopLevelAction[CreateDashboardSchema]):
+    """Create a new dashboard."""
+
+    action_key = DashboardActions.create
+    label = "Create Dashboard"
+    is_bulk_allowed = False
+    priority = 1
+    icon = ActionIcon.add
+
+    @classmethod
+    async def execute(
+        cls,
+        data: CreateDashboardSchema,
+        transaction: AsyncSession,
+        deps: ActionDeps,
+    ) -> ActionExecutionResponse:
+        # Create dashboard with user_id set if it's a personal dashboard
+        new_dashboard = Dashboard(
+            name=data.name,
+            config=data.config,
+            user_id=deps.user if data.is_personal else None,
+            team_id=deps.team_id,
+            is_default=data.is_default,
+        )
+        transaction.add(new_dashboard)
+        await transaction.flush()
+
+        return ActionExecutionResponse(
+            message=f"Created dashboard '{new_dashboard.name}'",
+            created_id=new_dashboard.id,
+            invalidate_queries=["dashboards"],
+        )
 
 
 @dashboard_actions

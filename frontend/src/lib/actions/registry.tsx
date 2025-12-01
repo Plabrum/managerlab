@@ -24,6 +24,7 @@ import { CreateBrandForm } from '@/components/actions/create-brand-form';
 import { UpdateBrandForm } from '@/components/actions/update-brand-form';
 import { AddDeliverableToCampaignForm } from '@/components/actions/add-deliverable-to-campaign-form';
 import { InviteUserToTeamForm } from '@/components/actions/invite-user-to-team-form';
+import { CreateDashboardForm } from '@/components/actions/create-dashboard-form';
 import { UpdateDashboardForm } from '@/components/actions/update-dashboard-form';
 import { UpdateWidgetForm } from '@/components/dashboard/update-widget-form';
 import React from 'react';
@@ -131,6 +132,7 @@ export type ActionToObjectMap = {
   deliverable_media_actions__deliverable_media_remove_media: never;
 
   // Dashboard actions
+  dashboard_actions__create: never; // Top-level action
   dashboard_actions__edit: DashboardSchema;
   dashboard_actions__delete: DashboardSchema;
   dashboard_actions__update: DashboardSchema;
@@ -421,6 +423,19 @@ export const actionRegistry: ActionRegistry = {
   },
 
   // Dashboard actions
+  dashboard_actions__create: {
+    render: ({ onSubmit, onClose, isSubmitting, isOpen, actionLabel }) => {
+      return (
+        <CreateDashboardForm
+          isOpen={isOpen}
+          onClose={onClose}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
+        />
+      );
+    },
+  },
   dashboard_actions__edit: {
     // Edit mode toggle - no form needed, handled by editMode prop in ObjectActions
     render: () => null,

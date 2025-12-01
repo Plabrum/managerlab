@@ -6,6 +6,7 @@ from enum import StrEnum, auto
 class DashboardActions(StrEnum):
     """Dashboard action keys."""
 
+    create = "create"
     edit = "edit"
     update = "update"
     delete = "delete"

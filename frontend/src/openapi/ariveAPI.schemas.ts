@@ -242,13 +242,13 @@ export interface BrandUpdateSchema {
 
 export type CampaignCreateSchemaDescription = string | null;
 
-export type CampaignCreateSchemaCompensationStructure = CompensationStructure | null;
-
 export type CampaignCreateSchemaCounterpartyType = CounterpartyType | null;
 
 export type CampaignCreateSchemaCounterpartyName = string | null;
 
 export type CampaignCreateSchemaCounterpartyEmail = string | null;
+
+export type CampaignCreateSchemaCompensationStructure = CompensationStructure | null;
 
 export type CampaignCreateSchemaCompensationTotalUsd = number | null;
 
@@ -282,12 +282,11 @@ export type CampaignCreateSchemaContractDocumentId = unknown | null;
 
 export interface CampaignCreateSchema {
   name: string;
-  brand_id: unknown;
   description?: CampaignCreateSchemaDescription;
-  compensation_structure?: CampaignCreateSchemaCompensationStructure;
   counterparty_type?: CampaignCreateSchemaCounterpartyType;
   counterparty_name?: CampaignCreateSchemaCounterpartyName;
   counterparty_email?: CampaignCreateSchemaCounterpartyEmail;
+  compensation_structure?: CampaignCreateSchemaCompensationStructure;
   compensation_total_usd?: CampaignCreateSchemaCompensationTotalUsd;
   payment_terms_days?: CampaignCreateSchemaPaymentTermsDays;
   flight_start_date?: CampaignCreateSchemaFlightStartDate;
@@ -302,6 +301,7 @@ export interface CampaignCreateSchema {
   ownership_mode?: CampaignCreateSchemaOwnershipMode;
   approval_rounds?: CampaignCreateSchemaApprovalRounds;
   approval_sla_hours?: CampaignCreateSchemaApprovalSlaHours;
+  brand_id: unknown;
   contract_document_id?: CampaignCreateSchemaContractDocumentId;
 }
 
@@ -356,7 +356,6 @@ export interface CampaignExtractionSchema {
   compensation_structure?: CampaignExtractionSchemaCompensationStructure;
   compensation_total_usd?: CampaignExtractionSchemaCompensationTotalUsd;
   payment_terms_days?: CampaignExtractionSchemaPaymentTermsDays;
-  payment_blocks?: PaymentBlockExtractionSchema[];
   flight_start_date?: CampaignExtractionSchemaFlightStartDate;
   flight_end_date?: CampaignExtractionSchemaFlightEndDate;
   ftc_string?: CampaignExtractionSchemaFtcString;
@@ -369,6 +368,8 @@ export interface CampaignExtractionSchema {
   ownership_mode?: CampaignExtractionSchemaOwnershipMode;
   approval_rounds?: CampaignExtractionSchemaApprovalRounds;
   approval_sla_hours?: CampaignExtractionSchemaApprovalSlaHours;
+  payment_blocks?: PaymentBlockExtractionSchema[];
+  deliverables?: DeliverableExtractionSchema[];
   confidence_score?: CampaignExtractionSchemaConfidenceScore;
   extraction_notes?: CampaignExtractionSchemaExtractionNotes;
 }
@@ -595,6 +596,11 @@ export interface CreateCampaignAction {
   action: 'campaign_actions__campaign_create';
 }
 
+export interface CreateDashboardAction {
+  data: CreateDashboardSchema;
+  action: 'dashboard_actions__create';
+}
+
 export type CreateDashboardSchemaConfig = {[key: string]: unknown};
 
 export interface CreateDashboardSchema {
@@ -787,6 +793,41 @@ export interface DeliverableCreateSchema {
   content?: DeliverableCreateSchemaContent;
   notes?: DeliverableCreateSchemaNotes;
   campaign_id?: DeliverableCreateSchemaCampaignId;
+}
+
+export type DeliverableExtractionSchemaDeliverableType = DeliverableType | null;
+
+export type DeliverableExtractionSchemaPostingStartDate = string | null;
+
+export type DeliverableExtractionSchemaPostingEndDate = string | null;
+
+export type DeliverableExtractionSchemaHandles = string[] | null;
+
+export type DeliverableExtractionSchemaHashtags = string[] | null;
+
+export type DeliverableExtractionSchemaDisclosures = string[] | null;
+
+export type DeliverableExtractionSchemaApprovalRounds = number | null;
+
+export type DeliverableExtractionSchemaContent = string | null;
+
+export type DeliverableExtractionSchemaExtractionNotes = string | null;
+
+export interface DeliverableExtractionSchema {
+  title: string;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
+  deliverable_type?: DeliverableExtractionSchemaDeliverableType;
+  count?: number;
+  posting_start_date?: DeliverableExtractionSchemaPostingStartDate;
+  posting_end_date?: DeliverableExtractionSchemaPostingEndDate;
+  handles?: DeliverableExtractionSchemaHandles;
+  hashtags?: DeliverableExtractionSchemaHashtags;
+  disclosures?: DeliverableExtractionSchemaDisclosures;
+  approval_required?: boolean;
+  approval_rounds?: DeliverableExtractionSchemaApprovalRounds;
+  content?: DeliverableExtractionSchemaContent;
+  extraction_notes?: DeliverableExtractionSchemaExtractionNotes;
 }
 
 export type DeliverableMediaAssociationSchemaApprovedAt = string | null;
@@ -2159,7 +2200,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2187,7 +2228,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 

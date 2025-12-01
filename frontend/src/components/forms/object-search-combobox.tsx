@@ -26,6 +26,7 @@ import type {
   ObjectTypes,
   ActionGroupType,
   ActionDTO,
+  ActionsActionGroupExecuteActionBody,
 } from '@/openapi/ariveAPI.schemas';
 import { Label } from '@/components/ui/label';
 import { executeActionApi } from '@/hooks/action-executor/execute-action-api';
@@ -194,10 +195,12 @@ export function ObjectSearchCombobox({
       const result = await executeActionApi({
         action,
         actionGroup: createActionConfig.actionGroup,
+        // Type assertion: Inline creation only supports simple name-based creation.
+        // The backend will validate and error if additional required fields are missing.
         actionBody: {
           action: createActionConfig.action,
           data: { name: searchValue.trim() },
-        },
+        } as ActionsActionGroupExecuteActionBody,
         executeGroupActionMutation,
         executeObjectActionMutation,
       });
