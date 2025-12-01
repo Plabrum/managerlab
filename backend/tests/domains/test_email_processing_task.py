@@ -8,12 +8,22 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.emails.models import InboundEmail
 from app.emails.tasks import process_inbound_email_task
+from app.users.enums import RoleLevel
+from app.users.models import Role
+from tests.factories.users import TeamFactory, UserFactory
 
 
 async def test_task_processes_email_with_metadata(
     db_session: AsyncSession,
 ):
     """Test task successfully processes an email and extracts metadata."""
+    # Create team and user with OWNER role for primary_team_id
+    team = await TeamFactory.create_async(session=db_session)
+    user = await UserFactory.create_async(session=db_session, email="sender@example.com")
+    role = Role(user_id=user.id, team_id=team.id, role_level=RoleLevel.OWNER)
+    db_session.add(role)
+    await db_session.commit()  # Commit so task transaction can see the user
+
     # Create sample email
     msg = EmailMessage()
     msg["From"] = "sender@example.com"
@@ -64,6 +74,7 @@ async def test_task_processes_email_with_metadata(
     assert email.s3_key == "emails/test-email.eml"
     assert email.from_email == "sender@example.com"
     assert email.subject == "Test Contract Submission"
+    assert email.team_id == team.id
     assert email.processed_at is not None
 
 
@@ -71,6 +82,13 @@ async def test_task_extracts_attachments(
     db_session: AsyncSession,
 ):
     """Test task extracts and uploads attachment to S3."""
+    # Create team and user with OWNER role for primary_team_id
+    team = await TeamFactory.create_async(session=db_session)
+    user = await UserFactory.create_async(session=db_session, email="client@agency.com")
+    role = Role(user_id=user.id, team_id=team.id, role_level=RoleLevel.OWNER)
+    db_session.add(role)
+    await db_session.commit()  # Commit so task transaction can see the user
+
     # Create email with attachment
     msg = EmailMessage()
     msg["From"] = "client@agency.com"
@@ -179,6 +197,13 @@ async def test_task_handles_duplicate_calls(
     db_session: AsyncSession,
 ):
     """Test task is idempotent - duplicate calls don't create duplicate records."""
+    # Create team and user with OWNER role for primary_team_id
+    team = await TeamFactory.create_async(session=db_session)
+    user = await UserFactory.create_async(session=db_session, email="duplicate@example.com")
+    role = Role(user_id=user.id, team_id=team.id, role_level=RoleLevel.OWNER)
+    db_session.add(role)
+    await db_session.commit()  # Commit so task transaction can see the user
+
     # Create sample email
     msg = EmailMessage()
     msg["From"] = "duplicate@example.com"
