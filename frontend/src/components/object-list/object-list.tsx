@@ -141,6 +141,60 @@ export function ObjectList({
   // Fetch data
   const { data } = useListObjectsSuspense(objectType, request);
 
+  // Convert ObjectListSchema fields array to a typed object
+  // This converts the list view data to a shape compatible with domain objects
+  const objectListToPartialDomainObject = (
+    obj: ObjectListSchema
+  ): Partial<DomainObject> => {
+    if (!obj.fields || obj.fields.length === 0) {
+      return { id: obj.id };
+    }
+
+    // Convert fields array to object with field keys
+    // Each field has a nested value structure (e.g., { value: "foo", type: "string" })
+    // We extract the actual value from this structure
+    const fieldData: Record<string, unknown> = {};
+    for (const field of obj.fields) {
+      if (
+        field.value &&
+        typeof field.value === 'object' &&
+        'value' in field.value
+      ) {
+        // Extract the actual value from the field value object
+        fieldData[field.key] = field.value.value;
+      }
+    }
+
+    return {
+      id: obj.id,
+      ...fieldData,
+    } as Partial<DomainObject>;
+  };
+
+  // Validate and build action body with proper typing
+  const buildActionBody = (
+    action: ActionDTO,
+    actionData?: unknown
+  ): ActionsActionGroupObjectIdExecuteObjectActionBody | null => {
+    // The action string comes from the backend and should match the discriminated union
+    const actionString = action.action;
+
+    // Check if action is in the registry (basic validation)
+    const renderer = getActionRenderer(actionString as ActionType);
+    if (renderer === undefined && actionData) {
+      console.error('Action not found in registry:', actionString);
+      return null;
+    }
+
+    // Build the action body
+    // We trust the backend's action string since it comes from the API's type system
+    // The type assertion is necessary because we're building this dynamically
+    return {
+      action: actionString,
+      data: actionData || {},
+    } as ActionsActionGroupObjectIdExecuteObjectActionBody;
+  };
+
   // Execute action with API call
   const executeAction = async (
     action: ActionDTO,
@@ -154,12 +208,11 @@ export function ObjectList({
       const isBulk = rows.length > 1;
       const row = rows[0];
 
-      // Build action body - the discriminated union requires the exact action string
-      // We cast to the union type since we know action.action comes from the backend
-      const actionBody = {
-        action: action.action,
-        data: actionData || {},
-      } as ActionsActionGroupObjectIdExecuteObjectActionBody;
+      // Build and validate action body
+      const actionBody = buildActionBody(action, actionData);
+      if (!actionBody) {
+        throw new Error(`Invalid action: ${action.action}`);
+      }
 
       let response;
 
@@ -392,14 +445,15 @@ export function ObjectList({
           if (!renderer) return null;
 
           // Get object data from the first row (for single row actions)
-          // ObjectListSchema has compatible shape with DomainObject for rendering purposes
-          const objectData =
+          // Convert ObjectListSchema to partial domain object shape
+          // The forms accept Partial<T> as defaultValues, so this is type-safe at runtime
+          const partialData =
             pendingAction.rows.length === 1
-              ? (pendingAction.rows[0] as unknown as DomainObject)
+              ? objectListToPartialDomainObject(pendingAction.rows[0])
               : undefined;
 
           return renderer({
-            objectData,
+            objectData: partialData as DomainObject | undefined,
             onSubmit: executeWithFormData,
             onClose: cancelAction,
             isSubmitting: isExecuting,
