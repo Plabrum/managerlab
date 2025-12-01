@@ -146,26 +146,42 @@ async def db_session(test_engine, setup_database) -> AsyncGenerator[AsyncSession
 
     System mode bypasses RLS policies so test fixtures can be created without
     requiring team/campaign context.
+
+    This fixture ensures proper test isolation using nested transactions (SAVEPOINTs):
+    - Outer transaction: Never committed, always rolled back
+    - Nested transaction (SAVEPOINT): Where test operations occur
+    - When tests call commit(), it only commits the SAVEPOINT, then starts a new one
+    - The outer transaction rollback undoes everything
     """
     session_maker = async_sessionmaker(
         test_engine,
         class_=AsyncSession,
         expire_on_commit=False,
         autoflush=False,
-        autobegin=True,
     )
 
-    session = session_maker()
+    connection = await test_engine.connect()
+    transaction = await connection.begin()
 
-    # Enable system mode to bypass RLS for fixture creation
-    await session.execute(text("SET LOCAL app.is_system_mode = true"))
+    # Create session bound to the connection
+    session = async_sessionmaker(
+        bind=connection,
+        expire_on_commit=False,
+        autoflush=False,
+        join_transaction_mode="create_savepoint",  # Auto-create savepoints on commit
+    )()
 
-    yield session
+    try:
+        # Enable system mode to bypass RLS for fixture creation
+        await session.execute(text("SET LOCAL app.is_system_mode = true"))
 
-    # Rollback any uncommitted changes for test isolation
-    if session.in_transaction():
-        await session.rollback()
-    await session.close()
+        yield session
+
+    finally:
+        # Rollback the outer transaction to undo all changes
+        await session.close()
+        await transaction.rollback()
+        await connection.close()
 
 
 @pytest.fixture
