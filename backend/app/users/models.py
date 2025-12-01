@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
@@ -45,6 +46,22 @@ class User(
         cascade="all, delete-orphan",
     )
 
+    # Computed relationship: the team where this user is OWNER
+    # Users can only be OWNER of one team (enforced by partial unique index)
+    primary_team: Mapped["Team | None"] = relationship(
+        "Team",
+        secondary="roles",
+        primaryjoin="User.id == Role.user_id",
+        secondaryjoin="and_(Role.team_id == Team.id, Role.role_level == 'OWNER')",
+        viewonly=True,
+        uselist=False,
+    )
+
+    @hybrid_property
+    def primary_team_id(self) -> int | None:
+        """Returns the ID of the team where this user is OWNER, or None."""
+        return self.primary_team.id if self.primary_team else None
+
 
 class Role(BaseDBModel):
     """Join table linking Users to Teams with a role level.
@@ -75,4 +92,13 @@ class Role(BaseDBModel):
     team: Mapped["Team"] = relationship(back_populates="roles")
 
     # Unique constraint: a user can only have one role per team
-    __table_args__ = (sa.UniqueConstraint("user_id", "team_id", name="uq_user_team"),)
+    # Partial unique index: a user can only be OWNER of one team
+    __table_args__ = (
+        sa.UniqueConstraint("user_id", "team_id", name="uq_user_team"),
+        sa.Index(
+            "ix_user_single_owner",
+            "user_id",
+            unique=True,
+            postgresql_where=sa.text("role_level = 'OWNER'"),
+        ),
+    )
