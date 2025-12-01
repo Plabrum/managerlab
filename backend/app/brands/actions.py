@@ -97,4 +97,5 @@ class CreateBrand(BaseTopLevelAction[BrandCreateSchema]):
         )
         return ActionExecutionResponse(
             message=f"Created brand '{new_brand.name}'",
+            created_id=new_brand.id,
         )
