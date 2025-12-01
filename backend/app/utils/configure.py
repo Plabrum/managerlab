@@ -60,6 +60,7 @@ class ConfigProtocol(Protocol):
     OPENAI_API_KEY: str
     OPENAI_ORG_ID: str | None
     OPENAI_MODEL: str
+    LOG_LEVEL: str
 
     @property
     def IS_DEV(self) -> bool: ...
@@ -129,6 +130,9 @@ class Config:
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o")
 
     IS_SYSTEM_MODE: bool = os.getenv("SYSTEM_MODE", "false").lower() == "true"
+
+    # Logging Configuration
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
 
     @property
     def IS_DEV(self) -> bool:

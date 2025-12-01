@@ -10,7 +10,7 @@ from app.actions.schemas import (
 from app.utils.discovery import discover_and_import
 from app.utils.sqids import Sqid
 
-discover_and_import(["actions.py", "actions/**/*.py", "top_level_actions.py"], base_path="app")
+discover_and_import(["actions.py", "actions/**/*.py"], base_path="app")
 
 
 # ----------------------------

@@ -8,11 +8,11 @@ import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
  * Hook to manage edit mode via URL parameters with permission checking
  *
  * @param actions - Array of available actions from the API
- * @param editActionPattern - Pattern to identify edit/update actions (default: '_update')
+ * @param editActionPattern - Pattern to identify edit actions (default: '__edit')
  * @returns Object with edit state, handlers, and permission info
  *
  * Features:
- * - Automatically finds the edit/update action from available actions
+ * - Automatically finds the edit action from available actions
  * - Checks if user has permission to edit
  * - Clears ?edit param if user navigates to it without permission
  * - Prevents opening edit mode if not available
@@ -32,7 +32,7 @@ import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
  */
 export function useEditAction({
   actions,
-  editActionPattern = '_update',
+  editActionPattern = '__edit',
 }: {
   actions: ActionDTO[];
   editActionPattern?: string;

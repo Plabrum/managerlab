@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 
+import structlog
 from litestar import Request
 from litestar.exceptions import NotFoundException
 from msgspec import UNSET, structs
@@ -17,7 +18,7 @@ from app.events.schemas import CreatedEventData, UpdatedEventData, make_field_ch
 from app.events.service import emit_event
 from app.utils.configure import config
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 async def _emit_created_event(
@@ -240,12 +241,19 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
         # No scope set - this is an unauthenticated request (e.g., login, signup)
         # Don't set any RLS variables. Tables with RLS will return empty results,
         # tables without RLS (sessions, users for lookup) will work normally.
+        logger.warning(
+            "No scope_type in session - RLS variables NOT set",
+            path=request.url.path,
+            session_keys=list(request.session.keys()),
+            has_user_id=bool(request.session.get("user_id")),
+        )
         return
 
     if scope_type == ScopeType.TEAM.value:
         team_id = request.session.get("team_id")
         if team_id:
             await session.execute(text(f"SET LOCAL app.team_id = {team_id}"))
+            logger.info("RLS: Set team_id", team_id=team_id, path=request.url.path)
         else:
             raise ValueError(f"scope_type is TEAM but no team_id in session")
 
@@ -253,6 +261,7 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
         campaign_id = request.session.get("campaign_id")
         if campaign_id:
             await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id}"))
+            logger.info("RLS: Set campaign_id", campaign_id=campaign_id, path=request.url.path)
         else:
             raise ValueError(f"scope_type is CAMPAIGN but no campaign_id in session")
     else:

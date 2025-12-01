@@ -231,6 +231,8 @@ class ObjectColumn:
     editable: bool = True  # Whether field can be edited
     nullable: bool = False  # Whether field value can be None
     include_in_list: bool = True  # Whether to include in list view DTOs
+    query_relationship: str | None = None  # Relationship to join (e.g., "assigned_roster")
+    query_column: str | None = None  # Column to query from joined table (e.g., "name")
 
 
 class ColumnDefinitionSchema(BaseSchema):

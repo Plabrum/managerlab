@@ -8,6 +8,8 @@ import type {
   RosterSchema,
   InvoiceSchema,
   TeamSchema,
+  DashboardSchema,
+  WidgetSchema,
 } from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from '@/types/domain-objects';
 import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
@@ -22,6 +24,8 @@ import { CreateBrandForm } from '@/components/actions/create-brand-form';
 import { UpdateBrandForm } from '@/components/actions/update-brand-form';
 import { AddDeliverableToCampaignForm } from '@/components/actions/add-deliverable-to-campaign-form';
 import { InviteUserToTeamForm } from '@/components/actions/invite-user-to-team-form';
+import { UpdateDashboardForm } from '@/components/actions/update-dashboard-form';
+import { UpdateWidgetForm } from '@/components/dashboard/update-widget-form';
 import React from 'react';
 
 /**
@@ -127,8 +131,14 @@ export type ActionToObjectMap = {
   deliverable_media_actions__deliverable_media_remove_media: never;
 
   // Dashboard actions
-  dashboard_actions__delete: never;
-  dashboard_actions__update: never;
+  dashboard_actions__edit: DashboardSchema;
+  dashboard_actions__delete: DashboardSchema;
+  dashboard_actions__update: DashboardSchema;
+
+  // Widget actions
+  widget_actions__create: never; // Top-level action
+  widget_actions__update: WidgetSchema;
+  widget_actions__delete: WidgetSchema;
 
   // Team actions
   team_actions__team_delete: TeamSchema;
@@ -411,10 +421,63 @@ export const actionRegistry: ActionRegistry = {
   },
 
   // Dashboard actions
+  dashboard_actions__edit: {
+    // Edit mode toggle - no form needed, handled by editMode prop in ObjectActions
+    render: () => null,
+  },
   dashboard_actions__delete: {
     render: () => null,
   },
   dashboard_actions__update: {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
+      return (
+        <UpdateDashboardForm
+          isOpen={isOpen}
+          onClose={onClose}
+          defaultValues={objectData}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
+        />
+      );
+    },
+  },
+
+  // Widget actions
+  widget_actions__create: {
+    render: () => null, // Widget creation is handled in dashboard-content.tsx
+  },
+  widget_actions__edit: {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
+      return (
+        <UpdateWidgetForm
+          isOpen={isOpen}
+          onOpenChange={(open) => {
+            if (!open) onClose();
+          }}
+          widget={objectData as WidgetSchema}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
+        />
+      );
+    },
+  },
+  widget_actions__delete: {
     render: () => null,
   },
 

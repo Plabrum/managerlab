@@ -148,7 +148,7 @@ export function QueryBuilderForm({ query, onChange }: QueryBuilderFormProps) {
       <div className="space-y-2">
         <Label htmlFor="time-range">Time Range</Label>
         <Select
-          value={query.time_range}
+          value={query.time_range ?? undefined}
           onValueChange={(value) =>
             updateQuery({ time_range: value as TimeRange })
           }
@@ -170,7 +170,7 @@ export function QueryBuilderForm({ query, onChange }: QueryBuilderFormProps) {
       <div className="space-y-2">
         <Label htmlFor="aggregation">Aggregation</Label>
         <Select
-          value={query.aggregation}
+          value={query.aggregation ?? undefined}
           onValueChange={(value) =>
             updateQuery({ aggregation: value as AggregationType })
           }

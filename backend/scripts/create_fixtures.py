@@ -11,9 +11,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.utils.configure import config
-
 # Import all models to ensure SQLAlchemy relationships are registered
+from app.auth.models import MagicLinkToken  # noqa: F401
+from app.utils.configure import config
 from tests.factories import (
     BrandContactFactory,
     BrandFactory,

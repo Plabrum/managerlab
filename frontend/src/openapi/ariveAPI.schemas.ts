@@ -51,6 +51,7 @@ export const ActionGroupType = {
   invoice_actions: 'invoice_actions',
   roster_actions: 'roster_actions',
   dashboard_actions: 'dashboard_actions',
+  widget_actions: 'widget_actions',
   team_actions: 'team_actions',
   message_actions: 'message_actions',
 } as const;
@@ -301,6 +302,74 @@ export interface CampaignCreateSchema {
   contract_document_id?: CampaignCreateSchemaContractDocumentId;
 }
 
+export type CampaignExtractionSchemaDescription = string | null;
+
+export type CampaignExtractionSchemaCounterpartyType = CounterpartyType | null;
+
+export type CampaignExtractionSchemaCounterpartyName = string | null;
+
+export type CampaignExtractionSchemaCounterpartyEmail = string | null;
+
+export type CampaignExtractionSchemaCompensationStructure = CompensationStructure | null;
+
+export type CampaignExtractionSchemaCompensationTotalUsd = number | null;
+
+export type CampaignExtractionSchemaPaymentTermsDays = number | null;
+
+export type CampaignExtractionSchemaFlightStartDate = string | null;
+
+export type CampaignExtractionSchemaFlightEndDate = string | null;
+
+export type CampaignExtractionSchemaFtcString = string | null;
+
+export type CampaignExtractionSchemaUsageDuration = string | null;
+
+export type CampaignExtractionSchemaUsageTerritory = string | null;
+
+export type CampaignExtractionSchemaUsagePaidMediaOption = boolean | null;
+
+export type CampaignExtractionSchemaExclusivityCategory = string | null;
+
+export type CampaignExtractionSchemaExclusivityDaysBefore = number | null;
+
+export type CampaignExtractionSchemaExclusivityDaysAfter = number | null;
+
+export type CampaignExtractionSchemaOwnershipMode = OwnershipMode | null;
+
+export type CampaignExtractionSchemaApprovalRounds = number | null;
+
+export type CampaignExtractionSchemaApprovalSlaHours = number | null;
+
+export type CampaignExtractionSchemaConfidenceScore = number | null;
+
+export type CampaignExtractionSchemaExtractionNotes = string | null;
+
+export interface CampaignExtractionSchema {
+  name: string;
+  description?: CampaignExtractionSchemaDescription;
+  counterparty_type?: CampaignExtractionSchemaCounterpartyType;
+  counterparty_name?: CampaignExtractionSchemaCounterpartyName;
+  counterparty_email?: CampaignExtractionSchemaCounterpartyEmail;
+  compensation_structure?: CampaignExtractionSchemaCompensationStructure;
+  compensation_total_usd?: CampaignExtractionSchemaCompensationTotalUsd;
+  payment_terms_days?: CampaignExtractionSchemaPaymentTermsDays;
+  payment_blocks?: PaymentBlockExtractionSchema[];
+  flight_start_date?: CampaignExtractionSchemaFlightStartDate;
+  flight_end_date?: CampaignExtractionSchemaFlightEndDate;
+  ftc_string?: CampaignExtractionSchemaFtcString;
+  usage_duration?: CampaignExtractionSchemaUsageDuration;
+  usage_territory?: CampaignExtractionSchemaUsageTerritory;
+  usage_paid_media_option?: CampaignExtractionSchemaUsagePaidMediaOption;
+  exclusivity_category?: CampaignExtractionSchemaExclusivityCategory;
+  exclusivity_days_before?: CampaignExtractionSchemaExclusivityDaysBefore;
+  exclusivity_days_after?: CampaignExtractionSchemaExclusivityDaysAfter;
+  ownership_mode?: CampaignExtractionSchemaOwnershipMode;
+  approval_rounds?: CampaignExtractionSchemaApprovalRounds;
+  approval_sla_hours?: CampaignExtractionSchemaApprovalSlaHours;
+  confidence_score?: CampaignExtractionSchemaConfidenceScore;
+  extraction_notes?: CampaignExtractionSchemaExtractionNotes;
+}
+
 /**
  * Access levels for campaign guests.
  */
@@ -525,16 +594,10 @@ export interface CreateCampaignAction {
 
 export type CreateDashboardSchemaConfig = {[key: string]: unknown};
 
-export type CreateDashboardSchemaUserId = number | null;
-
-export type CreateDashboardSchemaTeamId = number | null;
-
 export interface CreateDashboardSchema {
   name: string;
-  config: CreateDashboardSchemaConfig;
-  owner_type: DashboardOwnerType;
-  user_id?: CreateDashboardSchemaUserId;
-  team_id?: CreateDashboardSchemaTeamId;
+  config?: CreateDashboardSchemaConfig;
+  is_personal?: boolean;
   is_default?: boolean;
 }
 
@@ -570,34 +633,41 @@ export interface CreateTeamSchema {
   description?: CreateTeamSchemaDescription;
 }
 
-/**
- * Dashboard ownership types.
- */
-export type DashboardOwnerType = typeof DashboardOwnerType[keyof typeof DashboardOwnerType];
+export interface CreateWidgetAction {
+  data: CreateWidgetSchema;
+  action: 'widget_actions__create';
+}
 
+export type CreateWidgetSchemaDescription = string | null;
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DashboardOwnerType = {
-  user: 'user',
-  team: 'team',
-} as const;
+export interface CreateWidgetSchema {
+  dashboard_id: unknown;
+  type: string;
+  title: string;
+  query: WidgetQuerySchema;
+  description?: CreateWidgetSchemaDescription;
+  position_x?: number;
+  position_y?: number;
+  size_w?: number;
+  size_h?: number;
+}
 
 export type DashboardSchemaConfig = {[key: string]: unknown};
 
 export type DashboardSchemaUserId = number | null;
 
-export type DashboardSchemaTeamId = number | null;
-
 export interface DashboardSchema {
   id: unknown;
   name: string;
   config: DashboardSchemaConfig;
-  owner_type: DashboardOwnerType;
   user_id?: DashboardSchemaUserId;
-  team_id?: DashboardSchemaTeamId;
+  team_id: number;
   is_default: boolean;
+  is_personal: boolean;
   created_at: string;
   updated_at: string;
+  widgets: WidgetSchema[];
+  actions: ActionDTO[];
 }
 
 export interface DateFieldValue {
@@ -669,6 +739,11 @@ export interface DeleteRosterAction {
 export interface DeleteTeamAction {
   data: EmptyActionData;
   action: 'team_actions__team_delete';
+}
+
+export interface DeleteWidgetAction {
+  data: EmptyActionData;
+  action: 'widget_actions__delete';
 }
 
 export type DeliverableCreateSchemaDeliverableType = DeliverableType | null;
@@ -909,9 +984,34 @@ export interface DownloadMediaAction {
   action: 'media_actions__media_download';
 }
 
+export interface EditDashboardAction {
+  data: EmptyActionData;
+  action: 'dashboard_actions__edit';
+}
+
 export interface EditDeliverableAction {
   data: DeliverableUpdateSchema;
   action: 'deliverable_actions__deliverable_update';
+}
+
+export interface EditWidgetAction {
+  data: EditWidgetSchema;
+  action: 'widget_actions__edit';
+}
+
+export type EditWidgetSchemaType = string | null;
+
+export type EditWidgetSchemaTitle = string | null;
+
+export type EditWidgetSchemaDescription = string | null;
+
+export type EditWidgetSchemaQuery = WidgetQuerySchema | null;
+
+export interface EditWidgetSchema {
+  type?: EditWidgetSchemaType;
+  title?: EditWidgetSchemaTitle;
+  description?: EditWidgetSchemaDescription;
+  query?: EditWidgetSchemaQuery;
 }
 
 export interface EmailFieldValue {
@@ -930,6 +1030,15 @@ export interface EnumFilterDefinition {
   column: string;
   values: string[];
   type: 'enum_filter';
+}
+
+export interface ExtractFromContractRequestSchema {
+  document_id: string;
+}
+
+export interface ExtractFromContractResponseSchema {
+  data: CampaignExtractionSchema;
+  message?: string;
 }
 
 /**
@@ -1010,6 +1119,11 @@ export interface ImageFieldValue {
   url: string;
   thumbnail_url?: ImageFieldValueThumbnailUrl;
   type: 'image';
+}
+
+export interface InboundEmailWebhookPayload {
+  bucket: string;
+  s3_key: string;
 }
 
 export interface IntFieldValue {
@@ -1323,6 +1437,24 @@ export const OwnershipMode = {
   creator_owned: 'creator_owned',
   shared: 'shared',
 } as const;
+
+export type PaymentBlockExtractionSchemaLabel = string | null;
+
+export type PaymentBlockExtractionSchemaTrigger = string | null;
+
+export type PaymentBlockExtractionSchemaAmountUsd = number | null;
+
+export type PaymentBlockExtractionSchemaPercent = number | null;
+
+export type PaymentBlockExtractionSchemaNetDays = number | null;
+
+export interface PaymentBlockExtractionSchema {
+  label?: PaymentBlockExtractionSchemaLabel;
+  trigger?: PaymentBlockExtractionSchemaTrigger;
+  amount_usd?: PaymentBlockExtractionSchemaAmountUsd;
+  percent?: PaymentBlockExtractionSchemaPercent;
+  net_days?: PaymentBlockExtractionSchemaNetDays;
+}
 
 export interface PublishDeliverableAction {
   data: EmptyActionData;
@@ -1691,18 +1823,12 @@ export interface UpdateDashboardAction {
   action: 'dashboard_actions__update';
 }
 
-export type UpdateDashboardSchemaName = string | null;
-
-export type UpdateDashboardSchemaConfigOneOf = {[key: string]: unknown};
-
-export type UpdateDashboardSchemaConfig = UpdateDashboardSchemaConfigOneOf | null;
-
-export type UpdateDashboardSchemaIsDefault = boolean | null;
+export type UpdateDashboardSchemaConfig = {[key: string]: unknown};
 
 export interface UpdateDashboardSchema {
-  name?: UpdateDashboardSchemaName;
-  config?: UpdateDashboardSchemaConfig;
-  is_default?: UpdateDashboardSchemaIsDefault;
+  name: string;
+  config: UpdateDashboardSchemaConfig;
+  is_default: boolean;
 }
 
 export interface UpdateDocumentAction {
@@ -1749,6 +1875,42 @@ export interface UserSchema {
   state: string;
   created_at: string;
   updated_at: string;
+}
+
+export type WidgetQuerySchemaTimeRange = TimeRange | null;
+
+export type WidgetQuerySchemaStartDate = string | null;
+
+export type WidgetQuerySchemaEndDate = string | null;
+
+export type WidgetQuerySchemaAggregation = AggregationType | null;
+
+export type WidgetQuerySchemaFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition | ObjectFilterDefinition;
+
+export interface WidgetQuerySchema {
+  field: string;
+  time_range?: WidgetQuerySchemaTimeRange;
+  start_date?: WidgetQuerySchemaStartDate;
+  end_date?: WidgetQuerySchemaEndDate;
+  granularity?: Granularity;
+  aggregation?: WidgetQuerySchemaAggregation;
+  filters?: WidgetQuerySchemaFiltersItem[];
+  fill_missing?: boolean;
+  object_type: ObjectTypes;
+}
+
+export type WidgetSchemaDescription = string | null;
+
+export interface WidgetSchema {
+  id: unknown;
+  dashboard_id: unknown;
+  type: string;
+  title: string;
+  description?: WidgetSchemaDescription;
+  query: WidgetQuerySchema;
+  created_at: string;
+  updated_at: string;
+  actions: ActionDTO[];
 }
 
 export interface DocumentsSchemasPresignedUploadRequestSchema {
@@ -1994,7 +2156,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2022,7 +2184,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | DeleteDashboardAction | UpdateDashboardAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2113,6 +2275,19 @@ export type CampaignsIdUpdateCampaign400 = {
   status_code: number;
   detail: string;
   extra?: CampaignsIdUpdateCampaign400Extra;
+};
+
+export type CampaignsExtractFromContractExtractFromContract400ExtraAnyOf = {[key: string]: unknown};
+
+export type CampaignsExtractFromContractExtractFromContract400Extra = null | CampaignsExtractFromContractExtractFromContract400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type CampaignsExtractFromContractExtractFromContract400 = {
+  status_code: number;
+  detail: string;
+  extra?: CampaignsExtractFromContractExtractFromContract400Extra;
 };
 
 export type DeliverablesIdGetDeliverable400ExtraAnyOf = {[key: string]: unknown};
@@ -2360,6 +2535,21 @@ export type ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400 = {
   status_code: number;
   detail: string;
   extra?: ThreadsThreadableTypeBatchUnreadGetBatchThreadUnread400Extra;
+};
+
+export type WebhooksEmailsInboundHandleInboundEmailWebhook201 = { [key: string]: unknown };
+
+export type WebhooksEmailsInboundHandleInboundEmailWebhook400ExtraAnyOf = {[key: string]: unknown};
+
+export type WebhooksEmailsInboundHandleInboundEmailWebhook400Extra = null | WebhooksEmailsInboundHandleInboundEmailWebhook400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type WebhooksEmailsInboundHandleInboundEmailWebhook400 = {
+  status_code: number;
+  detail: string;
+  extra?: WebhooksEmailsInboundHandleInboundEmailWebhook400Extra;
 };
 
 export type LocalUploadKeyLocalUpload200 = { [key: string]: unknown };

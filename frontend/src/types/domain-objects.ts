@@ -13,6 +13,7 @@ import type {
   InvoiceSchema,
   RosterSchema,
   TeamSchema,
+  WidgetSchema,
 } from '@/openapi/ariveAPI.schemas';
 
 /**
@@ -25,4 +26,5 @@ export type DomainObject =
   | BrandSchema
   | InvoiceSchema
   | RosterSchema
-  | TeamSchema;
+  | TeamSchema
+  | WidgetSchema;

@@ -1,20 +1,22 @@
 """Dashboard enums."""
 
-from enum import StrEnum
-
-
-class DashboardOwnerType(StrEnum):
-    """Dashboard ownership types."""
-
-    USER = "user"
-    TEAM = "team"
+from enum import StrEnum, auto
 
 
 class DashboardActions(StrEnum):
     """Dashboard action keys."""
 
+    edit = "edit"
     update = "update"
     delete = "delete"
+
+
+class WidgetActions(StrEnum):
+    """Widget action keys."""
+
+    create = auto()
+    edit = auto()
+    delete = auto()
 
 
 class WidgetType(StrEnum):

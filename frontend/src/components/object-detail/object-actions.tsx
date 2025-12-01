@@ -63,77 +63,117 @@ export function ObjectActions(props: ObjectActionsProps) {
     return null;
   }
 
-  // Sort by priority and extract primary action
+  // Sort by priority and extract primary and secondary actions
   const sortedActions = availableActions.sort(
     (a: ActionDTO, b: ActionDTO) => (a.priority || 0) - (b.priority || 0)
   );
-  const [primaryAction, ...remainingActions] = sortedActions;
+  const [primaryAction, secondaryAction, ...remainingActions] = sortedActions;
 
-  // Helper to check if an action is an update/edit action
-  const isUpdateAction = (action: ActionDTO) => {
-    return action.action.includes('_update') || action.action.includes('_edit');
+  // Helper to check if an action is an edit-mode action (distinct from update actions)
+  // Edit actions toggle edit mode UI, while update actions show forms to modify data
+  const isEditModeAction = (action: ActionDTO) => {
+    return action.action.endsWith('__edit');
   };
 
-  // Find the update action (needed for external edit mode rendering)
-  const updateAction = availableActions.find(isUpdateAction);
+  // Find the edit action (needed for external edit mode handling)
+  const editAction = availableActions.find(isEditModeAction);
 
-  // Handler for action clicks - uses external edit mode for update actions if provided
+  // Handler for action clicks - uses external edit mode for edit actions if provided
   const handleActionClick = (action: ActionDTO) => {
-    if (isUpdateAction(action) && props.editMode) {
-      props.editMode.onOpen();
+    if (isEditModeAction(action) && props.editMode) {
+      // Toggle between open and close based on current state
+      if (props.editMode.isOpen) {
+        props.editMode.onClose();
+      } else {
+        props.editMode.onOpen();
+      }
     } else {
       executor.initiateAction(action);
     }
   };
 
+  // Helper to get the action label - returns "Finish editing" for edit actions when in edit mode
+  const getActionLabel = (action: ActionDTO) => {
+    if (isEditModeAction(action) && props.editMode?.isOpen) {
+      return 'Finish editing';
+    }
+    return action.label;
+  };
+
   // Determine which action/state to use for form rendering
-  // External edit mode takes precedence for update actions
+  // External edit mode takes precedence for edit actions
   const formAction =
-    props.editMode?.isOpen && updateAction
-      ? updateAction
-      : executor.pendingAction;
+    props.editMode?.isOpen && editAction ? editAction : executor.pendingAction;
   const formIsOpen =
-    props.editMode?.isOpen && updateAction
+    props.editMode?.isOpen && editAction
       ? props.editMode.isOpen
       : executor.showForm;
   const formOnClose =
-    props.editMode?.isOpen && updateAction
+    props.editMode?.isOpen && editAction
       ? props.editMode.onClose
       : executor.cancelAction;
 
   return (
     <>
       <div className="flex items-center gap-2">
-        {/* Primary action button */}
+        {/* Primary action button - hidden on mobile */}
         <Button
           variant="default"
           size="sm"
           onClick={() => handleActionClick(primaryAction)}
+          className="hidden md:inline-flex"
         >
-          {primaryAction.label}
+          {getActionLabel(primaryAction)}
         </Button>
 
-        {/* Dropdown for remaining actions */}
-        {remainingActions.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {remainingActions.map((action: ActionDTO, index: number) => (
-                <DropdownMenuItem
-                  key={`${action.action}-${index}`}
-                  onClick={() => handleActionClick(action)}
-                  className="cursor-pointer"
-                >
-                  {action.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Secondary action button - hidden on mobile, shown on desktop if exists */}
+        {secondaryAction && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleActionClick(secondaryAction)}
+            className="hidden md:inline-flex"
+          >
+            {getActionLabel(secondaryAction)}
+          </Button>
         )}
+
+        {/* Dropdown menu - shows all actions on mobile, remaining actions on desktop */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {/* On mobile: show primary action */}
+            <DropdownMenuItem
+              onClick={() => handleActionClick(primaryAction)}
+              className="cursor-pointer md:hidden"
+            >
+              {getActionLabel(primaryAction)}
+            </DropdownMenuItem>
+            {/* On mobile: show secondary action if exists */}
+            {secondaryAction && (
+              <DropdownMenuItem
+                onClick={() => handleActionClick(secondaryAction)}
+                className="cursor-pointer md:hidden"
+              >
+                {getActionLabel(secondaryAction)}
+              </DropdownMenuItem>
+            )}
+            {/* Remaining actions shown on all screen sizes */}
+            {remainingActions.map((action: ActionDTO, index: number) => (
+              <DropdownMenuItem
+                key={`${action.action}-${index}`}
+                onClick={() => handleActionClick(action)}
+                className="cursor-pointer"
+              >
+                {getActionLabel(action)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <ActionConfirmationDialog

@@ -1,6 +1,7 @@
 """Logging middleware for request tracing."""
 
 import uuid
+from typing import Any
 
 import structlog
 from litestar import Request
@@ -8,6 +9,25 @@ from litestar.datastructures import State
 from litestar.exceptions import ImproperlyConfiguredException
 from litestar.middleware import DefineMiddleware
 from litestar.types import ASGIApp, Receive, Scope, Send
+from structlog.types import EventDict
+
+
+def drop_verbose_http_keys(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
+    """Structlog processor to remove verbose HTTP logging details.
+
+    Filters out: cookies, body, headers
+    Keeps: method, path, status_code, request_id, user_id, etc.
+    """
+    # Only filter HTTP response logs (identified by presence of status_code)
+    if "status_code" not in event_dict:
+        return event_dict
+
+    # Remove verbose keys
+    keys_to_drop = ["cookies", "body", "headers"]
+    for key in keys_to_drop:
+        event_dict.pop(key, None)
+
+    return event_dict
 
 
 class RequestLoggingMiddleware:
