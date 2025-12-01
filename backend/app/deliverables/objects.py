@@ -154,4 +154,41 @@ class DeliverableObject(BaseObject[Deliverable]):
             nullable=True,
             include_in_list=True,
         ),
+        ObjectColumn(
+            key="owner_name",
+            label="Owner Name",
+            type=FieldType.String,
+            value=lambda obj: (
+                StringFieldValue(value=obj.campaign.assigned_roster.name)
+                if obj.campaign and obj.campaign.assigned_roster and obj.campaign.assigned_roster.name
+                else None
+            ),
+            sortable=True,
+            default_visible=True,
+            editable=False,
+            nullable=True,
+            include_in_list=True,
+            query_relationship="assigned_roster",
+            query_column="name",
+        ),
+        # ObjectColumn(
+        #     key="content_owner",
+        #     label="Content Owner",
+        #     type=FieldType.Object,
+        #     value=lambda obj: (
+        #         ObjectFieldValue(
+        #             value=sqid_encode(obj.content_owner.id),
+        #             object_type=ObjectTypes.Roster,
+        #             label=obj.content_owner.name,
+        #         )
+        #         if obj.content_owner
+        #         else None
+        #     ),
+        #     sortable=True,
+        #     default_visible=True,
+        #     editable=False,
+        #     nullable=True,
+        #     include_in_list=True,
+        #     object_type=ObjectTypes.Roster,
+        # ),
     ]

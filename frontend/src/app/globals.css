@@ -107,6 +107,7 @@
     --color-chart-6: hsl(330 60% 50%);
     --color-chart-7: hsl(150 60% 45%);
     --color-chart-8: hsl(280 55% 58%);
+    --color-chart-9: hsl(60 70% 50%);
   }
 
   .dark {
@@ -119,6 +120,7 @@
     --color-chart-6: hsl(330 60% 50%);
     --color-chart-7: hsl(150 60% 45%);
     --color-chart-8: hsl(280 55% 58%);
+    --color-chart-9: hsl(45 90% 60%);
   }
 
   html {

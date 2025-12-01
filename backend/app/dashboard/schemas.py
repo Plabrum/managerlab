@@ -94,6 +94,6 @@ class CreateDashboardSchema(BaseSchema):
 class UpdateDashboardSchema(BaseSchema):
     """Schema for updating a dashboard (partial updates)."""
 
-    name: str | None = None
-    config: dict[str, Any] | None = None
-    is_default: bool | None = None
+    name: str
+    config: dict[str, Any]
+    is_default: bool

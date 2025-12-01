@@ -116,6 +116,8 @@ class CampaignObject(BaseObject[Campaign]):
             nullable=True,
             include_in_list=True,
             object_type=ObjectTypes.Brands,
+            query_relationship="brand",
+            query_column="name",
         ),
         ObjectColumn(
             key="state",

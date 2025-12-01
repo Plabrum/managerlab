@@ -1,64 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from 'lucide-react';
-import type { WidgetQuery } from '@/types/dashboard';
-import { getTimeSeriesData } from '@/openapi/objects/objects';
 import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 import { cn } from '@/lib/utils';
 
 interface StatWidgetProps {
-  query: WidgetQuery;
+  data: TimeSeriesDataResponse;
 }
 
-export function StatWidget({ query }: StatWidgetProps) {
-  const [data, setData] = useState<TimeSeriesDataResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await getTimeSeriesData(query.object_type, {
-          field: query.field,
-          time_range: query.time_range,
-          start_date: query.start_date,
-          end_date: query.end_date,
-          aggregation: query.aggregation,
-          filters: query.filters,
-          granularity: query.granularity,
-          fill_missing: true,
-        });
-        setData(response);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [query]);
-
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-muted-foreground text-sm">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-destructive text-sm">{error}</div>
-      </div>
-    );
-  }
-
-  if (!data || data.data.type !== 'numerical') {
+/**
+ * Pure presentational stat widget.
+ * Receives data as props - no data fetching logic.
+ */
+export function StatWidget({ data }: StatWidgetProps) {
+  if (data.data.type !== 'numerical') {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-muted-foreground text-sm">No data available</div>
@@ -133,17 +88,11 @@ export function StatWidget({ query }: StatWidgetProps) {
               trend === 'neutral' && 'text-gray-500'
             )}
           >
+            {trend === 'up' ? '+' : ''}
             {Math.abs(trendPercentage).toFixed(1)}%
-          </span>
-          <span className="text-muted-foreground text-sm">
-            vs previous period
           </span>
         </div>
       )}
-
-      <div className="text-muted-foreground text-xs">
-        Total records: {data.total_records}
-      </div>
     </div>
   );
 }

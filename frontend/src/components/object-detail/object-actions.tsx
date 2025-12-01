@@ -81,10 +81,23 @@ export function ObjectActions(props: ObjectActionsProps) {
   // Handler for action clicks - uses external edit mode for edit actions if provided
   const handleActionClick = (action: ActionDTO) => {
     if (isEditModeAction(action) && props.editMode) {
-      props.editMode.onOpen();
+      // Toggle between open and close based on current state
+      if (props.editMode.isOpen) {
+        props.editMode.onClose();
+      } else {
+        props.editMode.onOpen();
+      }
     } else {
       executor.initiateAction(action);
     }
+  };
+
+  // Helper to get the action label - returns "Finish editing" for edit actions when in edit mode
+  const getActionLabel = (action: ActionDTO) => {
+    if (isEditModeAction(action) && props.editMode?.isOpen) {
+      return 'Finish editing';
+    }
+    return action.label;
   };
 
   // Determine which action/state to use for form rendering
@@ -110,7 +123,7 @@ export function ObjectActions(props: ObjectActionsProps) {
           onClick={() => handleActionClick(primaryAction)}
           className="hidden md:inline-flex"
         >
-          {primaryAction.label}
+          {getActionLabel(primaryAction)}
         </Button>
 
         {/* Secondary action button - hidden on mobile, shown on desktop if exists */}
@@ -121,7 +134,7 @@ export function ObjectActions(props: ObjectActionsProps) {
             onClick={() => handleActionClick(secondaryAction)}
             className="hidden md:inline-flex"
           >
-            {secondaryAction.label}
+            {getActionLabel(secondaryAction)}
           </Button>
         )}
 
@@ -138,7 +151,7 @@ export function ObjectActions(props: ObjectActionsProps) {
               onClick={() => handleActionClick(primaryAction)}
               className="cursor-pointer md:hidden"
             >
-              {primaryAction.label}
+              {getActionLabel(primaryAction)}
             </DropdownMenuItem>
             {/* On mobile: show secondary action if exists */}
             {secondaryAction && (
@@ -146,7 +159,7 @@ export function ObjectActions(props: ObjectActionsProps) {
                 onClick={() => handleActionClick(secondaryAction)}
                 className="cursor-pointer md:hidden"
               >
-                {secondaryAction.label}
+                {getActionLabel(secondaryAction)}
               </DropdownMenuItem>
             )}
             {/* Remaining actions shown on all screen sizes */}
@@ -156,7 +169,7 @@ export function ObjectActions(props: ObjectActionsProps) {
                 onClick={() => handleActionClick(action)}
                 className="cursor-pointer"
               >
-                {action.label}
+                {getActionLabel(action)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

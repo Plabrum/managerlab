@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { createTypedForm } from '@/components/forms/base';
 import {
@@ -10,9 +10,11 @@ import {
   type CreateWidgetSchema,
   type EditWidgetSchema,
   type WidgetQuerySchema,
+  type ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
 import { getAllWidgetTypes, widgetRegistry } from '@/lib/widgets/registry';
 import type { WidgetType } from '@/lib/widgets/types';
+import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
 
 // Shared constants
 const WIDGET_OBJECT_TYPES = [
@@ -42,12 +44,6 @@ const AGGREGATION_OPTIONS = [
   { value: AggregationType.min, label: 'Minimum' },
 ] as const;
 
-const COMMON_FIELD_OPTIONS = [
-  { value: 'created_at', label: 'Created Date' },
-  { value: 'updated_at', label: 'Updated Date' },
-  { value: 'status', label: 'Status' },
-] as const;
-
 /**
  * Inner component that handles size synchronization when widget type changes
  */
@@ -67,6 +63,138 @@ function WidgetSizeSync({ prefilledType }: { prefilledType?: string }) {
   }, [widgetType, setValue, prefilledType]);
 
   return null;
+}
+
+/**
+ * Component that provides dynamic field options based on selected object type
+ */
+interface DynamicFieldSelectorProps {
+  query: Partial<WidgetQuerySchema>;
+  onChange: (query: WidgetQuerySchema) => void;
+}
+
+function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
+  const [availableFields, setAvailableFields] = useState<
+    ColumnDefinitionSchema[]
+  >([]);
+  const [loadingFields, setLoadingFields] = useState(false);
+
+  // Fetch fields when object type changes
+  useEffect(() => {
+    const fetchFields = async () => {
+      if (!query.object_type) {
+        setAvailableFields([]);
+        return;
+      }
+
+      try {
+        setLoadingFields(true);
+        const response = await oObjectTypeSchemaGetObjectSchema(
+          query.object_type as ObjectTypes
+        );
+        setAvailableFields(response.columns);
+      } catch (error) {
+        console.error('Failed to fetch fields:', error);
+        setAvailableFields([]);
+      } finally {
+        setLoadingFields(false);
+      }
+    };
+
+    fetchFields();
+  }, [query.object_type]);
+
+  const handleObjectTypeChange = (value: string) => {
+    // Update both object_type and clear field in a single update
+    onChange({ ...query, object_type: value, field: '' } as WidgetQuerySchema);
+  };
+
+  const updateField = (field: keyof WidgetQuerySchema, value: string) => {
+    onChange({ ...query, [field]: value } as WidgetQuerySchema);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Object Type</label>
+        <select
+          value={query.object_type || ''}
+          onChange={(e) => handleObjectTypeChange(e.target.value)}
+          className="bg-background w-full rounded-md border px-3 py-2 text-sm"
+        >
+          <option value="">Select object type...</option>
+          {WIDGET_OBJECT_TYPES.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Field</label>
+        <select
+          value={query.field || ''}
+          onChange={(e) => updateField('field', e.target.value)}
+          disabled={loadingFields || availableFields.length === 0}
+          className="bg-background w-full rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <option value="">
+            {loadingFields
+              ? 'Loading fields...'
+              : availableFields.length === 0
+                ? 'Select object type first'
+                : 'Select field...'}
+          </option>
+          {availableFields.map((field) => (
+            <option key={field.key} value={field.key}>
+              {field.label}
+            </option>
+          ))}
+        </select>
+        {availableFields.length > 0 && (
+          <p className="text-muted-foreground text-xs">
+            Select the field you want to visualize
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Time Range</label>
+        <select
+          value={query.time_range || ''}
+          onChange={(e) => updateField('time_range', e.target.value)}
+          className="bg-background w-full rounded-md border px-3 py-2 text-sm"
+        >
+          <option value="">Select time range...</option>
+          {TIME_RANGE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Aggregation</label>
+        <select
+          value={query.aggregation || ''}
+          onChange={(e) => updateField('aggregation', e.target.value)}
+          className="bg-background w-full rounded-md border px-3 py-2 text-sm"
+        >
+          <option value="">Select aggregation...</option>
+          {AGGREGATION_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-muted-foreground text-xs">
+          How to aggregate the data (auto-detected if not specified)
+        </p>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -124,79 +252,12 @@ export function WidgetFormFields({
         <FormCustom name="query">
           {({ value, onChange }) => {
             const query = (value || {}) as Partial<WidgetQuerySchema>;
-            const updateField = (
-              field: keyof WidgetQuerySchema,
-              val: string
-            ) => {
-              onChange({ ...query, [field]: val } as WidgetQuerySchema);
-            };
 
             return (
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Object Type</label>
-                  <select
-                    value={query.object_type || ''}
-                    onChange={(e) => updateField('object_type', e.target.value)}
-                    className="bg-background w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Select object type...</option>
-                    {WIDGET_OBJECT_TYPES.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Field</label>
-                  <select
-                    value={query.field || ''}
-                    onChange={(e) => updateField('field', e.target.value)}
-                    className="bg-background w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Select field...</option>
-                    {COMMON_FIELD_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Time Range</label>
-                  <select
-                    value={query.time_range || ''}
-                    onChange={(e) => updateField('time_range', e.target.value)}
-                    className="bg-background w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Select time range...</option>
-                    {TIME_RANGE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Aggregation</label>
-                  <select
-                    value={query.aggregation || ''}
-                    onChange={(e) => updateField('aggregation', e.target.value)}
-                    className="bg-background w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Select aggregation...</option>
-                    {AGGREGATION_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <DynamicFieldSelector
+                query={query}
+                onChange={onChange as (query: WidgetQuerySchema) => void}
+              />
             );
           }}
         </FormCustom>

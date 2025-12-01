@@ -108,6 +108,8 @@ async def get_time_series_data(
         granularity=granularity,
         aggregation=aggregation,
         filters=data.filters,
+        query_relationship=field_metadata.query_relationship,
+        query_column=field_metadata.query_column,
     )
 
     # Wrap data in appropriate discriminated union type

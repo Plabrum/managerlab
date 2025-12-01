@@ -8,6 +8,7 @@ import {
   type Layouts,
 } from 'react-grid-layout';
 import { WidgetContainer } from './widget-container';
+import { WidgetDataLoader } from './widget-data-loader';
 import { widgetRegistry } from '@/lib/widgets/registry';
 import {
   GRID_BREAKPOINTS,
@@ -85,7 +86,12 @@ export function DashboardGrid({
     const entry = widgetRegistry[widget.type as WidgetType];
     if (!entry) return <div>Unknown widget type</div>;
     const Component = entry.component;
-    return <Component query={widget.query as unknown as WidgetQuery} />;
+
+    return (
+      <WidgetDataLoader query={widget.query as unknown as WidgetQuery}>
+        {(data) => <Component data={data} />}
+      </WidgetDataLoader>
+    );
   };
 
   return (

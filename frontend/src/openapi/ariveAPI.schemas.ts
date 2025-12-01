@@ -1823,18 +1823,12 @@ export interface UpdateDashboardAction {
   action: 'dashboard_actions__update';
 }
 
-export type UpdateDashboardSchemaName = string | null;
-
-export type UpdateDashboardSchemaConfigOneOf = {[key: string]: unknown};
-
-export type UpdateDashboardSchemaConfig = UpdateDashboardSchemaConfigOneOf | null;
-
-export type UpdateDashboardSchemaIsDefault = boolean | null;
+export type UpdateDashboardSchemaConfig = {[key: string]: unknown};
 
 export interface UpdateDashboardSchema {
-  name?: UpdateDashboardSchemaName;
-  config?: UpdateDashboardSchemaConfig;
-  is_default?: UpdateDashboardSchemaIsDefault;
+  name: string;
+  config: UpdateDashboardSchemaConfig;
+  is_default: boolean;
 }
 
 export interface UpdateDocumentAction {

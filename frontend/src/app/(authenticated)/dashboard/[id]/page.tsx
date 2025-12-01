@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useRef, useCallback } from 'react';
 import { useDashboardsIdGetDashboardSuspense } from '@/openapi/dashboards/dashboards';
 import { PageTopBar } from '@/components/page-topbar';
 import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
@@ -21,6 +21,23 @@ export default function DashboardByIdPage({
     actions: dashboard.actions || [],
   });
 
+  // Ref to store the finish editing handler from DashboardContent
+  const finishEditingHandlerRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Register the handler from DashboardContent
+  const registerFinishHandler = useCallback((handler: () => Promise<void>) => {
+    finishEditingHandlerRef.current = handler;
+  }, []);
+
+  // Enhanced close handler that saves before closing
+  const handleCloseEdit = useCallback(async () => {
+    if (finishEditingHandlerRef.current) {
+      await finishEditingHandlerRef.current();
+    } else {
+      closeEdit();
+    }
+  }, [closeEdit]);
+
   return (
     <PageTopBar
       title={dashboard.name}
@@ -32,7 +49,7 @@ export default function DashboardByIdPage({
           editMode={{
             isOpen: isEditMode,
             onOpen: openEdit,
-            onClose: closeEdit,
+            onClose: handleCloseEdit,
           }}
         />
       }
@@ -42,6 +59,7 @@ export default function DashboardByIdPage({
         onUpdate={refetch}
         isEditMode={isEditMode}
         onCloseEditMode={closeEdit}
+        onRegisterFinishHandler={registerFinishHandler}
       />
     </PageTopBar>
   );

@@ -5,5 +5,16 @@
   "root_spec": [
     ".git",
     "cwd"
-  ]
+  ],
+  "org_markdown": {
+    "captures": {
+      "templates": {
+        "arive": {
+          "template": "# TODO %? \n %u",
+          "filename": "~/notes/projects/arive.md",
+          "heading": "Tasks"
+        }
+      }
+    }
+  }
 }

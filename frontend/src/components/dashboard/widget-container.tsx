@@ -55,12 +55,12 @@ export function WidgetContainer({
   };
 
   return (
-    <Card className="relative flex h-full flex-col gap-y-0 px-4 py-6">
+    <Card className="relative flex h-full flex-col gap-y-0 overflow-hidden px-4 py-6">
       {isEditMode && (
         <WidgetEditControls onEdit={handleEdit} onDelete={handleDelete} />
       )}
 
-      <CardHeader className="space-y-0 p-0">
+      <CardHeader className="flex-shrink-0 space-y-0 p-0">
         <div className="flex items-start gap-2">
           {isEditMode && (
             <div
@@ -85,7 +85,9 @@ export function WidgetContainer({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 px-0">{children}</CardContent>
+      <CardContent className="min-h-0 flex-1 overflow-hidden px-0">
+        {children}
+      </CardContent>
 
       {/* Resize indicator - bottom right corner */}
       {isEditMode && (

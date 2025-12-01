@@ -77,8 +77,8 @@ class Campaign(
     approval_rounds: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=1)
     approval_sla_hours: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=48)
 
-    # Foreign keys - Campaign always has a Brand
     assigned_roster_id: Mapped[int | None] = mapped_column(sa.ForeignKey("roster.id"), nullable=True)
+    # Foreign keys - Campaign always has a Brand
     brand_id: Mapped[int] = mapped_column(sa.ForeignKey("brands.id"), nullable=False)
 
     # Relationships

@@ -362,6 +362,37 @@ def get_series_interval(granularity: Granularity) -> str:
             assert_never(granularity)
 
 
+def _infer_field_type_from_column(column) -> FieldType:
+    """Infer FieldType from a SQLAlchemy column type.
+
+    This is used when querying relationship fields to determine the correct
+    aggregation logic (categorical vs numerical).
+    """
+    from sqlalchemy import Boolean, Date, DateTime, Enum, Float, Integer, Numeric, String, Text
+
+    # Get the column type
+    col_type = column.type
+
+    # Map SQLAlchemy types to FieldType
+    if isinstance(col_type, (Integer,)):
+        return FieldType.Int
+    elif isinstance(col_type, (Float, Numeric)):
+        return FieldType.Float
+    elif isinstance(col_type, Boolean):
+        return FieldType.Bool
+    elif isinstance(col_type, Date):
+        return FieldType.Date
+    elif isinstance(col_type, DateTime):
+        return FieldType.Datetime
+    elif isinstance(col_type, Enum):
+        return FieldType.Enum
+    elif isinstance(col_type, (String, Text)):
+        return FieldType.String
+    else:
+        # Default to String for unknown types (treat as categorical)
+        return FieldType.String
+
+
 async def query_time_series_data(
     session: AsyncSession,
     model_class: type[BaseDBModel],
@@ -372,13 +403,43 @@ async def query_time_series_data(
     granularity: Granularity,
     aggregation: AggregationType,
     filters: list[FilterDefinition],
+    query_relationship: str | None = None,
+    query_column: str | None = None,
 ) -> tuple[list[NumericalDataPoint] | list[CategoricalDataPoint], int]:
+    import structlog
     from sqlalchemy import text
 
-    # Get the column reference
-    column = getattr(model_class, field_name, None)
-    if column is None:
-        raise ValueError(f"Column {field_name} not found on {model_class.__name__}")
+    logger = structlog.get_logger()
+
+    # Get the column reference and determine if we need to join
+    join_relationship = None
+    if query_relationship and query_column:
+        # Get the relationship to join
+        relationship_attr = getattr(model_class, query_relationship, None)
+        if relationship_attr is None:
+            raise ValueError(f"Relationship {query_relationship} not found on {model_class.__name__}")
+
+        # Get the related model class
+        if not hasattr(relationship_attr.property, "mapper"):
+            raise ValueError(f"{query_relationship} is not a valid relationship on {model_class.__name__}")
+
+        related_model = relationship_attr.property.mapper.class_
+
+        # Get the column from the related model
+        column = getattr(related_model, query_column, None)
+        if column is None:
+            raise ValueError(f"Column {query_column} not found on {related_model.__name__}")
+
+        join_relationship = relationship_attr
+
+        # Override field_type based on the actual column type being queried
+        # This ensures we use the correct aggregation logic (categorical vs numerical)
+        field_type = _infer_field_type_from_column(column)
+    else:
+        # Direct column access (original behavior)
+        column = getattr(model_class, field_name, None)
+        if column is None:
+            raise ValueError(f"Column {field_name} not found on {model_class.__name__}")
 
     # Get timestamp column (default to created_at)
     timestamp_column = model_class.created_at
@@ -399,8 +460,29 @@ async def query_time_series_data(
 
     # Count total records
     count_query = select(func.count()).select_from(query.subquery())
+
+    # Compile and log the count query
+    from sqlalchemy.dialects import postgresql
+
+    compiled_count = count_query.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
+    logger.info(
+        "Count query SQL",
+        model=model_class.__name__,
+        sql=str(compiled_count),
+    )
+
     total_result = await session.execute(count_query)
     total_count = total_result.scalar_one()
+
+    logger.info(
+        "Time series query - record count",
+        model=model_class.__name__,
+        field=field_name,
+        total_count=total_count,
+        start_date=start_date,
+        end_date=end_date,
+        granularity=granularity,
+    )
 
     # Generate time series using generate_series
     # Use date_trunc on start_date to align to granularity boundary
@@ -424,9 +506,14 @@ async def query_time_series_data(
                 column.label("category_value"),
                 func.count().label("count"),
             )
+            .select_from(model_class)  # Explicitly specify FROM clause for RLS
             .where(timestamp_column >= start_date, timestamp_column <= end_date)
             .group_by(time_bucket_expr, column)
         )
+
+        # Add join if needed for relationship fields
+        if join_relationship is not None:
+            agg_query = agg_query.join(join_relationship)
 
         # Apply filters to aggregation query
         for filter_def in filters:
@@ -503,9 +590,14 @@ async def query_time_series_data(
                 agg_func.label("agg_value"),
                 func.count().label("record_count"),
             )
+            .select_from(model_class)  # Explicitly specify FROM clause for RLS
             .where(timestamp_column >= start_date, timestamp_column <= end_date)
             .group_by(time_bucket_expr)
         )
+
+        # Add join if needed for relationship fields
+        if join_relationship is not None:
+            agg_query = agg_query.join(join_relationship)
 
         # Apply filters to aggregation query
         for filter_def in filters:
@@ -543,8 +635,27 @@ async def query_time_series_data(
             .order_by(time_series.c.time_bucket)
         )
 
+        # Compile and log the final query
+        from sqlalchemy.dialects import postgresql
+
+        compiled_final = final_query.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
+        logger.info(
+            "Final aggregation query SQL",
+            model=model_class.__name__,
+            field=field_name,
+            sql=str(compiled_final),
+        )
+
         result = await session.execute(final_query)
         rows = result.all()
+
+        logger.info(
+            "Time series query - numerical results",
+            model=model_class.__name__,
+            field=field_name,
+            num_rows=len(rows),
+            sample_rows=rows[:3] if rows else [],
+        )
 
         data_points = [
             NumericalDataPoint(

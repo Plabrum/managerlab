@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardGrid } from './dashboard-grid';
 import { DashboardWidgetPalette } from './dashboard-widget-palette';
 import { CreateWidgetForm } from './create-widget-form';
-import { useActionsActionGroupExecuteAction } from '@/openapi/actions/actions';
+import {
+  useActionsActionGroupExecuteAction,
+  useActionsActionGroupObjectIdExecuteObjectAction,
+} from '@/openapi/actions/actions';
 import {
   ActionGroupType,
   type CreateWidgetSchema,
@@ -21,6 +24,7 @@ interface DashboardContentProps {
   onUpdate: () => void;
   isEditMode: boolean;
   onCloseEditMode?: () => void;
+  onRegisterFinishHandler?: (handler: () => Promise<void>) => void;
 }
 
 export function DashboardContent({
@@ -28,6 +32,7 @@ export function DashboardContent({
   onUpdate,
   isEditMode,
   onCloseEditMode,
+  onRegisterFinishHandler,
 }: DashboardContentProps) {
   const queryClient = useQueryClient();
   const [createFormOpen, setCreateFormOpen] = useState(false);
@@ -47,7 +52,8 @@ export function DashboardContent({
 
   // Mutations for widget and dashboard operations
   const createWidgetMutation = useActionsActionGroupExecuteAction();
-  const updateDashboardMutation = useActionsActionGroupExecuteAction();
+  const updateDashboardMutation =
+    useActionsActionGroupObjectIdExecuteObjectAction();
 
   const handleWidgetClick = useCallback((widgetType: WidgetType) => {
     setPrefilledType(widgetType);
@@ -137,9 +143,12 @@ export function DashboardContent({
     try {
       await updateDashboardMutation.mutateAsync({
         actionGroup: ActionGroupType.dashboard_actions,
+        objectId: dashboard.id,
         data: {
           action: 'dashboard_actions__update',
           data: {
+            name: dashboard.name,
+            is_default: dashboard.is_default,
             config: {
               ...dashboard.config,
               layout: layoutData,
@@ -157,6 +166,9 @@ export function DashboardContent({
   }, [
     pendingLayout,
     dashboard.config,
+    dashboard.id,
+    dashboard.name,
+    dashboard.is_default,
     updateDashboardMutation,
     queryClient,
     onUpdate,
@@ -172,6 +184,13 @@ export function DashboardContent({
       onCloseEditMode();
     }
   }, [pendingLayout, handleSaveLayout, onCloseEditMode]);
+
+  // Register the finish editing handler with the parent component
+  useEffect(() => {
+    if (onRegisterFinishHandler) {
+      onRegisterFinishHandler(handleFinishEditing);
+    }
+  }, [handleFinishEditing, onRegisterFinishHandler]);
 
   return (
     <div className="relative min-h-screen">

@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { WidgetQuery, WidgetSize, WidgetType } from '@/types/dashboard';
+import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 
 export type { WidgetType } from '@/types/dashboard';
 
@@ -30,7 +31,8 @@ export interface WidgetRegistryEntry {
   metadata: WidgetMetadata;
   defaults: WidgetDefaultConfig;
   sizeConstraints: WidgetSizeConstraints;
-  component: ComponentType<{ query: WidgetQuery }>;
+  // Widget components are now pure presentational - they receive data as props
+  component: ComponentType<{ data: TimeSeriesDataResponse }>;
   preview: ComponentType<{ className?: string }>;
 }
 
