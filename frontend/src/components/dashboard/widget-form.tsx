@@ -126,7 +126,7 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Object Type</label>
         <Select
-          value={query.object_type || ''}
+          value={query.object_type || undefined}
           onValueChange={handleObjectTypeChange}
         >
           <SelectTrigger className="w-full">
@@ -145,7 +145,7 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Field</label>
         <Select
-          value={query.field || ''}
+          value={query.field || undefined}
           onValueChange={(value) => updateField('field', value)}
           disabled={loadingFields || availableFields.length === 0}
         >
@@ -178,7 +178,7 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Time Range</label>
         <Select
-          value={query.time_range || ''}
+          value={query.time_range || undefined}
           onValueChange={(value) => updateField('time_range', value)}
         >
           <SelectTrigger className="w-full">
@@ -197,7 +197,7 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Aggregation</label>
         <Select
-          value={query.aggregation || ''}
+          value={query.aggregation || undefined}
           onValueChange={(value) => updateField('aggregation', value)}
         >
           <SelectTrigger className="w-full">

@@ -205,7 +205,7 @@ export function KanbanWidgetFormFields({
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Object Type</label>
         <Select
-          value={query.object_type || ''}
+          value={query.object_type || undefined}
           onValueChange={handleObjectTypeChange}
         >
           <SelectTrigger className="w-full">
@@ -227,14 +227,13 @@ export function KanbanWidgetFormFields({
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Time Range (Optional)</label>
         <Select
-          value={query.time_range || ''}
+          value={query.time_range || undefined}
           onValueChange={handleTimeRangeChange}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="All time" />
+            <SelectValue placeholder="Select time range..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All time</SelectItem>
             {TIME_RANGE_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
