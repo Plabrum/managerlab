@@ -1,15 +1,17 @@
-import { BarChart2, LineChart, PieChart, Hash } from 'lucide-react';
+import { BarChart2, LineChart, PieChart, Hash, Columns3 } from 'lucide-react';
 import {
   StatWidget,
   BarChartWidget,
   LineChartWidget,
   PieChartWidget,
+  KanbanWidget,
 } from '@/components/dashboard/widgets';
 import {
   StatPreview,
   BarChartPreview,
   LineChartPreview,
   PieChartPreview,
+  KanbanPreview,
 } from '@/components/dashboard/widgets/previews';
 import type { WidgetRegistry, WidgetType, WidgetRegistryEntry } from './types';
 
@@ -127,6 +129,36 @@ export const widgetRegistry: WidgetRegistry = {
     },
     component: StatWidget,
     preview: StatPreview,
+  },
+  kanban: {
+    metadata: {
+      type: 'kanban',
+      name: 'Kanban Board',
+      description: 'Display objects in a kanban board grouped by state',
+      icon: Columns3,
+      category: 'custom',
+    },
+    defaults: {
+      size: { w: 4, h: 3 },
+      query: {
+        object_type: 'deliverables' as const,
+        field: 'state',
+        time_range: 'last_30_days' as const,
+        aggregation: 'count_' as const,
+        granularity: 'automatic' as const,
+        filters: [],
+        fill_missing: true,
+      },
+    },
+    sizeConstraints: {
+      minW: 3,
+      minH: 2,
+      defaultW: 4,
+      defaultH: 3,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    component: KanbanWidget as any,
+    preview: KanbanPreview,
   },
 };
 

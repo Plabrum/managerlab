@@ -87,6 +87,21 @@ export function DashboardGrid({
     if (!entry) return <div>Unknown widget type</div>;
     const Component = entry.component;
 
+    // Kanban widgets don't use time series data, they fetch object list data directly
+    if (widget.type === 'kanban') {
+      return (
+        <WidgetDataLoader query={widget.query as unknown as WidgetQuery}>
+          {(data) => (
+            <Component
+              data={data}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              {...({ query: widget.query } as any)}
+            />
+          )}
+        </WidgetDataLoader>
+      );
+    }
+
     return (
       <WidgetDataLoader query={widget.query as unknown as WidgetQuery}>
         {(data) => <Component data={data} />}

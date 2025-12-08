@@ -4,6 +4,13 @@ import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { createTypedForm } from '@/components/forms/base';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   ObjectTypes,
   TimeRange,
   AggregationType,
@@ -15,6 +22,7 @@ import {
 import { getAllWidgetTypes, widgetRegistry } from '@/lib/widgets/registry';
 import type { WidgetType } from '@/lib/widgets/types';
 import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
+import { KanbanWidgetFormFields } from './kanban-widget-form';
 
 // Shared constants
 const WIDGET_OBJECT_TYPES = [
@@ -117,41 +125,49 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
     <div className="space-y-4">
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Object Type</label>
-        <select
+        <Select
           value={query.object_type || ''}
-          onChange={(e) => handleObjectTypeChange(e.target.value)}
-          className="bg-background w-full rounded-md border px-3 py-2 text-sm"
+          onValueChange={handleObjectTypeChange}
         >
-          <option value="">Select object type...</option>
-          {WIDGET_OBJECT_TYPES.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select object type..." />
+          </SelectTrigger>
+          <SelectContent>
+            {WIDGET_OBJECT_TYPES.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Field</label>
-        <select
+        <Select
           value={query.field || ''}
-          onChange={(e) => updateField('field', e.target.value)}
+          onValueChange={(value) => updateField('field', value)}
           disabled={loadingFields || availableFields.length === 0}
-          className="bg-background w-full rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value="">
-            {loadingFields
-              ? 'Loading fields...'
-              : availableFields.length === 0
-                ? 'Select object type first'
-                : 'Select field...'}
-          </option>
-          {availableFields.map((field) => (
-            <option key={field.key} value={field.key}>
-              {field.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue
+              placeholder={
+                loadingFields
+                  ? 'Loading fields...'
+                  : availableFields.length === 0
+                    ? 'Select object type first'
+                    : 'Select field...'
+              }
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {availableFields.map((field) => (
+              <SelectItem key={field.key} value={field.key}>
+                {field.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {availableFields.length > 0 && (
           <p className="text-muted-foreground text-xs">
             Select the field you want to visualize
@@ -161,34 +177,40 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
 
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Time Range</label>
-        <select
+        <Select
           value={query.time_range || ''}
-          onChange={(e) => updateField('time_range', e.target.value)}
-          className="bg-background w-full rounded-md border px-3 py-2 text-sm"
+          onValueChange={(value) => updateField('time_range', value)}
         >
-          <option value="">Select time range...</option>
-          {TIME_RANGE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select time range..." />
+          </SelectTrigger>
+          <SelectContent>
+            {TIME_RANGE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Aggregation</label>
-        <select
+        <Select
           value={query.aggregation || ''}
-          onChange={(e) => updateField('aggregation', e.target.value)}
-          className="bg-background w-full rounded-md border px-3 py-2 text-sm"
+          onValueChange={(value) => updateField('aggregation', value)}
         >
-          <option value="">Select aggregation...</option>
-          {AGGREGATION_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select aggregation..." />
+          </SelectTrigger>
+          <SelectContent>
+            {AGGREGATION_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <p className="text-muted-foreground text-xs">
           How to aggregate the data (auto-detected if not specified)
         </p>
@@ -218,6 +240,11 @@ export function WidgetFormFields({
   const { FormString, FormSelect, FormCustom } = createTypedForm<
     CreateWidgetSchema | EditWidgetSchema
   >();
+
+  // Watch the current widget type to conditionally render form fields
+  const { watch } = useFormContext();
+  const currentType = watch('type') || prefilledType;
+  const isKanbanWidget = currentType === 'kanban';
 
   return (
     <>
@@ -253,6 +280,17 @@ export function WidgetFormFields({
           {({ value, onChange }) => {
             const query = (value || {}) as Partial<WidgetQuerySchema>;
 
+            // Use kanban-specific form for kanban widgets
+            if (isKanbanWidget) {
+              return (
+                <KanbanWidgetFormFields
+                  query={query}
+                  onChange={onChange as (query: WidgetQuerySchema) => void}
+                />
+              );
+            }
+
+            // Default form for chart widgets
             return (
               <DynamicFieldSelector
                 query={query}

@@ -12,3 +12,4 @@ class InvoiceActions(StrEnum):
     create = "invoice.create"
     delete = "invoice.delete"
     update = "invoice.update"
+    update_state = "invoice.update_state"

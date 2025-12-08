@@ -5,7 +5,8 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.payments.enums import InvoiceActions
+from app.actions.state_actions import BaseUpdateStateAction, UpdateStateData
+from app.payments.enums import InvoiceActions, InvoiceStates
 from app.payments.models import Invoice
 from app.payments.schemas import InvoiceCreateSchema, InvoiceUpdateSchema
 from app.utils.db import create_model, update_model
@@ -88,3 +89,9 @@ class CreateInvoice(BaseTopLevelAction[InvoiceCreateSchema]):
         return ActionExecutionResponse(
             message=f"Created invoice #{new_invoice.invoice_number}",
         )
+
+
+@invoice_actions
+class UpdateInvoiceState(BaseUpdateStateAction[Invoice, InvoiceStates]):
+    action_key = InvoiceActions.update_state
+    state_enum = InvoiceStates

@@ -96,6 +96,7 @@ export type ActionToObjectMap = {
   campaign_actions__campaign_update: CampaignSchema;
   campaign_actions__campaign_delete: CampaignSchema;
   campaign_actions__campaign_add_deliverable: CampaignSchema;
+  campaign_actions__campaign_update_state: CampaignSchema;
   campaign_actions__campaign_create: never; // Top-level, no object
 
   // Brand actions
@@ -108,6 +109,7 @@ export type ActionToObjectMap = {
   deliverable_actions__deliverable_delete: DeliverableResponseSchema;
   deliverable_actions__deliverable_publish: DeliverableResponseSchema;
   deliverable_actions__deliverable_add_media: DeliverableResponseSchema;
+  deliverable_actions__deliverable_update_state: DeliverableResponseSchema;
   deliverable_actions__deliverable_create: never;
 
   // Media actions
@@ -124,6 +126,7 @@ export type ActionToObjectMap = {
   // Invoice actions
   invoice_actions__invoice_update: InvoiceSchema;
   invoice_actions__invoice_delete: InvoiceSchema;
+  invoice_actions__invoice_update_state: InvoiceSchema;
   invoice_actions__invoice_create: never;
 
   // Deliverable media actions
@@ -223,6 +226,9 @@ export const actionRegistry: ActionRegistry = {
     render: () => null,
   },
   deliverable_actions__deliverable_publish: {
+    render: () => null,
+  },
+  deliverable_actions__deliverable_update_state: {
     render: () => null,
   },
   deliverable_actions__deliverable_add_media: {
@@ -346,6 +352,9 @@ export const actionRegistry: ActionRegistry = {
   campaign_actions__campaign_delete: {
     render: () => null,
   },
+  campaign_actions__campaign_update_state: {
+    render: () => null,
+  },
 
   // Brand actions
   brand_actions__brand_create: {
@@ -397,6 +406,9 @@ export const actionRegistry: ActionRegistry = {
     render: () => null, // TODO: Implement UpdateInvoiceForm
   },
   invoice_actions__invoice_delete: {
+    render: () => null,
+  },
+  invoice_actions__invoice_update_state: {
     render: () => null,
   },
 

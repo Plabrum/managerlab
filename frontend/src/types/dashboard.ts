@@ -4,7 +4,8 @@ export type WidgetType =
   | 'bar_chart'
   | 'line_chart'
   | 'pie_chart'
-  | 'stat_number';
+  | 'stat_number'
+  | 'kanban';
 
 export interface WidgetPosition {
   x: number;

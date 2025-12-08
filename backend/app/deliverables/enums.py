@@ -23,6 +23,7 @@ class DeliverableActions(StrEnum):
     delete = "deliverable.delete"
     update = "deliverable.update"
     add_media = "deliverable.add_media"
+    update_state = "deliverable.update_state"
 
 
 class DeliverableMediaActions(StrEnum):

@@ -11,7 +11,8 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, RedirectActionResult
-from app.campaigns.enums import CampaignActions
+from app.actions.state_actions import BaseUpdateStateAction, UpdateStateData
+from app.campaigns.enums import CampaignActions, CampaignStates
 from app.campaigns.models import Campaign, CampaignContract
 from app.campaigns.schemas import (
     AddContractToCampaignSchema,
@@ -229,3 +230,9 @@ class CreateCampaign(BaseTopLevelAction[CampaignCreateSchema]):
             action_result=RedirectActionResult(path=f"/campaigns/{new_campaign.id}?edit=true"),
             created_id=new_campaign.id,
         )
+
+
+@campaign_actions
+class UpdateCampaignState(BaseUpdateStateAction[Campaign, CampaignStates]):
+    action_key = CampaignActions.update_state
+    state_enum = CampaignStates
