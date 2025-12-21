@@ -40,6 +40,8 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  openHover: boolean;
+  setOpenHover: (open: boolean) => void;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -68,6 +70,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
+  const [openHover, setOpenHover] = React.useState(false);
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -112,7 +115,8 @@ function SidebarProvider({
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
   // On mobile, always use expanded state so menus use Collapsible instead of DropdownMenu
-  const state = open || isMobile ? 'expanded' : 'collapsed';
+  // Also expand when hovering over the sidebar trigger zone
+  const state = open || openHover || isMobile ? 'expanded' : 'collapsed';
 
   const contextValue = React.useMemo<SidebarContextProps>(
     () => ({
@@ -123,8 +127,10 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      openHover,
+      setOpenHover,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, openHover]
   );
 
   return (
@@ -164,7 +170,21 @@ function Sidebar({
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, state, openMobile, setOpenMobile, open, openHover, setOpenHover } = useSidebar();
+
+  // Handle mouse leave to close hover state (must be before early returns for hooks rules)
+  const handleMouseLeave = React.useCallback(() => {
+    if (openHover) {
+      setOpenHover(false);
+    }
+  }, [openHover, setOpenHover]);
+
+  // Handle mouse enter on the hover trigger zone
+  const handleHoverTriggerEnter = React.useCallback(() => {
+    if (!open && collapsible === 'offcanvas') {
+      setOpenHover(true);
+    }
+  }, [open, collapsible, setOpenHover]);
 
   if (collapsible === 'none') {
     return (
@@ -227,8 +247,21 @@ function Sidebar({
             : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
         )}
       />
+      {/* Hover trigger zone - appears when sidebar is collapsed in offcanvas mode */}
+      {!open && collapsible === 'offcanvas' && (
+        <div
+          data-slot="sidebar-hover-trigger"
+          onMouseEnter={handleHoverTriggerEnter}
+          className={cn(
+            'fixed inset-y-0 z-10 w-2 transition-colors duration-200',
+            'hover:bg-sidebar-border/50',
+            side === 'left' ? 'left-0' : 'right-0'
+          )}
+        />
+      )}
       <div
         data-slot="sidebar-container"
+        onMouseLeave={handleMouseLeave}
         className={cn(
           'w-(--sidebar-width) fixed inset-y-0 z-10 hidden h-svh transition-[left,right,width] duration-200 ease-linear md:flex',
           side === 'left'
