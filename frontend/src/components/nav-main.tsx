@@ -10,12 +10,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
@@ -24,7 +18,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  useSidebar,
 } from '@/components/ui/sidebar';
 
 export function NavMain({
@@ -42,7 +35,6 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
-  const { state } = useSidebar();
 
   return (
     <SidebarGroup>
@@ -53,7 +45,7 @@ export function NavMain({
           const isItemActive =
             pathname === item.url || pathname.startsWith(item.url + '/');
 
-          // If item has sub-items, render as collapsible when expanded, dropdown when collapsed
+          // If item has sub-items, render as collapsible
           if (item.items && item.items.length > 0) {
             // Check if any sub-item is active
             const hasActiveSubItem = item.items.some(
@@ -62,39 +54,6 @@ export function NavMain({
                 pathname.startsWith(subItem.url + '/')
             );
 
-            // When collapsed, show dropdown menu
-            if (state === 'collapsed') {
-              return (
-                <SidebarMenuItem key={item.title}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip={item.title}
-                        isActive={hasActiveSubItem}
-                      >
-                        {item.icon && <item.icon />}
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      side="right"
-                      align="start"
-                      className="w-48"
-                    >
-                      {item.items.map((subItem) => (
-                        <DropdownMenuItem key={subItem.title} asChild>
-                          <Link href={subItem.url} className="cursor-pointer">
-                            {subItem.title}
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
-              );
-            }
-
-            // When expanded, show collapsible
             return (
               <Collapsible
                 key={item.title}
