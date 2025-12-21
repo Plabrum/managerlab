@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@latest", "/Users/phil/repos/arive"],
+      "description": "Access to project filesystem for reading/writing files"
+    },
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres@latest"],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/arive_dev}"
+      },
+      "description": "Direct PostgreSQL database access for queries and schema inspection"
+    },
+    "shadcn": {
+      "type": "http",
+      "url": "https://www.shadcn.io/api/mcp",
+      "description": "Official shadcn/ui MCP - browse, search, and get installation guidance for shadcn/ui components"
+    }
+  }
+}

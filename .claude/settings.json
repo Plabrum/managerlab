@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "PROJECT_ROOT": "/Users/phil/repos/arive",
+    "PYTHONPATH": "/Users/phil/repos/arive/backend",
+    "NODE_ENV": "development"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(make:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker images:*)",
+      "Bash(docker inspect:*)",
+      "Bash(docker exec:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run alembic:*)",
+      "Bash(uv run ruff:*)",
+      "Bash(uv run python:*)",
+      "Bash(pnpm:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(psql:*)",
+      "Bash(aws configure get:*)",
+      "Bash(aws s3:*)",
+      "Bash(aws ecs describe:*)",
+      "Bash(terraform plan:*)",
+      "Bash(terraform show:*)",
+      "Bash(terraform workspace:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh repo:*)",
+      "Read(**/*.py)",
+      "Read(**/*.ts)",
+      "Read(**/*.tsx)",
+      "Read(**/*.json)",
+      "Read(**/*.md)",
+      "Read(**/*.yml)",
+      "Read(**/*.yaml)",
+      "Read(**/*.toml)",
+      "Read(**/*.sql)",
+      "Read(**/*.sh)",
+      "Read(.env.example)",
+      "Edit(**/*.py)",
+      "Edit(**/*.ts)",
+      "Edit(**/*.tsx)",
+      "Edit(**/*.json)",
+      "Edit(**/*.md)",
+      "Edit(**/*.yml)",
+      "Edit(**/*.yaml)",
+      "Edit(**/*.toml)",
+      "Edit(**/*.sql)",
+      "Edit(**/*.sh)",
+      "Write(**/*.py)",
+      "Write(**/*.ts)",
+      "Write(**/*.tsx)",
+      "Write(**/*.md)",
+      "Write(**/*.sql)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(secrets/**)",
+      "Read(**/*_rsa)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(secrets/**)",
+      "Write(.env)",
+      "Write(.env.*)",
+      "Write(secrets/**)",
+      "Bash(docker compose down -v:*)",
+      "Bash(docker volume rm:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(terraform apply:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(aws s3 rm:*)",
+      "Bash(aws ecs delete:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(docker compose down:*)",
+      "Bash(alembic downgrade:*)",
+      "Bash(gh pr create:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(uv add:*)"
+    ]
+  },
+  "model": "claude-sonnet-4-5-20250929",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file_path=$(jq -r '.tool_input.file_path'); if echo \"$file_path\" | grep -qE '\\.py$'; then cd /Users/phil/repos/arive/backend && uv run ruff format \"$file_path\" 2>/dev/null && uv run ruff check --fix \"$file_path\" 2>/dev/null; fi"
+          },
+          {
+            "type": "command",
+            "command": "file_path=$(jq -r '.tool_input.file_path'); if echo \"$file_path\" | grep -qE '\\.(ts|tsx|js|jsx)$'; then cd /Users/phil/repos/arive/frontend && npx prettier --write \"$file_path\" 2>/dev/null; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); blocked = ['.env', 'package-lock.json', 'pnpm-lock.yaml', 'uv.lock', '.git/', 'node_modules/', '__pycache__/', '.terraform/', 'terraform.tfstate']; sys.exit(2 if any(p in path for p in blocked) else 0)\""
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true
+  },
+  "outputStyle": "Explanatory",
+  "alwaysThinkingEnabled": false
+}

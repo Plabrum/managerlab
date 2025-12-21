@@ -192,6 +192,60 @@ make dev-emails
 make build-emails
 ```
 
+### Claude Code Integration
+
+This project includes Claude Code configuration with custom skills and automation.
+
+#### Setup
+
+```bash
+# Install Claude Code CLI
+curl -fsSL https://cli.claude.ai/install.sh | sh
+
+# Authenticate
+claude auth login
+
+# Optional: Set environment variable for PostgreSQL MCP
+export DATABASE_URL="postgresql://..."    # Optional, defaults to local dev database
+
+# Authenticate with GitHub CLI (for GitHub MCP)
+gh auth login
+
+# Start Claude Code in project directory
+claude code
+```
+
+**Included MCP Servers:**
+- **shadcn/ui** - Component discovery and installation guidance
+- **GitHub** - PR automation and issue management
+- **PostgreSQL** - Direct database queries and schema inspection
+- **Context7** - Up-to-date docs for React, Next.js, Litestar, SQLAlchemy
+- **Filesystem** - Project file system access
+
+#### Available Skills
+
+Custom skills that activate automatically based on context:
+
+- `/db-workflow` - Database migration workflow (model changes → migration → apply → test)
+- `/test-workflow` - Run tests, type checking, and linting for backend & frontend
+- `/api-codegen` - Regenerate TypeScript API client from OpenAPI schema
+- `/email-dev` - Email template development with React Email
+- `/docker-health` - Docker build and health check validation
+- `/check-all` - Pre-release checks (types, lints, tests)
+
+#### Usage Examples
+
+```
+# Just describe what you want in natural language:
+> I need to add a "bio" field to the user model
+> Run all tests and make sure they pass
+> Create a welcome email template
+> Build the Docker image and verify it's healthy
+> I changed the API, update the frontend types
+```
+
+Skills activate automatically and guide you through the complete workflow. Auto-formatting (ruff for Python, prettier for TypeScript) runs on save.
+
 ## Key Features
 
 ### Universal Action System
