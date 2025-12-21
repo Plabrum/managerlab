@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Platform-Specific Guides
+
+This document covers overall project architecture and common commands. For platform-specific development:
+
+- **[Backend Development Guide](backend/CLAUDE.md)** - Python/Litestar backend, database, testing, and async tasks
+- **[Frontend Development Guide](frontend/CLAUDE.md)** - Next.js/React frontend, TypeScript, and UI components
+- **[Email Template Development](backend/emails/CLAUDE.md)** - React Email templates with Tailwind CSS
+- **[Infrastructure Guide](infra/CLAUDE.md)** - AWS deployment, Terraform, and DevOps
+
 ## Common Development Commands
 
 ### Core Development
@@ -299,6 +308,30 @@ QueueConfig(
 - `"0 */6 * * *"` - Every 6 hours
 
 
-# Code Preferences:
-- Use <object> | None over Optional[<objec>]
-- datetime.utcnow() is deprecated please use datetime.now(tz=timezone.utc)
+# Code Preferences
+
+## Python
+- Use `<object> | None` over `Optional[<object>]`
+- Use `datetime.now(tz=timezone.utc)` not `datetime.utcnow()` (deprecated)
+- 4-space indents (not tabs)
+- snake_case for modules/functions/variables
+- PascalCase for classes
+
+## TypeScript
+- 2-space indents (Prettier enforced)
+- kebab-case for component filenames
+- PascalCase for component exports
+- Use `const` over `let`
+
+## Git & Pull Requests
+
+### Commit Messages
+- Use focused, imperative commits: `auth: add Google callback handler`
+- Reference issues: `fix: resolve campaign creation bug (#123)`
+- Never commit secrets or Terraform state
+
+### Pull Requests
+- Document scope and verification steps (lint, tests, Docker smoke test)
+- Attach UI screenshots when relevant
+- Note Terraform diffs and rollout steps for infra changes
+- Keep PRs focused on a single feature/fix
