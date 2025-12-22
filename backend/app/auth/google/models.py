@@ -31,10 +31,14 @@ class GoogleOAuthAccount(BaseDBModel):
 
 
 class GoogleOAuthState(BaseDBModel):
-    """Model for storing OAuth state tokens to prevent CSRF attacks."""
+    """Model for storing OAuth state tokens to prevent CSRF attacks.
+
+    The return_url field stores where to redirect the user after successful OAuth,
+    enabling preview deployments to work correctly by preserving the original frontend URL.
+    """
 
     __tablename__ = "google_oauth_states"
 
     state: Mapped[str] = mapped_column(sa.String(255), unique=True, index=True, nullable=False)
-    redirect_uri: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
+    return_url: Mapped[str] = mapped_column(sa.Text, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)

@@ -52,20 +52,27 @@ class GoogleOAuthService:
         logger.info("auth_url: %s", auth_url)
         return auth_url, state
 
-    async def store_oauth_state(
-        self, transaction: AsyncSession, state: str, redirect_uri: str | None = None
-    ) -> GoogleOAuthState:
-        """Store OAuth state in database for CSRF protection."""
+    async def store_oauth_state(self, transaction: AsyncSession, state: str, return_url: str) -> GoogleOAuthState:
+        """Store OAuth state in database for CSRF protection.
+
+        Args:
+            transaction: Database session
+            state: Random CSRF token
+            return_url: Frontend URL to redirect to after OAuth completes
+        """
         oauth_state = GoogleOAuthState(
             state=state,
-            redirect_uri=redirect_uri,
+            return_url=return_url,
             expires_at=datetime.now(tz=UTC) + timedelta(minutes=10),
         )
         transaction.add(oauth_state)
         return oauth_state
 
     async def verify_oauth_state(self, transaction: AsyncSession, state: str) -> GoogleOAuthState | None:
-        """Verify OAuth state token and return stored state if valid."""
+        """Verify OAuth state token and return stored state if valid.
+
+        Returns the GoogleOAuthState record which contains the return_url for post-auth redirect.
+        """
         stmt = select(GoogleOAuthState).where(
             GoogleOAuthState.state == state,
             GoogleOAuthState.expires_at > datetime.now(tz=UTC),

@@ -45,13 +45,20 @@ def provide_google_oauth_service(
 
 
 @get("/login", guards=[])
-async def google_login(transaction: AsyncSession, oauth_service: GoogleOAuthService) -> Response:
+async def google_login(
+    transaction: AsyncSession,
+    oauth_service: GoogleOAuthService,
+    return_url: str | None = None,
+) -> Response:
     """Initiate Google OAuth login flow."""
-    # Generate authorization URL and state
+    # Use provided return_url or fall back to configured SUCCESS_REDIRECT_URL
+    final_return_url = return_url or oauth_service.config.SUCCESS_REDIRECT_URL
+
+    # Generate authorization URL and state token
     auth_url, state = oauth_service.generate_auth_url()
 
-    # Store state in database for CSRF protection
-    await oauth_service.store_oauth_state(transaction, state)
+    # Store state and return_url in database for CSRF protection and post-auth redirect
+    await oauth_service.store_oauth_state(transaction, state, final_return_url)
 
     # Redirect to Google OAuth
     return Response(content="", status_code=HTTP_302_FOUND, headers={"Location": auth_url})
@@ -132,10 +139,10 @@ async def google_callback(
             logger.warning(f"User {user.id} logged in but has no team or campaign access")
             # Don't set scope - they'll see an error when trying to access resources
 
-    # Redirect to frontend success page
-    frontend_url = oauth_service.config.SUCCESS_REDIRECT_URL
+    # Get return URL from the OAuth state record
+    frontend_url = oauth_state.return_url
 
-    logger.info(f"User {user.id} logged in via Google OAuth, going to {frontend_url}")
+    logger.info(f"User {user.id} logged in via Google OAuth, redirecting to {frontend_url}")
     return Response(
         content="",
         status_code=HTTP_302_FOUND,

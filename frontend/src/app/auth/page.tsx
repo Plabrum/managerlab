@@ -53,7 +53,11 @@ function AuthContent() {
     const baseUrl = (
       process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
     ).replace(/\/$/, '');
-    window.location.href = `${baseUrl}/auth/google/login`;
+
+    // Build return URL using current origin (supports preview deployments)
+    const returnUrl = `${window.location.origin}/dashboard`;
+
+    window.location.href = `${baseUrl}/auth/google/login?return_url=${encodeURIComponent(returnUrl)}`;
   };
 
   const handleMagicLinkSubmit = async (e: React.FormEvent) => {
