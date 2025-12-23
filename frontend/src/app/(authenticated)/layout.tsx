@@ -99,7 +99,7 @@ export default function AuthenticatedLayout({
   // Normal layout with sidebar for users with teams
   return (
     <AuthProvider user={user} initialTeams={teams}>
-      <SidebarProvider defaultOpen={false}>
+      <SidebarProvider defaultOpen={true}>
         <AppSidebar />
         <SidebarInset>
           <main className="flex flex-1 flex-col">
