@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo, useCallback } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -10,6 +10,10 @@ import type {
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableSearch } from '@/components/data-table/data-table-search';
 import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
+import { ViewModeSelector } from './view-mode-selector';
+import { GalleryView } from './gallery-view';
+import { CardView } from './card-view';
+import { useViewModePreference } from '@/hooks/use-view-mode-preference';
 import {
   useListObjectsSuspense,
   useOObjectTypeSchemaGetObjectSchemaSuspense,
@@ -86,6 +90,10 @@ export function ObjectList({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
   const [isPending, startTransition] = useTransition();
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+
+  // View mode preference
+  const { viewMode, setViewMode } = useViewModePreference(objectType);
 
   // Action execution state
   const [pendingAction, setPendingAction] = useState<{
@@ -140,6 +148,47 @@ export function ObjectList({
 
   // Fetch data
   const { data } = useListObjectsSuspense(objectType, request);
+
+  // Convert rowSelection to Set for gallery/card views
+  const selectedRowsSet = useMemo(
+    () => new Set(Object.keys(rowSelection).filter((key) => rowSelection[key])),
+    [rowSelection]
+  );
+
+  // Handle selection in gallery/card views
+  const handleViewSelection = useCallback(
+    (rowId: string, selected: boolean) => {
+      setRowSelection((prev) => ({ ...prev, [rowId]: selected }));
+    },
+    []
+  );
+
+  // Get selected rows data for bulk actions
+  const selectedRowsData = useMemo(
+    () => data.objects.filter((obj) => selectedRowsSet.has(obj.id)),
+    [data.objects, selectedRowsSet]
+  );
+
+  // Get common bulk actions across all selected rows
+  const commonBulkActions = useMemo(() => {
+    if (selectedRowsData.length === 0) return [];
+
+    const firstRowActions =
+      selectedRowsData[0].actions?.filter(
+        (action) => action.is_bulk_allowed && action.available !== false
+      ) || [];
+
+    return firstRowActions.filter((action) =>
+      selectedRowsData.every((row) =>
+        row.actions?.some(
+          (a) =>
+            a.action === action.action &&
+            a.is_bulk_allowed &&
+            a.available !== false
+        )
+      )
+    );
+  }, [selectedRowsData]);
 
   // Convert ObjectListSchema fields array to a typed object
   // This converts the list view data to a shape compatible with domain objects
@@ -377,15 +426,21 @@ export function ObjectList({
 
   return (
     <div className="container mx-auto flex flex-col gap-2 p-6">
+      {/* Search + View Selector */}
       {enableSearch && (
-        <div className="flex items-center gap-4">
-          <DataTableSearch
-            value={searchTerm ?? ''}
-            onChangeAction={handleSearchChange}
-            placeholder={placeholder}
-          />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <DataTableSearch
+              value={searchTerm ?? ''}
+              onChangeAction={handleSearchChange}
+              placeholder={placeholder}
+            />
+          </div>
+          <ViewModeSelector value={viewMode} onChange={setViewMode} />
         </div>
       )}
+
+      {/* Applied Filters */}
       {enableColumnFilters && (
         <DataTableAppliedFilters
           filters={columnFilters}
@@ -393,24 +448,74 @@ export function ObjectList({
           onUpdate={handleFiltersChange}
         />
       )}
-      <DataTable
-        isLoading={isPending}
-        columns={schema.columns}
-        data={data.objects}
-        totalCount={data.total}
-        enableRowSelection={enableRowSelection}
-        enableSorting={enableSorting}
-        enableColumnVisibility={enableColumnVisibility}
-        enableColumnFilters={enableColumnFilters}
-        paginationState={paginationState}
-        sortingState={sortingState}
-        columnFilters={columnFilters}
-        onPaginationChange={handlePaginationChange}
-        onSortingChange={handleSortingChange}
-        onFiltersChange={handleFiltersChange}
-        onActionClick={handleRowActionClick}
-        onBulkActionClick={handleBulkAction}
-      />
+
+      {/* Conditional View Rendering */}
+      {viewMode === 'table' && (
+        <DataTable
+          isLoading={isPending}
+          columns={schema.columns}
+          data={data.objects}
+          totalCount={data.total}
+          enableRowSelection={enableRowSelection}
+          enableSorting={enableSorting}
+          enableColumnVisibility={enableColumnVisibility}
+          enableColumnFilters={enableColumnFilters}
+          paginationState={paginationState}
+          sortingState={sortingState}
+          columnFilters={columnFilters}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          onFiltersChange={handleFiltersChange}
+          onActionClick={handleRowActionClick}
+          onBulkActionClick={handleBulkAction}
+        />
+      )}
+      {viewMode === 'gallery' && (
+        <GalleryView
+          data={data.objects}
+          columns={schema.columns}
+          enableRowSelection={enableRowSelection}
+          selectedRows={selectedRowsSet}
+          onRowSelectionChange={handleViewSelection}
+          onRowClick={onRowClick}
+        />
+      )}
+      {viewMode === 'card' && (
+        <CardView
+          data={data.objects}
+          columns={schema.columns}
+          enableRowSelection={enableRowSelection}
+          selectedRows={selectedRowsSet}
+          onRowSelectionChange={handleViewSelection}
+          onRowClick={onRowClick}
+        />
+      )}
+
+      {/* Bulk Actions Bar (for gallery/card views only - table has its own) */}
+      {viewMode !== 'table' &&
+        selectedRowsData.length > 0 &&
+        commonBulkActions.length > 0 && (
+          <div className="bg-muted mt-4 flex items-center justify-between rounded-md border p-3">
+            <div className="text-sm font-medium">
+              {selectedRowsData.length} of {data.objects.length} row(s) selected
+            </div>
+            <div className="flex gap-2">
+              {commonBulkActions.map((action) => (
+                <button
+                  key={action.action}
+                  type="button"
+                  onClick={() => {
+                    handleBulkAction(action.action, selectedRowsData);
+                    setRowSelection({});
+                  }}
+                  className="hover:bg-primary/90 bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm font-medium"
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
