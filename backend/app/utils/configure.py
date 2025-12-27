@@ -222,6 +222,8 @@ class DevelopmentConfig(Config):
 class TestConfig(Config):
     """Test environment configuration."""
 
+    __test__ = False  # Tell pytest not to collect this as a test class
+
     ENV: str = "testing"
 
     # Test-specific defaults
