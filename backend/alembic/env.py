@@ -14,7 +14,6 @@ from app.utils.configure import config as app_config
 
 # Import your models and config
 from app.utils.discovery import discover_and_import
-from app.utils.sqids import SqidType
 
 discover_and_import(["models.py", "models/**/*.py"], base_path="app")
 
@@ -48,23 +47,26 @@ register_entities(get_existing_policies() + get_table_grants())
 comparators.dispatch_for("table")(compare_rls)
 
 
-# Custom renderers for custom types
-from alembic.autogenerate import renderers
-from app.state_machine.models import TextEnum
+from sqlalchemy import TypeDecorator
 
 
-@renderers.dispatch_for(SqidType)
-def render_sqid_type(type_, object_, autogen_context):
-    """Render SqidType with proper import in migration files."""
-    autogen_context.imports.add("from app.utils.sqids import SqidType")
-    return "SqidType()"
+def render_item(type_, obj, autogen_context):
+    if type_ == "type" and isinstance(obj, TypeDecorator):
+        # Get the class name from the instance
+        class_name = obj.__class__.__name__
 
+        # SqidType
+        if class_name == "SqidType":
+            autogen_context.imports.add("from app.utils.sqids import SqidType")
+            return "SqidType()"
 
-@renderers.dispatch_for(TextEnum)
-def render_text_enum(type_, object_, autogen_context):
-    """Render TextEnum with proper import in migration files."""
-    autogen_context.imports.add("from app.state_machine.models import TextEnum")
-    return "TextEnum()"
+        # TextEnum
+        elif class_name == "TextEnum":
+            autogen_context.imports.add("from app.state_machine.models import TextEnum")
+            return "TextEnum()"
+
+    # Let Alembic handle everything else
+    return False
 
 
 # this is the Alembic Config object, which provides
@@ -106,6 +108,9 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
+        process_revision_directives=process_revision_directives,
+        render_item=render_item,  # Custom renderer for TypeDecorator types
     )
 
     with context.begin_transaction():
@@ -129,11 +134,12 @@ def include_object(object, name, type_, reflected, compare_to):
 
 
 def process_revision_directives(context, revision, directives):
-    """Post-process generated migrations to add required imports."""
-    if directives[0].upgrade_ops:
-        # Add imports for custom types
-        directives[0].imports.add("from app.utils.sqids import SqidType")
-        directives[0].imports.add("from app.state_machine.models import TextEnum")
+    """Post-process generated migrations.
+
+    Currently unused but kept for potential future customization.
+    Custom type imports are now handled by the render_item callback.
+    """
+    pass
 
 
 def do_run_migrations(connection: Connection) -> None:
@@ -142,6 +148,7 @@ def do_run_migrations(connection: Connection) -> None:
         target_metadata=target_metadata,
         include_object=include_object,
         process_revision_directives=process_revision_directives,
+        render_item=render_item,  # Custom renderer for TypeDecorator types
     )
 
     with context.begin_transaction():

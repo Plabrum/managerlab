@@ -1,22 +1,24 @@
-"""rls
+"""saved_views_rls
 
-Revision ID: 4a15257046e0
-Revises: f8803b91e9b9
-Create Date: 2025-12-25 22:44:17.090305
+Revision ID: c6496061f143
+Revises: c0ef6cda2b49
+Create Date: 2025-12-27 14:02:12.338513
 
 """
 
-from collections.abc import Sequence
+from typing import Sequence, Union
 
+import sqlalchemy as sa
 from alembic_utils.pg_policy import PGPolicy
+from sqlalchemy import text as sql_text
 
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "4a15257046e0"
-down_revision: str | Sequence[str] | None = "f8803b91e9b9"
-branch_labels: str | Sequence[str] | None = None
-depends_on: str | Sequence[str] | None = None
+revision: str = "c6496061f143"
+down_revision: Union[str, Sequence[str], None] = "c0ef6cda2b49"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
