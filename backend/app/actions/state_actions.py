@@ -34,7 +34,7 @@ class BaseUpdateStateAction(BaseObjectAction[O, UpdateStateData], ABC, Generic[O
     icon: ClassVar[ActionIcon] = ActionIcon.edit
     is_hidden: ClassVar[bool] = True  # Hidden from dropdown, only used by kanban
 
-    state_enum: ClassVar[type[StrEnum]]
+    state_enum: ClassVar[type[E]]
     state_field: ClassVar[str] = "state"
 
     @classmethod

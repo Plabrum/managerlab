@@ -40,7 +40,7 @@ async def clear_user_defaults(
         .where(
             SavedView.user_id == user_id,
             SavedView.object_type == object_type,
-            SavedView.is_default == True,  # noqa: E712
+            SavedView.is_default.is_(True),
         )
         .values(is_default=False)
     )
@@ -98,7 +98,7 @@ async def get_or_create_default_view(
     stmt = select(SavedView).where(
         SavedView.object_type == object_type,
         SavedView.user_id == user_id,
-        SavedView.is_default == True,  # noqa: E712
+        SavedView.is_default.is_(True),
     )
     result = await session.execute(stmt)
     user_default = result.scalar_one_or_none()

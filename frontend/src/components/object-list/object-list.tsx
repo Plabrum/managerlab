@@ -158,7 +158,7 @@ export function ObjectList({
       setViewMode((currentView.config.display_mode as ViewMode) || 'table');
       setColumnVisibility(currentView.config.column_visibility || {});
     }
-  }, [currentView?.id, currentView?.config]);
+  }, [currentView?.id]);
 
   // Build current config from state
   const currentConfig: SavedViewConfigSchema | undefined = currentView

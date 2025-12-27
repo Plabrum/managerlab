@@ -3,7 +3,6 @@
 from datetime import datetime
 from typing import Any
 
-from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.objects.enums import ObjectTypes
 from app.utils.sqids import Sqid
