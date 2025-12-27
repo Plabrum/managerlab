@@ -169,12 +169,12 @@ export type ActionToObjectMap = {
  * Each key must be a valid action type from the union
  * Object data is strongly typed based on the action's object type
  */
-export type ActionRegistry = {
+export type ActionRegistry = Partial<{
   [K in ActionType]: ActionRegistryEntry<
     ActionDataTypeMap[K],
     K extends keyof ActionToObjectMap ? ActionToObjectMap[K] : DomainObject
   >;
-};
+}>;
 
 /**
  * The central action registry

@@ -32,6 +32,8 @@ import type {
   AuthGoogleCallbackGoogleCallback400,
   AuthGoogleCallbackGoogleCallbackParams,
   AuthGoogleLoginGoogleLogin200,
+  AuthGoogleLoginGoogleLogin400,
+  AuthGoogleLoginGoogleLoginParams,
   AuthMagicLinkRequestRequestMagicLink400,
   AuthMagicLinkVerifyVerifyMagicLink200,
   AuthMagicLinkVerifyVerifyMagicLink400,
@@ -325,13 +327,14 @@ export const useAuthSwitchScopeSwitchScope = <TError = AuthSwitchScopeSwitchScop
  * @summary GoogleLogin
  */
 export const authGoogleLoginGoogleLogin = (
-    
+    params?: AuthGoogleLoginGoogleLoginParams,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<AuthGoogleLoginGoogleLogin200>(
-      {url: `/auth/google/login`, method: 'GET', signal
+      {url: `/auth/google/login`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -339,23 +342,23 @@ export const authGoogleLoginGoogleLogin = (
 
 
 
-export const getAuthGoogleLoginGoogleLoginQueryKey = () => {
+export const getAuthGoogleLoginGoogleLoginQueryKey = (params?: AuthGoogleLoginGoogleLoginParams,) => {
     return [
-    `/auth/google/login`
+    `/auth/google/login`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getAuthGoogleLoginGoogleLoginQueryOptions = <TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export const getAuthGoogleLoginGoogleLoginQueryOptions = <TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getAuthGoogleLoginGoogleLoginQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getAuthGoogleLoginGoogleLoginQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>> = ({ signal }) => authGoogleLoginGoogleLogin(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>> = ({ signal }) => authGoogleLoginGoogleLogin(params, signal);
 
       
 
@@ -365,11 +368,11 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type AuthGoogleLoginGoogleLoginQueryResult = NonNullable<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>>
-export type AuthGoogleLoginGoogleLoginQueryError = unknown
+export type AuthGoogleLoginGoogleLoginQueryError = AuthGoogleLoginGoogleLogin400
 
 
-export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>> & Pick<
+export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params: undefined |  AuthGoogleLoginGoogleLoginParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>,
           TError,
@@ -378,8 +381,8 @@ export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>> & Pick<
+export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>,
           TError,
@@ -388,20 +391,20 @@ export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary GoogleLogin
  */
 
-export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getAuthGoogleLoginGoogleLoginQueryOptions(options)
+  const queryOptions = getAuthGoogleLoginGoogleLoginQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -412,16 +415,16 @@ export function useAuthGoogleLoginGoogleLogin<TData = Awaited<ReturnType<typeof 
 
 
 
-export const getAuthGoogleLoginGoogleLoginSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export const getAuthGoogleLoginGoogleLoginSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getAuthGoogleLoginGoogleLoginQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getAuthGoogleLoginGoogleLoginQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>> = ({ signal }) => authGoogleLoginGoogleLogin(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>> = ({ signal }) => authGoogleLoginGoogleLogin(params, signal);
 
       
 
@@ -431,31 +434,31 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type AuthGoogleLoginGoogleLoginSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>>
-export type AuthGoogleLoginGoogleLoginSuspenseQueryError = unknown
+export type AuthGoogleLoginGoogleLoginSuspenseQueryError = AuthGoogleLoginGoogleLogin400
 
 
-export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params: undefined |  AuthGoogleLoginGoogleLoginParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary GoogleLogin
  */
 
-export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = unknown>(
-  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
+export function useAuthGoogleLoginGoogleLoginSuspense<TData = Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError = AuthGoogleLoginGoogleLogin400>(
+ params?: AuthGoogleLoginGoogleLoginParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof authGoogleLoginGoogleLogin>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getAuthGoogleLoginGoogleLoginSuspenseQueryOptions(options)
+  const queryOptions = getAuthGoogleLoginGoogleLoginSuspenseQueryOptions(params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

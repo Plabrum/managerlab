@@ -9,10 +9,6 @@ from alembic.autogenerate import comparators
 from app.base.grants import get_table_grants
 from app.base.models import BaseDBModel
 from app.base.rls_comparator import compare_rls
-from app.base.rls_operations import (
-    DisableRLSOp,
-    EnableRLSOp,
-)  # noqa: F401 - needed for renderer registration
 from app.base.scope_mixins import RLS_POLICY_REGISTRY
 from app.utils.configure import config as app_config
 
@@ -140,25 +136,12 @@ def process_revision_directives(context, revision, directives):
         directives[0].imports.add("from app.state_machine.models import TextEnum")
 
 
-def custom_writer(path, content):
-    """Custom writer to fix qualified type names in generated migrations."""
-    # Replace qualified type names with simple names (since we import them)
-    content = content.replace("app.utils.sqids.SqidType()", "SqidType()")
-    content = content.replace("app.state_machine.models.TextEnum()", "TextEnum()")
-
-    # Write the modified content
-    with open(path, "w") as f:
-        f.write(content)
-    return path
-
-
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
         include_object=include_object,
         process_revision_directives=process_revision_directives,
-        template_args={"script_py_writer": custom_writer},
     )
 
     with context.begin_transaction():

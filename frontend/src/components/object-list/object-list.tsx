@@ -1,23 +1,37 @@
 'use client';
 
-import { useState, useTransition, useMemo, useCallback } from 'react';
+import {
+  useState,
+  useEffect,
+  useTransition,
+  useMemo,
+  useCallback,
+} from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
   PaginationState,
+  VisibilityState,
   Updater,
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableSearch } from '@/components/data-table/data-table-search';
 import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
-import { ViewModeSelector } from './view-mode-selector';
+import { SavedViewSettings } from './saved-view-settings';
+import { SavedViewTabs } from './saved-view-tabs';
+import type { SavedViewConfigSchema } from '@/openapi/ariveAPI.schemas';
 import { GalleryView } from './gallery-view';
 import { CardView } from './card-view';
 import { useViewModePreference } from '@/hooks/use-view-mode-preference';
+import type { ViewMode } from '@/types/view-modes';
 import {
   useListObjectsSuspense,
   useOObjectTypeSchemaGetObjectSchemaSuspense,
 } from '@/openapi/objects/objects';
+import {
+  useViewsObjectTypeListSavedViewsSuspense,
+  useViewsObjectTypeDefaultGetDefaultViewSuspense,
+} from '@/openapi/views/views';
 import {
   sortingStateToSortDefinitions,
   paginationStateToRequest,
@@ -58,6 +72,9 @@ interface ObjectListProps {
   searchPlaceholder?: string;
   onRowClick?: (row: ObjectListSchema) => void;
   onBulkAction?: (action: string, rows: ObjectListSchema[]) => void;
+  // SavedView props (optional for tab switching)
+  currentViewId?: unknown | null;
+  onViewSelect?: (id: unknown | null) => void;
 }
 
 /**
@@ -80,7 +97,20 @@ export function ObjectList({
   searchPlaceholder,
   onRowClick,
   onBulkAction,
+  currentViewId,
+  onViewSelect,
 }: ObjectListProps) {
+  // Fetch SavedView data internally
+  const { data: savedViews } =
+    useViewsObjectTypeListSavedViewsSuspense(objectType);
+  const { data: defaultView } =
+    useViewsObjectTypeDefaultGetDefaultViewSuspense(objectType);
+
+  // Find selected view in the list (all views include full config now)
+  const currentView =
+    currentViewId !== null && currentViewId !== undefined
+      ? savedViews.find((v) => v.id === currentViewId) || defaultView
+      : defaultView;
   // Table state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
@@ -88,12 +118,18 @@ export function ObjectList({
   });
   const [sortingState, setSortingState] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
   const [isPending, startTransition] = useTransition();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
 
-  // View mode preference
-  const { viewMode, setViewMode } = useViewModePreference(objectType);
+  // View mode - managed internally, fallback to preference hook for non-SavedView pages
+  const preferenceHook = useViewModePreference(objectType);
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    (currentView?.config?.display_mode as ViewMode) ||
+      preferenceHook.viewMode ||
+      'table'
+  );
 
   // Action execution state
   const [pendingAction, setPendingAction] = useState<{
@@ -115,6 +151,49 @@ export function ObjectList({
   // Fetch schema metadata (cacheable)
   const { data: schema } =
     useOObjectTypeSchemaGetObjectSchemaSuspense(objectType);
+
+  // Reset viewMode and column visibility when switching views (tab change)
+  useEffect(() => {
+    if (currentView?.config) {
+      setViewMode((currentView.config.display_mode as ViewMode) || 'table');
+      setColumnVisibility(currentView.config.column_visibility || {});
+    }
+  }, [currentView?.id, currentView?.config]);
+
+  // Build current config from state
+  const currentConfig: SavedViewConfigSchema | undefined = currentView
+    ? {
+        display_mode: viewMode,
+        column_filters: [],
+        column_visibility: columnVisibility,
+        sorting: [],
+        search_term: searchTerm || null,
+        page_size: paginationState.pageSize,
+        schema_version: 1,
+      }
+    : undefined;
+
+  // Detect unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    if (!currentView?.id || !currentView?.config) return false;
+
+    // Compare display mode
+    if (viewMode !== currentView.config.display_mode) return true;
+
+    // Compare column visibility (deep equality check)
+    const savedVisibility = currentView.config.column_visibility || {};
+    const currentVisibilityKeys = Object.keys(columnVisibility);
+    const savedVisibilityKeys = Object.keys(savedVisibility);
+
+    if (currentVisibilityKeys.length !== savedVisibilityKeys.length)
+      return true;
+
+    for (const key of currentVisibilityKeys) {
+      if (columnVisibility[key] !== savedVisibility[key]) return true;
+    }
+
+    return false;
+  }, [currentView, viewMode, columnVisibility]);
 
   // Wrap state updates in startTransition to prevent Suspense fallback
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
@@ -426,7 +505,16 @@ export function ObjectList({
 
   return (
     <div className="container mx-auto flex flex-col gap-2 p-6">
-      {/* Search + View Selector */}
+      {/* Tabs - only show if there are saved views */}
+      {savedViews && savedViews.length > 0 && onViewSelect && (
+        <SavedViewTabs
+          views={savedViews}
+          currentViewId={currentViewId}
+          onViewSelect={onViewSelect}
+        />
+      )}
+
+      {/* Search + Settings */}
       {enableSearch && (
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
@@ -436,7 +524,20 @@ export function ObjectList({
               placeholder={placeholder}
             />
           </div>
-          <ViewModeSelector value={viewMode} onChange={setViewMode} />
+          {currentView && currentConfig && (
+            <SavedViewSettings
+              objectType={objectType}
+              currentView={currentView}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              hasUnsavedChanges={hasUnsavedChanges}
+              currentConfig={currentConfig}
+              onViewSelect={onViewSelect}
+              columns={schema.columns}
+              columnVisibility={columnVisibility}
+              onColumnVisibilityChange={setColumnVisibility}
+            />
+          )}
         </div>
       )}
 
@@ -463,9 +564,11 @@ export function ObjectList({
           paginationState={paginationState}
           sortingState={sortingState}
           columnFilters={columnFilters}
+          columnVisibility={columnVisibility}
           onPaginationChange={handlePaginationChange}
           onSortingChange={handleSortingChange}
           onFiltersChange={handleFiltersChange}
+          onColumnVisibilityChange={setColumnVisibility}
           onActionClick={handleRowActionClick}
           onBulkActionClick={handleBulkAction}
         />
