@@ -20,11 +20,11 @@ make db-current
 alembic history
 ```
 
-## Custom Types & Post-Write Hooks
+## Custom Types & Type Renderers
 
 ### Problem: Qualified Type Names
 
-When Alembic auto-generates migrations with custom SQLAlchemy types (like `SqidType` and `TextEnum`), it sometimes renders them with their full module path:
+When Alembic auto-generates migrations with custom SQLAlchemy types (like `SqidType` and `TextEnum`), it can render them with their full module path:
 
 ```python
 sa.Column("id", app.utils.sqids.SqidType(), nullable=False)  # ❌ Breaks!
@@ -32,68 +32,53 @@ sa.Column("id", app.utils.sqids.SqidType(), nullable=False)  # ❌ Breaks!
 
 This causes `NameError: name 'app' is not defined` when running migrations because `app` isn't imported in the migration file.
 
-### Solution: Post-Write Hook
+### Solution: Custom Type Renderers
 
-We've implemented an automatic post-write hook (`fix_types_hook.py`) that runs after each migration is generated. It:
-
-1. **Detects** qualified type names like `app.utils.sqids.SqidType()`
-2. **Replaces** them with simple names like `SqidType()`
-3. **Preserves** the correct imports (already added by `env.py`)
-
-The hook is configured in `alembic.ini`:
-
-```ini
-[post_write_hooks]
-hooks = fix_types
-fix_types.type = exec
-fix_types.executable = python
-fix_types.options = alembic/fix_types_hook.py REVISION_SCRIPT_FILENAME
-```
-
-### Custom Type Renderers
-
-In `env.py`, we register custom renderers for our types:
+In `env.py`, we've implemented a `render_item` callback that handles our custom types:
 
 ```python
-@renderers.dispatch_for(SqidType)
-def render_sqid_type(type_, object_, autogen_context):
-    """Render SqidType with proper import in migration files."""
-    autogen_context.imports.add("from app.utils.sqids import SqidType")
-    return "SqidType()"
+def render_item(type_, obj, autogen_context):
+    if type_ == "type" and isinstance(obj, TypeDecorator):
+        class_name = obj.__class__.__name__
+
+        if class_name == "SqidType":
+            autogen_context.imports.add("from app.utils.sqids import SqidType")
+            return "SqidType()"
+
+        elif class_name == "TextEnum":
+            autogen_context.imports.add("from app.state_machine.models import TextEnum")
+            return "TextEnum()"
+
+    return False  # Let Alembic handle everything else
 ```
 
-These renderers:
-- Tell Alembic how to render the type (as `SqidType()` instead of full path)
-- Automatically add the correct import statements
-- Work together with the post-write hook as a safety net
+This renderer:
+- Detects custom TypeDecorator subclasses during migration generation
+- Returns the simple type name (e.g., `SqidType()`)
+- Automatically adds the correct import statement
+- Prevents qualified type names from appearing in migrations
 
 ## Adding New Custom Types
 
-If you create a new custom SQLAlchemy type:
+If you create a new custom SQLAlchemy TypeDecorator:
 
-1. **Add a renderer in `env.py`:**
+1. **Add a case to `render_item` in `env.py`:**
    ```python
-   @renderers.dispatch_for(MyCustomType)
-   def render_my_custom_type(type_, object_, autogen_context):
-       autogen_context.imports.add("from app.path.to import MyCustomType")
-       return "MyCustomType()"
+   def render_item(type_, obj, autogen_context):
+       if type_ == "type" and isinstance(obj, TypeDecorator):
+           class_name = obj.__class__.__name__
+
+           # Add your new type here
+           if class_name == "MyCustomType":
+               autogen_context.imports.add("from app.path.to import MyCustomType")
+               return "MyCustomType()"
+
+           # ... existing types ...
+
+       return False
    ```
 
-2. **Add replacement in `fix_types_hook.py`:**
-   ```python
-   replacements = {
-       "app.utils.sqids.SqidType()": "SqidType()",
-       "app.state_machine.models.TextEnum()": "TextEnum()",
-       "app.path.to.MyCustomType()": "MyCustomType()",  # Add this
-   }
-   ```
-
-3. **Add import to `process_revision_directives` in `env.py`:**
-   ```python
-   def process_revision_directives(context, revision, directives):
-       if directives[0].upgrade_ops:
-           directives[0].imports.add("from app.path.to import MyCustomType")
-   ```
+That's it! The type will now render correctly in migrations with proper imports.
 
 ## Row-Level Security (RLS)
 
@@ -107,23 +92,11 @@ make db-migrate
 
 ### "app is not defined" Error
 
-If you get this error, the post-write hook didn't run or there's a new qualified type name:
+If you get this error, a custom type wasn't handled by `render_item`:
 
 1. **Manual fix:** Edit the migration file and replace `app.module.Type()` with `Type()`
 2. **Check the import:** Ensure `from app.module import Type` is at the top
-3. **Update the hook:** Add the new type to `fix_types_hook.py` replacements
-
-### Hook Not Running
-
-Verify the hook is configured:
-```bash
-grep -A 3 "\[post_write_hooks\]" alembic.ini
-```
-
-Test it manually:
-```bash
-python alembic/fix_types_hook.py alembic/versions/<migration_file>.py
-```
+3. **Update `render_item`:** Add the new type to the `render_item` function in `env.py`
 
 ### Migration Conflicts
 
