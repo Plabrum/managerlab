@@ -97,13 +97,11 @@ If you create a new custom SQLAlchemy type:
 
 ## Row-Level Security (RLS)
 
-Some migrations include RLS policies. When creating migrations that involve models with RLS:
+Some migrations include RLS policies. RLS policies are automatically registered when creating migrations for models with RLS support (those inheriting from `TeamScopedBase` or `CampaignScopedBase`). Simply use the standard migration command:
 
 ```bash
-REGISTER_RLS_POLICIES=true make db-migrate
+make db-migrate
 ```
-
-This ensures RLS policies are properly registered and included in the migration.
 
 ## Troubleshooting
 

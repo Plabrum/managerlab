@@ -293,7 +293,7 @@ pytest -k "test_create"      # Tests matching pattern
 # Auto-generate migration from model changes
 make db-migrate
 
-# This runs: REGISTER_RLS_POLICIES=true uv run alembic revision --autogenerate -m "description"
+# This runs: uv run alembic revision --autogenerate -m "description"
 ```
 
 **Review the generated migration** in `backend/alembic/versions/` and edit if needed.
@@ -306,13 +306,7 @@ make db-upgrade  # Apply all pending migrations
 
 ### RLS Policy Registration
 
-**IMPORTANT:** Set `REGISTER_RLS_POLICIES=true` when creating migrations that add/modify models with RLS:
-
-```bash
-REGISTER_RLS_POLICIES=true make db-migrate
-```
-
-This ensures RLS policies are properly registered in the migration.
+RLS policies are automatically registered when creating migrations for models with RLS support (those inheriting from `TeamScopedBase` or `CampaignScopedBase`). No additional environment variables are needed.
 
 ## Email Templates
 
@@ -515,9 +509,9 @@ alembic merge heads -m "merge migrations"
 
 ### RLS Not Working
 
-1. Verify `REGISTER_RLS_POLICIES=true` was set during migration creation
-2. Check migration includes `register_rls_policy()` calls
-3. Ensure `team_id` or `campaign_id` is set in session
+1. Check migration includes `register_rls_policy()` calls for RLS-enabled models
+2. Ensure `team_id` or `campaign_id` is set in session
+3. Verify the model inherits from `TeamScopedBase` or `CampaignScopedBase`
 
 ### Tests Failing
 
