@@ -9,39 +9,34 @@ from app.views.schemas import SavedViewConfigSchema
 
 # Opinionated defaults per object type
 DEFAULT_VIEW_CONFIGS: dict[ObjectTypes, SavedViewConfigSchema] = {
-    # Roster: Show team members in table format, sorted alphabetically
     ObjectTypes.Roster: SavedViewConfigSchema(
-        display_mode="table",
+        display_mode="card",
         column_filters=[],
         column_visibility={"email": True, "role": True, "status": True},
         sorting=[{"id": "name", "desc": False}],  # Alphabetical by name
         page_size=50,  # Show more roster members per page
     ),
-    # Campaigns: Visual gallery view with newest campaigns first
     ObjectTypes.Campaigns: SavedViewConfigSchema(
-        display_mode="gallery",
+        display_mode="table",
         column_filters=[],
         column_visibility={},
         sorting=[{"id": "created_at", "desc": True}],  # Newest first
         page_size=20,  # Fewer items in gallery mode
     ),
-    # Brands: Card view for visual brand representation
     ObjectTypes.Brands: SavedViewConfigSchema(
-        display_mode="card",
+        display_mode="table",
         column_filters=[],
         column_visibility={"name": True, "website": True},
         sorting=[{"id": "name", "desc": False}],  # Alphabetical
         page_size=30,
     ),
-    # Deliverables: Table view sorted by due date (most urgent first)
     ObjectTypes.Deliverables: SavedViewConfigSchema(
-        display_mode="table",
+        display_mode="card",
         column_filters=[],
         column_visibility={"title": True, "status": True, "due_date": True},
         sorting=[{"id": "due_date", "desc": False}],  # Soonest due date first
         page_size=40,
     ),
-    # Media: Gallery view for visual content
     ObjectTypes.Media: SavedViewConfigSchema(
         display_mode="gallery",
         column_filters=[],
@@ -49,19 +44,22 @@ DEFAULT_VIEW_CONFIGS: dict[ObjectTypes, SavedViewConfigSchema] = {
         sorting=[{"id": "created_at", "desc": True}],
         page_size=24,  # Grid layout friendly
     ),
-    # Documents: Table view with newest first
     ObjectTypes.Documents: SavedViewConfigSchema(
-        display_mode="table",
+        display_mode="gallery",
         column_filters=[],
         column_visibility={"name": True, "created_at": True, "size": True},
         sorting=[{"id": "created_at", "desc": True}],
         page_size=40,
     ),
-    # Invoices: Table view with most recent first
     ObjectTypes.Invoices: SavedViewConfigSchema(
         display_mode="table",
         column_filters=[],
-        column_visibility={"number": True, "status": True, "amount": True, "due_date": True},
+        column_visibility={
+            "number": True,
+            "status": True,
+            "amount": True,
+            "due_date": True,
+        },
         sorting=[{"id": "created_at", "desc": True}],
         page_size=40,
     ),

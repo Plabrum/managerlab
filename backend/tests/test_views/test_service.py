@@ -5,7 +5,7 @@ from litestar.exceptions import PermissionDeniedException
 
 from app.objects.enums import ObjectTypes
 from app.views.models import SavedView
-from app.views.service import (
+from app.views.services import (
     check_view_ownership,
     clear_user_defaults,
     get_or_create_default_view,
