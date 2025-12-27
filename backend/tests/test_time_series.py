@@ -1,6 +1,6 @@
 """Tests for time series data endpoint (/o/{object_type}/data)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from litestar.testing import AsyncTestClient
@@ -29,19 +29,19 @@ class TestTimeSeriesData:
             session=db_session,
             team_id=team.id,
             name="Nike",
-            created_at=datetime(2025, 11, 15, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 15, tzinfo=UTC),
         )
         brand2 = await BrandFactory.create_async(
             session=db_session,
             team_id=team.id,
             name="Adidas",
-            created_at=datetime(2025, 11, 20, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 20, tzinfo=UTC),
         )
         brand3 = await BrandFactory.create_async(
             session=db_session,
             team_id=team.id,
             name="Puma",
-            created_at=datetime(2025, 11, 25, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 25, tzinfo=UTC),
         )
         await db_session.flush()
         return [brand1, brand2, brand3]
@@ -106,7 +106,7 @@ class TestTimeSeriesData:
             f"/o/{ObjectTypes.Brands}/data",
             json={
                 "field": "id",  # Count IDs (numeric field)
-                "time_range": "last_30_days",
+                "time_range": "all_time",
                 "aggregation": "count_",
                 "filters": [],
                 "granularity": "day",
@@ -167,7 +167,6 @@ class TestTimeSeriesData:
     ):
         """Test that time_range parameter correctly filters data."""
         # Create a brand in the past (outside last_7_days)
-        from tests.factories.brands import BrandFactory
 
         response = await authenticated_client.post(
             f"/o/{ObjectTypes.Brands}/data",
@@ -265,21 +264,21 @@ class TestTimeSeriesData:
             team_id=team.id,
             campaign_id=campaign1.id,
             title="Deliverable 1",
-            created_at=datetime(2025, 11, 15, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 15, tzinfo=UTC),
         )
         await DeliverableFactory.create_async(
             session=db_session,
             team_id=team.id,
             campaign_id=campaign1.id,
             title="Deliverable 2",
-            created_at=datetime(2025, 11, 16, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 16, tzinfo=UTC),
         )
         await DeliverableFactory.create_async(
             session=db_session,
             team_id=team.id,
             campaign_id=campaign2.id,
             title="Deliverable 3",
-            created_at=datetime(2025, 11, 17, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 17, tzinfo=UTC),
         )
         await db_session.flush()
 
@@ -347,21 +346,21 @@ class TestTimeSeriesData:
             team_id=team.id,
             brand_id=brand1.id,
             name="Nike Campaign 1",
-            created_at=datetime(2025, 11, 15, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 15, tzinfo=UTC),
         )
         await CampaignFactory.create_async(
             session=db_session,
             team_id=team.id,
             brand_id=brand1.id,
             name="Nike Campaign 2",
-            created_at=datetime(2025, 11, 16, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 16, tzinfo=UTC),
         )
         await CampaignFactory.create_async(
             session=db_session,
             team_id=team.id,
             brand_id=brand2.id,
             name="Adidas Campaign",
-            created_at=datetime(2025, 11, 17, tzinfo=timezone.utc),
+            created_at=datetime(2025, 11, 17, tzinfo=UTC),
         )
         await db_session.flush()
 
