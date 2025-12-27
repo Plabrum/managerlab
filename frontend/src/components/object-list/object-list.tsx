@@ -192,8 +192,27 @@ export function ObjectList({
       if (columnVisibility[key] !== savedVisibility[key]) return true;
     }
 
+    // Compare search term (normalize null/undefined/empty string)
+    const savedSearchTerm = currentView.config.search_term || null;
+    const currentSearchTerm = searchTerm || null;
+    if (currentSearchTerm !== savedSearchTerm) return true;
+
+    // Compare page size
+    const savedPageSize = currentView.config.page_size;
+    if (
+      savedPageSize !== undefined &&
+      paginationState.pageSize !== savedPageSize
+    )
+      return true;
+
     return false;
-  }, [currentView, viewMode, columnVisibility]);
+  }, [
+    currentView,
+    viewMode,
+    columnVisibility,
+    searchTerm,
+    paginationState.pageSize,
+  ]);
 
   // Wrap state updates in startTransition to prevent Suspense fallback
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
@@ -654,14 +673,14 @@ export function ObjectList({
 
           // Get object data from the first row (for single row actions)
           // Convert ObjectListSchema to partial domain object shape
-          // The forms accept Partial<T> as defaultValues, so this is type-safe at runtime
+          // The registry now correctly accepts Partial<DomainObject>, so no type assertion needed
           const partialData =
             pendingAction.rows.length === 1
               ? objectListToPartialDomainObject(pendingAction.rows[0])
               : undefined;
 
           return renderer({
-            objectData: partialData as DomainObject | undefined,
+            objectData: partialData,
             onSubmit: executeWithFormData,
             onClose: cancelAction,
             isSubmitting: isExecuting,
