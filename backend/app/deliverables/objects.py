@@ -47,7 +47,10 @@ class DeliverableObject(BaseObject[Deliverable]):
     # Load options for eager loading relationships
     load_options = [
         joinedload(Deliverable.deliverable_media_associations).options(selectinload(DeliverableMedia.media)),
-        joinedload(Deliverable.campaign).options(joinedload(Campaign.brand)),
+        joinedload(Deliverable.campaign).options(
+            joinedload(Campaign.brand),
+            joinedload(Campaign.assigned_roster),
+        ),
         selectinload(Deliverable.media),
         selectinload(Deliverable.assigned_roster),
         joinedload(Deliverable.thread),

@@ -57,6 +57,7 @@ export const ActionGroupType = {
   widget_actions: 'widget_actions',
   team_actions: 'team_actions',
   message_actions: 'message_actions',
+  saved_view_actions: 'saved_view_actions',
 } as const;
 
 export interface ActionListResponse {
@@ -635,6 +636,19 @@ export interface CreateRosterAction {
   action: 'roster_actions__roster_create';
 }
 
+export interface CreateSavedViewAction {
+  data: CreateSavedViewSchema;
+  action: 'saved_view_actions__create';
+}
+
+export interface CreateSavedViewSchema {
+  name: string;
+  object_type: ObjectTypes;
+  config: SavedViewConfigSchema;
+  is_personal?: boolean;
+  is_default?: boolean;
+}
+
 export type CreateTeamSchemaDescription = string | null;
 
 export interface CreateTeamSchema {
@@ -743,6 +757,11 @@ export interface DeleteMessageAction {
 export interface DeleteRosterAction {
   data: EmptyActionData;
   action: 'roster_actions__roster_delete';
+}
+
+export interface DeleteSavedViewAction {
+  data: EmptyActionData;
+  action: 'saved_view_actions__delete';
 }
 
 export interface DeleteTeamAction {
@@ -1026,6 +1045,11 @@ export interface DownloadFileActionResult {
 export interface DownloadMediaAction {
   data: EmptyActionData;
   action: 'media_actions__media_download';
+}
+
+export interface DuplicateSavedViewAction {
+  data: EmptyActionData;
+  action: 'saved_view_actions__duplicate';
 }
 
 export interface EditDashboardAction {
@@ -1668,6 +1692,45 @@ export interface RosterUpdateSchema {
   youtube_channel?: RosterUpdateSchemaYoutubeChannel;
 }
 
+export type SavedViewConfigSchemaColumnFiltersItem = {[key: string]: unknown};
+
+export type SavedViewConfigSchemaColumnVisibility = {[key: string]: boolean};
+
+export type SavedViewConfigSchemaSortingItem = {[key: string]: unknown};
+
+export type SavedViewConfigSchemaSearchTerm = string | null;
+
+export interface SavedViewConfigSchema {
+  display_mode: string;
+  schema_version?: number;
+  column_filters?: SavedViewConfigSchemaColumnFiltersItem[];
+  column_visibility?: SavedViewConfigSchemaColumnVisibility;
+  sorting?: SavedViewConfigSchemaSortingItem[];
+  search_term?: SavedViewConfigSchemaSearchTerm;
+  page_size?: number;
+}
+
+export type SavedViewSchemaId = unknown | null;
+
+export type SavedViewSchemaUserId = number | null;
+
+export type SavedViewSchemaTeamId = number | null;
+
+export interface SavedViewSchema {
+  id?: SavedViewSchemaId;
+  name: string;
+  object_type: ObjectTypes;
+  config: SavedViewConfigSchema;
+  schema_version: number;
+  user_id?: SavedViewSchemaUserId;
+  team_id?: SavedViewSchemaTeamId;
+  is_personal: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  actions: ActionDTO[];
+}
+
 /**
  * Scope type for user access control.
 
@@ -1915,6 +1978,23 @@ export interface UpdateRosterAction {
   action: 'roster_actions__roster_update';
 }
 
+export interface UpdateSavedViewAction {
+  data: UpdateSavedViewSchema;
+  action: 'saved_view_actions__update';
+}
+
+export type UpdateSavedViewSchemaName = string | null;
+
+export type UpdateSavedViewSchemaConfig = SavedViewConfigSchema | null;
+
+export type UpdateSavedViewSchemaIsDefault = boolean | null;
+
+export interface UpdateSavedViewSchema {
+  name?: UpdateSavedViewSchemaName;
+  config?: UpdateSavedViewSchemaConfig;
+  is_default?: UpdateSavedViewSchemaIsDefault;
+}
+
 export interface UpdateStateData {
   new_state: string;
 }
@@ -2112,7 +2192,24 @@ export type AuthSwitchScopeSwitchScope400 = {
   extra?: AuthSwitchScopeSwitchScope400Extra;
 };
 
+export type AuthGoogleLoginGoogleLoginParams = {
+return_url?: string | null;
+};
+
 export type AuthGoogleLoginGoogleLogin200 = { [key: string]: unknown };
+
+export type AuthGoogleLoginGoogleLogin400ExtraAnyOf = {[key: string]: unknown};
+
+export type AuthGoogleLoginGoogleLogin400Extra = null | AuthGoogleLoginGoogleLogin400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type AuthGoogleLoginGoogleLogin400 = {
+  status_code: number;
+  detail: string;
+  extra?: AuthGoogleLoginGoogleLogin400Extra;
+};
 
 export type AuthGoogleCallbackGoogleCallbackParams = {
 code?: string | null;
@@ -2219,7 +2316,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | CreateSavedViewAction | UpdateSavedViewAction | DeleteSavedViewAction | DuplicateSavedViewAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2247,7 +2344,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | CreateSavedViewAction | UpdateSavedViewAction | DeleteSavedViewAction | DuplicateSavedViewAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2550,6 +2647,84 @@ export type DashboardsIdUpdateDashboard400 = {
   status_code: number;
   detail: string;
   extra?: DashboardsIdUpdateDashboard400Extra;
+};
+
+export type ViewsObjectTypeListSavedViews400ExtraAnyOf = {[key: string]: unknown};
+
+export type ViewsObjectTypeListSavedViews400Extra = null | ViewsObjectTypeListSavedViews400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ViewsObjectTypeListSavedViews400 = {
+  status_code: number;
+  detail: string;
+  extra?: ViewsObjectTypeListSavedViews400Extra;
+};
+
+export type ViewsObjectTypeCreateSavedView400ExtraAnyOf = {[key: string]: unknown};
+
+export type ViewsObjectTypeCreateSavedView400Extra = null | ViewsObjectTypeCreateSavedView400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ViewsObjectTypeCreateSavedView400 = {
+  status_code: number;
+  detail: string;
+  extra?: ViewsObjectTypeCreateSavedView400Extra;
+};
+
+export type ViewsObjectTypeDefaultGetDefaultView400ExtraAnyOf = {[key: string]: unknown};
+
+export type ViewsObjectTypeDefaultGetDefaultView400Extra = null | ViewsObjectTypeDefaultGetDefaultView400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ViewsObjectTypeDefaultGetDefaultView400 = {
+  status_code: number;
+  detail: string;
+  extra?: ViewsObjectTypeDefaultGetDefaultView400Extra;
+};
+
+export type ViewsObjectTypeIdGetSavedView400ExtraAnyOf = {[key: string]: unknown};
+
+export type ViewsObjectTypeIdGetSavedView400Extra = null | ViewsObjectTypeIdGetSavedView400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ViewsObjectTypeIdGetSavedView400 = {
+  status_code: number;
+  detail: string;
+  extra?: ViewsObjectTypeIdGetSavedView400Extra;
+};
+
+export type ViewsObjectTypeIdUpdateSavedView400ExtraAnyOf = {[key: string]: unknown};
+
+export type ViewsObjectTypeIdUpdateSavedView400Extra = null | ViewsObjectTypeIdUpdateSavedView400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ViewsObjectTypeIdUpdateSavedView400 = {
+  status_code: number;
+  detail: string;
+  extra?: ViewsObjectTypeIdUpdateSavedView400Extra;
+};
+
+export type ViewsObjectTypeIdDeleteSavedView400ExtraAnyOf = {[key: string]: unknown};
+
+export type ViewsObjectTypeIdDeleteSavedView400Extra = null | ViewsObjectTypeIdDeleteSavedView400ExtraAnyOf | unknown[];
+
+/**
+ * Validation Exception
+ */
+export type ViewsObjectTypeIdDeleteSavedView400 = {
+  status_code: number;
+  detail: string;
+  extra?: ViewsObjectTypeIdDeleteSavedView400Extra;
 };
 
 export type ThreadsThreadableTypeThreadableIdMessagesListMessagesParams = {

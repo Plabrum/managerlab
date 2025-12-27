@@ -17,7 +17,6 @@ from app.dashboard.schemas import (
     WidgetQuerySchema,
     WidgetSchema,
 )
-from app.utils.db import get_or_404
 from app.utils.sqids import Sqid
 
 
@@ -152,7 +151,10 @@ async def update_dashboard(
     Users can update their personal dashboards.
     Team-wide dashboards can be updated by any team member.
     """
-    dashboard = await transaction.get(Dashboard, id)
+    # Eagerly load widgets to avoid lazy loading error
+    stmt = select(Dashboard).where(Dashboard.id == id).options(selectinload(Dashboard.widgets))
+    result = await transaction.execute(stmt)
+    dashboard = result.scalar_one_or_none()
 
     if not dashboard:
         raise NotFoundException(f"Dashboard with id {id} not found")

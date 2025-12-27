@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import Any
 
 import structlog
@@ -57,6 +56,7 @@ from app.utils.configure import ConfigProtocol
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils.logging_middleware import create_logging_middleware, drop_verbose_http_keys
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
+from app.views.routes import view_router
 
 
 def handle_options_disconnect(request: Request, exc: InternalServerException) -> Response:
@@ -299,6 +299,7 @@ def create_app(
         document_router,
         invoice_router,
         dashboard_router,
+        view_router,
         thread_router,
         thread_handler,
         inbound_email_router,

@@ -39,7 +39,7 @@ export interface ActionRegistryEntry<TData = unknown, TObject = DomainObject> {
    * Render function that returns the self-contained modal form component for this action
    * If returns null, the action will be executed directly without a form
    *
-   * @param objectData - Optional object data, strongly typed to the action's object type
+   * @param objectData - Optional partial object data (from list views or detail views)
    * @param onSubmit - Typed callback that receives the action's data schema
    * @param onClose - Callback to close the modal
    * @param isSubmitting - Whether the action is currently submitting
@@ -47,7 +47,7 @@ export interface ActionRegistryEntry<TData = unknown, TObject = DomainObject> {
    * @param actionLabel - The label/title for the action
    */
   render: (params: {
-    objectData?: TObject;
+    objectData?: Partial<TObject>;
     onSubmit: (data: TData) => void;
     onClose: () => void;
     isSubmitting: boolean;
@@ -169,12 +169,12 @@ export type ActionToObjectMap = {
  * Each key must be a valid action type from the union
  * Object data is strongly typed based on the action's object type
  */
-export type ActionRegistry = {
+export type ActionRegistry = Partial<{
   [K in ActionType]: ActionRegistryEntry<
     ActionDataTypeMap[K],
     K extends keyof ActionToObjectMap ? ActionToObjectMap[K] : DomainObject
   >;
-};
+}>;
 
 /**
  * The central action registry
@@ -560,6 +560,7 @@ export const actionRegistry: ActionRegistry = {
 /**
  * Get the render function for a given action type
  * Returns the render function with proper typing based on the action
+ * The returned function accepts partial object data, matching how forms work
  */
 export function getActionRenderer(
   actionType: ActionType

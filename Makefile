@@ -307,3 +307,8 @@ clean:
 		docker rmi $$(docker images -q --filter "dangling=true") || true; \
 	fi
 	@echo "✅ Clean completed!"
+
+.PHONY: db-psql
+db-psql:
+	@echo "🗄️  Connecting to DEV database (localhost:5432)..."
+	psql postgresql://postgres:postgres@localhost:5432/manageros

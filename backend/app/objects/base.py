@@ -35,7 +35,7 @@ class ObjectRegistry(
 class BaseObject[O: BaseDBModel](ABC):
     object_type: ClassVar[ObjectTypes]
     column_definitions: ClassVar[list[ObjectColumn]]
-    registry: ClassVar["ObjectRegistry"]
+    registry: ClassVar["ObjectRegistry"] = ObjectRegistry()
 
     @classmethod
     @abstractmethod
@@ -63,7 +63,6 @@ class BaseObject[O: BaseDBModel](ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if cls.object_type is not None:
-            cls.registry = ObjectRegistry()  # Store reference to singleton
             cls.registry.register(cls.object_type, cls)
 
     @classmethod

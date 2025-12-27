@@ -16,6 +16,7 @@ class ActionGroupType(StrEnum):
     WidgetActions = "widget_actions"
     TeamActions = "team_actions"
     MessageActions = "message_actions"
+    SavedViewActions = "saved_view_actions"
 
 
 class ActionResultType(StrEnum):

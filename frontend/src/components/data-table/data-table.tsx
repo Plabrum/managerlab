@@ -16,7 +16,6 @@ import {
 import {
   Filter,
   MoreHorizontal,
-  Settings2,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -27,7 +26,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
@@ -74,10 +72,12 @@ interface DataTableProps {
   paginationState: PaginationState;
   sortingState: SortingState;
   columnFilters: ColumnFiltersState;
+  columnVisibility?: VisibilityState;
   // Callbacks
   onPaginationChange: OnChangeFn<PaginationState>;
   onSortingChange: OnChangeFn<SortingState>;
   onFiltersChange: OnChangeFn<ColumnFiltersState>;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
 }
 
 // Column header component that accesses current filter state and sorting
@@ -243,13 +243,17 @@ export function DataTable({
   paginationState,
   sortingState,
   columnFilters,
+  columnVisibility: controlledColumnVisibility,
   onPaginationChange,
   onSortingChange,
   onFiltersChange,
+  onColumnVisibilityChange,
 }: DataTableProps) {
   const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
+
+  // Use controlled column visibility if provided, otherwise use internal state
+  const [internalColumnVisibility, setInternalColumnVisibility] =
     React.useState<VisibilityState>(() => {
       const visibility: VisibilityState = {};
       columnDefs.forEach((col) => {
@@ -257,6 +261,11 @@ export function DataTable({
       });
       return visibility;
     });
+
+  const columnVisibility =
+    controlledColumnVisibility ?? internalColumnVisibility;
+  const setColumnVisibility =
+    onColumnVisibilityChange ?? setInternalColumnVisibility;
 
   // Memoize individual column definitions to prevent recreation
   // Only recreate when column structure changes, not when filter values change
@@ -310,50 +319,13 @@ export function DataTable({
     []
   );
 
-  // Create actions column header component that can access table later
+  // Create actions column header component
   const ActionsColumnHeader = React.useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ({ table }: { table: ReactTable<ObjectListSchema> }) => (
-      <div className="flex justify-end">
-        {enableColumnVisibility && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground h-6 w-6 p-0"
-              >
-                <Settings2 className="h-3 w-3" />
-                <span className="sr-only">Column settings</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== 'undefined' &&
-                    column.getCanHide()
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
+      <div className="flex justify-end" />
     ),
-    [enableColumnVisibility]
+    []
   );
 
   // Memoize actions column
