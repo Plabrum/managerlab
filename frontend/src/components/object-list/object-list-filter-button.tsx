@@ -48,8 +48,6 @@ const TEXT_OPERATORS: OperatorOption[] = [
 
 const RANGE_OPERATORS: OperatorOption[] = [
   { value: 'equals', label: 'equals' },
-  { value: 'greater_than', label: 'is greater than' },
-  { value: 'less_than', label: 'is less than' },
   { value: 'greater_than_or_equal', label: 'is at least' },
   { value: 'less_than_or_equal', label: 'is at most' },
 ];
@@ -171,6 +169,12 @@ export function ObjectListFilterButton({
         break;
       case 'range_filter': {
         const numValue = parseFloat(value);
+
+        // Validate numeric input
+        if (isNaN(numValue)) {
+          return;
+        }
+
         // Map operation to start/finish range
         let start: number | null = null;
         let finish: number | null = null;
@@ -178,12 +182,6 @@ export function ObjectListFilterButton({
         switch (operation) {
           case 'equals':
             start = numValue;
-            finish = numValue;
-            break;
-          case 'greater_than':
-            start = numValue;
-            break;
-          case 'less_than':
             finish = numValue;
             break;
           case 'greater_than_or_equal':

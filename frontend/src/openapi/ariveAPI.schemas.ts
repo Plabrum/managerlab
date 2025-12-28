@@ -1692,11 +1692,9 @@ export interface RosterUpdateSchema {
   youtube_channel?: RosterUpdateSchemaYoutubeChannel;
 }
 
-export type SavedViewConfigSchemaColumnFiltersItem = {[key: string]: unknown};
+export type SavedViewConfigSchemaColumnFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition | ObjectFilterDefinition;
 
 export type SavedViewConfigSchemaColumnVisibility = {[key: string]: boolean};
-
-export type SavedViewConfigSchemaSortingItem = {[key: string]: unknown};
 
 export type SavedViewConfigSchemaSearchTerm = string | null;
 
@@ -1705,7 +1703,7 @@ export interface SavedViewConfigSchema {
   schema_version?: number;
   column_filters?: SavedViewConfigSchemaColumnFiltersItem[];
   column_visibility?: SavedViewConfigSchemaColumnVisibility;
-  sorting?: SavedViewConfigSchemaSortingItem[];
+  sorting?: SortDefinition[];
   search_term?: SavedViewConfigSchemaSearchTerm;
   page_size?: number;
 }
@@ -1728,7 +1726,6 @@ export interface SavedViewSchema {
   is_default: boolean;
   created_at: string;
   updated_at: string;
-  actions: ActionDTO[];
 }
 
 /**
@@ -2316,7 +2313,7 @@ export type ActionsActionGroupListActions400 = {
   extra?: ActionsActionGroupListActions400Extra;
 };
 
-export type ActionsActionGroupExecuteActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | CreateSavedViewAction | UpdateSavedViewAction | DeleteSavedViewAction | DuplicateSavedViewAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupExecuteActionBody = CreateSavedViewAction | UpdateSavedViewAction | DeleteSavedViewAction | DuplicateSavedViewAction | DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupExecuteAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2344,7 +2341,7 @@ export type ActionsActionGroupObjectIdListObjectActions400 = {
   extra?: ActionsActionGroupObjectIdListObjectActions400Extra;
 };
 
-export type ActionsActionGroupObjectIdExecuteObjectActionBody = DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | CreateSavedViewAction | UpdateSavedViewAction | DeleteSavedViewAction | DuplicateSavedViewAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
+export type ActionsActionGroupObjectIdExecuteObjectActionBody = CreateSavedViewAction | UpdateSavedViewAction | DeleteSavedViewAction | DuplicateSavedViewAction | DeleteInvoiceAction | UpdateInvoiceAction | CreateInvoiceAction | UpdateInvoiceStateAction | DeleteRosterAction | UpdateRosterAction | CreateRosterAction | DeleteBrandAction | UpdateBrandAction | CreateBrandAction | UpdateMessageAction | DeleteMessageAction | DeleteTeamAction | InviteUserToTeamAction | DeleteCampaignAction | UpdateCampaignAction | AddDeliverableToCampaignAction | AddContractToCampaignAction | ReplaceContractAction | CreateCampaignAction | UpdateCampaignStateAction | DeleteDocumentAction | UpdateDocumentAction | DownloadDocumentAction | CreateDocumentAction | DeleteMediaAction | UpdateMediaAction | DownloadMediaAction | CreateMediaAction | CreateWidgetAction | EditWidgetAction | DeleteWidgetAction | CreateDashboardAction | EditDashboardAction | DeleteDashboardAction | UpdateDashboardAction | DeleteDeliverableAction | EditDeliverableAction | PublishDeliverableAction | AddMediaToDeliverableAction | CreateDeliverableAction | UpdateDeliverableStateAction | RemoveMediaFromDeliverableAction | AcceptDeliverableMediaAction | RejectDeliverableMediaAction;
 
 export type ActionsActionGroupObjectIdExecuteObjectAction400ExtraAnyOf = {[key: string]: unknown};
 
@@ -2673,19 +2670,6 @@ export type ViewsObjectTypeCreateSavedView400 = {
   status_code: number;
   detail: string;
   extra?: ViewsObjectTypeCreateSavedView400Extra;
-};
-
-export type ViewsObjectTypeDefaultGetDefaultView400ExtraAnyOf = {[key: string]: unknown};
-
-export type ViewsObjectTypeDefaultGetDefaultView400Extra = null | ViewsObjectTypeDefaultGetDefaultView400ExtraAnyOf | unknown[];
-
-/**
- * Validation Exception
- */
-export type ViewsObjectTypeDefaultGetDefaultView400 = {
-  status_code: number;
-  detail: string;
-  extra?: ViewsObjectTypeDefaultGetDefaultView400Extra;
 };
 
 export type ViewsObjectTypeIdGetSavedView400ExtraAnyOf = {[key: string]: unknown};

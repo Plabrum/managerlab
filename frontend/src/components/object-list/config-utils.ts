@@ -45,8 +45,8 @@ export function configToSortingState(
     return [];
   }
 
-  // Cast from generic storage format to typed format
-  return (config.sorting as unknown as SortDefinition[]).map((sort) => ({
+  // Now properly typed in SavedViewConfigSchema
+  return config.sorting.map((sort) => ({
     id: sort.column,
     desc: sort.direction === SortDirection.sort_desc,
   }));
@@ -74,10 +74,8 @@ export function configToColumnFilters(
     return [];
   }
 
-  // Cast from generic storage format to typed format
-  return requestFiltersToColumnFilters(
-    config.column_filters as unknown as ObjectListRequestFiltersItem[]
-  );
+  // Now properly typed in SavedViewConfigSchema
+  return requestFiltersToColumnFilters(config.column_filters);
 }
 
 /**
@@ -168,8 +166,8 @@ export function getSortingLabel(
     return 'None';
   }
 
-  // Cast from generic storage format
-  const sort = config.sorting[0] as unknown as SortDefinition;
+  // Now properly typed in SavedViewConfigSchema
+  const sort = config.sorting[0];
   const column = columns.find((col) => col.key === sort.column);
   if (!column) return 'None';
 
