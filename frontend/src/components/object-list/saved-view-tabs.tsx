@@ -15,42 +15,33 @@ export function SavedViewTabs({
   currentViewId,
   onViewSelect,
 }: SavedViewTabsProps) {
-  // Only hide tabs when there are no saved views (only "Default" tab would show)
-  if (views.length === 0) {
-    return null;
-  }
-
-  // Use 'default' as the value for hard-coded default view
+  // Convert null/undefined to a string for tab value
+  // System default has id=null, so we use 'null' as its string representation
   const tabValue =
     currentViewId === null || currentViewId === undefined
-      ? 'default'
+      ? 'null'
       : String(currentViewId);
 
   return (
     <Tabs
       value={tabValue}
       onValueChange={(value) => {
-        if (value === 'default') {
+        if (value === 'null') {
+          // System default view (id=null)
           onViewSelect(null);
         } else {
+          // Find the view by ID
           const view = views.find((v) => String(v.id) === value);
           if (view) onViewSelect(view.id);
         }
       }}
     >
       <TabsList>
-        {/* Default tab - always show when there are saved views or when actively selected */}
-        {(views.length > 0 || currentViewId === null) && (
-          <TabsTrigger value="default" className="gap-1.5">
-            Default
-          </TabsTrigger>
-        )}
-
-        {/* Saved view tabs */}
+        {/* Render all views - backend decides which to include */}
         {views.map((view) => (
           <TabsTrigger
-            key={String(view.id)}
-            value={String(view.id)}
+            key={String(view.id ?? 'null')}
+            value={String(view.id ?? 'null')}
             className="gap-1.5"
           >
             {view.is_default && (

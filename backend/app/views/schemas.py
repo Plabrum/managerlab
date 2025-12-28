@@ -1,10 +1,10 @@
 """SavedView schemas for request/response handling."""
 
 from datetime import datetime
-from typing import Any
 
 from app.base.schemas import BaseSchema
 from app.objects.enums import ObjectTypes
+from app.objects.schemas import FilterDefinition, SortDefinition
 from app.utils.sqids import Sqid
 
 # =============================================================================
@@ -23,9 +23,9 @@ class SavedViewConfigSchema(BaseSchema):
 
     # Optional fields with defaults
     schema_version: int = 1
-    column_filters: list[dict[str, Any]] = []  # ColumnFiltersState
+    column_filters: list[FilterDefinition] = []  # Typed filter definitions
     column_visibility: dict[str, bool] = {}  # VisibilityState
-    sorting: list[dict[str, Any]] = []  # SortingState [{ id, desc }]
+    sorting: list[SortDefinition] = []  # Typed sort definitions
     search_term: str | None = None
     page_size: int = 40
 
