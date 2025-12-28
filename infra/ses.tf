@@ -20,15 +20,13 @@ resource "aws_ses_configuration_set" "main" {
   name = "manageros-${var.environment}"
 }
 
-# Get Route53 hosted zone (managed in main.tf)
-data "aws_route53_zone" "main" {
-  name = "tryarive.com"
-}
+# Route53 hosted zone is defined in main.tf as aws_route53_zone.main
+# Reference it directly instead of using a data source lookup
 
 # DKIM DNS Records (automated via Route53)
 resource "aws_route53_record" "ses_dkim" {
   count   = 3
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = "${aws_ses_domain_dkim.main.dkim_tokens[count.index]}._domainkey"
   type    = "CNAME"
   ttl     = 600
@@ -37,7 +35,7 @@ resource "aws_route53_record" "ses_dkim" {
 
 # SES Domain Verification Record (automated via Route53)
 resource "aws_route53_record" "ses_verification" {
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = "_amazonses.${aws_ses_domain_identity.main.domain}"
   type    = "TXT"
   ttl     = 600
@@ -46,7 +44,7 @@ resource "aws_route53_record" "ses_verification" {
 
 # SPF Record for SES
 resource "aws_route53_record" "ses_spf" {
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = "tryarive.com"
   type    = "TXT"
   ttl     = 600
@@ -55,7 +53,7 @@ resource "aws_route53_record" "ses_spf" {
 
 # DMARC Record
 resource "aws_route53_record" "ses_dmarc" {
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = "_dmarc.tryarive.com"
   type    = "TXT"
   ttl     = 600
@@ -178,7 +176,7 @@ resource "aws_ses_receipt_rule" "contracts" {
 
 # MX Record for Inbound Email
 resource "aws_route53_record" "ses_mx" {
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = "tryarive.com"
   type    = "MX"
   ttl     = 600
