@@ -80,13 +80,14 @@ class TestViews:
         db_session: AsyncSession,
     ):
         """Test GET /views?object_type=X returns personal and team views."""
-        # Create personal view
+        # Create personal view (mark as default to prevent system default from being added)
         personal_view = SavedView(
             name="My View",
             object_type=ObjectTypes.Roster,
             config={"display_mode": "table"},
             user_id=user.id,
             team_id=team.id,
+            is_default=True,
         )
         db_session.add(personal_view)
 
