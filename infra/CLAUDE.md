@@ -2,6 +2,19 @@
 
 This guide covers infrastructure deployment and management for the Arive platform. For general project information, see the [root CLAUDE.md](/CLAUDE.md).
 
+## ⚠️ IMPORTANT: Local Terraform Safety
+
+**DO NOT run `terraform apply` or `terraform destroy` locally!**
+
+All infrastructure changes should go through CI/CD to maintain state consistency.
+
+### Why CI/CD Only?
+
+1. **State Consistency** - Single source of truth prevents state drift
+2. **Audit Trail** - GitHub Actions logs all infrastructure changes
+3. **Workspace Alignment** - CI uses "production" workspace, local uses "default"
+4. **No Accidents** - Team discipline prevents costly mistakes
+
 ## Quick Start
 
 ```bash
@@ -10,14 +23,14 @@ cd infra
 # Initialize Terraform
 terraform init
 
-# Preview changes
+# Preview changes (safe)
 terraform plan
 
-# Apply infrastructure changes
-terraform apply
+# Apply changes - USE CI/CD!
+# Push to main branch instead
 
-# Deploy from root (full stack)
-make deploy
+# Deploy from root (triggers CI/CD)
+git push origin main
 ```
 
 ## Architecture Overview

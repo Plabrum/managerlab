@@ -1,6 +1,22 @@
 # ManageOS Infrastructure
 
-This directory contains Terraform configuration for deploying ManageOS to AWS using App Runner, Aurora Serverless v2, and S3.
+⚠️ **IMPORTANT: DO NOT run `terraform apply` or `terraform destroy` locally!**
+
+All infrastructure changes must go through CI/CD to prevent state drift.
+
+**Safe operations:**
+- ✅ `terraform init` - Initialize backend
+- ✅ `terraform plan` - Preview changes
+- ✅ `terraform validate` - Validate configuration
+- ✅ `terraform fmt` - Format code
+
+**Unsafe operations (CI/CD only):**
+- ❌ `terraform apply` - Apply changes
+- ❌ `terraform destroy` - Destroy resources
+
+---
+
+This directory contains Terraform configuration for deploying ManageOS to AWS using ECS Fargate, Aurora Serverless v2, and S3.
 
 ## Architecture
 
