@@ -42,7 +42,7 @@ class CreateSavedView(BaseTopLevelAction[CreateSavedViewSchema]):
         new_view = SavedView(
             name=data.name,
             object_type=data.object_type,
-            config=msgspec.structs.asdict(data.config),  # Convert Struct to dict
+            config=msgspec.to_builtins(data.config),
             user_id=deps.user if data.is_personal else None,
             team_id=deps.team_id,
         )
@@ -93,7 +93,7 @@ class UpdateSavedView(BaseObjectAction[SavedView, UpdateSavedViewSchema]):
         if data.name is not None:
             obj.name = data.name
         if data.config is not None:
-            obj.config = msgspec.structs.asdict(data.config)
+            obj.config = msgspec.to_builtins(data.config)  # Recursively convert nested structs
 
         await transaction.flush()
 

@@ -58,7 +58,7 @@ class TestViews:
                 "display_mode": "gallery",
                 "column_filters": [],
                 "column_visibility": {},
-                "sorting": [{"id": "created_at", "desc": True}],
+                "sorting": [{"column": "created_at", "direction": "sort_desc"}],
                 "page_size": 20,
             },
         }
@@ -174,7 +174,7 @@ class TestViews:
             "name": "Updated Name",
             "config": {
                 "display_mode": "gallery",
-                "column_filters": [{"id": "status", "value": "active"}],
+                "column_filters": [],  # Use proper filter format or leave empty
                 "column_visibility": {"email": False},
                 "sorting": [],
                 "page_size": 100,

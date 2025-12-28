@@ -131,7 +131,7 @@ async def create_saved_view(
         .values(
             name=data.name,
             object_type=data.object_type,
-            config=msgspec.structs.asdict(data.config),
+            config=msgspec.to_builtins(data.config),  # Recursively convert nested structs
             user_id=request.user if data.is_personal else None,
             team_id=team_id,
             is_default=data.is_default if data.is_personal else False,
@@ -184,7 +184,7 @@ async def update_saved_view(
     if data.name is not None:
         view.name = data.name
     if data.config is not None:
-        view.config = msgspec.structs.asdict(data.config)
+        view.config = msgspec.to_builtins(data.config)  # Recursively convert nested structs
 
     await transaction.flush()
     await transaction.refresh(view)
