@@ -6,37 +6,32 @@ import {
   useTransition,
   useMemo,
   useCallback,
+  useRef,
 } from 'react';
 import type {
   SortingState,
   ColumnFiltersState,
   PaginationState,
-  VisibilityState,
   Updater,
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/data-table/data-table';
-import { DataTableSearch } from '@/components/data-table/data-table-search';
-import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
-import { SavedViewSettings } from './saved-view-settings';
 import { SavedViewTabs } from './saved-view-tabs';
+import { ObjectListToolbar } from './object-list-toolbar';
 import type { SavedViewConfigSchema } from '@/openapi/ariveAPI.schemas';
 import { GalleryView } from './gallery-view';
 import { CardView } from './card-view';
 import { useViewModePreference } from '@/hooks/use-view-mode-preference';
-import type { ViewMode } from '@/types/view-modes';
 import {
   useListObjectsSuspense,
   useOObjectTypeSchemaGetObjectSchemaSuspense,
 } from '@/openapi/objects/objects';
+import { useViewsObjectTypeListSavedViewsSuspense } from '@/openapi/views/views';
 import {
-  useViewsObjectTypeListSavedViewsSuspense,
-  useViewsObjectTypeDefaultGetDefaultViewSuspense,
-} from '@/openapi/views/views';
-import {
-  sortingStateToSortDefinitions,
   paginationStateToRequest,
   columnFiltersToRequestFilters,
+  requestFiltersToColumnFilters,
 } from '@/components/data-table/utils';
+import { SortDirection } from '@/openapi/ariveAPI.schemas';
 import type {
   ObjectListSchema,
   ObjectTypes,
@@ -94,42 +89,84 @@ export function ObjectList({
   enableSorting = true,
   enableColumnVisibility = true,
   enableColumnFilters = true,
-  searchPlaceholder,
   onRowClick,
   onBulkAction,
   currentViewId,
   onViewSelect,
 }: ObjectListProps) {
-  // Fetch SavedView data internally
-  const { data: savedViews } =
-    useViewsObjectTypeListSavedViewsSuspense(objectType);
-  const { data: defaultView } =
-    useViewsObjectTypeDefaultGetDefaultViewSuspense(objectType);
+  // Fetch all views (includes system default if user hasn't set a personal default)
+  const { data: views } = useViewsObjectTypeListSavedViewsSuspense(objectType);
 
-  // Find selected view in the list (all views include full config now)
-  const currentView =
-    currentViewId !== null && currentViewId !== undefined
-      ? savedViews.find((v) => v.id === currentViewId) || defaultView
-      : defaultView;
-  // Table state
-  const [paginationState, setPaginationState] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize,
+  // Find selected view in the list, or use first view as default
+  // Memoize to prevent unnecessary recalculations
+  const currentView = useMemo(() => {
+    if (currentViewId !== null && currentViewId !== undefined) {
+      // Find by ID (convert to string for comparison since id might be null for system default)
+      const found = views.find((v) => String(v.id) === String(currentViewId));
+      return found || views[0];
+    }
+    // Default to first view (backend ensures system default is first if applicable)
+    return views[0];
+  }, [currentViewId, views]);
+
+  // Get default view mode from preference hook
+  const preferenceHook = useViewModePreference(objectType);
+
+  // Single source of truth: unified config state
+  const [config, setConfig] = useState<SavedViewConfigSchema>(() => {
+    // Initialize from current view or defaults
+    if (currentView?.config) {
+      return currentView.config;
+    }
+
+    return {
+      display_mode: preferenceHook.viewMode || 'table',
+      column_filters: [],
+      column_visibility: {},
+      sorting: [],
+      search_term: null,
+      page_size: pageSize,
+      schema_version: 1,
+    };
   });
-  const [sortingState, setSortingState] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
+
+  // Sync initial view selection to parent (on mount only)
+  // This ensures the tab is highlighted correctly on page load
+  useEffect(() => {
+    if (
+      onViewSelect &&
+      currentView &&
+      (currentViewId === null || currentViewId === undefined)
+    ) {
+      // Parent doesn't know which view is active, tell it
+      onViewSelect(currentView.id);
+    }
+    // Only run on mount when currentViewId is null/undefined
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync config when view ID changes (external state update)
+  // This is the ONE effect we need - handles view tab switching
+  // Use a ref to track the last view ID we synced from to prevent unnecessary resets
+  const lastSyncedViewId = useRef<unknown>(undefined);
+
+  useEffect(() => {
+    const viewId = currentView?.id;
+
+    // Only sync if the view ID actually changed (not just object reference)
+    if (viewId !== lastSyncedViewId.current) {
+      if (currentView?.config) {
+        setConfig(currentView.config);
+        setPageIndex(0); // Reset pagination when switching views
+      }
+      lastSyncedViewId.current = viewId;
+    }
+  }, [currentView]);
+
+  // Transient UI state (not saved in config)
+  const [pageIndex, setPageIndex] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-
-  // View mode - managed internally, fallback to preference hook for non-SavedView pages
-  const preferenceHook = useViewModePreference(objectType);
-  const [viewMode, setViewMode] = useState<ViewMode>(
-    (currentView?.config?.display_mode as ViewMode) ||
-      preferenceHook.viewMode ||
-      'table'
-  );
 
   // Action execution state
   const [pendingAction, setPendingAction] = useState<{
@@ -152,96 +189,102 @@ export function ObjectList({
   const { data: schema } =
     useOObjectTypeSchemaGetObjectSchemaSuspense(objectType);
 
-  // Reset viewMode and column visibility when switching views (tab change)
-  useEffect(() => {
-    if (currentView?.config) {
-      setViewMode((currentView.config.display_mode as ViewMode) || 'table');
-      setColumnVisibility(currentView.config.column_visibility || {});
-    }
-  }, [currentView?.id]);
+  // Config update helper (preserves schema_version)
+  const updateConfig = useCallback(
+    (updates: Partial<SavedViewConfigSchema>) => {
+      setConfig((prev) => ({
+        ...prev,
+        ...updates,
+        schema_version: prev.schema_version,
+      }));
+    },
+    []
+  );
 
-  // Build current config from state
-  const currentConfig: SavedViewConfigSchema | undefined = currentView
-    ? {
-        display_mode: viewMode,
-        column_filters: [],
-        column_visibility: columnVisibility,
-        sorting: [],
-        search_term: searchTerm || null,
-        page_size: paginationState.pageSize,
-        schema_version: 1,
-      }
-    : undefined;
-
-  // Detect unsaved changes
+  // Detect unsaved changes (simple comparison now!)
   const hasUnsavedChanges = useMemo(() => {
     if (!currentView?.id || !currentView?.config) return false;
+    return JSON.stringify(config) !== JSON.stringify(currentView.config);
+  }, [currentView, config]);
 
-    // Compare display mode
-    if (viewMode !== currentView.config.display_mode) return true;
+  // Derive TanStack Table state from config
+  const paginationState: PaginationState = {
+    pageIndex,
+    pageSize: config.page_size || 40,
+  };
 
-    // Compare column visibility (deep equality check)
-    const savedVisibility = currentView.config.column_visibility || {};
-    const currentVisibilityKeys = Object.keys(columnVisibility);
-    const savedVisibilityKeys = Object.keys(savedVisibility);
+  // Cast and convert config to typed formats
+  const configSorting =
+    (config.sorting as unknown as import('@/openapi/ariveAPI.schemas').SortDefinition[]) ||
+    [];
+  const sortingState: SortingState = configSorting.map((sort) => ({
+    id: sort.column,
+    desc: sort.direction === SortDirection.sort_desc,
+  }));
 
-    if (currentVisibilityKeys.length !== savedVisibilityKeys.length)
-      return true;
+  // Convert config filters to TanStack format
+  const configFilters =
+    (config.column_filters as unknown as import('@/openapi/ariveAPI.schemas').ObjectListRequestFiltersItem[]) ||
+    [];
+  const columnFilters: ColumnFiltersState =
+    requestFiltersToColumnFilters(configFilters);
 
-    for (const key of currentVisibilityKeys) {
-      if (columnVisibility[key] !== savedVisibility[key]) return true;
-    }
-
-    // Compare search term (normalize null/undefined/empty string)
-    const savedSearchTerm = currentView.config.search_term || null;
-    const currentSearchTerm = searchTerm || null;
-    if (currentSearchTerm !== savedSearchTerm) return true;
-
-    // Compare page size
-    const savedPageSize = currentView.config.page_size;
-    if (
-      savedPageSize !== undefined &&
-      paginationState.pageSize !== savedPageSize
-    )
-      return true;
-
-    return false;
-  }, [
-    currentView,
-    viewMode,
-    columnVisibility,
-    searchTerm,
-    paginationState.pageSize,
-  ]);
-
-  // Wrap state updates in startTransition to prevent Suspense fallback
+  // Simple update handlers that modify config
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
-    startTransition(() => setPaginationState(updater));
+    startTransition(() => {
+      const newState =
+        typeof updater === 'function' ? updater(paginationState) : updater;
+      setPageIndex(newState.pageIndex);
+      updateConfig({ page_size: newState.pageSize });
+    });
   };
 
   const handleSortingChange = (updater: Updater<SortingState>) => {
-    startTransition(() => setSortingState(updater));
+    startTransition(() => {
+      const newState =
+        typeof updater === 'function' ? updater(sortingState) : updater;
+      updateConfig({
+        sorting: newState.map((sort) => ({
+          column: sort.id,
+          direction: sort.desc
+            ? SortDirection.sort_desc
+            : SortDirection.sort_asc,
+        })) as unknown as typeof config.sorting,
+      });
+    });
   };
 
   const handleFiltersChange = (updater: Updater<ColumnFiltersState>) => {
-    startTransition(() => setColumnFilters(updater));
+    startTransition(() => {
+      const newState =
+        typeof updater === 'function' ? updater(columnFilters) : updater;
+      updateConfig({
+        column_filters: columnFiltersToRequestFilters(
+          newState,
+          schema.columns
+        ) as unknown as typeof config.column_filters,
+      });
+    });
   };
 
   const handleSearchChange = (value: string) => {
     startTransition(() => {
-      setSearchTerm(value || undefined);
-      setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
+      updateConfig({ search_term: value || null });
+      setPageIndex(0); // Reset to first page on search
     });
   };
 
-  // Build API request
+  // Build API request from config
   const { offset, limit } = paginationStateToRequest(paginationState);
   const request = {
     offset,
     limit,
-    sorts: sortingStateToSortDefinitions(sortingState),
-    filters: columnFiltersToRequestFilters(columnFilters, schema.columns),
-    search: searchTerm && searchTerm.trim().length > 0 ? searchTerm : undefined,
+    sorts: configSorting,
+    filters: configFilters,
+    search:
+      config.search_term && config.search_term.trim().length > 0
+        ? config.search_term
+        : undefined,
   };
 
   // Fetch data
@@ -520,57 +563,47 @@ export function ObjectList({
     }
   };
 
-  const placeholder = searchPlaceholder ?? `Search ${objectType}`;
-
   return (
     <div className="container mx-auto flex flex-col gap-2 p-6">
-      {/* Tabs - only show if there are saved views */}
-      {savedViews && savedViews.length > 0 && onViewSelect && (
+      {/* Tabs - only show if there are multiple views */}
+      {views && views.length > 1 && onViewSelect && (
         <SavedViewTabs
-          views={savedViews}
+          views={views}
           currentViewId={currentViewId}
           onViewSelect={onViewSelect}
         />
       )}
 
-      {/* Search + Settings */}
-      {enableSearch && (
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
-            <DataTableSearch
-              value={searchTerm ?? ''}
-              onChangeAction={handleSearchChange}
-              placeholder={placeholder}
-            />
-          </div>
-          {currentView && currentConfig && (
-            <SavedViewSettings
-              objectType={objectType}
-              currentView={currentView}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              hasUnsavedChanges={hasUnsavedChanges}
-              currentConfig={currentConfig}
-              onViewSelect={onViewSelect}
-              columns={schema.columns}
-              columnVisibility={columnVisibility}
-              onColumnVisibilityChange={setColumnVisibility}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Applied Filters */}
-      {enableColumnFilters && (
-        <DataTableAppliedFilters
-          filters={columnFilters}
-          columnDefs={schema.columns}
-          onUpdate={handleFiltersChange}
-        />
-      )}
+      {/* Unified Toolbar */}
+      <ObjectListToolbar
+        objectType={objectType}
+        columns={schema.columns}
+        config={config}
+        onSearchChange={handleSearchChange}
+        onSortingChange={(sorting) =>
+          updateConfig({ sorting: sorting as unknown as typeof config.sorting })
+        }
+        onFiltersChange={(filters) =>
+          updateConfig({
+            column_filters: filters as unknown as typeof config.column_filters,
+          })
+        }
+        onViewModeChange={(viewMode) =>
+          updateConfig({ display_mode: viewMode })
+        }
+        onColumnVisibilityChange={(visibility) =>
+          updateConfig({ column_visibility: visibility })
+        }
+        currentView={currentView}
+        hasUnsavedChanges={hasUnsavedChanges}
+        onViewSelect={onViewSelect}
+        enableSearch={enableSearch}
+        enableFilters={enableColumnFilters}
+        enableSorting={enableSorting}
+      />
 
       {/* Conditional View Rendering */}
-      {viewMode === 'table' && (
+      {config.display_mode === 'table' && (
         <DataTable
           isLoading={isPending}
           columns={schema.columns}
@@ -583,16 +616,22 @@ export function ObjectList({
           paginationState={paginationState}
           sortingState={sortingState}
           columnFilters={columnFilters}
-          columnVisibility={columnVisibility}
+          columnVisibility={config.column_visibility || {}}
           onPaginationChange={handlePaginationChange}
           onSortingChange={handleSortingChange}
           onFiltersChange={handleFiltersChange}
-          onColumnVisibilityChange={setColumnVisibility}
+          onColumnVisibilityChange={(updater) => {
+            const newVisibility =
+              typeof updater === 'function'
+                ? updater(config.column_visibility || {})
+                : updater;
+            updateConfig({ column_visibility: newVisibility });
+          }}
           onActionClick={handleRowActionClick}
           onBulkActionClick={handleBulkAction}
         />
       )}
-      {viewMode === 'gallery' && (
+      {config.display_mode === 'gallery' && (
         <GalleryView
           data={data.objects}
           columns={schema.columns}
@@ -602,7 +641,7 @@ export function ObjectList({
           onRowClick={onRowClick}
         />
       )}
-      {viewMode === 'card' && (
+      {config.display_mode === 'card' && (
         <CardView
           data={data.objects}
           columns={schema.columns}
@@ -614,7 +653,7 @@ export function ObjectList({
       )}
 
       {/* Bulk Actions Bar (for gallery/card views only - table has its own) */}
-      {viewMode !== 'table' &&
+      {config.display_mode !== 'table' &&
         selectedRowsData.length > 0 &&
         commonBulkActions.length > 0 && (
           <div className="bg-muted mt-4 flex items-center justify-between rounded-md border p-3">

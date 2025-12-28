@@ -33,7 +33,11 @@ async def list_saved_views(
 ) -> list[SavedViewSchema]:
     """List all saved views for a specific object type.
 
-    Returns both personal views (owned by the user) and team-shared views.
+    Returns:
+    - Personal views (owned by the user)
+    - Team-shared views
+    - System default view (ONLY if user hasn't set a personal default)
+
     RLS automatically filters to the user's current team.
 
     Returns full schemas including configuration, so clients don't need
@@ -41,38 +45,42 @@ async def list_saved_views(
     """
     # Query for both user's personal views and team-shared views for this object type
     # RLS will automatically filter to the current team
-    stmt = select(SavedView).where(
-        SavedView.object_type == object_type,
-        or_(
-            SavedView.user_id == request.user,  # Personal views
-            SavedView.user_id.is_(None),  # Team-shared views
-        ),
+    # Order by: default first, then alphabetically by name
+    stmt = (
+        select(SavedView)
+        .where(
+            SavedView.object_type == object_type,
+            or_(
+                SavedView.user_id == request.user,  # Personal views
+                SavedView.user_id.is_(None),  # Team-shared views
+            ),
+        )
+        .order_by(
+            SavedView.is_default.desc(),  # Default views first
+            SavedView.name.asc(),  # Then alphabetically
+        )
     )
     result = await transaction.execute(stmt)
-    views = result.scalars().all()
+    saved_views = result.scalars().all()
 
-    return [saved_view_to_schema(view) for view in views]
+    # Convert to schemas
+    view_schemas = [saved_view_to_schema(view) for view in saved_views]
 
+    # Check if user has a personal default
+    has_personal_default = any(v.is_default and v.is_personal for v in view_schemas)
 
-@get("/{object_type:str}/default")
-async def get_default_view(
-    object_type: ObjectTypes,
-    transaction: AsyncSession,
-    request: Request,
-) -> SavedViewSchema:
-    """Get the user's default view for this object type.
+    # If no personal default, include system default view at the beginning
+    if not has_personal_default:
+        system_default = await get_or_create_default_view(
+            transaction,
+            user_id=request.user,
+            object_type=object_type,
+        )
+        # Only add if it's the hardcoded default (id=None)
+        if system_default.id is None:
+            view_schemas.insert(0, system_default)
 
-    If the user has a saved view marked as default, returns that view.
-    Otherwise, returns a hard-coded default configuration.
-
-    Hard-coded defaults have id=None to distinguish them from saved views.
-    This endpoint always returns a view (never null/404).
-    """
-    return await get_or_create_default_view(
-        transaction,
-        user_id=request.user,
-        object_type=object_type,
-    )
+    return view_schemas
 
 
 @get("/{object_type:str}/{id:str}")
@@ -218,7 +226,6 @@ view_router = Router(
     guards=[requires_scoped_session],
     route_handlers=[
         list_saved_views,
-        get_default_view,
         get_saved_view,
         create_saved_view,
         update_saved_view,
