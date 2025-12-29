@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This document covers overall project architecture and common commands. For platform-specific development:
 
 - **[Backend Development Guide](backend/CLAUDE.md)** - Python/Litestar backend, database, testing, and async tasks
-- **[Frontend Development Guide](frontend/CLAUDE.md)** - Next.js/React frontend, TypeScript, and UI components
+- **[Frontend Development Guide](frontend/CLAUDE.md)** - Vite/React frontend, TanStack Router, TypeScript, and UI components
 - **[Email Template Development](backend/emails/CLAUDE.md)** - React Email templates with Tailwind CSS
 - **[Infrastructure Guide](infra/CLAUDE.md)** - AWS deployment, Terraform, and DevOps
 
@@ -34,7 +34,7 @@ This document covers overall project architecture and common commands. For platf
 - `make lint-backend` - Lint and format Python code
 
 ### Frontend Development
-- `make dev-frontend` - Start Next.js development server with Turbopack
+- `make dev-frontend` - Start Vite development server
 - `make build-frontend` - Build for production
 - `make type-check-frontend` - Run TypeScript type checking (fast, no build required)
 - `make lint-frontend` - Run ESLint
@@ -53,7 +53,7 @@ This document covers overall project architecture and common commands. For platf
 ## Architecture Overview
 
 ### Tech Stack
-- **Frontend**: Next.js 15 with React 19, TypeScript, Tailwind CSS, shadcn/ui components
+- **Frontend**: Vite with React 19, TanStack Router, TypeScript, Tailwind CSS, shadcn/ui components
 - **Backend**: Python 3.13+ with Litestar (ASGI), SQLAlchemy, PostgreSQL
 - **Email**: React Email with TypeScript, compiled to HTML with Jinja2 templating
 - **Queue**: SAQ (Simple Async Queue) with PostgreSQL backing for background tasks
@@ -62,7 +62,8 @@ This document covers overall project architecture and common commands. For platf
 - **Infrastructure**: AWS (ECS Fargate, ALB, Aurora Serverless v2, ECR, S3, Route53) managed via Terraform
 
 ### Key Directories
-- `frontend/src/app/` - Next.js App Router pages
+- `frontend/src/pages/` - React page components
+- `frontend/src/router/` - TanStack Router configuration
 - `frontend/src/components/` - React components using shadcn/ui
 - `frontend/src/openapi/` - Auto-generated API client (don't edit manually)
 - `backend/app/` - Python application code

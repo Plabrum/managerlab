@@ -82,8 +82,6 @@ const renderPostActionForm = useCallback(
 
 ```tsx
 // frontend/src/components/actions/update-post-form.tsx
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -166,14 +164,14 @@ export function UpdatePostForm({
 ### Step 2: Use the Form in Your Page
 
 ```tsx
-// frontend/src/app/(authenticated)/posts/[id]/page.tsx
-'use client';
-
+// frontend/src/pages/posts/post-detail-page.tsx
 import { useCallback } from 'react';
 import { ObjectActions } from '@/components/object-detail';
 import { UpdatePostForm } from '@/components/actions/update-post-form';
+import { useParams } from '@tanstack/react-router';
 
-export default function PostDetailPage({ params }) {
+export default function PostDetailPage() {
+  const { id } = useParams({ from: '/posts/$id' });
   const { data } = useOObjectTypeIdGetObjectDetailSuspense('posts', id);
 
   const renderPostActionForm = useCallback(
@@ -301,8 +299,8 @@ Don't create a global form registry. Keep forms near the pages that use them:
 
 ```
 src/
-├── app/(authenticated)/posts/[id]/
-│   ├── page.tsx                    # Uses UpdatePostForm
+├── pages/posts/
+│   ├── post-detail-page.tsx        # Uses UpdatePostForm
 │   └── components/
 │       └── update-post-form.tsx    # Form specific to this page
 ```
@@ -424,7 +422,7 @@ class DeletePost(BaseAction):
 See the complete working example in:
 
 - **Form**: `frontend/src/components/actions/update-post-form.tsx`
-- **Usage**: `frontend/src/app/(authenticated)/posts/[id]/page.tsx`
+- **Usage**: `frontend/src/pages/posts/post-detail-page.tsx`
 
 ## Summary
 
