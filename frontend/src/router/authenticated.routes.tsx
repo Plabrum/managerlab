@@ -1,5 +1,6 @@
 import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
 import { authenticatedLayoutRoute } from './layout.routes';
+import { PageSkeleton } from '@/components/skeletons';
 
 // ============================================================================
 // Onboarding
@@ -19,6 +20,7 @@ export const onboardingRoute = createRoute({
 export const dashboardIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/dashboard',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/dashboard/dashboard-list-page'),
     'DashboardPage'
@@ -28,6 +30,7 @@ export const dashboardIndexRoute = createRoute({
 export const dashboardDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/dashboard/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/dashboard/dashboard-detail-page'),
     'DashboardDetailPage'
@@ -40,6 +43,7 @@ export const dashboardDetailRoute = createRoute({
 export const campaignsIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/campaigns',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/campaigns/campaigns-list-page'),
     'CampaignsPage'
@@ -49,6 +53,7 @@ export const campaignsIndexRoute = createRoute({
 export const campaignDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/campaigns/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/campaigns/campaign-detail-page'),
     'CampaignDetailPage'
@@ -61,6 +66,7 @@ export const campaignDetailRoute = createRoute({
 export const brandsIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/brands',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/brands/brands-list-page'),
     'BrandsPage'
@@ -70,6 +76,7 @@ export const brandsIndexRoute = createRoute({
 export const brandDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/brands/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/brands/brand-detail-page'),
     'BrandDetailPage'
@@ -82,6 +89,7 @@ export const brandDetailRoute = createRoute({
 export const brandcontactsIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/brandcontacts',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/brandcontacts/brandcontacts-list-page'),
     'BrandContactsPage'
@@ -91,6 +99,7 @@ export const brandcontactsIndexRoute = createRoute({
 export const brandcontactDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/brandcontacts/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/brandcontacts/brandcontact-detail-page'),
     'BrandContactDetailPage'
@@ -103,6 +112,7 @@ export const brandcontactDetailRoute = createRoute({
 export const deliverablesIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/deliverables',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/deliverables/deliverables-list-page'),
     'DeliverablesPage'
@@ -112,6 +122,7 @@ export const deliverablesIndexRoute = createRoute({
 export const deliverableDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/deliverables/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/deliverables/deliverable-detail-page'),
     'DeliverableDetailPage'
@@ -124,6 +135,7 @@ export const deliverableDetailRoute = createRoute({
 export const invoicesIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/invoices',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/invoices/invoices-list-page'),
     'InvoicesPage'
@@ -133,6 +145,7 @@ export const invoicesIndexRoute = createRoute({
 export const invoiceDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/invoices/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/invoices/invoice-detail-page'),
     'InvoiceDetailPage'
@@ -145,6 +158,7 @@ export const invoiceDetailRoute = createRoute({
 export const mediaIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/media',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/media/media-list-page'),
     'MediaPage'
@@ -154,6 +168,7 @@ export const mediaIndexRoute = createRoute({
 export const mediaDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/media/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/media/media-detail-page'),
     'MediaDetailPage'
@@ -166,6 +181,7 @@ export const mediaDetailRoute = createRoute({
 export const rosterIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/roster',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/roster/roster-list-page'),
     'RosterPage'
@@ -175,6 +191,7 @@ export const rosterIndexRoute = createRoute({
 export const rosterDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/roster/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/roster/roster-detail-page'),
     'RosterDetailPage'
@@ -187,6 +204,7 @@ export const rosterDetailRoute = createRoute({
 export const usersIndexRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/users',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/users/users-list-page'),
     'UsersPage'
@@ -196,6 +214,7 @@ export const usersIndexRoute = createRoute({
 export const userDetailRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/users/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/users/user-detail-page'),
     'UserDetailPage'
@@ -208,6 +227,7 @@ export const userDetailRoute = createRoute({
 export const settingsTeamRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/settings/team/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/settings/team-settings-page'),
     'TeamSettingsPage'
@@ -217,6 +237,7 @@ export const settingsTeamRoute = createRoute({
 export const settingsUserRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/settings/user/$id',
+  pendingComponent: PageSkeleton,
   component: lazyRouteComponent(
     () => import('@/pages/settings/user-settings-page'),
     'UserSettingsPage'

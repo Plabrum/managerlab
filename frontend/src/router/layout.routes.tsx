@@ -1,6 +1,5 @@
 import { createRoute } from '@tanstack/react-router';
 import { rootRoute } from './root.route';
-import { AuthLoading } from '@/components/auth-loading';
 import { AuthenticatedLayout } from '@/layouts/authenticated-layout';
 import { PublicLayout } from '@/layouts/public-layout';
 import { requireAuth } from '@/lib/auth-loader';
@@ -16,12 +15,15 @@ export const publicLayoutRoute = createRoute({
 
 // ============================================================================
 // Authenticated Layout Route (requires authentication)
+//
+// Auth data is aggressively cached (5 minutes) in the loader, so this
+// typically doesn't show a loading state after the first navigation.
+// Page-specific skeletons (in child routes) handle loading states for page data.
 // ============================================================================
 export const authenticatedLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_authenticated',
   loader: async ({ location }) => requireAuth(location),
-  pendingComponent: AuthLoading,
   component: () => {
     const data = authenticatedLayoutRoute.useLoaderData();
     return <AuthenticatedLayout user={data.user} teams={data.teams} />;
