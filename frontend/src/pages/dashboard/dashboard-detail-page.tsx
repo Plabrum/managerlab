@@ -8,7 +8,7 @@ import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import { useDashboardsIdGetDashboardSuspense } from '@/openapi/dashboards/dashboards';
 
 export function DashboardDetailPage() {
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/dashboard/$id' });
   const { data: dashboard, refetch } = useDashboardsIdGetDashboardSuspense(id);
 
   // URL parameter-based edit mode with permission checking

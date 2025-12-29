@@ -13,7 +13,7 @@ import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useDeliverablesIdGetDeliverableSuspense } from '@/openapi/deliverables/deliverables';
 
 export function DeliverableDetailPage() {
-  const { id } = useParams({ strict: false }); // Type-safe deliverable with relations and actions
+  const { id } = useParams({ from: '/_authenticated/deliverables/$id' });
   const { data, refetch } = useDeliverablesIdGetDeliverableSuspense(id);
   const { user } = useAuth();
 

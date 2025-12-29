@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBrandsContactsIdGetBrandContactSuspense } from '@/openapi/brands/brands';
 
 export function BrandContactDetailPage() {
-  // ✅ Type-safe params - no path needed!
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/brandcontacts/$id' });
   const { data } = useBrandsContactsIdGetBrandContactSuspense(id);
 
   return (

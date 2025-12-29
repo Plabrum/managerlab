@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUsersUserIdGetUserSuspense } from '@/openapi/users/users';
 
 export function UserDetailPage() {
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/users/$id' });
   const { data } = useUsersUserIdGetUserSuspense(Number(id));
 
   return (

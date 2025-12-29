@@ -3,7 +3,6 @@ import {
   lazyRouteComponent,
   redirect,
 } from '@tanstack/react-router';
-import { z } from 'zod';
 import { publicLayoutRoute } from './layout.routes';
 import { rootRoute } from './root.route';
 
@@ -30,10 +29,6 @@ export const homeRoute = createRoute({
 // ============================================================================
 // Public Auth Routes
 // ============================================================================
-const authSearchSchema = z.object({
-  'sign-up': z.string().optional(),
-});
-
 export const authIndexRoute = createRoute({
   getParentRoute: () => publicLayoutRoute,
   path: '/auth',
@@ -41,7 +36,6 @@ export const authIndexRoute = createRoute({
     () => import('@/pages/auth/auth-page'),
     'AuthContent'
   ),
-  validateSearch: authSearchSchema,
 });
 
 export const authExpireRoute = createRoute({

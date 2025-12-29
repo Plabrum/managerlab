@@ -10,7 +10,7 @@ import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useRosterIdGetRosterSuspense } from '@/openapi/roster/roster';
 
 export function RosterDetailPage() {
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/roster/$id' });
   const { data, refetch } = useRosterIdGetRosterSuspense(id);
   const { user } = useAuth();
 

@@ -1,12 +1,5 @@
 import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
-import { z } from 'zod';
 import { authenticatedLayoutRoute } from './layout.routes';
-
-// Common search schema for detail pages
-const detailSearchSchema = z.object({
-  edit: z.boolean().optional(),
-  tab: z.enum(['summary', 'activity']).optional().default('summary'),
-});
 
 // ============================================================================
 // Onboarding
@@ -39,7 +32,6 @@ export const dashboardDetailRoute = createRoute({
     () => import('@/pages/dashboard/dashboard-detail-page'),
     'DashboardDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -61,7 +53,6 @@ export const campaignDetailRoute = createRoute({
     () => import('@/pages/campaigns/campaign-detail-page'),
     'CampaignDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -83,7 +74,6 @@ export const brandDetailRoute = createRoute({
     () => import('@/pages/brands/brand-detail-page'),
     'BrandDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -105,7 +95,6 @@ export const brandcontactDetailRoute = createRoute({
     () => import('@/pages/brandcontacts/brandcontact-detail-page'),
     'BrandContactDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -127,7 +116,6 @@ export const deliverableDetailRoute = createRoute({
     () => import('@/pages/deliverables/deliverable-detail-page'),
     'DeliverableDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -149,7 +137,6 @@ export const invoiceDetailRoute = createRoute({
     () => import('@/pages/invoices/invoice-detail-page'),
     'InvoiceDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -171,7 +158,6 @@ export const mediaDetailRoute = createRoute({
     () => import('@/pages/media/media-detail-page'),
     'MediaDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -193,7 +179,6 @@ export const rosterDetailRoute = createRoute({
     () => import('@/pages/roster/roster-detail-page'),
     'RosterDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================
@@ -215,7 +200,6 @@ export const userDetailRoute = createRoute({
     () => import('@/pages/users/user-detail-page'),
     'UserDetailPage'
   ),
-  validateSearch: detailSearchSchema,
 });
 
 // ============================================================================

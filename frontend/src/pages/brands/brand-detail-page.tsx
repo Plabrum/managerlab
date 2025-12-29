@@ -10,7 +10,7 @@ import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useBrandsIdGetBrandSuspense } from '@/openapi/brands/brands';
 
 export function BrandDetailPage() {
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/brands/$id' });
   const { data, refetch } = useBrandsIdGetBrandSuspense(id);
   const { user } = useAuth();
 

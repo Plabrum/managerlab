@@ -7,7 +7,7 @@ import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import { useMediaIdGetMediaSuspense } from '@/openapi/media/media';
 
 export function MediaDetailPage() {
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/media/$id' });
   const { data, refetch } = useMediaIdGetMediaSuspense(id);
 
   return (

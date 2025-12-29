@@ -12,7 +12,7 @@ import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useCampaignsIdGetCampaignSuspense } from '@/openapi/campaigns/campaigns';
 
 export function CampaignDetailPage() {
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/campaigns/$id' });
   const { data, refetch } = useCampaignsIdGetCampaignSuspense(id);
   const { user } = useAuth();
 

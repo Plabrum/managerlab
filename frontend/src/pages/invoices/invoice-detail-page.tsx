@@ -6,7 +6,7 @@ import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import { useInvoicesIdGetInvoiceSuspense } from '@/openapi/invoices/invoices';
 
 export function InvoiceDetailPage() {
-  const { id } = useParams({ strict: false });
+  const { id } = useParams({ from: '/_authenticated/invoices/$id' });
   const { data, refetch } = useInvoicesIdGetInvoiceSuspense(id);
 
   return (
