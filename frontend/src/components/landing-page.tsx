@@ -40,7 +40,7 @@ export function LandingPage() {
                 Sign In
               </Button>
             </Link>
-            <Link to="/auth?sign-up">
+            <Link to="/auth" search={{ 'sign-up': true }}>
               <Button
                 size="sm"
                 className="bg-white text-black hover:bg-gray-200"
@@ -75,7 +75,7 @@ export function LandingPage() {
                     Sign In
                   </Button>
                 </Link>
-                <Link to="/auth?sign-up">
+                <Link to="/auth" search={{ 'sign-up': true }}>
                   <Button
                     size="lg"
                     className="bg-white px-8 py-6 text-lg text-black hover:bg-gray-200"

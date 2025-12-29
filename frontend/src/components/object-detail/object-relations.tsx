@@ -92,7 +92,9 @@ export function ObjectRelations({
                     </p>
                   </div>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/${obj.object_type}/${obj.id}`}>View</Link>
+                    <Link to={`/${obj.object_type}/${obj.id}` as '/'}>
+                      View
+                    </Link>
                   </Button>
                 </div>
               ))}

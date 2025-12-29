@@ -91,7 +91,7 @@ export function useThreadMessages({
           // Return context with snapshot for rollback
           return { previousMessages };
         },
-        onError: (err, variables, context) => {
+        onError: (_err, _variables, context) => {
           // Rollback on error
           if (context?.previousMessages) {
             queryClient.setQueryData(queryKey, context.previousMessages);

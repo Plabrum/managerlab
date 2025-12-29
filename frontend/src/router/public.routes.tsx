@@ -56,6 +56,9 @@ export const magicLinkVerifyRoute = createRoute({
     () => import('@/pages/auth/magic-link-verify-page'),
     'MagicLinkVerifyPage'
   ),
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: (search.token as string) || undefined,
+  }),
 });
 
 // ============================================================================
@@ -86,4 +89,7 @@ export const inviteAcceptRoute = createRoute({
     () => import('@/pages/invite-accept-page'),
     'InviteAcceptPage'
   ),
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: (search.token as string) || undefined,
+  }),
 });

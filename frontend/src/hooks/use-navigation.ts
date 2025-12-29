@@ -45,7 +45,7 @@ export function useNavigation(baseUrl = '') {
       const cleanLink = link.replace(/^\/+/, ''); // Remove leading slashes
       const fullUrl = cleanBase ? `${cleanBase}/${cleanLink}` : `/${cleanLink}`;
 
-      navigate({ to: fullUrl, ...options });
+      navigate({ to: fullUrl as '/', ...options });
     },
     [baseUrl, navigate]
   );

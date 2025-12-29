@@ -23,7 +23,7 @@ export function DataTableAppliedFilters({
 }: DataTableAppliedFiltersProps) {
   const filterDetails = useMemo(() => {
     const requestFilters = columnFiltersToRequestFilters(filters, columnDefs);
-    return filters.map((filter, index) => ({
+    return filters.map((_filter, index) => ({
       index,
       requestFilter: requestFilters[index],
     }));

@@ -59,26 +59,27 @@ export function AuthFormLayout({
 
             <p className="text-center text-xs text-zinc-500">
               By continuing, you agree to our{' '}
-              <Link
-                to="/terms"
+              <a
+                href="/terms"
                 className="text-zinc-400 underline hover:text-white"
               >
                 Terms of Service
-              </Link>{' '}
+              </a>{' '}
               and{' '}
-              <Link
-                to="/privacy"
+              <a
+                href="/privacy"
                 className="text-zinc-400 underline hover:text-white"
               >
                 Privacy Policy
-              </Link>
+              </a>
             </p>
 
             {!isSignUp ? (
               <p className="text-center text-sm text-zinc-400">
                 Don&apos;t have an account?{' '}
                 <Link
-                  to="/auth?sign-up"
+                  to="/auth"
+                  search={{ 'sign-up': true }}
                   className="text-white underline hover:text-zinc-300"
                 >
                   Sign up

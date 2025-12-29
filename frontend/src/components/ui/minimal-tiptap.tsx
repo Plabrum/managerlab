@@ -197,7 +197,7 @@ function MinimalTiptap({
           'p-0 border-0'
         ),
       },
-      handleKeyDown: (view, event) => {
+      handleKeyDown: (_view, event) => {
         // Prevent keyboard shortcuts from bubbling when editor is focused
         // This prevents Cmd+B from toggling sidebar while editing
         if ((event.metaKey || event.ctrlKey) && event.key === 'b') {

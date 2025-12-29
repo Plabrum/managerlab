@@ -214,7 +214,7 @@ export function requestFiltersToColumnFilters(
  * Create a complete ObjectListRequest from table state
  */
 export function createObjectListRequest(
-  objectType: string,
+  _objectType: string,
   paginationState: { pageIndex: number; pageSize: number },
   sortingState: SortingState,
   columnFilters: ColumnFiltersState,

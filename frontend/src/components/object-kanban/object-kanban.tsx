@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import {
   KanbanProvider,
@@ -269,7 +270,7 @@ function ObjectKanbanCard({ object }: { object: ObjectListSchema }) {
   const handleClick = () => {
     // Navigate to object detail page using the link if available
     if (object.link) {
-      navigate({ to: object.link });
+      navigate({ to: object.link as '/' });
     }
   };
 

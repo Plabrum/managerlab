@@ -44,7 +44,7 @@ export function MediaGallery({ items }: MediaGalleryProps) {
           return (
             <Link
               key={media.id}
-              to={`/${media.object_type}/${media.id}`}
+              to={`/${media.object_type}/${media.id}` as '/'}
               className="bg-muted hover:border-primary group relative aspect-square overflow-hidden rounded-lg border transition-all hover:shadow-md"
             >
               {imageUrl ? (

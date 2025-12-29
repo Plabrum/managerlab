@@ -22,7 +22,7 @@ export function DashboardWidgetPalette({
   onCloseEditMode,
 }: DashboardWidgetPaletteProps) {
   const [isPaletteHovered, setIsPaletteHovered] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isPaletteExpanded = isPaletteHovered;
 

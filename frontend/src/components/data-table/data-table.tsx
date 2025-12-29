@@ -8,7 +8,6 @@ import {
   type OnChangeFn,
   type PaginationState,
   type SortingState,
-  type Table as ReactTable,
   useReactTable,
   type VisibilityState,
 } from '@tanstack/react-table';
@@ -322,10 +321,7 @@ export function DataTable({
 
   // Create actions column header component
   const ActionsColumnHeader = React.useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ({ table }: { table: ReactTable<ObjectListSchema> }) => (
-      <div className="flex justify-end" />
-    ),
+    () => <div className="flex justify-end" />,
     []
   );
 
@@ -337,7 +333,7 @@ export function DataTable({
       minSize: 60,
       maxSize: 60,
       enableResizing: false,
-      header: ({ table }) => <ActionsColumnHeader table={table} />,
+      header: () => <ActionsColumnHeader />,
       cell: ({ row }) => {
         const rowActions = row.original.actions;
         const hasRowActions = rowActions && rowActions.length > 0;

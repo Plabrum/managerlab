@@ -60,7 +60,7 @@ export function DashboardGrid({
   }, [draggingWidgetType]);
 
   const handleLayoutChange = useCallback(
-    (currentLayout: Layout[], allLayouts: Layouts) => {
+    (_currentLayout: Layout[], allLayouts: Layouts) => {
       if (!isEditMode) return;
       onLayoutChange(allLayouts);
     },
@@ -68,7 +68,7 @@ export function DashboardGrid({
   );
 
   const handleDrop = useCallback(
-    (layout: Layout[], layoutItem: Layout) => {
+    (_layout: Layout[], layoutItem: Layout) => {
       // layoutItem contains the final position where the item was dropped
       onWidgetDrop({
         x: layoutItem.x,

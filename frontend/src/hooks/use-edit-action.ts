@@ -75,7 +75,9 @@ export function useEditAction({
     }
     navigate({
       to: '.',
-      search: (prev: Record<string, unknown>) => ({ ...prev, edit: true }),
+      search: (prev: Record<string, unknown>) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ({ ...prev, edit: true }) as any,
     });
   }, [isEditAvailable, navigate]);
 

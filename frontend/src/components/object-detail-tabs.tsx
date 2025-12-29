@@ -41,7 +41,9 @@ export function ObjectDetailTabs({
     (value: string) => {
       navigate({
         to: '.',
-        search: (prev: Record<string, unknown>) => ({ ...prev, tab: value }),
+        search: (prev: Record<string, unknown>) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ({ ...prev, tab: value }) as any,
       });
     },
     [navigate]
