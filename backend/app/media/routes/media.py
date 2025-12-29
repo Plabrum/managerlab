@@ -88,20 +88,36 @@ async def register_media(
 @get("/{id:str}")
 async def get_media(
     id: Sqid,
+    request: Request,
     transaction: AsyncSession,
     s3_client: S3Dep,
     action_registry: ActionRegistry,
 ) -> MediaResponseSchema:
     """Get a media item by SQID."""
-    from sqlalchemy.orm import joinedload
+    from sqlalchemy.orm import joinedload, selectinload
 
-    media = await get_or_404(transaction, Media, id, load_options=[joinedload(Media.thread)])
+    from app.threads.models import Thread
+
+    media = await get_or_404(
+        transaction,
+        Media,
+        id,
+        load_options=[
+            joinedload(Media.thread).options(
+                selectinload(Thread.messages),
+                selectinload(Thread.read_statuses),
+            )
+        ],
+    )
 
     # Compute actions for this media
     action_group = action_registry.get_class(ActionGroupType.MediaActions)
     actions = action_group.get_available_actions(obj=media)
 
-    return media_to_response_schema(media, s3_client, actions)
+    # Convert thread to unread info using the mixin method
+    thread_info = media.get_thread_unread_info(request.user)
+
+    return media_to_response_schema(media, s3_client, actions, thread_info)
 
 
 @delete("/{id:str}", status_code=200)

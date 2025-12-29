@@ -43,7 +43,10 @@ class MediaResponseSchema(BaseSchema):
 
 
 def media_to_response_schema(
-    media: Media, s3_client: BaseS3Client, actions: list[ActionDTO], thread=None
+    media: Media,
+    s3_client: BaseS3Client,
+    actions: list[ActionDTO],
+    thread_info: ThreadUnreadInfo | None = None,
 ) -> MediaResponseSchema:
     """Transform Media model to response schema with presigned URLs.
 
@@ -51,6 +54,7 @@ def media_to_response_schema(
         media: Media model instance
         s3_client: S3Client for generating presigned URLs
         actions: List of available actions for this media
+        thread_info: Optional ThreadUnreadInfo schema (converted from Thread model)
     """
     view_url = s3_client.generate_presigned_download_url(key=media.file_key, expires_in=3600)
     thumbnail_url = (
@@ -71,7 +75,7 @@ def media_to_response_schema(
         view_url=view_url,
         thumbnail_url=thumbnail_url,
         actions=actions,
-        thread=thread if thread is not None else media.thread,
+        thread=thread_info,
     )
 
 
