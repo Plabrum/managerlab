@@ -72,11 +72,13 @@ type BaseFieldProps<
   id?: string;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 function RequiredMessage(required?: boolean | string) {
   if (!required) return undefined;
   return typeof required === 'string' ? required : 'This field is required';
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 function FieldError({ name }: { name: string }) {
   const {
     formState: { errors },

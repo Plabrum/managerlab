@@ -34,7 +34,21 @@ export default tseslint.config(
       ...importPlugin.flatConfigs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        {
+          allowConstantExport: true,
+          allowExportNames: [
+            'useAuth',
+            'useSidebar',
+            'badgeVariants',
+            'buttonVariants',
+            'toggleVariants',
+            'SIDEBAR_COOKIE_NAME',
+            'queryClient',
+            'RequiredMessage',
+            'FieldError',
+            'createTypedForm',
+          ],
+        },
       ],
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -52,7 +66,7 @@ export default tseslint.config(
           depth: 3,
         },
       ],
-      'jsx-a11y/no-autofocus': 'warn', // Allow autoFocus in modals/forms for UX
+      'jsx-a11y/no-autofocus': 'off', // Allow autoFocus in modals/forms for UX
       // Import plugin settings
       'import/order': [
         'error', // Changed from 'warn' to 'error' for strict enforcement
