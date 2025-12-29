@@ -6,7 +6,6 @@ import {
   useEffect,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
 import { config } from '@/lib/config';
 import {
   UserSchema,
@@ -50,7 +49,6 @@ export function AuthProvider({
     useState<TeamListItemSchema[]>(initialTeams);
   const [isSwitchingTeam, setIsSwitchingTeam] = useState(false);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const refetchTeams = useCallback(async () => {
     const res = await fetch(`${config.api.baseUrl}/teams`, {

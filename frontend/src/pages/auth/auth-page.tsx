@@ -6,7 +6,6 @@ import {
   MagicLinkForm,
   AuthFormLayout,
 } from '@/components/auth';
-import { SuspenseWrapper } from '@/components/suspense-wrapper';
 import { handleError } from '@/lib/error-handler';
 import { useAuthMagicLinkRequestRequestMagicLink } from '@/openapi/auth/auth';
 import type React from 'react';
@@ -114,28 +113,5 @@ export function AuthContent() {
         />
       }
     />
-  );
-}
-
-function AuthPage() {
-  // Only load reCAPTCHA script if valid key is configured
-  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
-  const hasValidKey =
-    recaptchaSiteKey && !recaptchaSiteKey.includes('your_recaptcha');
-
-  return (
-    <>
-      {/* Load reCAPTCHA v3 script */}
-      {hasValidKey && (
-        <script
-          src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}
-          async
-          defer
-        />
-      )}
-      <SuspenseWrapper>
-        <AuthContent />
-      </SuspenseWrapper>
-    </>
   );
 }

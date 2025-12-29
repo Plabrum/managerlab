@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +21,6 @@ interface CreateTeamModalProps {
 
 export function CreateTeamModal({ open, onOpenChange }: CreateTeamModalProps) {
   const { refetchTeams } = useAuth();
-  const navigate = useNavigate();
   const [isCreating, setIsCreating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [formData, setFormData] = React.useState({

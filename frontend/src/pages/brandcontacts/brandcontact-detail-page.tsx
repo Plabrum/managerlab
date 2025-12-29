@@ -16,53 +16,53 @@ export function BrandContactDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 First Name
-              </label>
+              </div>
               <p className="text-sm">{data.first_name}</p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 Last Name
-              </label>
+              </div>
               <p className="text-sm">{data.last_name}</p>
             </div>
             {data.email && (
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Email
-                </label>
+                </div>
                 <p className="text-sm">{data.email}</p>
               </div>
             )}
             {data.phone && (
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Phone
-                </label>
+                </div>
                 <p className="text-sm">{data.phone}</p>
               </div>
             )}
             {data.notes && (
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Notes
-                </label>
+                </div>
                 <p className="text-sm">{data.notes}</p>
               </div>
             )}
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 Created At
-              </label>
+              </div>
               <p className="text-sm">
                 {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 Updated At
-              </label>
+              </div>
               <p className="text-sm">
                 {new Date(data.updated_at).toLocaleDateString()}
               </p>

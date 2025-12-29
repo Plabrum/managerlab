@@ -54,7 +54,7 @@ export function useEditAction({
     navigate({
       to: '.',
       search: (prev: Record<string, unknown>) => {
-        const { edit, ...rest } = prev as { edit?: boolean };
+        const { edit: _edit, ...rest } = prev as { edit?: boolean };
         return rest;
       },
     });

@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import {
   KanbanProvider,
@@ -70,7 +69,6 @@ export function ObjectKanban({
   timeRange,
   states,
 }: ObjectKanbanProps) {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // Fetch schema to determine state field and available values

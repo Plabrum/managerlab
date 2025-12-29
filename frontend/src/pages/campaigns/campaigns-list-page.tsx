@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ObjectList, TopLevelActions } from '@/components/object-list';
 import { PageTopBar } from '@/components/page-topbar';
-import { createListPageMeta } from '@/lib/meta-helpers';
 import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
 
 export function CampaignsPage() {

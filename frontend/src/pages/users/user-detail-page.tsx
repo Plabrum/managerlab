@@ -16,29 +16,29 @@ export function UserDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 Email
-              </label>
+              </div>
               <p className="text-sm">{data.email}</p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 Email Verified
-              </label>
+              </div>
               <p className="text-sm">{data.email_verified ? 'Yes' : 'No'}</p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 Created At
-              </label>
+              </div>
               <p className="text-sm">
                 {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <div className="text-muted-foreground text-sm font-medium">
                 Updated At
-              </label>
+              </div>
               <p className="text-sm">
                 {new Date(data.updated_at).toLocaleDateString()}
               </p>

@@ -7,7 +7,6 @@ import { PageTopBar } from '@/components/page-topbar';
 import { useAuth } from '@/components/providers/auth-provider';
 import { TabsContent } from '@/components/ui/tabs';
 import { useEditAction } from '@/hooks/use-edit-action';
-import { createDetailPageMeta } from '@/lib/meta-helpers';
 import { ActionGroupType, ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useCampaignsIdGetCampaignSuspense } from '@/openapi/campaigns/campaigns';
 

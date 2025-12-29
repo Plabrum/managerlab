@@ -42,7 +42,7 @@ export function MediaSelector({
 
   return (
     <div className="space-y-2">
-      <Label>Select media to add</Label>
+      <div className="text-sm font-medium">Select media to add</div>
       <div className="max-h-96 space-y-3 overflow-y-auto rounded-md border p-4">
         {items.map((media: ObjectListSchema) => {
           const mediaId = String(media.id);

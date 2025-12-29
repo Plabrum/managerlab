@@ -29,15 +29,15 @@ export function InvoiceDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Customer Name
-                </label>
+                </div>
                 <p className="text-sm">{data.customer_name}</p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Customer Email
-                </label>
+                </div>
                 <p className="text-sm">{data.customer_email}</p>
               </div>
             </CardContent>
@@ -49,46 +49,46 @@ export function InvoiceDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Posting Date
-                </label>
+                </div>
                 <p className="text-sm">
                   {new Date(data.posting_date).toLocaleDateString()}
                 </p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Due Date
-                </label>
+                </div>
                 <p className="text-sm">
                   {new Date(data.due_date).toLocaleDateString()}
                 </p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Amount Due
-                </label>
+                </div>
                 <p className="text-sm">${data.amount_due.toLocaleString()}</p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <div className="text-muted-foreground text-sm font-medium">
                   Amount Paid
-                </label>
+                </div>
                 <p className="text-sm">${data.amount_paid.toLocaleString()}</p>
               </div>
               {data.description && (
                 <div>
-                  <label className="text-muted-foreground text-sm font-medium">
+                  <div className="text-muted-foreground text-sm font-medium">
                     Description
-                  </label>
+                  </div>
                   <p className="text-sm">{data.description}</p>
                 </div>
               )}
               {data.notes && (
                 <div>
-                  <label className="text-muted-foreground text-sm font-medium">
+                  <div className="text-muted-foreground text-sm font-medium">
                     Notes
-                  </label>
+                  </div>
                   <p className="text-sm">{data.notes}</p>
                 </div>
               )}

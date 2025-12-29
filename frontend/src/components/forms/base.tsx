@@ -436,8 +436,11 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
                   />
                   {showTime && (
                     <div className="border-t p-3">
-                      <Label className="text-xs">Time</Label>
+                      <Label htmlFor={`${htmlId}-time`} className="text-xs">
+                        Time
+                      </Label>
                       <Input
+                        id={`${htmlId}-time`}
                         type="time"
                         value={dateValue ? format(dateValue, 'HH:mm') : '00:00'}
                         onChange={(e) => {

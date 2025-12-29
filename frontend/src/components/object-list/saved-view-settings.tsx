@@ -272,7 +272,9 @@ export function SavedViewSettings({
           <div className="space-y-4">
             {/* View Mode Selector */}
             <div className="space-y-2">
-              <Label className="text-muted-foreground text-xs">View Mode</Label>
+              <div className="text-muted-foreground text-xs font-medium">
+                View Mode
+              </div>
               <ViewModeSelector value={viewMode} onChange={onViewModeChange} />
             </div>
 

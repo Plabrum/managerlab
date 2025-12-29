@@ -12,21 +12,25 @@ export function UserSettingsCard({ user }: { user: UserSchema }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
-              Name
-            </label>
-            <p className="text-sm">{user.name}</p>
+            <div>
+              <div className="text-muted-foreground text-sm font-medium">
+                Name
+              </div>
+              <p className="text-sm">{user.name}</p>
+            </div>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
-              Email
-            </label>
-            <p className="text-sm">{user.email}</p>
+            <div>
+              <div className="text-muted-foreground text-sm font-medium">
+                Email
+              </div>
+              <p className="text-sm">{user.email}</p>
+            </div>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <div className="text-muted-foreground text-sm font-medium">
               Email Verified
-            </label>
+            </div>
             <p className="text-sm">
               {user.email_verified ? (
                 <Badge variant="default" className="bg-green-500">
@@ -38,17 +42,17 @@ export function UserSettingsCard({ user }: { user: UserSchema }) {
             </p>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <div className="text-muted-foreground text-sm font-medium">
               Account Status
-            </label>
+            </div>
             <p className="text-sm">
               <Badge variant="outline">{user.state}</Badge>
             </p>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <div className="text-muted-foreground text-sm font-medium">
               Member Since
-            </label>
+            </div>
             <p className="text-sm">
               {new Date(user.created_at).toLocaleDateString('en-US', {
                 year: 'numeric',
