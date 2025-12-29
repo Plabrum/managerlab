@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import {
   Users,
   Zap,
@@ -10,7 +11,6 @@ import {
   DollarSign,
   CheckCircle,
 } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
 import { FeatureCard } from '@/components/feature-card';
 import { FeatureSection } from '@/components/feature-section';
 import { Footer } from '@/components/footer';

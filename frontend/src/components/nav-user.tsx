@@ -1,6 +1,6 @@
+import { useNavigate } from '@tanstack/react-router';
 import { Building2, ChevronsUpDown, LogOut, User } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '@/components/providers/auth-provider';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

@@ -1,5 +1,5 @@
-import { AlertCircle, Home } from 'lucide-react';
 import { Link, useRouter } from '@tanstack/react-router';
+import { AlertCircle, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,

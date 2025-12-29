@@ -1,5 +1,5 @@
-import { Mail, Instagram, Facebook, Youtube } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { Mail, Instagram, Facebook, Youtube } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';

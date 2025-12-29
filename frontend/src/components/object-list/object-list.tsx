@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import type {
   SortingState,
   ColumnFiltersState,
@@ -13,7 +14,6 @@ import {
   useCallback,
   useRef,
 } from 'react';
-import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { CardView } from './card-view';
 import { GalleryView } from './gallery-view';
@@ -36,10 +36,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useViewModePreference } from '@/hooks/use-view-mode-preference';
+import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
 import { getErrorMessage } from '@/lib/error-handler';
 import { useActionsActionGroupObjectIdExecuteObjectAction } from '@/openapi/actions/actions';
-import type { SavedViewConfigSchema } from '@/openapi/ariveAPI.schemas';
 import type {
+  SavedViewConfigSchema,
   ObjectListSchema,
   ObjectTypes,
   ActionDTO,
@@ -51,7 +52,6 @@ import {
   useOObjectTypeSchemaGetObjectSchemaSuspense,
 } from '@/openapi/objects/objects';
 import { useViewsObjectTypeListSavedViewsSuspense } from '@/openapi/views/views';
-import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
 import type { DomainObject } from '@/types/domain-objects';
 
 interface ObjectListProps {

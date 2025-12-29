@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -18,7 +19,6 @@ import {
   ArrowDown,
 } from 'lucide-react';
 import * as React from 'react';
-import { useNavigate } from '@tanstack/react-router';
 import { DataTableColumnFilter } from './data-table-column-filter';
 import { DataTablePagination } from './data-table-pagination';
 import {

@@ -1,6 +1,6 @@
+import { Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Link } from '@tanstack/react-router';
 import {
   Card,
   CardContent,
