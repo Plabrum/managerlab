@@ -1,24 +1,20 @@
-'use client';
-
+import { useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { useAuthLogoutLogoutUser } from '@/openapi/auth/auth';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 
 export function LogoutButton() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const { mutate: logout } = useAuthLogoutLogoutUser({
     mutation: {
       onSuccess: () => {
-        router.push('/');
-        router.refresh();
+        navigate({ to: '/' });
       },
       onError: (error) => {
         console.error('Logout failed:', error);
-        router.push('/');
-        router.refresh();
+        navigate({ to: '/' });
       },
       onSettled: () => {
         setIsSigningOut(false);

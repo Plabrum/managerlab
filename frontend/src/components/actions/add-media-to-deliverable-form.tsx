@@ -1,10 +1,4 @@
-'use client';
-
 import { useState } from 'react';
-import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SelectExistingMediaForm } from './select-existing-media-form';
-import { UploadNewMediaForm } from './upload-new-media-form';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +13,11 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
+import { SelectExistingMediaForm } from './select-existing-media-form';
+import { UploadNewMediaForm } from './upload-new-media-form';
 
 interface AddMediaToDeliverableFormProps {
   isOpen: boolean;

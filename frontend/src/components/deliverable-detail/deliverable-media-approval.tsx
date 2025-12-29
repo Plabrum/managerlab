@@ -1,11 +1,9 @@
-'use client';
-
 import { useState } from 'react';
 import { DeliverablePreview } from '@/components/deliverable-preview/deliverable-preview';
 import { SimpleMediaGallery } from '@/components/deliverable-preview/media-gallery-simple';
+import { useAuth } from '@/components/providers/auth-provider';
 import { MediaApprovalActions } from './media-approval-actions';
 import { MediaThreadList } from './media-thread-list';
-import { useAuth } from '@/components/providers/auth-provider';
 import type { DeliverableResponseSchema } from '@/openapi/ariveAPI.schemas';
 
 interface DeliverableMediaApprovalProps {

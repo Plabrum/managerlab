@@ -1,13 +1,11 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
-import type { CampaignUpdateSchema } from '@/openapi/ariveAPI.schemas';
+import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 import {
   CompensationStructure,
   CounterpartyType,
   OwnershipMode,
 } from '@/openapi/ariveAPI.schemas';
-import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
+import type { CampaignUpdateSchema } from '@/openapi/ariveAPI.schemas';
 
 const {
   FormSheet,
@@ -134,10 +132,14 @@ export function UpdateCampaignForm({
         <FormCustom name="compensation_total_usd">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="campaign-compensation-total"
+                className="mb-2 block text-sm font-medium"
+              >
                 Total Compensation (USD)
               </label>
               <input
+                id="campaign-compensation-total"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>
@@ -154,10 +156,14 @@ export function UpdateCampaignForm({
         <FormCustom name="payment_terms_days">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="campaign-payment-terms"
+                className="mb-2 block text-sm font-medium"
+              >
                 Payment Terms (Days)
               </label>
               <input
+                id="campaign-payment-terms"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>
@@ -243,10 +249,14 @@ export function UpdateCampaignForm({
         <FormCustom name="exclusivity_days_before">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="campaign-exclusivity-before"
+                className="mb-2 block text-sm font-medium"
+              >
                 Days Before Campaign
               </label>
               <input
+                id="campaign-exclusivity-before"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>
@@ -262,10 +272,14 @@ export function UpdateCampaignForm({
         <FormCustom name="exclusivity_days_after">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="campaign-exclusivity-after"
+                className="mb-2 block text-sm font-medium"
+              >
                 Days After Campaign
               </label>
               <input
+                id="campaign-exclusivity-after"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>
@@ -286,10 +300,14 @@ export function UpdateCampaignForm({
         <FormCustom name="approval_rounds">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="campaign-approval-rounds"
+                className="mb-2 block text-sm font-medium"
+              >
                 Number of Approval Rounds
               </label>
               <input
+                id="campaign-approval-rounds"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>
@@ -305,10 +323,14 @@ export function UpdateCampaignForm({
         <FormCustom name="approval_sla_hours">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="campaign-approval-sla"
+                className="mb-2 block text-sm font-medium"
+              >
                 Approval SLA (Hours)
               </label>
               <input
+                id="campaign-approval-sla"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>

@@ -1,7 +1,5 @@
-'use client';
-
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { SavedViewSchema } from '@/openapi/ariveAPI.schemas';
 
 interface SavedViewTabsProps {

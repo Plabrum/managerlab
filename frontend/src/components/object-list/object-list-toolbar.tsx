@@ -1,5 +1,10 @@
-'use client';
-
+import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
+import { DataTableSearch } from '@/components/data-table/data-table-search';
+import { columnFiltersToRequestFilters } from '@/components/data-table/utils';
+import { configToColumnFilters } from './config-utils';
+import { ObjectListFilterButton } from './object-list-filter-button';
+import { ObjectListSortButton } from './object-list-sort-button';
+import { SavedViewSettings } from './saved-view-settings';
 import type {
   ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
@@ -9,13 +14,6 @@ import type {
   ObjectTypes,
 } from '@/openapi/ariveAPI.schemas';
 import type { ViewMode } from '@/types/view-modes';
-import { DataTableSearch } from '@/components/data-table/data-table-search';
-import { DataTableAppliedFilters } from '@/components/data-table/data-table-applied-filters';
-import { SavedViewSettings } from './saved-view-settings';
-import { ObjectListSortButton } from './object-list-sort-button';
-import { ObjectListFilterButton } from './object-list-filter-button';
-import { configToColumnFilters } from './config-utils';
-import { columnFiltersToRequestFilters } from '@/components/data-table/utils';
 
 interface ObjectListToolbarProps {
   // Object type and schema

@@ -36,6 +36,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# TanStack Router
+frontend/src/routeTree.gen.ts
+
 # ================================
 # Python / Backend
 # ================================

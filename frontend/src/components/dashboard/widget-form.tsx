@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { createTypedForm } from '@/components/forms/base';
@@ -10,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getAllWidgetTypes, widgetRegistry } from '@/lib/widgets/registry';
 import {
   ObjectTypes,
   TimeRange,
@@ -19,10 +18,9 @@ import {
   type WidgetQuerySchema,
   type ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import { getAllWidgetTypes, widgetRegistry } from '@/lib/widgets/registry';
-import type { WidgetType } from '@/lib/widgets/types';
 import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
 import { KanbanWidgetFormFields } from './kanban-widget-form';
+import type { WidgetType } from '@/lib/widgets/types';
 
 // Shared constants
 const WIDGET_OBJECT_TYPES = [
@@ -124,7 +122,9 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label className="text-sm font-medium">Object Type</label>
+        <label htmlFor="widget-object-type" className="text-sm font-medium">
+          Object Type
+        </label>
         <Select
           value={query.object_type || undefined}
           onValueChange={handleObjectTypeChange}
@@ -143,7 +143,9 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-medium">Field</label>
+        <label htmlFor="widget-field" className="text-sm font-medium">
+          Field
+        </label>
         <Select
           value={query.field || undefined}
           onValueChange={(value) => updateField('field', value)}
@@ -176,7 +178,9 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-medium">Time Range</label>
+        <label htmlFor="widget-time-range" className="text-sm font-medium">
+          Time Range
+        </label>
         <Select
           value={query.time_range || undefined}
           onValueChange={(value) => updateField('time_range', value)}
@@ -195,7 +199,9 @@ function DynamicFieldSelector({ query, onChange }: DynamicFieldSelectorProps) {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-medium">Aggregation</label>
+        <label htmlFor="widget-aggregation" className="text-sm font-medium">
+          Aggregation
+        </label>
         <Select
           value={query.aggregation || undefined}
           onValueChange={(value) => updateField('aggregation', value)}

@@ -1,11 +1,7 @@
-'use client';
-
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { DashboardGrid } from './dashboard-grid';
-import { DashboardWidgetPalette } from './dashboard-widget-palette';
-import { CreateWidgetForm } from './create-widget-form';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import {
   useActionsActionGroupExecuteAction,
   useActionsActionGroupObjectIdExecuteObjectAction,
@@ -15,9 +11,11 @@ import {
   type CreateWidgetSchema,
   type DashboardSchema,
 } from '@/openapi/ariveAPI.schemas';
+import { CreateWidgetForm } from './create-widget-form';
+import { DashboardGrid } from './dashboard-grid';
+import { DashboardWidgetPalette } from './dashboard-widget-palette';
 import type { WidgetType } from '@/types/dashboard';
 import type { Layouts } from 'react-grid-layout';
-import { cn } from '@/lib/utils';
 
 interface DashboardContentProps {
   dashboard: DashboardSchema;

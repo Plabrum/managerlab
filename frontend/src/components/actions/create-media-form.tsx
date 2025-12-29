@@ -1,10 +1,4 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
 import {
   Loader2,
   CheckCircle2,
@@ -12,9 +6,8 @@ import {
   UploadIcon,
   X,
 } from 'lucide-react';
-import { RegisterMediaSchema } from '@/openapi/ariveAPI.schemas';
-import { Image } from '@/components/ui/image';
-import { useMediaUpload } from '@/hooks/useMediaUpload';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +22,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
+import { Image } from '@/components/ui/image';
+import { Progress } from '@/components/ui/progress';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMediaUpload } from '@/hooks/useMediaUpload';
+import { RegisterMediaSchema } from '@/openapi/ariveAPI.schemas';
 
 interface CreateMediaFormProps {
   isOpen: boolean;

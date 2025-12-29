@@ -25,8 +25,9 @@ make build-frontend
 
 ### Tech Stack
 
-- **Framework**: Next.js 15 with App Router
-- **React**: React 19
+- **Build Tool**: Vite (HMR, fast dev server, optimized production builds)
+- **Framework**: React 19
+- **Router**: TanStack Router (file-based routing)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **Components**: shadcn/ui (Radix UI primitives)
@@ -37,10 +38,16 @@ make build-frontend
 
 ```
 frontend/src/
-├── app/                    # Next.js App Router pages
-│   ├── (authenticated)/   # Authenticated routes
-│   ├── (public)/          # Public routes
-│   └── layout.tsx         # Root layout
+├── pages/                  # Page components
+│   ├── auth/              # Authentication pages
+│   ├── campaigns/         # Campaign pages
+│   ├── posts/             # Post pages
+│   └── dashboard/         # Dashboard pages
+├── router/                 # TanStack Router configuration
+│   ├── index.tsx          # Router setup
+│   ├── root.route.tsx     # Root route
+│   ├── authenticated.routes.tsx
+│   └── public.routes.tsx
 ├── components/
 │   ├── ui/                # shadcn/ui components
 │   ├── data-table/        # Data table system
@@ -48,7 +55,9 @@ frontend/src/
 │   └── ...                # Feature components
 ├── openapi/               # Auto-generated API client (DO NOT EDIT)
 ├── lib/                   # Utilities and helpers
-└── hooks/                 # Shared React hooks
+├── hooks/                 # Shared React hooks
+├── layouts/               # Layout components
+└── main.tsx               # Application entry point
 ```
 
 ## Core Patterns
@@ -87,14 +96,15 @@ Actions provide a type-safe way to execute operations with automatic UI handling
 ```typescript
 import { ObjectActions } from '@/components/object-detail';
 
-function PostDetailPage({ params }: { params: { id: string } }) {
-  const { data } = useOObjectTypeIdGetObjectDetailSuspense('posts', params.id);
+function PostDetailPage() {
+  const { id } = useParams({ from: '/posts/$id' });
+  const { data } = useOObjectTypeIdGetObjectDetailSuspense('posts', id);
 
   return (
     <ObjectActions
       actions={data.actions}
       actionGroup="post_actions"
-      objectId={params.id}
+      objectId={id}
       renderActionForm={renderPostActionForm}  // Optional: for custom forms
     />
   );
@@ -141,8 +151,6 @@ const renderPostActionForm = useCallback(
 **Form Component Pattern:**
 
 ```typescript
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { AppPostsSchemasPostUpdateDTOSchema } from '@/openapi/managerLab.schemas';
@@ -183,8 +191,6 @@ export function UpdatePostForm({
 Display lists of objects with sorting, filtering, pagination:
 
 ```typescript
-'use client';
-
 import { DataTable } from '@/components/data-table/data-table';
 import { useState } from 'react';
 
@@ -231,40 +237,6 @@ pnpm dlx shadcn@latest add form
 
 All components are in `src/components/ui/` and fully customizable.
 
-### 6. Client/Server Components
-
-Next.js App Router uses Server Components by default:
-
-```typescript
-// Server Component (default) - can fetch data directly
-export default async function PostPage({ params }: { params: { id: string } }) {
-  // Can access database or call APIs directly
-  return <div>...</div>;
-}
-
-// Client Component - use 'use client' directive
-'use client';
-
-export default function InteractivePage() {
-  const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(count + 1)}>{count}</button>;
-}
-```
-
-**When to use Client Components:**
-
-- Need React hooks (useState, useEffect, etc.)
-- Event handlers (onClick, onChange, etc.)
-- Browser APIs (localStorage, window, etc.)
-- Third-party libraries that use hooks
-
-**When to use Server Components:**
-
-- Static content
-- Data fetching
-- SEO-critical content
-- Reduces JavaScript bundle size
-
 ## Styling with Tailwind CSS
 
 ### Tailwind v4 Syntax
@@ -308,6 +280,101 @@ function Card({ className, ...props }: { className?: string }) {
       {...props}
     />
   );
+}
+```
+
+## Routing with TanStack Router
+
+### Router Structure
+
+TanStack Router uses a file-based routing configuration:
+
+```
+src/router/
+├── index.tsx                   # Router setup with QueryClient
+├── root.route.tsx              # Root layout
+├── authenticated.routes.tsx    # Protected routes
+├── public.routes.tsx           # Public routes
+└── layout.routes.tsx           # Layout routes
+```
+
+### Route Configuration
+
+Routes are configured in TypeScript files:
+
+```typescript
+// router/authenticated.routes.tsx
+import { Route } from '@tanstack/react-router';
+import { rootRoute } from './root.route';
+import PostsListPage from '@/pages/posts/posts-list-page';
+import PostDetailPage from '@/pages/posts/post-detail-page';
+
+// List route
+export const postsRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: '/posts',
+  component: PostsListPage,
+});
+
+// Detail route with dynamic parameter
+export const postDetailRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: '/posts/$id',
+  component: PostDetailPage,
+});
+```
+
+### Navigation
+
+```typescript
+import { Link, useNavigate } from '@tanstack/react-router';
+
+// Link component
+<Link to="/posts/$id" params={{ id: '123' }}>
+  View Post
+</Link>
+
+// Programmatic navigation
+const navigate = useNavigate();
+navigate({ to: '/posts' });
+navigate({ to: '/posts/$id', params: { id: '123' } });
+```
+
+### Route Parameters
+
+```typescript
+import { useParams } from '@tanstack/react-router';
+
+export default function PostDetailPage() {
+  // Type-safe route params
+  const { id } = useParams({ from: '/posts/$id' });
+
+  const { data } = useOObjectTypeIdGetObjectDetailSuspense('posts', id);
+
+  return <div>{data.title}</div>;
+}
+```
+
+### Search Parameters
+
+```typescript
+import { useSearch, useNavigate } from '@tanstack/react-router';
+
+function PostsPage() {
+  const search = useSearch({ from: '/posts' });
+  const navigate = useNavigate();
+
+  const page = search.page || 1;
+  const query = search.q || '';
+
+  const updateSearch = (newQuery: string) => {
+    navigate({
+      to: '/posts',
+      search: { ...search, q: newQuery },
+    });
+  };
+
+  return <SearchInput value={query} onChange={updateSearch} />;
 }
 ```
 
@@ -360,22 +427,22 @@ function SearchBar() {
 Use URL search params for sharable state:
 
 ```typescript
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearch, useNavigate } from '@tanstack/react-router';
 
 function PostsPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const search = useSearch({ from: '/posts' });
+  const navigate = useNavigate();
 
-  const page = Number(searchParams.get('page') || '1');
-  const search = searchParams.get('search') || '';
+  const page = search.page || 1;
 
-  const updateSearch = (value: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('search', value);
-    router.push(`?${params.toString()}`);
+  const updatePage = (newPage: number) => {
+    navigate({
+      to: '/posts',
+      search: { ...search, page: newPage },
+    });
   };
 
-  return <SearchInput value={search} onChange={updateSearch} />;
+  return <Pagination page={page} onPageChange={updatePage} />;
 }
 ```
 
@@ -423,75 +490,31 @@ export function Card({ title, description, children, className }: CardProps) {
 }
 ```
 
-## Routing
-
-### App Router Structure
-
-```
-app/
-├── (authenticated)/        # Requires login
-│   ├── layout.tsx         # Authenticated layout
-│   ├── dashboard/         # /dashboard
-│   ├── posts/
-│   │   ├── page.tsx       # /posts
-│   │   └── [id]/
-│   │       └── page.tsx   # /posts/[id]
-│   └── campaigns/         # /campaigns
-└── (public)/              # Public routes
-    ├── login/
-    └── register/
-```
-
-### Navigation
-
-```typescript
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-
-// Link component
-<Link href="/posts/123">View Post</Link>
-
-// Programmatic navigation
-const router = useRouter();
-router.push('/posts');
-router.back();
-```
-
-### Dynamic Routes
-
-```typescript
-// app/(authenticated)/posts/[id]/page.tsx
-export default function PostPage({ params }: { params: { id: string } }) {
-  const { data } = useOObjectTypeIdGetObjectDetailSuspense('posts', params.id);
-  return <div>{data.title}</div>;
-}
-```
-
 ## Error Handling
 
 ### Error Boundaries
 
 ```typescript
-'use client';
+import { ErrorBoundary } from 'react-error-boundary';
 
-import { useEffect } from 'react';
-
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
+function ErrorFallback({ error, resetErrorBoundary }: {
+  error: Error;
+  resetErrorBoundary: () => void;
 }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   return (
     <div>
-      <h2>Something went wrong!</h2>
-      <button onClick={() => reset()}>Try again</button>
+      <h2>Something went wrong</h2>
+      <pre>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <MyComponent />
+    </ErrorBoundary>
   );
 }
 ```
@@ -549,10 +572,34 @@ test('loads posts', async () => {
 
 ### Add a New Page
 
-1. Create file in `app/(authenticated)/new-feature/page.tsx`
-2. Add route to navigation (if needed)
-3. Implement using existing patterns
+1. Create page component in `src/pages/feature/feature-page.tsx`
+2. Add route in `src/router/authenticated.routes.tsx` or `src/router/public.routes.tsx`
+3. Import and register in router tree
 4. Add to sidebar/nav if needed
+
+Example:
+
+```typescript
+// 1. Create src/pages/reports/reports-page.tsx
+export default function ReportsPage() {
+  return <div>Reports</div>;
+}
+
+// 2. Add to router/authenticated.routes.tsx
+import ReportsPage from '@/pages/reports/reports-page';
+
+export const reportsRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: '/reports',
+  component: ReportsPage,
+});
+
+// 3. Register in router tree
+const routeTree = rootRoute.addChildren([
+  // ... other routes
+  reportsRoute,
+]);
+```
 
 ### Add a New shadcn/ui Component
 
@@ -577,43 +624,73 @@ This regenerates `src/openapi/` with latest schema.
 
 ## Performance Optimization
 
-### 1. Use Suspense Boundaries
+### 1. Use React.lazy for Code Splitting
 
 ```typescript
-import { Suspense } from 'react';
-import { PostsList } from './posts-list';
+import { lazy, Suspense } from 'react';
+
+const HeavyComponent = lazy(() => import('./heavy-component'));
 
 export default function Page() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <PostsList />
+      <HeavyComponent />
     </Suspense>
   );
 }
 ```
 
-### 2. Lazy Load Components
+### 2. Optimize Images
 
 ```typescript
-import dynamic from 'next/dynamic';
-
-const HeavyComponent = dynamic(() => import('./heavy-component'), {
-  loading: () => <p>Loading...</p>,
-});
-```
-
-### 3. Optimize Images
-
-```typescript
-import Image from 'next/image';
-
-<Image
-  src="/photo.jpg"
+// Use optimized image formats and lazy loading
+<img
+  src="/photo.webp"
   alt="Description"
+  loading="lazy"
   width={800}
   height={600}
-  loading="lazy"
 />
+```
+
+### 3. Memoize Expensive Calculations
+
+```typescript
+import { useMemo } from 'react';
+
+function DataTable({ data }) {
+  const processedData = useMemo(() => {
+    return data.map(item => expensiveTransform(item));
+  }, [data]);
+
+  return <Table data={processedData} />;
+}
+```
+
+### 4. Use Vite's Build Optimization
+
+Vite automatically:
+
+- Tree-shakes unused code
+- Code-splits dynamic imports
+- Optimizes chunk sizes
+- Minifies production builds
+
+Configure chunking in `vite.config.ts`:
+
+```typescript
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
+  },
+});
 ```
 
 ## Code Quality
@@ -642,19 +719,11 @@ pnpm run format  # Prettier
 
 Run `make codegen` to regenerate after backend changes.
 
-### Hydration Errors
-
-Ensure server and client render the same output:
-
-- Don't use browser APIs (localStorage, window) during render
-- Use `useEffect` for client-only code
-- Use `suppressHydrationWarning` sparingly
-
 ### Build Errors
 
 ```bash
-# Clear Next.js cache
-rm -rf .next
+# Clear Vite cache
+rm -rf node_modules/.vite
 
 # Reinstall dependencies
 rm -rf node_modules
@@ -664,12 +733,70 @@ pnpm install
 pnpm run build
 ```
 
+### HMR (Hot Module Replacement) Not Working
+
+- Check that Vite dev server is running on port 3000
+- Ensure no conflicting processes on port 3000
+- Try restarting the dev server: `make dev-frontend`
+
+### Router Type Errors
+
+TanStack Router generates types automatically. If you see type errors:
+
+1. Ensure routes are properly registered in the router tree
+2. Restart TypeScript server in your editor
+3. Check that route paths match usage
+
+## Vite-Specific Features
+
+### Environment Variables
+
+Create `.env.local` for local environment variables:
+
+```bash
+VITE_API_URL=http://localhost:8000
+VITE_FEATURE_FLAG=true
+```
+
+Access in code:
+
+```typescript
+const apiUrl = import.meta.env.VITE_API_URL;
+const isFeatureEnabled = import.meta.env.VITE_FEATURE_FLAG === 'true';
+```
+
+### Fast Refresh
+
+Vite's Fast Refresh preserves component state during development:
+
+- Edit components and see changes instantly
+- State is preserved across updates
+- Automatic when using `.tsx` files
+
+### Development Server Proxy
+
+API calls to `/api` are proxied to backend (configured in `vite.config.ts`):
+
+```typescript
+export default defineConfig({
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+});
+```
+
 ## Related Documentation
 
 - [Root Project Guide](/CLAUDE.md) - Overall project architecture
 - [Action System Guide](/frontend/ACTION_SYSTEM_GUIDE.md) - Comprehensive action system docs
 - [Backend Guide](/backend/CLAUDE.md) - Backend development practices
-- [Next.js Documentation](https://nextjs.org/docs)
+- [Vite Documentation](https://vite.dev/)
+- [TanStack Router Documentation](https://tanstack.com/router/latest)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [shadcn/ui Documentation](https://ui.shadcn.com/)
 - [React Query Documentation](https://tanstack.com/query/latest)

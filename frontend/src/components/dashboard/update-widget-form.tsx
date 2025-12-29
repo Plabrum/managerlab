@@ -1,11 +1,9 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
+import { WidgetFormFields } from './widget-form';
 import type {
   WidgetSchema,
   EditWidgetSchema,
 } from '@/openapi/ariveAPI.schemas';
-import { WidgetFormFields } from './widget-form';
 
 const { FormModal } = createTypedForm<EditWidgetSchema>();
 

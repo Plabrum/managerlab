@@ -1,12 +1,10 @@
-'use client';
-
 import * as React from 'react';
 import { LayoutDashboard, FolderKanban } from 'lucide-react';
-
+import { CreateTeamModal } from '@/components/create-team-modal';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { useAuth } from '@/components/providers/auth-provider';
 import { TeamSwitcher } from '@/components/team-switcher';
-import { CreateTeamModal } from '@/components/create-team-modal';
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +12,6 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { useAuth } from '@/components/providers/auth-provider';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();

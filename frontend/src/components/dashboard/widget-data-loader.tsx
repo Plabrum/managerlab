@@ -1,12 +1,10 @@
-'use client';
-
 import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { getTimeSeriesData } from '@/openapi/objects/objects';
-import type { WidgetQuery } from '@/types/dashboard';
-import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getTimeSeriesData } from '@/openapi/objects/objects';
+import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
+import type { WidgetQuery } from '@/types/dashboard';
 
 interface WidgetDataLoaderProps {
   query: WidgetQuery;

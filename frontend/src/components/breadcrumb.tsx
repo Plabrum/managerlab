@@ -1,7 +1,4 @@
-'use client';
-
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import { useLocation, Link } from '@tanstack/react-router';
 import {
   Breadcrumb as BreadcrumbUI,
   BreadcrumbItem,
@@ -30,7 +27,8 @@ interface BreadcrumbProps {
 }
 
 export function Breadcrumb({ currentPageTitle }: BreadcrumbProps) {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   // Handle null pathname
   if (!pathname) {
@@ -69,7 +67,7 @@ export function Breadcrumb({ currentPageTitle }: BreadcrumbProps) {
                 <BreadcrumbPage>{item.label}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>
-                  <Link href={item.path}>{item.label}</Link>
+                  <Link to={item.path}>{item.label}</Link>
                 </BreadcrumbLink>
               )}
             </BreadcrumbItem>

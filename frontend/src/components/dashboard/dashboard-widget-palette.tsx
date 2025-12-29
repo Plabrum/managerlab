@@ -1,11 +1,9 @@
-'use client';
-
 import { useState, useCallback, useRef } from 'react';
 import { CheckIcon, PlusCircleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { WidgetPalette } from './widget-palette';
 import type { WidgetType } from '@/types/dashboard';
-import { cn } from '@/lib/utils';
 
 interface DashboardWidgetPaletteProps {
   onWidgetClick: (widgetType: WidgetType) => void;

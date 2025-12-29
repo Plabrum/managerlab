@@ -1,6 +1,5 @@
-'use client';
-
 import * as React from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -20,8 +19,6 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -43,18 +40,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type {
-  ColumnDefinitionSchema,
-  ObjectListSchema,
-  ActionDTO,
-} from '@/openapi/ariveAPI.schemas';
+import { DataTableColumnFilter } from './data-table-column-filter';
+import { DataTablePagination } from './data-table-pagination';
 import {
   formatCellValue,
   columnFiltersToRequestFilters,
   requestFiltersToColumnFilters,
 } from './utils';
-import { DataTablePagination } from './data-table-pagination';
-import { DataTableColumnFilter } from './data-table-column-filter';
+import type {
+  ColumnDefinitionSchema,
+  ObjectListSchema,
+  ActionDTO,
+} from '@/openapi/ariveAPI.schemas';
 
 interface DataTableProps {
   columns: ColumnDefinitionSchema[];
@@ -249,7 +246,7 @@ export function DataTable({
   onFiltersChange,
   onColumnVisibilityChange,
 }: DataTableProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [rowSelection, setRowSelection] = React.useState({});
 
   // Use controlled column visibility if provided, otherwise use internal state
@@ -288,6 +285,8 @@ export function DataTable({
         <div
           className="flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          role="presentation"
         >
           <Checkbox
             checked={
@@ -305,6 +304,8 @@ export function DataTable({
         <div
           className="flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          role="presentation"
         >
           <Checkbox
             checked={row.getIsSelected()}
@@ -526,7 +527,7 @@ export function DataTable({
                     data-state={row.getIsSelected() && 'selected'}
                     onClick={() => {
                       if (isClickable && rowLink) {
-                        router.push(rowLink);
+                        navigate({ to: rowLink });
                       }
                     }}
                     className={isClickable ? 'cursor-pointer' : undefined}

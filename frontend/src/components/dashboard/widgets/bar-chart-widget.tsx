@@ -1,8 +1,4 @@
-'use client';
-
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
-import type { TooltipProps } from 'recharts';
 import {
   ChartConfig,
   ChartContainer,
@@ -12,6 +8,8 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import { getChartColor } from '@/lib/utils';
+import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
+import type { TooltipProps } from 'recharts';
 
 interface BarChartWidgetProps {
   data: TimeSeriesDataResponse;

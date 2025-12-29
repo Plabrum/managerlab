@@ -3,22 +3,22 @@
  * These are pure functions with no side effects.
  */
 
+import {
+  columnFiltersToRequestFilters,
+  requestFiltersToColumnFilters,
+} from '@/components/data-table/utils';
+import { SortDirection } from '@/openapi/ariveAPI.schemas';
 import type {
   SavedViewConfigSchema,
   SortDefinition,
   ObjectListRequestFiltersItem,
+  ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import { SortDirection } from '@/openapi/ariveAPI.schemas';
 import type {
   SortingState,
   ColumnFiltersState,
   PaginationState,
 } from '@tanstack/react-table';
-import {
-  columnFiltersToRequestFilters,
-  requestFiltersToColumnFilters,
-} from '@/components/data-table/utils';
-import type { ColumnDefinitionSchema } from '@/openapi/ariveAPI.schemas';
 
 /**
  * Get default config for a new view

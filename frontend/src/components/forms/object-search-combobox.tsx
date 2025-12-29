@@ -1,8 +1,6 @@
-'use client';
-
 import * as React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -12,26 +10,26 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { Label } from '@/components/ui/label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useListObjects } from '@/openapi/objects/objects';
+import { executeActionApi } from '@/hooks/action-executor/execute-action-api';
+import { handleQueryInvalidation } from '@/hooks/action-executor/handle-query-invalidation';
+import { cn } from '@/lib/utils';
 import {
   useActionsActionGroupExecuteAction,
   useActionsActionGroupObjectIdExecuteObjectAction,
 } from '@/openapi/actions/actions';
+import { useListObjects } from '@/openapi/objects/objects';
 import type {
   ObjectTypes,
   ActionGroupType,
   ActionDTO,
   ActionsActionGroupExecuteActionBody,
 } from '@/openapi/ariveAPI.schemas';
-import { Label } from '@/components/ui/label';
-import { executeActionApi } from '@/hooks/action-executor/execute-action-api';
-import { useQueryClient } from '@tanstack/react-query';
-import { handleQueryInvalidation } from '@/hooks/action-executor/handle-query-invalidation';
 
 interface ObjectSearchComboboxProps {
   /** The type of object to search for (brands, campaigns, etc.) */

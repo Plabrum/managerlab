@@ -1,8 +1,6 @@
-'use client';
-
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { CampaignSchema } from '@/openapi/ariveAPI.schemas';
 
 interface CampaignFieldsProps {

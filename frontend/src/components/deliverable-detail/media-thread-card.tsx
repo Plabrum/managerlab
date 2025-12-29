@@ -1,22 +1,20 @@
-'use client';
-
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { ActivityFeedList } from '@/components/activity/activity-feed-list';
+import { MessageInput } from '@/components/chat/message-input';
+import { TypingIndicator } from '@/components/chat/typing-indicator';
+import { useAuth } from '@/components/providers/auth-provider';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Badge } from '@/components/ui/badge';
-import { ActivityFeedList } from '@/components/activity/activity-feed-list';
-import { MessageInput } from '@/components/chat/message-input';
-import { TypingIndicator } from '@/components/chat/typing-indicator';
 import { useThreadSync } from '@/hooks/useThreadSync';
-import { useAuth } from '@/components/providers/auth-provider';
+import { cn } from '@/lib/utils';
 import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import type { DeliverableMediaAssociationSchema } from '@/openapi/ariveAPI.schemas';
-import { cn } from '@/lib/utils';
 
 interface MediaThreadCardProps {
   mediaAssociation: DeliverableMediaAssociationSchema;

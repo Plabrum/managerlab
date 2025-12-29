@@ -1,8 +1,6 @@
-'use client';
-
+import { ObjectTypes, UserSchema } from '@/openapi/ariveAPI.schemas';
 import { useThreadConnection } from './useThreadConnection';
 import { useThreadMessages } from './useThreadMessages';
-import { ObjectTypes, UserSchema } from '@/openapi/ariveAPI.schemas';
 
 interface UseThreadSyncOptions {
   threadableType: ObjectTypes;

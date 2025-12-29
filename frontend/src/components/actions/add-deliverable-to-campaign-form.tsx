@@ -1,8 +1,6 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
-import type { AddDeliverableToCampaignSchema } from '@/openapi/ariveAPI.schemas';
 import { SocialMediaPlatforms as SocialMediaPlatformsEnum } from '@/openapi/ariveAPI.schemas';
+import type { AddDeliverableToCampaignSchema } from '@/openapi/ariveAPI.schemas';
 
 const { FormModal, FormString, FormSelect, FormDatetime } =
   createTypedForm<AddDeliverableToCampaignSchema>();

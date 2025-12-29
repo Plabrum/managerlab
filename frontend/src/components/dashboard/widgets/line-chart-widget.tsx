@@ -1,7 +1,4 @@
-'use client';
-
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 import {
   ChartConfig,
   ChartContainer,
@@ -9,6 +6,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { getChartColor } from '@/lib/utils';
+import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 
 interface LineChartWidgetProps {
   data: TimeSeriesDataResponse;

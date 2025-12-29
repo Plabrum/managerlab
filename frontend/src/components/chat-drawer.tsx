@@ -1,19 +1,17 @@
-'use client';
-
+import { useAuth } from '@/components/providers/auth-provider';
+import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Separator } from '@/components/ui/separator';
-import { MessageList } from './chat/message-list';
-import { MessageInput } from './chat/message-input';
-import { TypingIndicator } from './chat/typing-indicator';
-import { ThreadViewers } from './chat/thread-viewers';
 import { useThreadSync } from '@/hooks/useThreadSync';
-import { useAuth } from '@/components/providers/auth-provider';
 import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
+import { MessageInput } from './chat/message-input';
+import { MessageList } from './chat/message-list';
+import { ThreadViewers } from './chat/thread-viewers';
+import { TypingIndicator } from './chat/typing-indicator';
 
 interface ChatDrawerProps {
   open: boolean;

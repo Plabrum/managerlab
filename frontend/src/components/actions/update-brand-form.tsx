@@ -1,5 +1,3 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
 import type { BrandUpdateSchema } from '@/openapi/ariveAPI.schemas';
 

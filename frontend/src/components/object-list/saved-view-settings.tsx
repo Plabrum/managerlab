@@ -1,13 +1,16 @@
-'use client';
-
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Settings,
+  Plus,
+  Save,
+  Star,
+  StarOff,
+  Trash2,
+  Columns3,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -18,34 +21,29 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
-  Settings,
-  Plus,
-  Save,
-  Star,
-  StarOff,
-  Trash2,
-  Columns3,
-} from 'lucide-react';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { getErrorMessage } from '@/lib/error-handler';
+import {
+  useViewsObjectTypeCreateSavedView,
+  useViewsObjectTypeIdUpdateSavedView,
+  useViewsObjectTypeIdDeleteSavedView,
+} from '@/openapi/views/views';
+import { ColumnVisibilityDialog } from './column-visibility-dialog';
+import { ViewModeSelector } from './view-mode-selector';
 import type {
   SavedViewSchema,
   SavedViewConfigSchema,
   ObjectTypes,
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import type { VisibilityState } from '@tanstack/react-table';
-import { ColumnVisibilityDialog } from './column-visibility-dialog';
-import {
-  useViewsObjectTypeCreateSavedView,
-  useViewsObjectTypeIdUpdateSavedView,
-  useViewsObjectTypeIdDeleteSavedView,
-} from '@/openapi/views/views';
-import { ViewModeSelector } from './view-mode-selector';
 import type { ViewMode } from '@/types/view-modes';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
-import { getErrorMessage } from '@/lib/error-handler';
+import type { VisibilityState } from '@tanstack/react-table';
 
 interface SavedViewSettingsProps {
   objectType: ObjectTypes;
@@ -274,7 +272,9 @@ export function SavedViewSettings({
           <div className="space-y-4">
             {/* View Mode Selector */}
             <div className="space-y-2">
-              <Label className="text-muted-foreground text-xs">View Mode</Label>
+              <div className="text-muted-foreground text-xs font-medium">
+                View Mode
+              </div>
               <ViewModeSelector value={viewMode} onChange={onViewModeChange} />
             </div>
 

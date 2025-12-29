@@ -1,16 +1,14 @@
-'use client';
-
 import { useMemo } from 'react';
-import type { ColumnFiltersState } from '@tanstack/react-table';
+import { X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { humanizeEnumValue } from '@/lib/format';
+import { columnFiltersToRequestFilters } from './utils';
 import type {
   ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
 } from '@/openapi/ariveAPI.schemas';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
-import { columnFiltersToRequestFilters } from './utils';
-import { humanizeEnumValue } from '@/lib/format';
+import type { ColumnFiltersState } from '@tanstack/react-table';
 
 type DataTableAppliedFiltersProps = {
   filters: ColumnFiltersState;

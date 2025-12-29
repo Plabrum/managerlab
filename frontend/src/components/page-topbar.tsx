@@ -1,9 +1,7 @@
-'use client';
-
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import { Breadcrumb } from '@/components/breadcrumb';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { humanizeEnumValue } from '@/lib/format';
 
 interface PageTopBarProps {

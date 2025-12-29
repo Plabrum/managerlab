@@ -1,11 +1,4 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
-import { Image } from '@/components/ui/image';
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
 import {
   Loader2,
   UploadIcon,
@@ -13,8 +6,13 @@ import {
   AlertCircle,
   X,
 } from 'lucide-react';
-import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
+import { Image } from '@/components/ui/image';
+import { Progress } from '@/components/ui/progress';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
+import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
 
 interface UploadNewMediaFormProps {
   onSubmit: (data: AddMediaToDeliverableSchema) => void;

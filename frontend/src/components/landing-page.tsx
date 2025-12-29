@@ -1,11 +1,4 @@
-import { Button } from '@/components/ui/button';
-import { FeatureSection } from '@/components/feature-section';
-import { FeatureCard } from '@/components/feature-card';
-import { Navbar } from '@/components/navbar';
-import { Footer } from '@/components/footer';
-import { FooterSection } from '@/components/footer-section';
-import { FooterLink } from '@/components/footer-link';
-import { NavigationItem } from '@/components/navigation-item';
+import { Link } from '@tanstack/react-router';
 import {
   Users,
   Zap,
@@ -18,20 +11,27 @@ import {
   DollarSign,
   CheckCircle,
 } from 'lucide-react';
-import Link from 'next/link';
+import { FeatureCard } from '@/components/feature-card';
+import { FeatureSection } from '@/components/feature-section';
+import { Footer } from '@/components/footer';
+import { FooterLink } from '@/components/footer-link';
+import { FooterSection } from '@/components/footer-section';
+import { Navbar } from '@/components/navbar';
+import { NavigationItem } from '@/components/navigation-item';
+import { Button } from '@/components/ui/button';
 
 export function LandingPage() {
   return (
     <>
       <Navbar
         brand={
-          <Link href="/" className="text-2xl font-bold text-white">
+          <Link to="/" className="text-2xl font-bold text-white">
             Arive
           </Link>
         }
         actions={
           <div className="flex items-center space-x-4">
-            <Link href="/auth">
+            <Link to="/auth">
               <Button
                 variant="ghost"
                 size="sm"
@@ -40,7 +40,7 @@ export function LandingPage() {
                 Sign In
               </Button>
             </Link>
-            <Link href="/auth?sign-up">
+            <Link to="/auth?sign-up">
               <Button
                 size="sm"
                 className="bg-white text-black hover:bg-gray-200"
@@ -66,7 +66,7 @@ export function LandingPage() {
                 <span className="block">Organized.</span>
               </h1>
               <div className="flex flex-col items-center justify-center gap-4 pt-8 sm:flex-row">
-                <Link href="/auth">
+                <Link to="/auth">
                   <Button
                     variant="outline"
                     size="lg"
@@ -75,7 +75,7 @@ export function LandingPage() {
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/auth?sign-up">
+                <Link to="/auth?sign-up">
                   <Button
                     size="lg"
                     className="bg-white px-8 py-6 text-lg text-black hover:bg-gray-200"

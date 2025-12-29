@@ -1,9 +1,7 @@
-'use client';
-
 import * as React from 'react';
+import { EnumFilterField } from '@/components/forms/filters';
 import { Button } from '@/components/ui/button';
 import type { EnumFilterDefinition } from '@/openapi/ariveAPI.schemas';
-import { EnumFilterField } from '@/components/forms/filters';
 
 interface EnumFilterProps {
   column: string;

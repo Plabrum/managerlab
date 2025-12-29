@@ -1,6 +1,6 @@
-'use client';
-
 import { useEffect, useState } from 'react';
+import { Plus, X } from 'lucide-react';
+import { EnumFilterField, ObjectFilterField } from '@/components/forms/filters';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, X } from 'lucide-react';
 import {
   ObjectTypes,
   TimeRange,
@@ -19,7 +18,6 @@ import {
   type ObjectFilterDefinition,
 } from '@/openapi/ariveAPI.schemas';
 import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
-import { EnumFilterField, ObjectFilterField } from '@/components/forms/filters';
 
 // Shared constants
 const WIDGET_OBJECT_TYPES = [
@@ -203,7 +201,9 @@ export function KanbanWidgetFormFields({
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label className="text-sm font-medium">Object Type</label>
+        <label htmlFor="kanban-object-type" className="text-sm font-medium">
+          Object Type
+        </label>
         <Select
           value={query.object_type || undefined}
           onValueChange={handleObjectTypeChange}
@@ -225,7 +225,9 @@ export function KanbanWidgetFormFields({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-medium">Time Range (Optional)</label>
+        <label htmlFor="kanban-time-range" className="text-sm font-medium">
+          Time Range (Optional)
+        </label>
         <Select
           value={query.time_range || undefined}
           onValueChange={handleTimeRangeChange}
@@ -249,7 +251,12 @@ export function KanbanWidgetFormFields({
       {/* Columns to Display */}
       {availableStates.length > 0 && (
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">Columns to Display</label>
+          <label
+            htmlFor="kanban-columns-display"
+            className="text-sm font-medium"
+          >
+            Columns to Display
+          </label>
           <div className="rounded-md border p-2">
             <EnumFilterField
               availableValues={availableStates}
@@ -267,7 +274,9 @@ export function KanbanWidgetFormFields({
       {/* Filters Section */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">Filters</label>
+          <label htmlFor="kanban-filters" className="text-sm font-medium">
+            Filters
+          </label>
           <Button
             type="button"
             variant="outline"
@@ -315,7 +324,7 @@ export function KanbanWidgetFormFields({
                   <div className="space-y-3">
                     {/* Field selector */}
                     <div className="space-y-1">
-                      <label className="text-xs font-medium">Field</label>
+                      <div className="text-xs font-medium">Field</div>
                       <Select
                         value={filter.column}
                         onValueChange={(value) =>
@@ -345,7 +354,7 @@ export function KanbanWidgetFormFields({
                     {/* Enum filter UI using generic component */}
                     {filter.column && isEnumField && (
                       <div className="space-y-1">
-                        <label className="text-xs font-medium">Values</label>
+                        <div className="text-xs font-medium">Values</div>
                         <div className="rounded-md border p-2">
                           <EnumFilterField
                             availableValues={getFieldOptions(selectedField)}
@@ -362,9 +371,9 @@ export function KanbanWidgetFormFields({
                     {/* Object filter UI using generic component */}
                     {filter.column && isObjectField && (
                       <div className="space-y-1">
-                        <label className="text-xs font-medium">
+                        <div className="text-xs font-medium">
                           Select Objects
-                        </label>
+                        </div>
                         <ObjectFilterField
                           objectType={
                             (selectedField?.object_type as ObjectTypes) ||

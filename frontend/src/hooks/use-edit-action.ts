@@ -1,7 +1,5 @@
-'use client';
-
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 
 /**
@@ -37,9 +35,8 @@ export function useEditAction({
   actions: ActionDTO[];
   editActionPattern?: string;
 }) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as { edit?: boolean };
 
   // Find the edit/update action from available actions
   const editAction = actions.find((action) =>
@@ -50,14 +47,18 @@ export function useEditAction({
   const isEditAvailable = editAction?.available !== false;
 
   // Check if edit mode is active via URL parameter
-  const hasEditParam = searchParams.get('edit') !== null;
+  const hasEditParam = search.edit === true;
 
   // Handler to remove ?edit parameter from URL
   const clearEdit = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('edit');
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, pathname, router]);
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => {
+        const { edit: _edit, ...rest } = prev as { edit?: boolean };
+        return rest;
+      },
+    });
+  }, [navigate]);
 
   // If edit mode is active but user doesn't have permission, clear it
   useEffect(() => {
@@ -72,10 +73,11 @@ export function useEditAction({
       console.warn('Edit action is not available');
       return;
     }
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('edit', 'true');
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [isEditAvailable, searchParams, pathname, router]);
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => ({ ...prev, edit: true }),
+    });
+  }, [isEditAvailable, navigate]);
 
   return {
     /** Whether edit mode is currently active (URL param + permission check) */

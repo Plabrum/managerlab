@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import {
   Card,
@@ -8,9 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { widgetRegistry, getAllWidgetTypes } from '@/lib/widgets/registry';
 import type { WidgetType } from '@/lib/widgets/types';
-import { cn } from '@/lib/utils';
 
 interface WidgetPaletteProps {
   onWidgetClick: (widgetType: WidgetType) => void;

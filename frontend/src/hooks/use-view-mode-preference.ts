@@ -1,13 +1,11 @@
-'use client';
-
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
   useDashboardsListDashboardsSuspense,
   useDashboardsIdUpdateDashboard,
 } from '@/openapi/dashboards/dashboards';
 import type { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import type { ViewMode, ListViewConfig } from '@/types/view-modes';
-import { toast } from 'sonner';
 
 export function useViewModePreference(objectType: ObjectTypes) {
   const { data: dashboards } = useDashboardsListDashboardsSuspense();

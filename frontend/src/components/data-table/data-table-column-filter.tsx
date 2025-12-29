@@ -1,10 +1,4 @@
-'use client';
-
 import * as React from 'react';
-import type {
-  ColumnDefinitionSchema,
-  ObjectListRequestFiltersItem,
-} from '@/openapi/ariveAPI.schemas';
 import {
   TextFilter,
   RangeFilter,
@@ -13,6 +7,10 @@ import {
   EnumFilter,
   ObjectFilter,
 } from './filters';
+import type {
+  ColumnDefinitionSchema,
+  ObjectListRequestFiltersItem,
+} from '@/openapi/ariveAPI.schemas';
 
 interface DataTableColumnFilterProps {
   column: ColumnDefinitionSchema;

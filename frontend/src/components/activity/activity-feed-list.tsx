@@ -1,5 +1,3 @@
-'use client';
-
 import { Loader2 } from 'lucide-react';
 import { ActivityFeedItem } from './activity-feed-item';
 import type {

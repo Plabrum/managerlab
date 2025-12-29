@@ -1,10 +1,4 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
 import {
   Loader2,
   UploadIcon,
@@ -13,6 +7,10 @@ import {
   X,
   FileText,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
+import { Progress } from '@/components/ui/progress';
 import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 
 interface UploadNewDocumentFormProps {

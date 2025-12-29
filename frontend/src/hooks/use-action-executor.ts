@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/error-handler';
+import {
+  useActionsActionGroupExecuteAction,
+  useActionsActionGroupObjectIdExecuteObjectAction,
+} from '@/openapi/actions/actions';
+import { executeActionApi } from './action-executor/execute-action-api';
+import { handleActionResult } from './action-executor/handle-action-result';
+import { handleQueryInvalidation } from './action-executor/handle-query-invalidation';
 import type {
   ActionDTO,
   ActionGroupType,
@@ -9,14 +17,6 @@ import type {
   ActionsActionGroupExecuteActionBody,
   ActionsActionGroupObjectIdExecuteObjectActionBody,
 } from '@/openapi/ariveAPI.schemas';
-import {
-  useActionsActionGroupExecuteAction,
-  useActionsActionGroupObjectIdExecuteObjectAction,
-} from '@/openapi/actions/actions';
-import { executeActionApi } from './action-executor/execute-action-api';
-import { handleQueryInvalidation } from './action-executor/handle-query-invalidation';
-import { handleActionResult } from './action-executor/handle-action-result';
-import { getErrorMessage } from '@/lib/error-handler';
 
 export type ActionExecutorState = {
   isExecuting: boolean;
@@ -63,7 +63,7 @@ export function useActionExecutor({
   onInvalidate,
 }: ActionExecutorOptions) {
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [state, setState] = useState<ActionExecutorState>({
     isExecuting: false,
     pendingAction: null,
@@ -111,7 +111,7 @@ export function useActionExecutor({
       onSuccess?.(action, response);
 
       // Handle action result (redirects, downloads)
-      handleActionResult(response, router);
+      handleActionResult(response, navigate);
 
       // Reset state
       setState({

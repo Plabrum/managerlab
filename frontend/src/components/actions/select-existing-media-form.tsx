@@ -1,12 +1,10 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { createTypedForm } from '@/components/forms/base';
+import { MediaSelector } from '@/components/media/MediaSelector';
+import { Button } from '@/components/ui/button';
 import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
 import { useListObjects } from '@/openapi/objects/objects';
-import { MediaSelector } from '@/components/media/MediaSelector';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 
 const { Form, FormCustom } = createTypedForm<AddMediaToDeliverableSchema>();
 

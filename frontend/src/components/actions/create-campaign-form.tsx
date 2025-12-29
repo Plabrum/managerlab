@@ -1,20 +1,18 @@
-'use client';
-
+import { useState, useCallback } from 'react';
+import { UploadIcon, FileText, X } from 'lucide-react';
 import { createTypedForm } from '@/components/forms/base';
-import type { CampaignCreateSchema } from '@/openapi/ariveAPI.schemas';
+import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
+import { Button } from '@/components/ui/button';
+import { CollapsibleFormSection } from '@/components/ui/collapsible-form-section';
+import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
+import { Progress } from '@/components/ui/progress';
+import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 import {
   CompensationStructure,
   CounterpartyType,
   OwnershipMode,
 } from '@/openapi/ariveAPI.schemas';
-import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
-import { useState, useCallback } from 'react';
-import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
-import { UploadIcon, FileText, X } from 'lucide-react';
-import { useDocumentUpload } from '@/hooks/useDocumentUpload';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { CollapsibleFormSection } from '@/components/ui/collapsible-form-section';
+import type { CampaignCreateSchema } from '@/openapi/ariveAPI.schemas';
 
 const {
   FormModal,
@@ -136,7 +134,9 @@ export function CreateCampaignForm({
 
       {/* Contract Upload (Optional) */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Contract (Optional)</label>
+        <label htmlFor="contract-upload" className="text-sm font-medium">
+          Contract (Optional)
+        </label>
         <p className="text-muted-foreground text-xs">
           Upload a contract document to attach to this campaign
         </p>
@@ -250,10 +250,14 @@ export function CreateCampaignForm({
           <FormCustom name="compensation_total_usd">
             {({ value, onChange }) => (
               <div>
-                <label className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor="compensation_total_usd"
+                  className="mb-2 block text-sm font-medium"
+                >
                   Total Compensation (USD)
                 </label>
                 <input
+                  id="compensation_total_usd"
                   type="number"
                   value={value as number | undefined}
                   onChange={(e) =>
@@ -272,10 +276,14 @@ export function CreateCampaignForm({
           <FormCustom name="payment_terms_days">
             {({ value, onChange }) => (
               <div>
-                <label className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor="payment_terms_days"
+                  className="mb-2 block text-sm font-medium"
+                >
                   Payment Terms (Days)
                 </label>
                 <input
+                  id="payment_terms_days"
                   type="number"
                   value={value as number | undefined}
                   onChange={(e) =>

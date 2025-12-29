@@ -1,8 +1,6 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
-import type { DeliverableUpdateSchema } from '@/openapi/ariveAPI.schemas';
 import { DeliverableType } from '@/openapi/ariveAPI.schemas';
+import type { DeliverableUpdateSchema } from '@/openapi/ariveAPI.schemas';
 
 const {
   FormModal,
@@ -87,8 +85,14 @@ export function UpdateDeliverableForm({
       <FormCustom name="count">
         {({ value, onChange }) => (
           <div>
-            <label className="mb-2 block text-sm font-medium">Count</label>
+            <label
+              htmlFor="update-deliverable-count"
+              className="mb-2 block text-sm font-medium"
+            >
+              Count
+            </label>
             <input
+              id="update-deliverable-count"
               type="number"
               value={value as number | undefined}
               onChange={(e) =>
@@ -135,8 +139,14 @@ export function UpdateDeliverableForm({
         <FormCustom name="handles">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">Handles</label>
+              <label
+                htmlFor="update-deliverable-handles"
+                className="mb-2 block text-sm font-medium"
+              >
+                Handles
+              </label>
               <input
+                id="update-deliverable-handles"
                 type="text"
                 value={
                   Array.isArray(value) ? (value as string[]).join(', ') : ''
@@ -160,8 +170,14 @@ export function UpdateDeliverableForm({
         <FormCustom name="hashtags">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">Hashtags</label>
+              <label
+                htmlFor="update-deliverable-hashtags"
+                className="mb-2 block text-sm font-medium"
+              >
+                Hashtags
+              </label>
               <input
+                id="update-deliverable-hashtags"
                 type="text"
                 value={
                   Array.isArray(value) ? (value as string[]).join(', ') : ''
@@ -185,10 +201,14 @@ export function UpdateDeliverableForm({
         <FormCustom name="disclosures">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="update-deliverable-disclosures"
+                className="mb-2 block text-sm font-medium"
+              >
                 Disclosures
               </label>
               <input
+                id="update-deliverable-disclosures"
                 type="text"
                 value={
                   Array.isArray(value) ? (value as string[]).join(', ') : ''
@@ -236,10 +256,14 @@ export function UpdateDeliverableForm({
         <FormCustom name="approval_rounds">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="update-deliverable-approval-rounds"
+                className="mb-2 block text-sm font-medium"
+              >
                 Approval Rounds
               </label>
               <input
+                id="update-deliverable-approval-rounds"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>

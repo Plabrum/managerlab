@@ -1,12 +1,10 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
-import type { DeliverableCreateSchema } from '@/openapi/ariveAPI.schemas';
 import {
   SocialMediaPlatforms as SocialMediaPlatformsEnum,
   DeliverableType,
 } from '@/openapi/ariveAPI.schemas';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
+import type { DeliverableCreateSchema } from '@/openapi/ariveAPI.schemas';
 
 const {
   FormModal,
@@ -136,8 +134,14 @@ export function CreateDeliverableForm({
       <FormCustom name="count">
         {({ value, onChange }) => (
           <div>
-            <label className="mb-2 block text-sm font-medium">Count</label>
+            <label
+              htmlFor="deliverable-count"
+              className="mb-2 block text-sm font-medium"
+            >
+              Count
+            </label>
             <input
+              id="deliverable-count"
               type="number"
               value={value as number | undefined}
               onChange={(e) =>
@@ -185,8 +189,14 @@ export function CreateDeliverableForm({
         <FormCustom name="handles">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">Handles</label>
+              <label
+                htmlFor="deliverable-handles"
+                className="mb-2 block text-sm font-medium"
+              >
+                Handles
+              </label>
               <input
+                id="deliverable-handles"
                 type="text"
                 value={
                   Array.isArray(value) ? (value as string[]).join(', ') : ''
@@ -210,8 +220,14 @@ export function CreateDeliverableForm({
         <FormCustom name="hashtags">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">Hashtags</label>
+              <label
+                htmlFor="deliverable-hashtags"
+                className="mb-2 block text-sm font-medium"
+              >
+                Hashtags
+              </label>
               <input
+                id="deliverable-hashtags"
                 type="text"
                 value={
                   Array.isArray(value) ? (value as string[]).join(', ') : ''
@@ -235,10 +251,14 @@ export function CreateDeliverableForm({
         <FormCustom name="disclosures">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="deliverable-disclosures"
+                className="mb-2 block text-sm font-medium"
+              >
                 Disclosures
               </label>
               <input
+                id="deliverable-disclosures"
                 type="text"
                 value={
                   Array.isArray(value) ? (value as string[]).join(', ') : ''
@@ -286,10 +306,14 @@ export function CreateDeliverableForm({
         <FormCustom name="approval_rounds">
           {({ value, onChange }) => (
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="deliverable-approval-rounds"
+                className="mb-2 block text-sm font-medium"
+              >
                 Approval Rounds
               </label>
               <input
+                id="deliverable-approval-rounds"
                 type="number"
                 value={value as number | undefined}
                 onChange={(e) =>

@@ -1,12 +1,10 @@
-'use client';
-
-import type {
-  Announcements,
-  DndContextProps,
-  DragEndEvent,
-  DragOverEvent,
-  DragStartEvent,
-} from '@dnd-kit/core';
+import {
+  createContext,
+  type HTMLAttributes,
+  type ReactNode,
+  useContext,
+  useState,
+} from 'react';
 import {
   closestCenter,
   DndContext,
@@ -20,18 +18,18 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  createContext,
-  type HTMLAttributes,
-  type ReactNode,
-  useContext,
-  useState,
-} from 'react';
 import { createPortal } from 'react-dom';
 import tunnel from 'tunnel-rat';
 import { Card } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import type {
+  Announcements,
+  DndContextProps,
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+} from '@dnd-kit/core';
 
 const t = tunnel();
 

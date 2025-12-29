@@ -1,10 +1,3 @@
-'use client';
-
-import {
-  UserSchema,
-  TeamListItemSchema,
-  ScopeType,
-} from '@/openapi/ariveAPI.schemas';
 import {
   createContext,
   useContext,
@@ -13,8 +6,12 @@ import {
   useEffect,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { config } from '@/lib/config';
+import {
+  UserSchema,
+  TeamListItemSchema,
+  ScopeType,
+} from '@/openapi/ariveAPI.schemas';
 
 interface AuthContextValue {
   user: UserSchema;
@@ -52,7 +49,6 @@ export function AuthProvider({
     useState<TeamListItemSchema[]>(initialTeams);
   const [isSwitchingTeam, setIsSwitchingTeam] = useState(false);
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   const refetchTeams = useCallback(async () => {
     const res = await fetch(`${config.api.baseUrl}/teams`, {
@@ -87,13 +83,12 @@ export function AuthProvider({
         // Refetch teams to update the selected team
         await refetchTeams();
         // Refresh server components without full page reload
-        router.refresh();
       } else {
         const error = await res.json();
         throw new Error(error.detail || 'Failed to switch team');
       }
     },
-    [queryClient, refetchTeams, router]
+    [queryClient, refetchTeams]
   );
 
   // Auto-switch to first team if no scope is set

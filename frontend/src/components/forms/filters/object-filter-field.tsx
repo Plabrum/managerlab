@@ -1,11 +1,9 @@
-'use client';
-
 import * as React from 'react';
-import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { ObjectTypes } from '@/openapi/ariveAPI.schemas';
-import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 
 interface ObjectFilterFieldProps {
   objectType: ObjectTypes;

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import {
   useForm,
   FormProvider,
@@ -11,34 +13,7 @@ import {
   type DefaultValues,
   Controller,
 } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils'; // optional: your className helper
-import { Button } from '../ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 import {
   Dialog,
   DialogContent,
@@ -55,7 +30,32 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils'; // optional: your className helper
+import { Button } from '../ui/button';
 
 type BaseFieldProps<
   TFieldValues extends FieldValues,
@@ -72,11 +72,13 @@ type BaseFieldProps<
   id?: string;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 function RequiredMessage(required?: boolean | string) {
   if (!required) return undefined;
   return typeof required === 'string' ? required : 'This field is required';
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 function FieldError({ name }: { name: string }) {
   const {
     formState: { errors },
@@ -436,8 +438,11 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
                   />
                   {showTime && (
                     <div className="border-t p-3">
-                      <Label className="text-xs">Time</Label>
+                      <Label htmlFor={`${htmlId}-time`} className="text-xs">
+                        Time
+                      </Label>
                       <Input
+                        id={`${htmlId}-time`}
                         type="time"
                         value={dateValue ? format(dateValue, 'HH:mm') : '00:00'}
                         onChange={(e) => {

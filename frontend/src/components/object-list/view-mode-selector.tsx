@@ -1,7 +1,5 @@
-'use client';
-
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Table, Grid3x3, LayoutGrid } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { ViewMode } from '@/types/view-modes';
 
 interface ViewModeSelectorProps {

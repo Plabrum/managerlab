@@ -1,15 +1,13 @@
-'use client';
-
 import * as React from 'react';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { DateFilterDefinition } from '@/openapi/ariveAPI.schemas';
 

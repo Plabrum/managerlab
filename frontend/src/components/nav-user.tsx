@@ -1,9 +1,8 @@
-'use client';
-
-import { Building2, ChevronsUpDown, LogOut, User } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
+import { useNavigate } from '@tanstack/react-router';
+import { Building2, ChevronsUpDown, LogOut, User } from 'lucide-react';
+import { useAuth } from '@/components/providers/auth-provider';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -21,8 +20,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuthLogoutLogoutUser } from '@/openapi/auth/auth';
-import { useAuth } from '@/components/providers/auth-provider';
-import { ThemeSwitcher } from '@/components/theme-switcher';
 
 export function NavUser({
   user,
@@ -34,7 +31,7 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const authContext = useAuth();
@@ -44,13 +41,11 @@ export function NavUser({
   const { mutate: logout } = useAuthLogoutLogoutUser({
     mutation: {
       onSuccess: () => {
-        router.push('/');
-        router.refresh();
+        navigate({ to: '/', replace: true });
       },
       onError: (error) => {
         console.error('Logout failed:', error);
-        router.push('/');
-        router.refresh();
+        navigate({ to: '/', replace: true });
       },
       onSettled: () => {
         setIsSigningOut(false);
@@ -68,12 +63,15 @@ export function NavUser({
   const teamId = currentTeam?.id as string | undefined;
 
   const handleUserSettings = () => {
-    router.push(`/settings/user/${currentUser.id}`);
+    navigate({
+      to: '/settings/user/$id',
+      params: { id: String(currentUser.id) },
+    });
   };
 
   const handleTeamSettings = () => {
     if (teamId) {
-      router.push(`/settings/team/${teamId}`);
+      navigate({ to: '/settings/team/$id', params: { id: String(teamId) } });
     }
   };
 

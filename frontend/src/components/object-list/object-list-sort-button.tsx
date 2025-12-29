@@ -1,5 +1,4 @@
-'use client';
-
+import { useState } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,13 +6,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { SortDirection } from '@/openapi/ariveAPI.schemas';
 import type {
   ColumnDefinitionSchema,
   SortDefinition,
 } from '@/openapi/ariveAPI.schemas';
-import { SortDirection } from '@/openapi/ariveAPI.schemas';
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
 
 interface ObjectListSortButtonProps {
   columns: ColumnDefinitionSchema[];

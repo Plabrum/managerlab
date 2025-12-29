@@ -1,11 +1,4 @@
-'use client';
-
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  useThreadsThreadableTypeThreadableIdMessagesListMessages,
-  useThreadsThreadableTypeThreadableIdMessagesCreateMessage,
-  getThreadsThreadableTypeThreadableIdMessagesListMessagesQueryKey,
-} from '@/openapi/threads/threads';
 import {
   ObjectTypes,
   MessageSchemaContent,
@@ -13,6 +6,11 @@ import {
   UserSchema,
   MessageListResponse,
 } from '@/openapi/ariveAPI.schemas';
+import {
+  useThreadsThreadableTypeThreadableIdMessagesListMessages,
+  useThreadsThreadableTypeThreadableIdMessagesCreateMessage,
+  getThreadsThreadableTypeThreadableIdMessagesListMessagesQueryKey,
+} from '@/openapi/threads/threads';
 
 interface UseThreadMessagesOptions {
   threadableType: ObjectTypes;
