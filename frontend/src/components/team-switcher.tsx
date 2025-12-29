@@ -1,8 +1,7 @@
-'use client';
-
-import * as React from 'react';
 import { ChevronsUpDown, Plus, Building2 } from 'lucide-react';
-
+import * as React from 'react';
+import { ActionsMenu } from '@/components/actions-menu';
+import { useAuth } from '@/components/providers/auth-provider';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +16,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useAuth } from '@/components/providers/auth-provider';
-import { ActionsMenu } from '@/components/actions-menu';
 import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 
 export function TeamSwitcher({
@@ -180,9 +177,11 @@ function TeamMenuItem({
         <div
           data-actions-menu
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
           onMouseEnter={() => setIsHoveringActions(true)}
           onMouseLeave={() => setIsHoveringActions(false)}
           className="relative z-10"
+          role="presentation"
         >
           <ActionsMenu
             actions={actions}

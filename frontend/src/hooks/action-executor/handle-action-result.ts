@@ -1,5 +1,6 @@
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import type { ActionExecutionResponse } from '@/openapi/ariveAPI.schemas';
+
+type NavigateFunction = (options: { to: string }) => void;
 
 /**
  * Handle action result based on response metadata
@@ -7,7 +8,7 @@ import type { ActionExecutionResponse } from '@/openapi/ariveAPI.schemas';
  */
 export function handleActionResult(
   response: ActionExecutionResponse,
-  router: AppRouterInstance
+  navigate: NavigateFunction
 ): void {
   if (!response.action_result) {
     return;
@@ -22,11 +23,11 @@ export function handleActionResult(
       const currentPath = window.location.pathname;
       const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
       if (parentPath) {
-        router.push(parentPath);
+        navigate({ to: parentPath });
       }
     } else {
       // Navigate to specific path (for create actions)
-      router.push(path);
+      navigate({ to: path });
     }
   } else if (
     'url' in response.action_result &&

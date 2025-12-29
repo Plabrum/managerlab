@@ -1,5 +1,3 @@
-'use client';
-
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
 

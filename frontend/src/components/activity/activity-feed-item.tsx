@@ -1,15 +1,9 @@
-'use client';
-
 import { useState } from 'react';
 import { toast } from 'sonner';
-import type {
-  MessageSchema,
-  MessageSchemaContent,
-} from '@/openapi/ariveAPI.schemas';
+import { MessageActions } from '@/components/chat/message-actions';
 import { MessageAvatar } from '@/components/chat/message-avatar';
 import { MessageContent } from '@/components/chat/message-content';
 import { MessageInput } from '@/components/chat/message-input';
-import { MessageActions } from '@/components/chat/message-actions';
 import {
   formatRelativeTime,
   validateMessageContent,
@@ -24,6 +18,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import type {
+  MessageSchema,
+  MessageSchemaContent,
+} from '@/openapi/ariveAPI.schemas';
 
 interface ActivityFeedItemProps {
   message: MessageSchema;

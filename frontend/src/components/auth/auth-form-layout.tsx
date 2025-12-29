@@ -1,4 +1,6 @@
+import { ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Link } from '@tanstack/react-router';
 import {
   Card,
   CardContent,
@@ -7,8 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 
 interface AuthFormLayoutProps {
   isSignUp: boolean;
@@ -25,7 +25,7 @@ export function AuthFormLayout({
     <div className="flex h-screen items-center justify-center overflow-auto bg-black p-4">
       <div className="w-full max-w-md space-y-6">
         <Link
-          href="/"
+          to="/"
           className="inline-flex items-center text-zinc-400 transition-colors hover:text-white"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -60,14 +60,14 @@ export function AuthFormLayout({
             <p className="text-center text-xs text-zinc-500">
               By continuing, you agree to our{' '}
               <Link
-                href="/terms"
+                to="/terms"
                 className="text-zinc-400 underline hover:text-white"
               >
                 Terms of Service
               </Link>{' '}
               and{' '}
               <Link
-                href="/privacy"
+                to="/privacy"
                 className="text-zinc-400 underline hover:text-white"
               >
                 Privacy Policy
@@ -78,7 +78,7 @@ export function AuthFormLayout({
               <p className="text-center text-sm text-zinc-400">
                 Don&apos;t have an account?{' '}
                 <Link
-                  href="/auth?sign-up"
+                  to="/auth?sign-up"
                   className="text-white underline hover:text-zinc-300"
                 >
                   Sign up
@@ -88,7 +88,7 @@ export function AuthFormLayout({
               <p className="text-center text-sm text-zinc-400">
                 Already have an account?{' '}
                 <Link
-                  href="/auth"
+                  to="/auth"
                   className="text-white underline hover:text-zinc-300"
                 >
                   Sign in

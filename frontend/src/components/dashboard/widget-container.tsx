@@ -1,6 +1,6 @@
-'use client';
-
 import { GripVertical, ArrowDownRight } from 'lucide-react';
+import { WidgetEditControls } from './widget-edit-controls';
+import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import {
   Card,
   CardContent,
@@ -8,12 +8,10 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { WidgetEditControls } from './widget-edit-controls';
-import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
-import { ActionGroupType, type WidgetSchema } from '@/openapi/ariveAPI.schemas';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { cn } from '@/lib/utils';
+import { ActionGroupType, type WidgetSchema } from '@/openapi/ariveAPI.schemas';
 
 interface WidgetContainerProps {
   widget: WidgetSchema;

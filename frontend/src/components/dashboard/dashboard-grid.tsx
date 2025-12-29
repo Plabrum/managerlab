@@ -1,5 +1,3 @@
-'use client';
-
 import { useMemo, useCallback } from 'react';
 import {
   Responsive,
@@ -9,16 +7,16 @@ import {
 } from 'react-grid-layout';
 import { WidgetContainer } from './widget-container';
 import { WidgetDataLoader } from './widget-data-loader';
-import { widgetRegistry } from '@/lib/widgets/registry';
 import {
   GRID_BREAKPOINTS,
   GRID_COLS,
   buildResponsiveLayouts,
 } from '@/lib/dashboard/grid-config';
+import { widgetRegistry } from '@/lib/widgets/registry';
 import type { WidgetSchema, DashboardSchema } from '@/openapi/ariveAPI.schemas';
 import type { WidgetType, WidgetQuery } from '@/types/dashboard';
 import 'react-grid-layout/css/styles.css';
-import '@/app/react-grid-layout.css';
+import '@/styles/react-grid-layout.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 

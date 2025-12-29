@@ -1,7 +1,5 @@
-'use client';
-
-import { Card, CardContent } from '@/components/ui/card';
 import { ImageOff } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 export function EmptyPreview() {
   return (

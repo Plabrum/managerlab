@@ -1,12 +1,10 @@
-'use client';
-
 import * as React from 'react';
+import { ObjectFilterField } from '@/components/forms/filters';
 import { Button } from '@/components/ui/button';
 import type {
   ObjectFilterDefinition,
   ObjectTypes,
 } from '@/openapi/ariveAPI.schemas';
-import { ObjectFilterField } from '@/components/forms/filters';
 
 interface ObjectFilterProps {
   column: string;

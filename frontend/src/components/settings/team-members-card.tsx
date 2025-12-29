@@ -1,9 +1,7 @@
-'use client';
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { UserAndRoleSchema } from '@/openapi/ariveAPI.schemas';
 import { Mail, User, CheckCircle2, XCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserAndRoleSchema } from '@/openapi/ariveAPI.schemas';
 
 export function TeamMembersCard({ users }: { users: UserAndRoleSchema[] }) {
   return (

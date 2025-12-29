@@ -1,9 +1,7 @@
-'use client';
-
 import { useCallback } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Tab {
   value: string;
@@ -32,21 +30,21 @@ export function ObjectDetailTabs({
   defaultTab,
   children,
 }: ObjectDetailTabsProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as { tab?: string };
 
   // Get current tab from URL or use default
-  const currentTab = searchParams.get('tab') || defaultTab || tabs[0]?.value;
+  const currentTab = search.tab || defaultTab || tabs[0]?.value;
 
   // Update URL when tab changes
   const handleTabChange = useCallback(
     (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('tab', value);
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      navigate({
+        to: '.',
+        search: (prev: Record<string, unknown>) => ({ ...prev, tab: value }),
+      });
     },
-    [pathname, router, searchParams]
+    [navigate]
   );
 
   return (

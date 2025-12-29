@@ -1,5 +1,4 @@
-'use client';
-
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
 
 interface ActionConfirmationDialogProps {

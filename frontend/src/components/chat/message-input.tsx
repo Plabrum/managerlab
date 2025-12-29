@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
 import type { MessageSchemaContent } from '@/openapi/ariveAPI.schemas';

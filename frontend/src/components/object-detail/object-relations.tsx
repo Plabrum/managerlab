@@ -1,8 +1,6 @@
-'use client';
-
+import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
 
 // Type definitions for object relations
 // TODO: These types are temporary - remove when relations are properly implemented
@@ -94,7 +92,7 @@ export function ObjectRelations({
                     </p>
                   </div>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/${obj.object_type}/${obj.id}`}>View</Link>
+                    <Link to={`/${obj.object_type}/${obj.id}`}>View</Link>
                   </Button>
                 </div>
               ))}

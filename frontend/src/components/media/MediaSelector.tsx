@@ -1,9 +1,7 @@
-'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Image } from '@/components/ui/image';
 import { Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Image } from '@/components/ui/image';
+import { Label } from '@/components/ui/label';
 import type {
   ObjectListSchema,
   ImageFieldValue,

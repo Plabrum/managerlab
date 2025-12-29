@@ -4,12 +4,6 @@
  */
 
 import type {
-  SavedViewConfigSchema,
-  SortDefinition,
-  ObjectListRequestFiltersItem,
-} from '@/openapi/ariveAPI.schemas';
-import { SortDirection } from '@/openapi/ariveAPI.schemas';
-import type {
   SortingState,
   ColumnFiltersState,
   PaginationState,
@@ -18,7 +12,13 @@ import {
   columnFiltersToRequestFilters,
   requestFiltersToColumnFilters,
 } from '@/components/data-table/utils';
-import type { ColumnDefinitionSchema } from '@/openapi/ariveAPI.schemas';
+import { SortDirection } from '@/openapi/ariveAPI.schemas';
+import type {
+  SavedViewConfigSchema,
+  SortDefinition,
+  ObjectListRequestFiltersItem,
+  ColumnDefinitionSchema,
+} from '@/openapi/ariveAPI.schemas';
 
 /**
  * Get default config for a new view

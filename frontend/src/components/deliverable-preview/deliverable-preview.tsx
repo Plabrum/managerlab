@@ -1,7 +1,5 @@
-'use client';
-
-import { InstagramPost } from './instagram-post';
 import { EmptyPreview } from './empty-preview';
+import { InstagramPost } from './instagram-post';
 import type {
   DeliverableResponseSchema,
   DeliverableMediaAssociationSchema,

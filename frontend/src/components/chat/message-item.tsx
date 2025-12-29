@@ -1,15 +1,13 @@
-'use client';
-
 import { useState } from 'react';
+import { MessageActions } from './message-actions';
+import { MessageAvatar } from './message-avatar';
+import { MessageContent } from './message-content';
+import { MessageInput } from './message-input';
+import { formatRelativeTime, validateMessageContent } from './message-utils';
 import type {
   MessageSchema,
   MessageSchemaContent,
 } from '@/openapi/ariveAPI.schemas';
-import { MessageAvatar } from './message-avatar';
-import { MessageContent } from './message-content';
-import { MessageInput } from './message-input';
-import { MessageActions } from './message-actions';
-import { formatRelativeTime, validateMessageContent } from './message-utils';
 
 interface MessageItemProps {
   message: MessageSchema;

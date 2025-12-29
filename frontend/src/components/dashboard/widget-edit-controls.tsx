@@ -1,5 +1,3 @@
-'use client';
-
 import { Pencil, Trash2, Maximize2 } from 'lucide-react';
 
 interface WidgetEditControlsProps {

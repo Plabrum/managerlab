@@ -1,6 +1,6 @@
-'use client';
-
+import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { EnumFilterField, ObjectFilterField } from '@/components/forms/filters';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, X } from 'lucide-react';
 import {
   ObjectTypes,
   TimeRange,
@@ -19,7 +18,6 @@ import {
   type ObjectFilterDefinition,
 } from '@/openapi/ariveAPI.schemas';
 import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
-import { EnumFilterField, ObjectFilterField } from '@/components/forms/filters';
 
 // Shared constants
 const WIDGET_OBJECT_TYPES = [

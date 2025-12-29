@@ -1,5 +1,3 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
 import type { CreateDashboardSchema } from '@/openapi/ariveAPI.schemas';
 

@@ -1,5 +1,3 @@
-'use client';
-
 import type { Table } from '@tanstack/react-table';
 import {
   ChevronLeft,
@@ -7,7 +5,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import {
   Select,

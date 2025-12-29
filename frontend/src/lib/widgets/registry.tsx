@@ -1,4 +1,5 @@
 import { BarChart2, LineChart, PieChart, Hash, Columns3 } from 'lucide-react';
+import type { WidgetRegistry, WidgetType, WidgetRegistryEntry } from './types';
 import {
   StatWidget,
   BarChartWidget,
@@ -13,7 +14,6 @@ import {
   PieChartPreview,
   KanbanPreview,
 } from '@/components/dashboard/widgets/previews';
-import type { WidgetRegistry, WidgetType, WidgetRegistryEntry } from './types';
 
 export const widgetRegistry: WidgetRegistry = {
   bar_chart: {

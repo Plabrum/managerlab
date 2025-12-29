@@ -1,9 +1,7 @@
-'use client';
-
+import { Search, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, X } from 'lucide-react';
 
 type DataTableSearchProps = {
   value: string;

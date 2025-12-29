@@ -1,5 +1,10 @@
-'use client';
-
+import { useQueryClient } from '@tanstack/react-query';
+import type {
+  SortingState,
+  ColumnFiltersState,
+  PaginationState,
+  Updater,
+} from '@tanstack/react-table';
 import {
   useState,
   useEffect,
@@ -8,42 +13,18 @@ import {
   useCallback,
   useRef,
 } from 'react';
-import type {
-  SortingState,
-  ColumnFiltersState,
-  PaginationState,
-  Updater,
-} from '@tanstack/react-table';
-import { DataTable } from '@/components/data-table/data-table';
-import { SavedViewTabs } from './saved-view-tabs';
-import { ObjectListToolbar } from './object-list-toolbar';
-import type { SavedViewConfigSchema } from '@/openapi/ariveAPI.schemas';
-import { GalleryView } from './gallery-view';
+import { useNavigate } from '@tanstack/react-router';
+import { toast } from 'sonner';
 import { CardView } from './card-view';
-import { useViewModePreference } from '@/hooks/use-view-mode-preference';
-import {
-  useListObjectsSuspense,
-  useOObjectTypeSchemaGetObjectSchemaSuspense,
-} from '@/openapi/objects/objects';
-import { useViewsObjectTypeListSavedViewsSuspense } from '@/openapi/views/views';
+import { GalleryView } from './gallery-view';
+import { ObjectListToolbar } from './object-list-toolbar';
+import { SavedViewTabs } from './saved-view-tabs';
+import { DataTable } from '@/components/data-table/data-table';
 import {
   paginationStateToRequest,
   columnFiltersToRequestFilters,
   requestFiltersToColumnFilters,
 } from '@/components/data-table/utils';
-import { SortDirection } from '@/openapi/ariveAPI.schemas';
-import type {
-  ObjectListSchema,
-  ObjectTypes,
-  ActionDTO,
-  ActionsActionGroupObjectIdExecuteObjectActionBody,
-} from '@/openapi/ariveAPI.schemas';
-import { useActionsActionGroupObjectIdExecuteObjectAction } from '@/openapi/actions/actions';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { getErrorMessage } from '@/lib/error-handler';
-import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +35,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useViewModePreference } from '@/hooks/use-view-mode-preference';
+import { getErrorMessage } from '@/lib/error-handler';
+import { useActionsActionGroupObjectIdExecuteObjectAction } from '@/openapi/actions/actions';
+import type { SavedViewConfigSchema } from '@/openapi/ariveAPI.schemas';
+import type {
+  ObjectListSchema,
+  ObjectTypes,
+  ActionDTO,
+  ActionsActionGroupObjectIdExecuteObjectActionBody,
+} from '@/openapi/ariveAPI.schemas';
+import { SortDirection } from '@/openapi/ariveAPI.schemas';
+import {
+  useListObjectsSuspense,
+  useOObjectTypeSchemaGetObjectSchemaSuspense,
+} from '@/openapi/objects/objects';
+import { useViewsObjectTypeListSavedViewsSuspense } from '@/openapi/views/views';
+import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
 import type { DomainObject } from '@/types/domain-objects';
 
 interface ObjectListProps {
@@ -179,7 +177,7 @@ export function ObjectList({
 
   // Query client and router for action handling
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // Mutation for executing object actions
   const executeObjectActionMutation =
@@ -444,7 +442,7 @@ export function ObjectList({
 
       // Handle redirects
       if (response.action_result?.type === 'redirect') {
-        router.push(response.action_result.path);
+        navigate({ to: response.action_result.path });
       }
 
       // Handle downloads

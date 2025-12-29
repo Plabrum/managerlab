@@ -1,5 +1,3 @@
-'use client';
-
 import { Pie, PieChart, Cell, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
 

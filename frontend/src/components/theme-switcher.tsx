@@ -1,7 +1,5 @@
-'use client';
-
-import { useTheme } from 'next-themes';
 import { Monitor, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();

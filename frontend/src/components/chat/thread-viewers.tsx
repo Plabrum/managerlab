@@ -1,5 +1,3 @@
-'use client';
-
 import { Users } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 

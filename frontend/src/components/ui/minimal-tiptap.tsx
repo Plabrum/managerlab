@@ -1,18 +1,6 @@
-'use client';
-
-import * as React from 'react';
-import { EditorContent, useEditor } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
+import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Toggle } from '@/components/ui/toggle';
-import { Switch } from '@/components/ui/switch';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
   Bold,
   Italic,
@@ -28,6 +16,16 @@ import {
   Undo,
   Redo,
 } from 'lucide-react';
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Toggle } from '@/components/ui/toggle';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { MessageSchemaContent } from '@/openapi/ariveAPI.schemas';
 

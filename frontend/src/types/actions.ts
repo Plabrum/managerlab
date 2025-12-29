@@ -1,5 +1,5 @@
-import type { ActionDTO, ActionGroupType } from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from './domain-objects';
+import type { ActionDTO, ActionGroupType } from '@/openapi/ariveAPI.schemas';
 
 /**
  * Object-level actions - actions performed on a specific object instance

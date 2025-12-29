@@ -1,17 +1,15 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 
 export function useNavigation(baseUrl = '') {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const navigateToLink = useCallback(
     (link: string) => {
       const fullUrl = baseUrl ? `${baseUrl}/${link}` : `/${link}`;
-      router.push(fullUrl);
+      navigate({ to: fullUrl });
     },
-    [baseUrl, router]
+    [baseUrl, navigate]
   );
 
   return { navigateToLink };

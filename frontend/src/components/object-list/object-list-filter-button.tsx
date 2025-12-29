@@ -1,7 +1,5 @@
-'use client';
-
-import { useState } from 'react';
 import { Filter, X, Check } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import type {
   ColumnDefinitionSchema,
   ObjectListRequestFiltersItem,
@@ -25,7 +24,6 @@ import type {
   BooleanFilterDefinition,
   EnumFilterDefinition,
 } from '@/openapi/ariveAPI.schemas';
-import { cn } from '@/lib/utils';
 
 interface ObjectListFilterButtonProps {
   columns: ColumnDefinitionSchema[];

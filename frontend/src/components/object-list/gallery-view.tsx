@@ -1,14 +1,12 @@
-'use client';
-
-import { Image } from '@/components/ui/image';
+import { Link } from '@tanstack/react-router';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Image } from '@/components/ui/image';
+import { cn } from '@/lib/utils';
 import type {
   ObjectListSchema,
   ImageFieldValue,
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
 
 interface GalleryViewProps {
   data: ObjectListSchema[];
@@ -114,8 +112,8 @@ export function GalleryView({
 
               {/* Link wrapper */}
               <Link
-                href={item.link || '#'}
-                onClick={(e) => {
+                to={item.link || '#'}
+                onClick={(e: React.MouseEvent) => {
                   if (onRowClick) {
                     e.preventDefault();
                     onRowClick(item);

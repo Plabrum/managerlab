@@ -1,20 +1,18 @@
-'use client';
-
+import { UploadIcon, FileText, X } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import { createTypedForm } from '@/components/forms/base';
-import type { CampaignCreateSchema } from '@/openapi/ariveAPI.schemas';
+import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
+import { Button } from '@/components/ui/button';
+import { CollapsibleFormSection } from '@/components/ui/collapsible-form-section';
+import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
+import { Progress } from '@/components/ui/progress';
+import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 import {
   CompensationStructure,
   CounterpartyType,
   OwnershipMode,
 } from '@/openapi/ariveAPI.schemas';
-import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
-import { useState, useCallback } from 'react';
-import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
-import { UploadIcon, FileText, X } from 'lucide-react';
-import { useDocumentUpload } from '@/hooks/useDocumentUpload';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { CollapsibleFormSection } from '@/components/ui/collapsible-form-section';
+import type { CampaignCreateSchema } from '@/openapi/ariveAPI.schemas';
 
 const {
   FormModal,

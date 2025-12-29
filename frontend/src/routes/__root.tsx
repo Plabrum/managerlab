@@ -1,0 +1,43 @@
+import { useEffect } from 'react';
+import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { NotFoundPage } from '@/components/not-found-page';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
+import { TanstackQueryProvider } from '@/lib/tanstack-query-provider';
+
+export const Route = createRootRoute({
+  component: RootComponent,
+  notFoundComponent: NotFoundPage,
+});
+
+function RootComponent() {
+  // Set document title and meta on mount
+  useEffect(() => {
+    document.title = 'Arive - Next Generation Talent Management';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content',
+        'Streamline your talent management operations with Arive'
+      );
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = 'Streamline your talent management operations with Arive';
+      document.head.appendChild(meta);
+    }
+  }, []);
+
+  return (
+    <div className="font-sans antialiased">
+      <TanstackQueryProvider>
+        <ThemeProvider>
+          <Outlet />
+        </ThemeProvider>
+      </TanstackQueryProvider>
+      <Toaster />
+      {import.meta.env.DEV && <TanStackRouterDevtools />}
+    </div>
+  );
+}

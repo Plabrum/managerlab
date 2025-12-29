@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -26,6 +24,15 @@ export function MediaViewer({ url, alt }: MediaViewerProps) {
           <div
             className="bg-muted aspect-video w-full cursor-pointer overflow-hidden rounded-lg border"
             onClick={() => setIsFullscreen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsFullscreen(true);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Open media in fullscreen"
           >
             <Image
               src={url}

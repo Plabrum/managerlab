@@ -1,17 +1,15 @@
-'use client';
-
-import { Image } from '@/components/ui/image';
+import { Mail, Instagram, Facebook, Youtube } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
+import { Image } from '@/components/ui/image';
+import { cn } from '@/lib/utils';
 import type {
   ObjectListSchema,
   ImageFieldValue,
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import Link from 'next/link';
-import { Mail, Instagram, Facebook, Youtube } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface CardViewProps {
   data: ObjectListSchema[];
@@ -152,8 +150,8 @@ export function CardView({
 
               {/* Link wrapper for entire card */}
               <Link
-                href={item.link || '#'}
-                onClick={(e) => {
+                to={item.link || '#'}
+                onClick={(e: React.MouseEvent) => {
                   if (onRowClick) {
                     e.preventDefault();
                     onRowClick(item);

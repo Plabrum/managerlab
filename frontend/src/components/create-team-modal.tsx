@@ -1,6 +1,7 @@
-'use client';
-
 import * as React from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { useAuth } from '@/components/providers/auth-provider';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,12 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/components/providers/auth-provider';
-import { useRouter } from 'next/navigation';
 import { config } from '@/lib/config';
 
 interface CreateTeamModalProps {
@@ -24,7 +22,7 @@ interface CreateTeamModalProps {
 
 export function CreateTeamModal({ open, onOpenChange }: CreateTeamModalProps) {
   const { refetchTeams } = useAuth();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isCreating, setIsCreating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [formData, setFormData] = React.useState({
@@ -56,7 +54,6 @@ export function CreateTeamModal({ open, onOpenChange }: CreateTeamModalProps) {
         // Close modal
         onOpenChange(false);
         // Refresh server components without full page reload
-        router.refresh();
       } else {
         const errorData = await res.json();
         setError(errorData.detail || 'Failed to create team');

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import type { DomainObject } from '@/types/domain-objects';
 import type { ActionFormRenderer } from './use-action-executor';
 import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
+import type { DomainObject } from '@/types/domain-objects';
 
 /**
  * Hook that creates an ActionFormRenderer using the centralized action registry

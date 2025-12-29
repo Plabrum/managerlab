@@ -1,5 +1,3 @@
-'use client';
-
 import { Bar, BarChart, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
 

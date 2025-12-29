@@ -1,7 +1,6 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
+import { KanbanWidgetFormFields } from './kanban-widget-form';
 import { createTypedForm } from '@/components/forms/base';
 import {
   Select,
@@ -10,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getAllWidgetTypes, widgetRegistry } from '@/lib/widgets/registry';
+import type { WidgetType } from '@/lib/widgets/types';
 import {
   ObjectTypes,
   TimeRange,
@@ -19,10 +20,7 @@ import {
   type WidgetQuerySchema,
   type ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import { getAllWidgetTypes, widgetRegistry } from '@/lib/widgets/registry';
-import type { WidgetType } from '@/lib/widgets/types';
 import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
-import { KanbanWidgetFormFields } from './kanban-widget-form';
 
 // Shared constants
 const WIDGET_OBJECT_TYPES = [

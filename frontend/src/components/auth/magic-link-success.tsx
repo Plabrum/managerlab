@@ -1,3 +1,4 @@
+import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -6,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { CheckCircle } from 'lucide-react';
 
 interface MagicLinkSuccessProps {
   email: string;

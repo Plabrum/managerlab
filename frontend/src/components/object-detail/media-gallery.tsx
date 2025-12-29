@@ -1,11 +1,9 @@
-'use client';
-
+import { Link } from '@tanstack/react-router';
 import { Image } from '@/components/ui/image';
 import type {
   ObjectListSchema,
   ImageFieldValue,
 } from '@/openapi/ariveAPI.schemas';
-import Link from 'next/link';
 
 interface MediaGalleryProps {
   items: ObjectListSchema[];
@@ -46,7 +44,7 @@ export function MediaGallery({ items }: MediaGalleryProps) {
           return (
             <Link
               key={media.id}
-              href={`/${media.object_type}/${media.id}`}
+              to={`/${media.object_type}/${media.id}`}
               className="bg-muted hover:border-primary group relative aspect-square overflow-hidden rounded-lg border transition-all hover:shadow-md"
             >
               {imageUrl ? (

@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Grid overlay showing dashed lines for the 6-column layout
  * Only visible in edit mode

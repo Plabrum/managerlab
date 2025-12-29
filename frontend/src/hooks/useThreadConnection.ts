@@ -1,8 +1,6 @@
-'use client';
-
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import { useWebSocket } from './useWebSocket';
+import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import {
   ThreadSocketMessageType,
   type ServerMessage,
@@ -29,8 +27,7 @@ export function useThreadConnection({
 }: UseThreadConnectionOptions) {
   // Build WebSocket URL
   const wsUrl = useMemo(() => {
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const protocol = backendUrl.startsWith('https') ? 'wss:' : 'ws:';
     const host = backendUrl.replace(/^https?:\/\//, '');
     return `${protocol}//${host}/ws/threads/${threadableType}/${threadableId}`;
@@ -96,7 +93,7 @@ export function useThreadConnection({
     };
 
     switch (message.message_type) {
-      case ThreadSocketMessageType.USER_JOINED:
+      case ThreadSocketMessageType.USER_JOINED: {
         // Update viewers list from server
         // Server sends viewers as array of user IDs, we need to enrich with names
         const joinedViewers = message.viewers.map((userId) =>
@@ -104,6 +101,7 @@ export function useThreadConnection({
         );
         setViewers(joinedViewers);
         break;
+      }
 
       case ThreadSocketMessageType.USER_LEFT:
         // Remove user from viewers

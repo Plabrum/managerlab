@@ -1,8 +1,6 @@
-'use client';
-
+import { ObjectActions } from '@/components/object-detail/object-actions';
 import { useActionsActionGroupListActionsSuspense } from '@/openapi/actions/actions';
 import type { ActionGroupType } from '@/openapi/ariveAPI.schemas';
-import { ObjectActions } from '@/components/object-detail/object-actions';
 
 interface TopLevelActionsProps {
   actionGroup: ActionGroupType;

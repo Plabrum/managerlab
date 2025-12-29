@@ -1,7 +1,4 @@
-'use client';
-
 import { Pie, PieChart, Cell } from 'recharts';
-import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 import {
   ChartConfig,
   ChartContainer,
@@ -11,6 +8,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import { getChartColor } from '@/lib/utils';
+import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 
 interface PieChartWidgetProps {
   data: TimeSeriesDataResponse;

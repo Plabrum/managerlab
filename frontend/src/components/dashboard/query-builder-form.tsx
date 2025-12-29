@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import {
@@ -9,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { WidgetQuery } from '@/types/dashboard';
 import type {
   ObjectTypes,
   TimeRange,
@@ -18,6 +15,7 @@ import type {
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
 import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
+import type { WidgetQuery } from '@/types/dashboard';
 
 interface QueryBuilderFormProps {
   query: WidgetQuery;

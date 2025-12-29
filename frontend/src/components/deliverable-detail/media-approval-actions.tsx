@@ -1,11 +1,9 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
+import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
+import { Button } from '@/components/ui/button';
+import { useActionExecutor } from '@/hooks/use-action-executor';
 import type { DeliverableMediaAssociationSchema } from '@/openapi/ariveAPI.schemas';
 import { ActionGroupType } from '@/openapi/ariveAPI.schemas';
-import { useActionExecutor } from '@/hooks/use-action-executor';
-import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 
 interface MediaApprovalActionsProps {
   mediaAssociation: DeliverableMediaAssociationSchema;

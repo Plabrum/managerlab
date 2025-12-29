@@ -1,12 +1,10 @@
-'use client';
-
 import { useEffect, useRef } from 'react';
 import { ActivityFeedList } from './activity-feed-list';
 import { MessageInput } from '@/components/chat/message-input';
-import { TypingIndicator } from '@/components/chat/typing-indicator';
 import { ThreadViewers } from '@/components/chat/thread-viewers';
-import { useThreadSync } from '@/hooks/useThreadSync';
+import { TypingIndicator } from '@/components/chat/typing-indicator';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useThreadSync } from '@/hooks/useThreadSync';
 import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 
 interface ActivityFeedProps {

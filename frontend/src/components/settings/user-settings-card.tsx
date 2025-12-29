@@ -1,9 +1,7 @@
-'use client';
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { UserSchema } from '@/openapi/ariveAPI.schemas';
 import { LogoutButton } from './logout-button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserSchema } from '@/openapi/ariveAPI.schemas';
 
 export function UserSettingsCard({ user }: { user: UserSchema }) {
   return (

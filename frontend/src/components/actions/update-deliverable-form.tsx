@@ -1,5 +1,3 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
 import type { DeliverableUpdateSchema } from '@/openapi/ariveAPI.schemas';
 import { DeliverableType } from '@/openapi/ariveAPI.schemas';

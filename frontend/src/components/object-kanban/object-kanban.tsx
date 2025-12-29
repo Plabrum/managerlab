@@ -1,8 +1,6 @@
-'use client';
-
-import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import {
   KanbanProvider,
@@ -10,10 +8,8 @@ import {
   KanbanCards,
   KanbanCard,
 } from '@/components/ui/kanban';
-import {
-  useListObjectsSuspense,
-  useOObjectTypeSchemaGetObjectSchemaSuspense,
-} from '@/openapi/objects/objects';
+import { getErrorMessage } from '@/lib/error-handler';
+import { humanizeEnumValue } from '@/lib/format';
 import { useActionsActionGroupObjectIdExecuteObjectAction } from '@/openapi/actions/actions';
 import type {
   ObjectListSchema,
@@ -23,8 +19,10 @@ import type {
   TimeRange,
   ObjectListRequestFiltersItem,
 } from '@/openapi/ariveAPI.schemas';
-import { getErrorMessage } from '@/lib/error-handler';
-import { humanizeEnumValue } from '@/lib/format';
+import {
+  useListObjectsSuspense,
+  useOObjectTypeSchemaGetObjectSchemaSuspense,
+} from '@/openapi/objects/objects';
 
 interface ObjectKanbanProps {
   objectType: ObjectTypes;
@@ -72,7 +70,7 @@ export function ObjectKanban({
   timeRange,
   states,
 }: ObjectKanbanProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // Fetch schema to determine state field and available values
@@ -255,10 +253,7 @@ export function ObjectKanban({
             <KanbanCards id={column.id} className="flex-1 space-y-1.5 p-2">
               {(item) => (
                 <KanbanCard key={item.id} {...item}>
-                  <ObjectKanbanCard
-                    object={(item as KanbanItem).object}
-                    router={router}
-                  />
+                  <ObjectKanbanCard object={(item as KanbanItem).object} />
                 </KanbanCard>
               )}
             </KanbanCards>
@@ -270,17 +265,13 @@ export function ObjectKanban({
 }
 
 // Card content component
-function ObjectKanbanCard({
-  object,
-  router,
-}: {
-  object: ObjectListSchema;
-  router: ReturnType<typeof useRouter>;
-}) {
+function ObjectKanbanCard({ object }: { object: ObjectListSchema }) {
+  const navigate = useNavigate();
+
   const handleClick = () => {
     // Navigate to object detail page using the link if available
     if (object.link) {
-      router.push(object.link);
+      navigate({ to: object.link });
     }
   };
 
@@ -288,6 +279,15 @@ function ObjectKanbanCard({
     <div
       className="hover:bg-accent/50 -m-1.5 cursor-pointer space-y-1.5 rounded-md p-1.5 transition-colors"
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${object.title}`}
     >
       <div className="line-clamp-2 text-sm font-medium">{object.title}</div>
 

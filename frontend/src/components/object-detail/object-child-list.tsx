@@ -1,18 +1,16 @@
-'use client';
-
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Link } from '@tanstack/react-router';
+import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { EmptyState } from '@/components/empty-state';
-import { useListObjectsSuspense } from '@/openapi/objects/objects';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
-import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import type {
   ObjectTypes,
   ObjectFilterDefinition,
   ActionDTO,
 } from '@/openapi/ariveAPI.schemas';
+import { useListObjectsSuspense } from '@/openapi/objects/objects';
 
 interface ObjectChildListProps {
   /**
@@ -183,7 +181,7 @@ export function ObjectChildList({
           {data.objects.map((obj) => (
             <Link
               key={obj.id}
-              href={obj.link || `/${obj.object_type}/${obj.id}`}
+              to={obj.link || `/${obj.object_type}/${obj.id}`}
               onClick={() => onCardClick?.(obj.id)}
               className="hover:bg-accent group flex items-center gap-3 rounded-lg border p-3 transition-colors"
             >

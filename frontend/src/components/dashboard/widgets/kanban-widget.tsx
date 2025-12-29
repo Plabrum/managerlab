@@ -1,5 +1,3 @@
-'use client';
-
 import { ObjectKanban } from '@/components/object-kanban';
 import type {
   TimeSeriesDataResponse,

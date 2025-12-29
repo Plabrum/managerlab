@@ -1,13 +1,19 @@
-'use client';
-
-import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import type { VisibilityState } from '@tanstack/react-table';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Settings,
+  Plus,
+  Save,
+  Star,
+  StarOff,
+  Trash2,
+  Columns3,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { ColumnVisibilityDialog } from './column-visibility-dialog';
+import { ViewModeSelector } from './view-mode-selector';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -18,34 +24,26 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
-  Settings,
-  Plus,
-  Save,
-  Star,
-  StarOff,
-  Trash2,
-  Columns3,
-} from 'lucide-react';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { getErrorMessage } from '@/lib/error-handler';
 import type {
   SavedViewSchema,
   SavedViewConfigSchema,
   ObjectTypes,
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import type { VisibilityState } from '@tanstack/react-table';
-import { ColumnVisibilityDialog } from './column-visibility-dialog';
 import {
   useViewsObjectTypeCreateSavedView,
   useViewsObjectTypeIdUpdateSavedView,
   useViewsObjectTypeIdDeleteSavedView,
 } from '@/openapi/views/views';
-import { ViewModeSelector } from './view-mode-selector';
 import type { ViewMode } from '@/types/view-modes';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
-import { getErrorMessage } from '@/lib/error-handler';
 
 interface SavedViewSettingsProps {
   objectType: ObjectTypes;

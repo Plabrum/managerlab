@@ -1,9 +1,5 @@
-'use client';
-
 import { ChevronRight, type LucideIcon } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
+import { Link, useLocation } from '@tanstack/react-router';
 import {
   Collapsible,
   CollapsibleContent,
@@ -41,7 +37,8 @@ export function NavMain({
     }[];
   }[];
 }) {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const { state } = useSidebar();
 
   return (
@@ -83,7 +80,7 @@ export function NavMain({
                     >
                       {item.items.map((subItem) => (
                         <DropdownMenuItem key={subItem.title} asChild>
-                          <Link href={subItem.url} className="cursor-pointer">
+                          <Link to={subItem.url} className="cursor-pointer">
                             {subItem.title}
                           </Link>
                         </DropdownMenuItem>
@@ -125,7 +122,7 @@ export function NavMain({
                               asChild
                               isActive={isSubItemActive}
                             >
-                              <Link href={subItem.url}>
+                              <Link to={subItem.url}>
                                 <span>{subItem.title}</span>
                               </Link>
                             </SidebarMenuSubButton>
@@ -147,7 +144,7 @@ export function NavMain({
                 tooltip={item.title}
                 isActive={isItemActive}
               >
-                <Link href={item.url}>
+                <Link to={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </Link>

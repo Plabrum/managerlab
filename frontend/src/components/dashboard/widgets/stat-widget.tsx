@@ -1,8 +1,6 @@
-'use client';
-
 import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from 'lucide-react';
-import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 import { cn } from '@/lib/utils';
+import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 
 interface StatWidgetProps {
   data: TimeSeriesDataResponse;

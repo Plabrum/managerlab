@@ -1,5 +1,5 @@
-import type { NextConfig } from 'next';
 import withBundleAnalyzer from '@next/bundle-analyzer';
+import type { NextConfig } from 'next';
 
 /**
  * Base Next.js configuration.

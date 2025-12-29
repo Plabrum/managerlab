@@ -1,5 +1,3 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
 import type { RosterUpdateSchema } from '@/openapi/ariveAPI.schemas';
 

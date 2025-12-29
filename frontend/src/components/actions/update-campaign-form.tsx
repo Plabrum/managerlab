@@ -1,13 +1,11 @@
-'use client';
-
 import { createTypedForm } from '@/components/forms/base';
+import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 import type { CampaignUpdateSchema } from '@/openapi/ariveAPI.schemas';
 import {
   CompensationStructure,
   CounterpartyType,
   OwnershipMode,
 } from '@/openapi/ariveAPI.schemas';
-import { ObjectSearchCombobox } from '@/components/forms/object-search-combobox';
 
 const {
   FormSheet,

@@ -1,9 +1,7 @@
-'use client';
-
-import { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useEffect, useRef } from 'react';
 import { MessageItem } from './message-item';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type {
   MessageSchema,
   MessageSchemaContent,
