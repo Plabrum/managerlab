@@ -1,7 +1,7 @@
-import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { MessageItem } from './message-item';
+import { Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { MessageItem } from './message-item';
 import type {
   MessageSchema,
   MessageSchemaContent,

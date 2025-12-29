@@ -1,5 +1,4 @@
 import { GripVertical, ArrowDownRight } from 'lucide-react';
-import { WidgetEditControls } from './widget-edit-controls';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import {
   Card,
@@ -12,6 +11,7 @@ import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { cn } from '@/lib/utils';
 import { ActionGroupType, type WidgetSchema } from '@/openapi/ariveAPI.schemas';
+import { WidgetEditControls } from './widget-edit-controls';
 
 interface WidgetContainerProps {
   widget: WidgetSchema;

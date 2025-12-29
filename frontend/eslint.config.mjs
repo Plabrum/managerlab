@@ -55,20 +55,45 @@ export default tseslint.config(
       'jsx-a11y/no-autofocus': 'warn', // Allow autoFocus in modals/forms for UX
       // Import plugin settings
       'import/order': [
-        'warn',
+        'error', // Changed from 'warn' to 'error' for strict enforcement
         {
           groups: [
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
+            'builtin', // Node built-ins (fs, path, etc.)
+            'external', // npm packages
+            'internal', // Internal aliases (@/)
+            ['parent', 'sibling'], // Relative imports
             'index',
+            'type', // Type imports
           ],
+          pathGroups: [
+            {
+              pattern: 'react',
+              group: 'external',
+              position: 'before',
+            },
+            {
+              pattern: '@tanstack/**',
+              group: 'external',
+              position: 'before',
+            },
+            {
+              pattern: '@/**',
+              group: 'internal',
+              position: 'before',
+            },
+          ],
+          pathGroupsExcludedImportTypes: ['react', 'type'],
           'newlines-between': 'never',
-          alphabetize: { order: 'asc', caseInsensitive: true },
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+          distinctGroup: false,
         },
       ],
+      'import/no-duplicates': 'error', // Prevent duplicate imports
+      'import/first': 'error', // All imports must be at top of file
+      'import/newline-after-import': 'error', // Blank line after imports
       'import/no-unresolved': 'off', // TypeScript handles this
       'import/named': 'off', // TypeScript handles this
     },

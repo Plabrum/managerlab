@@ -1,6 +1,5 @@
-import { useSearch } from '@tanstack/react-router';
-import type React from 'react';
 import { useState } from 'react';
+import { useSearch } from '@tanstack/react-router';
 import {
   MagicLinkSuccess,
   GoogleSignInButton,
@@ -10,6 +9,7 @@ import {
 import { SuspenseWrapper } from '@/components/suspense-wrapper';
 import { handleError } from '@/lib/error-handler';
 import { useAuthMagicLinkRequestRequestMagicLink } from '@/openapi/auth/auth';
+import type React from 'react';
 
 // Extend window to include grecaptcha
 declare global {

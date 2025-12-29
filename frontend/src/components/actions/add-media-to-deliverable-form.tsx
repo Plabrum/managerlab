@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { SelectExistingMediaForm } from './select-existing-media-form';
-import { UploadNewMediaForm } from './upload-new-media-form';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +16,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AddMediaToDeliverableSchema } from '@/openapi/ariveAPI.schemas';
+import { SelectExistingMediaForm } from './select-existing-media-form';
+import { UploadNewMediaForm } from './upload-new-media-form';
 
 interface AddMediaToDeliverableFormProps {
   isOpen: boolean;

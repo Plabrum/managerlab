@@ -1,7 +1,7 @@
-import type { Layouts } from 'react-grid-layout';
 import { widgetRegistry } from '@/lib/widgets/registry';
 import type { WidgetSchema, DashboardSchema } from '@/openapi/ariveAPI.schemas';
 import type { WidgetType } from '@/types/dashboard';
+import type { Layouts } from 'react-grid-layout';
 
 // Grid configuration
 export const GRID_CONFIG = {

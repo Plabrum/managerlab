@@ -5,12 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
+import { useListObjectsSuspense } from '@/openapi/objects/objects';
 import type {
   ObjectTypes,
   ObjectFilterDefinition,
   ActionDTO,
 } from '@/openapi/ariveAPI.schemas';
-import { useListObjectsSuspense } from '@/openapi/objects/objects';
 
 interface ObjectChildListProps {
   /**

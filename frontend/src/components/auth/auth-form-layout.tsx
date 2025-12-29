@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
-import type { ReactNode } from 'react';
 import {
   Card,
   CardContent,
@@ -9,6 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import type { ReactNode } from 'react';
 
 interface AuthFormLayoutProps {
   isSignUp: boolean;

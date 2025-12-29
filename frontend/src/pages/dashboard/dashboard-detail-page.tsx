@@ -1,5 +1,5 @@
-import { useParams } from '@tanstack/react-router';
 import { useRef, useCallback } from 'react';
+import { useParams } from '@tanstack/react-router';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
 import { ObjectActions } from '@/components/object-detail';
 import { PageTopBar } from '@/components/page-topbar';

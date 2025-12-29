@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import type { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import {
   useDashboardsListDashboardsSuspense,
   useDashboardsIdUpdateDashboard,
 } from '@/openapi/dashboards/dashboards';
+import type { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import type { ViewMode, ListViewConfig } from '@/types/view-modes';
 
 export function useViewModePreference(objectType: ObjectTypes) {

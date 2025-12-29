@@ -1,5 +1,5 @@
-import { LayoutDashboard, FolderKanban } from 'lucide-react';
 import * as React from 'react';
+import { LayoutDashboard, FolderKanban } from 'lucide-react';
 import { CreateTeamModal } from '@/components/create-team-modal';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';

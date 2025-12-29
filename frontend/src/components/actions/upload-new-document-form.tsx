@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import {
   Loader2,
   UploadIcon,
@@ -6,7 +7,6 @@ import {
   X,
   FileText,
 } from 'lucide-react';
-import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';

@@ -1,6 +1,6 @@
+import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
 import { toast } from 'sonner';
 import {
   KanbanProvider,
@@ -11,6 +11,10 @@ import {
 import { getErrorMessage } from '@/lib/error-handler';
 import { humanizeEnumValue } from '@/lib/format';
 import { useActionsActionGroupObjectIdExecuteObjectAction } from '@/openapi/actions/actions';
+import {
+  useListObjectsSuspense,
+  useOObjectTypeSchemaGetObjectSchemaSuspense,
+} from '@/openapi/objects/objects';
 import type {
   ObjectListSchema,
   ObjectTypes,
@@ -19,10 +23,6 @@ import type {
   TimeRange,
   ObjectListRequestFiltersItem,
 } from '@/openapi/ariveAPI.schemas';
-import {
-  useListObjectsSuspense,
-  useOObjectTypeSchemaGetObjectSchemaSuspense,
-} from '@/openapi/objects/objects';
 
 interface ObjectKanbanProps {
   objectType: ObjectTypes;

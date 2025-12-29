@@ -1,8 +1,8 @@
 import { createRoute } from '@tanstack/react-router';
-import { rootRoute } from './root.route';
 import { AuthenticatedLayout } from '@/layouts/authenticated-layout';
 import { PublicLayout } from '@/layouts/public-layout';
 import { requireAuth } from '@/lib/auth-loader';
+import { rootRoute } from './root.route';
 
 // ============================================================================
 // Public Layout Route (no authentication required)

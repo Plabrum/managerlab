@@ -1,5 +1,5 @@
-import { WidgetFormFields } from './widget-form';
 import { createTypedForm } from '@/components/forms/base';
+import { WidgetFormFields } from './widget-form';
 import type {
   WidgetSchema,
   EditWidgetSchema,

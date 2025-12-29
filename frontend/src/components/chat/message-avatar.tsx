@@ -1,6 +1,6 @@
-import { getUserInitials } from './message-utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { getUserInitials } from './message-utils';
 
 interface MessageAvatarProps {
   userName: string;

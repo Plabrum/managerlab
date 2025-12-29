@@ -1,5 +1,5 @@
-import type React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import type React from 'react';
 
 interface FeatureCardProps {
   icon: React.ReactNode;

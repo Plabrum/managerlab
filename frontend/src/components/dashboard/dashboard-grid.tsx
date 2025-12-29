@@ -5,14 +5,14 @@ import {
   type Layout,
   type Layouts,
 } from 'react-grid-layout';
-import { WidgetContainer } from './widget-container';
-import { WidgetDataLoader } from './widget-data-loader';
 import {
   GRID_BREAKPOINTS,
   GRID_COLS,
   buildResponsiveLayouts,
 } from '@/lib/dashboard/grid-config';
 import { widgetRegistry } from '@/lib/widgets/registry';
+import { WidgetContainer } from './widget-container';
+import { WidgetDataLoader } from './widget-data-loader';
 import type { WidgetSchema, DashboardSchema } from '@/openapi/ariveAPI.schemas';
 import type { WidgetType, WidgetQuery } from '@/types/dashboard';
 import 'react-grid-layout/css/styles.css';

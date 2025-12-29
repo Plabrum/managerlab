@@ -1,6 +1,6 @@
+import { useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import type { NavigateOptions } from '@tanstack/react-router';
-import { useCallback } from 'react';
 
 /**
  * Navigation utilities hook.

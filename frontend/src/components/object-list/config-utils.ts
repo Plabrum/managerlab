@@ -3,11 +3,6 @@
  * These are pure functions with no side effects.
  */
 
-import type {
-  SortingState,
-  ColumnFiltersState,
-  PaginationState,
-} from '@tanstack/react-table';
 import {
   columnFiltersToRequestFilters,
   requestFiltersToColumnFilters,
@@ -19,6 +14,11 @@ import type {
   ObjectListRequestFiltersItem,
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
+import type {
+  SortingState,
+  ColumnFiltersState,
+  PaginationState,
+} from '@tanstack/react-table';
 
 /**
  * Get default config for a new view

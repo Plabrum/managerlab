@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useWebSocket } from './useWebSocket';
 import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
 import {
   ThreadSocketMessageType,
@@ -7,6 +6,7 @@ import {
   type ClientMessage,
   type Viewer,
 } from '@/types/websocket';
+import { useWebSocket } from './useWebSocket';
 
 interface UseThreadConnectionOptions {
   threadableType: ObjectTypes;

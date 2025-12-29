@@ -1,7 +1,7 @@
-import type { LucideIcon } from 'lucide-react';
-import type { ComponentType } from 'react';
 import type { TimeSeriesDataResponse } from '@/openapi/ariveAPI.schemas';
 import type { WidgetQuery, WidgetSize, WidgetType } from '@/types/dashboard';
+import type { LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
 
 export type { WidgetType } from '@/types/dashboard';
 

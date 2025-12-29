@@ -1,6 +1,6 @@
 import React from 'react';
-import { PageLoading } from '@/components/ui/loading';
 import { PageSkeleton } from '@/components/skeletons';
+import { PageLoading } from '@/components/ui/loading';
 
 interface SuspenseWrapperProps {
   children: React.ReactNode;

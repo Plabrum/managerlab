@@ -1,7 +1,3 @@
-import { MessageInput } from './chat/message-input';
-import { MessageList } from './chat/message-list';
-import { ThreadViewers } from './chat/thread-viewers';
-import { TypingIndicator } from './chat/typing-indicator';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -12,6 +8,10 @@ import {
 } from '@/components/ui/sheet';
 import { useThreadSync } from '@/hooks/useThreadSync';
 import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
+import { MessageInput } from './chat/message-input';
+import { MessageList } from './chat/message-list';
+import { ThreadViewers } from './chat/thread-viewers';
+import { TypingIndicator } from './chat/typing-indicator';
 
 interface ChatDrawerProps {
   open: boolean;

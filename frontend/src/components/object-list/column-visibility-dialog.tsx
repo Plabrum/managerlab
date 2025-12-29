@@ -1,4 +1,3 @@
-import type { VisibilityState } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -9,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import type { ColumnDefinitionSchema } from '@/openapi/ariveAPI.schemas';
+import type { VisibilityState } from '@tanstack/react-table';
 
 interface ColumnVisibilityDialogProps {
   columns: ColumnDefinitionSchema[];

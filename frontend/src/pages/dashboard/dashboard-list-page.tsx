@@ -1,46 +1,48 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { PageTopBar } from '@/components/page-topbar';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
+import { useDashboardsListDashboardsSuspense } from '@/openapi/dashboards/dashboards';
 import type { ActionDTO } from '@/openapi/ariveAPI.schemas';
-import { dashboardsListDashboards } from '@/openapi/dashboards/dashboards';
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const [hasRedirected, setHasRedirected] = useState(false);
+
+  // Fetch dashboards using Suspense query - loading state handled by route's pendingComponent
+  const { data: dashboards } = useDashboardsListDashboardsSuspense();
 
   // Setup action executor for dashboard creation
   const formRenderer = useActionFormRenderer();
   const executor = useActionExecutor({
     actionGroup: 'dashboard_actions',
     renderActionForm: formRenderer,
-    onSuccess: (action, response) => {
+    onSuccess: (_action, response) => {
       // Redirect to the newly created dashboard
       if (response.created_id) {
-        navigate({ to: `/dashboard/${response.created_id}` });
+        navigate({
+          to: '/dashboard/$id',
+          params: { id: String(response.created_id) },
+        });
       }
     },
   });
 
+  // Redirect to first dashboard if available
   useEffect(() => {
-    const redirectToDashboard = async () => {
-      try {
-        const dashboards = await dashboardsListDashboards();
-
-        if (dashboards.length > 0) {
-          const firstDashboard =
-            dashboards.find((d) => d.is_default) || dashboards[0];
-          navigate({ to: `/dashboard/${firstDashboard.id}` });
-        }
-      } catch (error) {
-        console.error('Failed to fetch dashboards:', error);
-      }
-    };
-
-    redirectToDashboard();
-  }, [navigate]);
+    if (!hasRedirected && dashboards.length > 0) {
+      const firstDashboard =
+        dashboards.find((d) => d.is_default) || dashboards[0];
+      setHasRedirected(true);
+      navigate({
+        to: '/dashboard/$id',
+        params: { id: String(firstDashboard.id) },
+      });
+    }
+  }, [dashboards, hasRedirected, navigate]);
 
   // Create action DTO for dashboard creation
   const createDashboardAction: ActionDTO = {
@@ -52,7 +54,7 @@ export function DashboardPage() {
     priority: 1,
   };
 
-  // If no dashboards exist, show empty state
+  // If no dashboards exist, show empty state (this will briefly show before redirect if dashboards exist)
   return (
     <>
       <PageTopBar title="Dashboard">

@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
 import type {
   ObjectTypes,
   TimeRange,
@@ -14,7 +15,6 @@ import type {
   AggregationType,
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import { oObjectTypeSchemaGetObjectSchema } from '@/openapi/objects/objects';
 import type { WidgetQuery } from '@/types/dashboard';
 
 interface QueryBuilderFormProps {

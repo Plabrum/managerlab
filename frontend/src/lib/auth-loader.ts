@@ -7,8 +7,9 @@ import { queryClient } from './tanstack-query-provider';
  * Clear the session cookie when logging out or on auth errors
  */
 export function clearSession() {
-  document.cookie =
-    'session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
+  const isSecure = window.location.protocol === 'https:';
+  const secureFlag = isSecure ? ' Secure;' : '';
+  document.cookie = `session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;${secureFlag} SameSite=Lax`;
 }
 
 /**

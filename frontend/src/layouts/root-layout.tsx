@@ -1,6 +1,6 @@
+import { useEffect } from 'react';
 import { Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { useEffect } from 'react';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { TanstackQueryProvider } from '@/lib/tanstack-query-provider';

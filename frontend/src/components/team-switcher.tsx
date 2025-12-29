@@ -1,5 +1,5 @@
-import { ChevronsUpDown, Plus, Building2 } from 'lucide-react';
 import * as React from 'react';
+import { ChevronsUpDown, Plus, Building2 } from 'lucide-react';
 import { ActionsMenu } from '@/components/actions-menu';
 import { useAuth } from '@/components/providers/auth-provider';
 import {

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { ActivityFeedList } from './activity-feed-list';
 import { MessageInput } from '@/components/chat/message-input';
 import { ThreadViewers } from '@/components/chat/thread-viewers';
 import { TypingIndicator } from '@/components/chat/typing-indicator';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useThreadSync } from '@/hooks/useThreadSync';
 import { ObjectTypes } from '@/openapi/ariveAPI.schemas';
+import { ActivityFeedList } from './activity-feed-list';
 
 interface ActivityFeedProps {
   threadableType: ObjectTypes;

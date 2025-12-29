@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import type { ActionFormRenderer } from './use-action-executor';
 import { getActionRenderer, type ActionType } from '@/lib/actions/registry';
+import type { ActionFormRenderer } from './use-action-executor';
 import type { DomainObject } from '@/types/domain-objects';
 
 /**

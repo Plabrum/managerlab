@@ -1,5 +1,5 @@
-import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { ActivityFeedList } from '@/components/activity/activity-feed-list';
 import { MessageInput } from '@/components/chat/message-input';
 import { TypingIndicator } from '@/components/chat/typing-indicator';

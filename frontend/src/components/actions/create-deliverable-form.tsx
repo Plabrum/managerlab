@@ -1,10 +1,10 @@
 import { createTypedForm } from '@/components/forms/base';
-import type { DeliverableCreateSchema } from '@/openapi/ariveAPI.schemas';
 import {
   SocialMediaPlatforms as SocialMediaPlatformsEnum,
   DeliverableType,
 } from '@/openapi/ariveAPI.schemas';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
+import type { DeliverableCreateSchema } from '@/openapi/ariveAPI.schemas';
 
 const {
   FormModal,

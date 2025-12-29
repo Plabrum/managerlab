@@ -1,8 +1,8 @@
-import { CheckIcon, PlusCircleIcon } from 'lucide-react';
 import { useState, useCallback, useRef } from 'react';
-import { WidgetPalette } from './widget-palette';
+import { CheckIcon, PlusCircleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { WidgetPalette } from './widget-palette';
 import type { WidgetType } from '@/types/dashboard';
 
 interface DashboardWidgetPaletteProps {

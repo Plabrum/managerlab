@@ -1,5 +1,5 @@
+import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { VisibilityState } from '@tanstack/react-table';
 import {
   Settings,
   Plus,
@@ -9,10 +9,7 @@ import {
   Trash2,
   Columns3,
 } from 'lucide-react';
-import { useState } from 'react';
 import { toast } from 'sonner';
-import { ColumnVisibilityDialog } from './column-visibility-dialog';
-import { ViewModeSelector } from './view-mode-selector';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,18 +29,21 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { getErrorMessage } from '@/lib/error-handler';
+import {
+  useViewsObjectTypeCreateSavedView,
+  useViewsObjectTypeIdUpdateSavedView,
+  useViewsObjectTypeIdDeleteSavedView,
+} from '@/openapi/views/views';
+import { ColumnVisibilityDialog } from './column-visibility-dialog';
+import { ViewModeSelector } from './view-mode-selector';
 import type {
   SavedViewSchema,
   SavedViewConfigSchema,
   ObjectTypes,
   ColumnDefinitionSchema,
 } from '@/openapi/ariveAPI.schemas';
-import {
-  useViewsObjectTypeCreateSavedView,
-  useViewsObjectTypeIdUpdateSavedView,
-  useViewsObjectTypeIdDeleteSavedView,
-} from '@/openapi/views/views';
 import type { ViewMode } from '@/types/view-modes';
+import type { VisibilityState } from '@tanstack/react-table';
 
 interface SavedViewSettingsProps {
   objectType: ObjectTypes;
