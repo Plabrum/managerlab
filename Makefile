@@ -14,6 +14,7 @@ help:
 	@echo "  db-start         - Alias for dc-start"
 	@echo "  db-stop          - Stop all databases"
 	@echo "  db-clean         - Delete all database data and start fresh (requires confirmation)"
+	@echo "  db-fix-permissions - Grant permissions to arive user on all existing tables"
 	@echo "  db-migrate       - Generate new migration from model changes"
 	@echo "  db-upgrade       - Run database migrations (upgrade)"
 	@echo "  db-downgrade     - Rollback database migrations"
@@ -140,6 +141,18 @@ db-clean:
 		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive;" 2>/dev/null || true
 	@echo "✅ Database cleaned and migrations applied!"
 
+.PHONY: db-fix-permissions
+db-fix-permissions:
+	@echo "🔑 Granting permissions to arive user on all tables (dev database)..."
+	@psql postgresql://postgres:postgres@localhost:5432/manageros -c "\
+		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive; \
+		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive;" 2>/dev/null || { echo "❌ Failed to grant permissions to dev database"; exit 1; }
+	@echo "🔑 Granting permissions to arive user on all tables (test database)..."
+	@psql postgresql://postgres:postgres@localhost:5433/manageros -c "\
+		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive; \
+		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive;" 2>/dev/null || { echo "⚠️  Warning: Could not grant permissions to test database (may not be running)"; }
+	@echo "✅ Permissions granted successfully!"
+
 .PHONY: db-migrate
 db-migrate:
 	cd backend && \
@@ -149,6 +162,10 @@ db-migrate:
 .PHONY: db-upgrade
 db-upgrade:
 	cd backend && uv run alembic upgrade head
+	@echo "🔑 Granting permissions to arive user..."
+	@psql postgresql://postgres:postgres@localhost:5432/manageros -c "\
+		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO arive; \
+		GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO arive;" 2>/dev/null || echo "⚠️  Note: Could not grant permissions (this is ok if using postgres user)"
 
 .PHONY: db-downgrade
 db-downgrade:
