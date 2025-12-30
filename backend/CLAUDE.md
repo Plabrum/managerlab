@@ -85,6 +85,44 @@ class Post(CampaignScopedBase):
 - RLS is enforced at the database level for data isolation
 - See [root CLAUDE.md](/CLAUDE.md#database-workflow) for migration workflow
 
+#### Enum Fields: Use TextEnum, Not PostgreSQL ENUMs
+
+**IMPORTANT**: Always use `TextEnum` for enum fields instead of `sa.Enum()` or PostgreSQL native enums.
+
+```python
+from enum import Enum
+from app.utils.db import TextEnum
+
+class PostStatus(str, Enum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    ARCHIVED = "archived"
+
+class Post(CampaignScopedBase):
+    __tablename__ = "posts"
+
+    # ✅ CORRECT: Use TextEnum
+    status: Mapped[PostStatus] = mapped_column(
+        TextEnum(PostStatus),
+        nullable=False,
+        default=PostStatus.DRAFT,
+    )
+
+    # ❌ WRONG: Don't use sa.Enum (creates PostgreSQL ENUM type)
+    # status: Mapped[PostStatus] = mapped_column(sa.Enum(PostStatus))
+```
+
+**Why TextEnum?**
+- **No migration complexity**: Adding/removing enum values doesn't require ALTER TYPE migrations
+- **Flexibility**: Enum values stored as TEXT, making schema evolution easier
+- **Type safety**: Full Python enum support with proper typing
+- **Consistency**: Aligns with msgspec schema generation for frontend
+
+**When adding enum values:**
+1. Update the Python enum class
+2. Run `make db-migrate` - no special handling needed
+3. No database schema change required (it's just TEXT)
+
 ### 2. Schema Validation with msgspec
 
 Use msgspec Structs (NOT Pydantic) for request/response schemas:

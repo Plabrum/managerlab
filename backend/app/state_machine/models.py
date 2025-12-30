@@ -1,11 +1,10 @@
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import types
-from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from app.base.models import BaseDBModel
+from app.utils.db import TextEnum
 
 # TODO PAL: Add Log Table
 # class StateTransitionLog[E: Enum, M: BaseDBModel](BaseDBModel):
@@ -19,35 +18,6 @@ from app.base.models import BaseDBModel
 #     user_id: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, index=True)
 #     context: Mapped[Dict[str, Any] | None] = mapped_column(sa.JSON, nullable=True)
 #
-
-
-class TextEnum[E: Enum](types.TypeDecorator[E]):
-    """Store enum as TEXT, converting between enum and string."""
-
-    impl = types.Text
-    cache_ok = True
-
-    def __init__(self, enum_class: type[E], *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.enum_class = enum_class
-
-    def process_bind_param(self, value: E | None, dialect: Any) -> str | None:
-        """Convert enum to string for database."""
-        if value is None:
-            return None
-        return value.name
-
-    def process_result_value(self, value: str | None, dialect: Any) -> E | None:
-        """Convert string from database to enum."""
-        if value is None:
-            return None
-        return self.enum_class[value]
-
-
-@compiles(TextEnum, "postgresql")
-def compile_text_enum(element: TextEnum, compiler: Any, **kw: Any) -> str:
-    """Compile TextEnum to TEXT for PostgreSQL."""
-    return "TEXT"
 
 
 class _StateMachineMixinBase[E: Enum](BaseDBModel):
