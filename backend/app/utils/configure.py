@@ -63,8 +63,8 @@ class ConfigProtocol(Protocol):
     LOG_LEVEL: str
 
     # OpenTelemetry Configuration
-    BETTERSTACK_OTLP_ENDPOINT: str
-    BETTERSTACK_SOURCE_TOKEN: str
+    BETTERSTACK_OTLP_INGESTING_HOST: str
+    BETTERSTACK_OTLP_SOURCE_TOKEN: str
 
     @property
     def OTEL_ENABLED(self) -> bool: ...
@@ -148,13 +148,13 @@ class Config:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
 
     # OpenTelemetry Configuration
-    BETTERSTACK_OTLP_ENDPOINT: str = os.getenv("BETTERSTACK_OTLP_ENDPOINT", "")
-    BETTERSTACK_SOURCE_TOKEN: str = os.getenv("BETTERSTACK_SOURCE_TOKEN", "")
+    BETTERSTACK_OTLP_INGESTING_HOST: str = os.getenv("BETTERSTACK_OTLP_INGESTING_HOST", "")
+    BETTERSTACK_OTLP_SOURCE_TOKEN: str = os.getenv("BETTERSTACK_OTLP_SOURCE_TOKEN", "")
 
     @property
     def OTEL_ENABLED(self) -> bool:
         """Enable OpenTelemetry if Betterstack credentials are configured."""
-        return bool(self.BETTERSTACK_OTLP_ENDPOINT and self.BETTERSTACK_SOURCE_TOKEN)
+        return bool(self.BETTERSTACK_OTLP_INGESTING_HOST and self.BETTERSTACK_OTLP_SOURCE_TOKEN)
 
     @property
     def OTEL_SERVICE_NAME(self) -> str:

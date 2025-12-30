@@ -67,18 +67,18 @@ def setup_tracing(config: ConfigProtocol, resource: Resource) -> TracerProvider 
     Returns:
         TracerProvider instance, or None if initialization fails
     """
-    if not config.BETTERSTACK_OTLP_ENDPOINT or not config.BETTERSTACK_SOURCE_TOKEN:
+    if not config.BETTERSTACK_OTLP_INGESTING_HOST or not config.BETTERSTACK_OTLP_SOURCE_TOKEN:
         logger.warning(
-            "Betterstack endpoint or token not configured. Skipping trace export. "
-            "Set BETTERSTACK_OTLP_ENDPOINT and BETTERSTACK_SOURCE_TOKEN to enable."
+            "Betterstack ingesting host or token not configured. Skipping trace export. "
+            "Set BETTERSTACK_OTLP_INGESTING_HOST and BETTERSTACK_OTLP_SOURCE_TOKEN to enable."
         )
         return None
 
     try:
         # Create OTLP HTTP span exporter
         span_exporter = OTLPSpanExporter(
-            endpoint=f"{config.BETTERSTACK_OTLP_ENDPOINT}/v1/traces",
-            headers={"Authorization": f"Bearer {config.BETTERSTACK_SOURCE_TOKEN}"},
+            endpoint=f"https://{config.BETTERSTACK_OTLP_INGESTING_HOST}/v1/traces",
+            headers={"Authorization": f"Bearer {config.BETTERSTACK_OTLP_SOURCE_TOKEN}"},
         )
 
         # Create tracer provider with batch processor (uses SDK defaults)
@@ -109,18 +109,18 @@ def setup_metrics(config: ConfigProtocol, resource: Resource) -> MeterProvider |
     Returns:
         MeterProvider instance, or None if initialization fails
     """
-    if not config.BETTERSTACK_OTLP_ENDPOINT or not config.BETTERSTACK_SOURCE_TOKEN:
+    if not config.BETTERSTACK_OTLP_INGESTING_HOST or not config.BETTERSTACK_OTLP_SOURCE_TOKEN:
         logger.warning(
-            "Betterstack endpoint or token not configured. Skipping metrics export. "
-            "Set BETTERSTACK_OTLP_ENDPOINT and BETTERSTACK_SOURCE_TOKEN to enable."
+            "Betterstack ingesting host or token not configured. Skipping metrics export. "
+            "Set BETTERSTACK_OTLP_INGESTING_HOST and BETTERSTACK_OTLP_SOURCE_TOKEN to enable."
         )
         return None
 
     try:
         # Create OTLP HTTP metric exporter
         metric_exporter = OTLPMetricExporter(
-            endpoint=f"{config.BETTERSTACK_OTLP_ENDPOINT}/v1/metrics",
-            headers={"Authorization": f"Bearer {config.BETTERSTACK_SOURCE_TOKEN}"},
+            endpoint=f"https://{config.BETTERSTACK_OTLP_INGESTING_HOST}/v1/metrics",
+            headers={"Authorization": f"Bearer {config.BETTERSTACK_OTLP_SOURCE_TOKEN}"},
         )
 
         # Create meter provider with periodic exporting reader (uses SDK defaults)
@@ -156,18 +156,18 @@ def setup_logging(config: ConfigProtocol, resource: Resource) -> LoggerProvider 
     Returns:
         LoggerProvider instance, or None if initialization fails
     """
-    if not config.BETTERSTACK_OTLP_ENDPOINT or not config.BETTERSTACK_SOURCE_TOKEN:
+    if not config.BETTERSTACK_OTLP_INGESTING_HOST or not config.BETTERSTACK_OTLP_SOURCE_TOKEN:
         logger.warning(
-            "Betterstack endpoint or token not configured. Skipping log export. "
-            "Set BETTERSTACK_OTLP_ENDPOINT and BETTERSTACK_SOURCE_TOKEN to enable."
+            "Betterstack ingesting host or token not configured. Skipping log export. "
+            "Set BETTERSTACK_OTLP_INGESTING_HOST and BETTERSTACK_OTLP_SOURCE_TOKEN to enable."
         )
         return None
 
     try:
         # Create OTLP HTTP log exporter
         log_exporter = OTLPLogExporter(
-            endpoint=f"{config.BETTERSTACK_OTLP_ENDPOINT}/v1/logs",
-            headers={"Authorization": f"Bearer {config.BETTERSTACK_SOURCE_TOKEN}"},
+            endpoint=f"https://{config.BETTERSTACK_OTLP_INGESTING_HOST}/v1/logs",
+            headers={"Authorization": f"Bearer {config.BETTERSTACK_OTLP_SOURCE_TOKEN}"},
         )
 
         # Create logger provider with batch processor (uses SDK defaults)
