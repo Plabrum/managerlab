@@ -26,7 +26,7 @@ from litestar.security.session_auth import SessionAuth
 from litestar.stores.memory import MemoryStore
 from litestar.template.config import TemplateConfig
 from litestar_saq import SAQConfig, SAQPlugin
-from sqlalchemy import QueuePool
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from app.actions.deps import provide_action_registry
 from app.actions.routes import action_router
@@ -157,7 +157,7 @@ def create_app(
                 connection_string=config.ASYNC_DATABASE_URL,
                 metadata=BaseDBModel.metadata,
                 engine_config=EngineConfig(
-                    poolclass=QueuePool,
+                    poolclass=AsyncAdaptedQueuePool,
                     pool_size=20,  # Number of persistent connections
                     max_overflow=10,  # Extra connections during traffic spikes
                     pool_timeout=30,  # Max wait time for connection (seconds)

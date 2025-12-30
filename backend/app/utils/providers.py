@@ -74,8 +74,11 @@ async def on_startup(app: Litestar) -> None:
 
 async def on_shutdown(app: Litestar) -> None:
     logger.info("Application shutdown initiated")
-    await app.state.http.close()
-    logger.info("Application shutdown complete")
+    if hasattr(app.state, "http"):
+        await app.state.http.close()
+        logger.info("Application shutdown complete")
+    else:
+        logger.warning("HTTP client was not initialized, skipping cleanup")
 
 
 def provide_http(state: State) -> aiohttp.ClientSession:
