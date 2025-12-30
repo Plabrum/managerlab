@@ -76,7 +76,7 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
                 obj.address_id = None
             else:
                 # Create or update address
-                if obj.address_id:
+                if obj.address_id and obj.address:
                     # Update existing address
                     await update_model(
                         session=transaction,
@@ -89,31 +89,29 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
                     # Create new address
                     address = Address(
                         team_id=deps.team_id,
-                        address1=address_data.address1,
-                        address2=address_data.address2,
-                        city=address_data.city,
-                        state=address_data.state,
-                        zip=address_data.zip,
-                        country=address_data.country,
-                        address_type=address_data.address_type,
+                        **address_data,  # Use dict unpacking for cleaner code
                     )
                     transaction.add(address)
                     await transaction.flush()
                     obj.address_id = address.id
 
-        # Update remaining fields (excluding address)
+        # Update remaining roster fields using standard update_model utility
+        # This ensures proper event tracking and follows codebase conventions
         remaining_fields = {k: v for k, v in update_dict.items() if v is not UNSET}
         if remaining_fields:
-            # Create a new schema with only the fields that were set
-            from msgspec import Struct
-
-            # Dynamically create struct with remaining fields
-            for field, value in remaining_fields.items():
-                if hasattr(obj, field):
-                    setattr(obj, field, value)
-
-        # Flush changes to database
-        await transaction.flush()
+            # Reconstruct RosterUpdateSchema with only the fields that were set
+            # This allows update_model to properly track changes and emit events
+            partial_update = RosterUpdateSchema(**remaining_fields)
+            await update_model(
+                session=transaction,
+                model_instance=obj,
+                update_vals=partial_update,
+                user_id=deps.user,
+                team_id=obj.team_id,
+            )
+        else:
+            # If only address was updated, still need to flush the address_id change
+            await transaction.flush()
 
         return ActionExecutionResponse(
             message="Updated roster member",
@@ -145,15 +143,11 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
         # Create address first if provided
         address_id = None
         if data.address:
+            # Convert address schema to dict for cleaner instantiation
+            address_dict = structs.asdict(data.address)
             address = Address(
                 team_id=deps.team_id,
-                address1=data.address.address1,
-                address2=data.address.address2,
-                city=data.address.city,
-                state=data.address.state,
-                zip=data.address.zip,
-                country=data.address.country,
-                address_type=data.address.address_type,
+                **address_dict,  # Use dict unpacking
             )
             transaction.add(address)
             await transaction.flush()  # Get address ID
