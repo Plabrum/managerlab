@@ -26,7 +26,7 @@ from litestar.security.session_auth import SessionAuth
 from litestar.stores.memory import MemoryStore
 from litestar.template.config import TemplateConfig
 from litestar_saq import SAQConfig, SAQPlugin
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import QueuePool
 
 from app.actions.deps import provide_action_registry
 from app.actions.routes import action_router
@@ -54,7 +54,10 @@ from app.users.routes import user_router
 from app.utils import providers
 from app.utils.configure import ConfigProtocol
 from app.utils.exceptions import ApplicationError, exception_to_http_response
-from app.utils.logging_middleware import create_logging_middleware, drop_verbose_http_keys
+from app.utils.logging_middleware import (
+    create_logging_middleware,
+    drop_verbose_http_keys,
+)
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 from app.views.routes import view_router
 
@@ -154,12 +157,16 @@ def create_app(
                 connection_string=config.ASYNC_DATABASE_URL,
                 metadata=BaseDBModel.metadata,
                 engine_config=EngineConfig(
-                    poolclass=StaticPool,
+                    poolclass=QueuePool,
+                    pool_size=20,  # Number of persistent connections
+                    max_overflow=10,  # Extra connections during traffic spikes
+                    pool_timeout=30,  # Max wait time for connection (seconds)
+                    pool_recycle=3600,  # Recycle connections every hour (AWS RDS best practice)
+                    pool_pre_ping=True,  # Verify connection health before use
                     connect_args={
                         "connect_timeout": 10,
                         "application_name": "manageros-ecs",
                     },
-                    pool_pre_ping=False,
                 ),
                 session_config=AsyncSessionConfig(
                     expire_on_commit=False,
