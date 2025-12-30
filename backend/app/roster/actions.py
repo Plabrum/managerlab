@@ -1,5 +1,6 @@
 from datetime import UTC
 
+from msgspec import UNSET, structs
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.actions import (
@@ -12,6 +13,7 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse
+from app.addresses.models import Address
 from app.roster.enums import RosterActions
 from app.roster.models import Roster
 from app.roster.schemas import RosterCreateSchema, RosterUpdateSchema
@@ -64,13 +66,52 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:
-        await update_model(
-            session=transaction,
-            model_instance=obj,
-            update_vals=data,
-            user_id=deps.user,
-            team_id=obj.team_id,
-        )
+        # Handle address update separately (nested object)
+        update_dict = structs.asdict(data)
+        address_data = update_dict.pop("address", UNSET)
+
+        if address_data is not UNSET:
+            if address_data is None:
+                # Clear address reference
+                obj.address_id = None
+            else:
+                # Create or update address
+                if obj.address_id and obj.address:
+                    # Update existing address
+                    await update_model(
+                        session=transaction,
+                        model_instance=obj.address,
+                        update_vals=address_data,
+                        user_id=deps.user,
+                        team_id=obj.team_id,
+                    )
+                else:
+                    # Create new address
+                    address = Address(
+                        team_id=deps.team_id,
+                        **address_data,  # Use dict unpacking for cleaner code
+                    )
+                    transaction.add(address)
+                    await transaction.flush()
+                    obj.address_id = address.id
+
+        # Update remaining roster fields using standard update_model utility
+        # This ensures proper event tracking and follows codebase conventions
+        remaining_fields = {k: v for k, v in update_dict.items() if v is not UNSET}
+        if remaining_fields:
+            # Reconstruct RosterUpdateSchema with only the fields that were set
+            # This allows update_model to properly track changes and emit events
+            partial_update = RosterUpdateSchema(**remaining_fields)
+            await update_model(
+                session=transaction,
+                model_instance=obj,
+                update_vals=partial_update,
+                user_id=deps.user,
+                team_id=obj.team_id,
+            )
+        else:
+            # If only address was updated, still need to flush the address_id change
+            await transaction.flush()
 
         return ActionExecutionResponse(
             message="Updated roster member",
@@ -99,14 +140,33 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
                 message="User not authenticated",
             )
 
-        # Create roster member
+        # Create address first if provided
+        address_id = None
+        if data.address:
+            # Convert address schema to dict for cleaner instantiation
+            address_dict = structs.asdict(data.address)
+            address = Address(
+                team_id=deps.team_id,
+                **address_dict,  # Use dict unpacking
+            )
+            transaction.add(address)
+            await transaction.flush()  # Get address ID
+            address_id = address.id
+
+        # Create roster member with address reference
         roster = Roster(
             user_id=user_id,
             team_id=deps.team_id,
             name=data.name,
             email=data.email,
             phone=data.phone,
+            birthdate=data.birthdate,
+            gender=data.gender,
+            address_id=address_id,
             instagram_handle=data.instagram_handle,
+            facebook_handle=data.facebook_handle,
+            tiktok_handle=data.tiktok_handle,
+            youtube_channel=data.youtube_channel,
         )
         transaction.add(roster)
         await transaction.flush()

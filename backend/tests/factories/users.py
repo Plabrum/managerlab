@@ -76,7 +76,10 @@ class RosterFactory(BaseFactory):
     name = Use(BaseFactory.__faker__.name)
     email = Use(BaseFactory.__faker__.email)
     phone = Use(BaseFactory.__faker__.phone_number)
+    birthdate = None
+    gender = None
     instagram_handle = Use(lambda: f"@{BaseFactory.__faker__.user_name()}")
+    address_id = None  # Don't auto-generate address references
     state = RosterStates.ACTIVE
     created_at = Use(
         BaseFactory.__faker__.date_time_between,

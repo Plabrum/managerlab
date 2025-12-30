@@ -46,6 +46,8 @@ async def get_roster(
         email=roster.email,
         phone=roster.phone,
         birthdate=roster.birthdate,
+        gender=roster.gender,
+        address=roster.address,
         instagram_handle=roster.instagram_handle,
         facebook_handle=roster.facebook_handle,
         tiktok_handle=roster.tiktok_handle,
@@ -65,7 +67,14 @@ async def update_roster(
     id: Sqid, data: RosterUpdateSchema, request: Request, transaction: AsyncSession
 ) -> RosterSchema:
     """Update a roster member by SQID."""
-    roster = await get_or_404(transaction, Roster, id)
+    from sqlalchemy.orm import joinedload
+
+    roster = await get_or_404(
+        transaction,
+        Roster,
+        id,
+        load_options=[joinedload(Roster.address)],
+    )
     await update_model(
         session=transaction,
         model_instance=roster,
@@ -79,6 +88,8 @@ async def update_roster(
         email=roster.email,
         phone=roster.phone,
         birthdate=roster.birthdate,
+        gender=roster.gender,
+        address=roster.address,
         instagram_handle=roster.instagram_handle,
         facebook_handle=roster.facebook_handle,
         tiktok_handle=roster.tiktok_handle,
