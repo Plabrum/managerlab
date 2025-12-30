@@ -1,6 +1,5 @@
 """Database utility functions for common operations."""
 
-import logging
 from typing import Any
 
 import structlog
@@ -253,16 +252,14 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
         team_id = request.session.get("team_id")
         if team_id:
             await session.execute(text(f"SET LOCAL app.team_id = {team_id}"))
-            logger.info("RLS: Set team_id", team_id=team_id, path=request.url.path)
         else:
-            raise ValueError(f"scope_type is TEAM but no team_id in session")
+            raise ValueError("scope_type is TEAM but no team_id in session")
 
     elif scope_type == ScopeType.CAMPAIGN.value:
         campaign_id = request.session.get("campaign_id")
         if campaign_id:
             await session.execute(text(f"SET LOCAL app.campaign_id = {campaign_id}"))
-            logger.info("RLS: Set campaign_id", campaign_id=campaign_id, path=request.url.path)
         else:
-            raise ValueError(f"scope_type is CAMPAIGN but no campaign_id in session")
+            raise ValueError("scope_type is CAMPAIGN but no campaign_id in session")
     else:
         raise ValueError(f"Invalid scope_type in session: {scope_type}")

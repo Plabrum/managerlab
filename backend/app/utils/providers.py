@@ -10,7 +10,7 @@ from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import raiseload
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from app.client.s3_client import S3Dep
 from app.emails.client import BaseEmailClient
@@ -40,29 +40,19 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
     def _raiseload_listener(execute_state):
         execute_state.statement = execute_state.statement.options(raiseload("*"))
 
-    # Attach event listeners (soft delete filter and raiseload)
-    event.listen(db_session.sync_session, "do_orm_execute", soft_delete_filter)
-    event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
+    # Attach event listeners once per session
+    if not db_session.sync_session.info.get("_listeners_attached"):
+        event.listen(db_session.sync_session, "do_orm_execute", soft_delete_filter)
+        event.listen(db_session.sync_session, "do_orm_execute", _raiseload_listener)
+        db_session.sync_session.info["_listeners_attached"] = True
 
     try:
         async with db_session.begin():
-            # Set PostgreSQL RLS variables for multi-tenant isolation
             await set_rls_variables(db_session, request)
             yield db_session
 
     except IntegrityError as exc:
         raise ClientException(status_code=HTTP_409_CONFLICT, detail=str(exc)) from exc
-
-    finally:
-        # Remove event listeners (ignore if already removed)
-        try:
-            event.remove(db_session.sync_session, "do_orm_execute", soft_delete_filter)
-        except Exception:
-            pass
-        try:
-            event.remove(db_session.sync_session, "do_orm_execute", _raiseload_listener)
-        except Exception:
-            pass
 
 
 async def on_startup(app: Litestar) -> None:
@@ -86,17 +76,20 @@ def provide_http(state: State) -> aiohttp.ClientSession:
 
 
 def create_postgres_session_store() -> PostgreSQLSessionStore:
-    """Provide PostgreSQL session store."""
+    """Provide PostgreSQL session store with connection pooling."""
 
-    # Create engine for session store
     engine = create_async_engine(
         config.ASYNC_DATABASE_URL,
-        poolclass=NullPool,
+        poolclass=AsyncAdaptedQueuePool,
+        pool_size=5,
+        max_overflow=5,
+        pool_timeout=10,
+        pool_recycle=3600,
+        pool_pre_ping=False,
         connect_args={
             "connect_timeout": 10,
             "application_name": "manageros-sessions",
         },
-        pool_pre_ping=False,
     )
 
     # Create session factory
