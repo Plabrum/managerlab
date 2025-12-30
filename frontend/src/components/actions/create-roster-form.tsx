@@ -121,9 +121,11 @@ export function CreateRosterForm({
 
           <FormCustom name="gender">
             {({ value, onChange }) => {
-              const isOther =
-                value && !['male', 'female'].includes(value as string);
-              const selectValue = isOther ? 'other' : (value as string) || '';
+              // Check if current value is a custom gender (not male/female)
+              const isCustomGender =
+                value && value !== 'male' && value !== 'female';
+              // For the dropdown, show 'other' if we have a custom value or if value is explicitly 'other'
+              const selectValue = isCustomGender || value === 'other' ? 'other' : (value as string) || '';
 
               return (
                 <div className="space-y-3">
@@ -133,7 +135,8 @@ export function CreateRosterForm({
                       value={selectValue}
                       onValueChange={(newValue) => {
                         if (newValue === 'other') {
-                          onChange('');
+                          // Set to 'other' so the select shows it selected
+                          onChange('other');
                         } else {
                           onChange(newValue);
                         }
@@ -151,15 +154,18 @@ export function CreateRosterForm({
                       </SelectContent>
                     </Select>
                   </div>
-                  {(selectValue === 'other' || isOther) && (
+                  {selectValue === 'other' && (
                     <div>
                       <Label htmlFor="gender-custom">Please specify</Label>
                       <Input
                         id="gender-custom"
                         type="text"
                         placeholder="Enter gender identity"
-                        value={(value as string) || ''}
-                        onChange={(e) => onChange(e.target.value)}
+                        value={isCustomGender ? (value as string) : ''}
+                        onChange={(e) => {
+                          // Update to the custom text, but keep it as 'other' if empty
+                          onChange(e.target.value || 'other');
+                        }}
                         className="mt-1"
                       />
                     </div>
