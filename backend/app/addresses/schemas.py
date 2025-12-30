@@ -4,6 +4,7 @@ from datetime import datetime
 
 from msgspec import UNSET, UnsetType
 
+from app.addresses.enums import AddressType
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
 
@@ -17,7 +18,7 @@ class AddressCreateSchema(BaseSchema):
     address2: str | None = None
     state: str | None = None
     zip: str | None = None
-    address_type: str | None = None
+    address_type: AddressType | None = None
 
 
 class AddressUpdateSchema(BaseSchema):
@@ -29,7 +30,7 @@ class AddressUpdateSchema(BaseSchema):
     state: str | None | UnsetType = UNSET
     zip: str | None | UnsetType = UNSET
     country: str | None | UnsetType = UNSET
-    address_type: str | None | UnsetType = UNSET
+    address_type: AddressType | None | UnsetType = UNSET
 
 
 class AddressSchema(BaseSchema):
@@ -42,7 +43,7 @@ class AddressSchema(BaseSchema):
     state: str | None
     zip: str | None
     country: str
-    address_type: str | None
+    address_type: AddressType | None
     team_id: int | None
     created_at: datetime
     updated_at: datetime
