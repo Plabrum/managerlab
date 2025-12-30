@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  DbHealthDbHealthCheck200,
   HealthHealthCheck200
 } from '../ariveAPI.schemas';
 
@@ -167,6 +168,151 @@ export function useHealthHealthCheckSuspense<TData = Awaited<ReturnType<typeof h
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getHealthHealthCheckSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary DbHealthCheck
+ */
+export const dbHealthDbHealthCheck = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DbHealthDbHealthCheck200>(
+      {url: `/db_health`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getDbHealthDbHealthCheckQueryKey = () => {
+    return [
+    `/db_health`
+    ] as const;
+    }
+
+    
+export const getDbHealthDbHealthCheckQueryOptions = <TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDbHealthDbHealthCheckQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>> = ({ signal }) => dbHealthDbHealthCheck(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DbHealthDbHealthCheckQueryResult = NonNullable<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>>
+export type DbHealthDbHealthCheckQueryError = unknown
+
+
+export function useDbHealthDbHealthCheck<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof dbHealthDbHealthCheck>>,
+          TError,
+          Awaited<ReturnType<typeof dbHealthDbHealthCheck>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDbHealthDbHealthCheck<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof dbHealthDbHealthCheck>>,
+          TError,
+          Awaited<ReturnType<typeof dbHealthDbHealthCheck>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDbHealthDbHealthCheck<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary DbHealthCheck
+ */
+
+export function useDbHealthDbHealthCheck<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDbHealthDbHealthCheckQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getDbHealthDbHealthCheckSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDbHealthDbHealthCheckQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>> = ({ signal }) => dbHealthDbHealthCheck(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DbHealthDbHealthCheckSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>>
+export type DbHealthDbHealthCheckSuspenseQueryError = unknown
+
+
+export function useDbHealthDbHealthCheckSuspense<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDbHealthDbHealthCheckSuspense<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDbHealthDbHealthCheckSuspense<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary DbHealthCheck
+ */
+
+export function useDbHealthDbHealthCheckSuspense<TData = Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError = unknown>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dbHealthDbHealthCheck>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDbHealthDbHealthCheckSuspenseQueryOptions(options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

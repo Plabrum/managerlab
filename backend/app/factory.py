@@ -32,7 +32,7 @@ from app.actions.deps import provide_action_registry
 from app.actions.routes import action_router
 from app.auth.routes import auth_router
 from app.base.models import BaseDBModel
-from app.base.routes import health_check
+from app.base.routes import system_router
 from app.brands.routes import brand_router
 from app.campaigns.routes import campaign_router
 from app.client.openai_client import provide_openai_client
@@ -292,7 +292,7 @@ def create_app(
     # Route Handlers
     # ========================================================================
     route_handlers: list[Any] = [
-        health_check,
+        system_router,
         user_router,
         team_router,
         roster_router,

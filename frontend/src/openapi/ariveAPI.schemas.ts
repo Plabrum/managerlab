@@ -2077,6 +2077,8 @@ export interface MediaSchemasPresignedUploadResponseSchema {
 
 export type HealthHealthCheck200 = { [key: string]: unknown };
 
+export type DbHealthDbHealthCheck200 = { [key: string]: unknown };
+
 export type UsersUserIdGetUser400ExtraAnyOf = {[key: string]: unknown};
 
 export type UsersUserIdGetUser400Extra = null | UsersUserIdGetUser400ExtraAnyOf | unknown[];

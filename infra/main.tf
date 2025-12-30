@@ -128,14 +128,20 @@ variable "db_password" {
 
 variable "db_min_acu" {
   type        = number
-  default     = 0.5
-  description = "Minimum Aurora Capacity Units (0.5 prevents auto-pause)"
+  default     = 0
+  description = "Minimum Aurora Capacity Units (0 enables auto-pause/scale-to-zero)"
 }
 
 variable "db_max_acu" {
   type        = number
   default     = 4.0
   description = "Maximum Aurora Capacity Units"
+}
+
+variable "db_auto_pause_seconds" {
+  type        = number
+  default     = 300
+  description = "Seconds of inactivity before Aurora pauses (300-86400). Default: 5 minutes"
 }
 
 # ECS runtime configuration
@@ -757,10 +763,11 @@ resource "aws_rds_cluster" "main" {
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.database.id]
 
-  # Serverless v2 scaling configuration
+  # Serverless v2 scaling configuration with auto-pause (scale-to-zero)
   serverlessv2_scaling_configuration {
-    min_capacity = var.db_min_acu
-    max_capacity = var.db_max_acu
+    min_capacity             = var.db_min_acu
+    max_capacity             = var.db_max_acu
+    seconds_until_auto_pause = var.db_auto_pause_seconds
   }
 
   # Backup configuration
