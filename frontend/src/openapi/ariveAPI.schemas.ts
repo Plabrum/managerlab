@@ -93,6 +93,48 @@ export interface AddMediaToDeliverableSchema {
   media_ids: unknown[];
 }
 
+export type AddressCreateSchemaAddress2 = string | null;
+
+export type AddressCreateSchemaState = string | null;
+
+export type AddressCreateSchemaZip = string | null;
+
+export type AddressCreateSchemaAddressType = string | null;
+
+export interface AddressCreateSchema {
+  address1: string;
+  city: string;
+  country?: string;
+  address2?: AddressCreateSchemaAddress2;
+  state?: AddressCreateSchemaState;
+  zip?: AddressCreateSchemaZip;
+  address_type?: AddressCreateSchemaAddressType;
+}
+
+export type AddressSchemaAddress2 = string | null;
+
+export type AddressSchemaState = string | null;
+
+export type AddressSchemaZip = string | null;
+
+export type AddressSchemaAddressType = string | null;
+
+export type AddressSchemaTeamId = number | null;
+
+export interface AddressSchema {
+  id: unknown;
+  address1: string;
+  address2?: AddressSchemaAddress2;
+  city: string;
+  state?: AddressSchemaState;
+  zip?: AddressSchemaZip;
+  country: string;
+  address_type?: AddressSchemaAddressType;
+  team_id?: AddressSchemaTeamId;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Aggregation types for time series data.
  */
@@ -1596,13 +1638,31 @@ export type RosterCreateSchemaEmail = string | null;
 
 export type RosterCreateSchemaPhone = string | null;
 
+export type RosterCreateSchemaBirthdate = string | null;
+
+export type RosterCreateSchemaGender = string | null;
+
+export type RosterCreateSchemaAddress = AddressCreateSchema | null;
+
 export type RosterCreateSchemaInstagramHandle = string | null;
+
+export type RosterCreateSchemaFacebookHandle = string | null;
+
+export type RosterCreateSchemaTiktokHandle = string | null;
+
+export type RosterCreateSchemaYoutubeChannel = string | null;
 
 export interface RosterCreateSchema {
   name: string;
   email?: RosterCreateSchemaEmail;
   phone?: RosterCreateSchemaPhone;
+  birthdate?: RosterCreateSchemaBirthdate;
+  gender?: RosterCreateSchemaGender;
+  address?: RosterCreateSchemaAddress;
   instagram_handle?: RosterCreateSchemaInstagramHandle;
+  facebook_handle?: RosterCreateSchemaFacebookHandle;
+  tiktok_handle?: RosterCreateSchemaTiktokHandle;
+  youtube_channel?: RosterCreateSchemaYoutubeChannel;
 }
 
 export type RosterInDeliverableSchemaEmail = string | null;
@@ -1632,6 +1692,10 @@ export type RosterSchemaPhone = string | null;
 
 export type RosterSchemaBirthdate = string | null;
 
+export type RosterSchemaGender = string | null;
+
+export type RosterSchemaAddress = AddressSchema | null;
+
 export type RosterSchemaInstagramHandle = string | null;
 
 export type RosterSchemaFacebookHandle = string | null;
@@ -1652,6 +1716,8 @@ export interface RosterSchema {
   email?: RosterSchemaEmail;
   phone?: RosterSchemaPhone;
   birthdate?: RosterSchemaBirthdate;
+  gender?: RosterSchemaGender;
+  address?: RosterSchemaAddress;
   instagram_handle?: RosterSchemaInstagramHandle;
   facebook_handle?: RosterSchemaFacebookHandle;
   tiktok_handle?: RosterSchemaTiktokHandle;
@@ -1673,6 +1739,10 @@ export type RosterUpdateSchemaPhone = string | null;
 
 export type RosterUpdateSchemaBirthdate = string | null;
 
+export type RosterUpdateSchemaGender = string | null;
+
+export type RosterUpdateSchemaAddress = AddressCreateSchema | null;
+
 export type RosterUpdateSchemaInstagramHandle = string | null;
 
 export type RosterUpdateSchemaFacebookHandle = string | null;
@@ -1686,6 +1756,8 @@ export interface RosterUpdateSchema {
   email?: RosterUpdateSchemaEmail;
   phone?: RosterUpdateSchemaPhone;
   birthdate?: RosterUpdateSchemaBirthdate;
+  gender?: RosterUpdateSchemaGender;
+  address?: RosterUpdateSchemaAddress;
   instagram_handle?: RosterUpdateSchemaInstagramHandle;
   facebook_handle?: RosterUpdateSchemaFacebookHandle;
   tiktok_handle?: RosterUpdateSchemaTiktokHandle;

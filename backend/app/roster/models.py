@@ -11,6 +11,7 @@ from app.roster.enums import RosterStates
 from app.state_machine.models import StateMachineMixin
 
 if TYPE_CHECKING:
+    from app.addresses.models import Address
     from app.campaigns.models import Campaign
     from app.media.models import Media
     from app.users.models import User
@@ -40,6 +41,7 @@ class Roster(
     email: Mapped[str | None] = mapped_column(sa.Text, nullable=True, index=True)
     phone: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     birthdate: Mapped[date | None] = mapped_column(sa.Date, nullable=True)
+    gender: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
     @property
     def age(self) -> int | None:
@@ -61,8 +63,22 @@ class Roster(
         index=True,
     )
 
+    # Address relationship
+    address_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("addresses.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     # Relationship to user (who owns/manages this roster member)
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+
+    # Relationship to address
+    address: Mapped["Address | None"] = relationship(
+        "Address",
+        foreign_keys=[address_id],
+        lazy="joined",
+    )
 
     # Relationship to profile photo
     profile_photo: Mapped["Media | None"] = relationship(
