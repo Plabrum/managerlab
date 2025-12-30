@@ -112,6 +112,9 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
                 if hasattr(obj, field):
                     setattr(obj, field, value)
 
+        # Flush changes to database
+        await transaction.flush()
+
         return ActionExecutionResponse(
             message="Updated roster member",
         )
