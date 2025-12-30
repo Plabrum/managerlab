@@ -29,6 +29,35 @@ def drop_verbose_http_keys(_logger: object, _method_name: str, event_dict: Event
     return event_dict
 
 
+def add_otel_trace_context(_logger: object, _method_name: str, event_dict: EventDict) -> EventDict:
+    """Structlog processor to inject OpenTelemetry trace context into logs.
+
+    Extracts trace_id and span_id from the current OpenTelemetry span context
+    and adds them to the log record. This enables correlation between logs and traces.
+
+    Format:
+    - trace_id: 32-character hex string (e.g., "1234567890abcdef1234567890abcdef")
+    - span_id: 16-character hex string (e.g., "1234567890abcdef")
+
+    If no active span exists, these fields are omitted (doesn't add null values).
+    """
+    from opentelemetry import trace
+
+    span = trace.get_current_span()
+    if span is None:
+        return event_dict
+
+    span_ctx = span.get_span_context()
+    if not span_ctx.is_valid:
+        return event_dict
+
+    # Add trace context in standard format
+    event_dict["trace_id"] = format(span_ctx.trace_id, "032x")
+    event_dict["span_id"] = format(span_ctx.span_id, "016x")
+
+    return event_dict
+
+
 class RequestLoggingMiddleware:
     """Middleware to add request ID to structlog context."""
 

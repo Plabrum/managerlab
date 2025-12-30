@@ -69,6 +69,7 @@ def test_app(
     # Create app with test-specific overrides
     app = create_app(
         config=test_config,
+        skip_otel_init=True,  # Skip OpenTelemetry initialization in tests
         # Override external service dependencies for testing
         dependencies_overrides={
             # Use shared db_session from fixture so all requests use same session

@@ -8,6 +8,7 @@ from litestar.channels import ChannelsPlugin
 from litestar.channels.backends.psycopg import PsycoPgChannelsBackend
 from litestar.config.cors import CORSConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
+from litestar.contrib.opentelemetry import OpenTelemetryConfig, OpenTelemetryPlugin
 from litestar.di import Provide
 from litestar.exceptions import InternalServerException
 from litestar.logging.config import LoggingConfig, StructLoggingConfig
@@ -55,9 +56,11 @@ from app.utils import providers
 from app.utils.configure import ConfigProtocol
 from app.utils.exceptions import ApplicationError, exception_to_http_response
 from app.utils.logging_middleware import (
+    add_otel_trace_context,
     create_logging_middleware,
     drop_verbose_http_keys,
 )
+from app.utils.otel import initialize_opentelemetry, shutdown_opentelemetry
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 from app.views.routes import view_router
 
@@ -81,7 +84,13 @@ def create_app(
     dependencies_overrides: dict[str, Provide] | None = None,
     plugins_overrides: list[Any] | None = None,
     stores_overrides: dict[str, Any] | None = None,
+    skip_otel_init: bool = False,
 ) -> Litestar:
+    # Initialize OpenTelemetry BEFORE creating Litestar app
+    # This sets global providers used by OpenTelemetryPlugin
+    if not skip_otel_init:
+        initialize_opentelemetry(config)
+
     # ========================================================================
     # Stores
     # ========================================================================
@@ -198,6 +207,7 @@ def create_app(
                         structlog.processors.StackInfoRenderer(),
                         structlog.processors.format_exc_info,  # Use standard formatter in all environments
                         structlog.processors.TimeStamper(fmt="iso", utc=True),
+                        add_otel_trace_context,  # Inject trace_id/span_id from OpenTelemetry
                         drop_verbose_http_keys,  # Filter out verbose HTTP details (cookies, body, headers)
                         (structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer()),
                     ],
@@ -222,6 +232,7 @@ def create_app(
                                     structlog.contextvars.merge_contextvars,
                                     structlog.processors.add_log_level,
                                     structlog.processors.TimeStamper(fmt="iso", utc=True),
+                                    add_otel_trace_context,  # Inject trace_id/span_id from OpenTelemetry
                                     structlog.processors.format_exc_info,
                                 ],
                             },
@@ -256,6 +267,15 @@ def create_app(
             )
         ),
     ]
+
+    # Add OpenTelemetry plugin if enabled
+    if config.OTEL_ENABLED:
+        otel_config = OpenTelemetryConfig(
+            # Use globally configured providers (set by initialize_opentelemetry)
+            tracer_provider=None,  # Uses global
+            meter_provider=None,  # Uses global
+        )
+        base_plugins.append(OpenTelemetryPlugin(config=otel_config))
 
     plugins: list[Any] = base_plugins if not plugins_overrides else plugins_overrides
 
@@ -320,7 +340,10 @@ def create_app(
     app = Litestar(
         route_handlers=list(route_handlers),
         on_startup=[providers.on_startup],
-        on_shutdown=[providers.on_shutdown],
+        on_shutdown=[
+            providers.on_shutdown,
+            lambda: shutdown_opentelemetry() if config.OTEL_ENABLED else None,
+        ],
         on_app_init=[session_auth.on_app_init],
         middleware=[session_auth.middleware, create_logging_middleware()],
         cors_config=cors_config,
