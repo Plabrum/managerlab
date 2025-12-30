@@ -151,6 +151,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       description,
       id,
       autoFocus,
+      type,
     } = props;
     const { register } = useFormContext<TFieldValues>();
     const htmlId = id ?? String(name);
@@ -164,7 +165,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
         )}
         <Input
           id={htmlId}
-          type="text"
+          type={type ?? 'text'}
           autoFocus={autoFocus}
           {...register(name, {
             required: RequiredMessage(required),
@@ -435,6 +436,9 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
                       }
                     }}
                     initialFocus
+                    captionLayout="dropdown-buttons"
+                    fromYear={1920}
+                    toYear={new Date().getFullYear()}
                   />
                   {showTime && (
                     <div className="border-t p-3">

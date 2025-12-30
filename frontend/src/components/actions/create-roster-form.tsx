@@ -111,23 +111,37 @@ export function CreateRosterForm({
           />
 
           <FormCustom name="gender">
-            {({ value }) => (
-              <div className="space-y-3">
-                <FormSelect
-                  name="gender"
-                  label="Gender"
-                  placeholder="Select gender (optional)"
-                  options={GENDER_OPTIONS}
-                />
-                {value === 'other' && (
-                  <FormString
+            {({ value, onChange }) => {
+              const isOther = value && !['male', 'female'].includes(value as string);
+              const displayValue = isOther ? 'other' : value;
+
+              return (
+                <div className="space-y-3">
+                  <FormSelect
                     name="gender"
-                    label="Please specify"
-                    placeholder="Enter gender identity"
+                    label="Gender"
+                    placeholder="Select gender (optional)"
+                    options={GENDER_OPTIONS}
+                    value={displayValue as string}
+                    onChange={(newValue) => {
+                      if (newValue === 'other') {
+                        // When selecting "other", keep the field empty to show text input
+                        onChange('');
+                      } else {
+                        onChange(newValue);
+                      }
+                    }}
                   />
-                )}
-              </div>
-            )}
+                  {(displayValue === 'other' || isOther) && (
+                    <FormString
+                      name="gender"
+                      label="Please specify"
+                      placeholder="Enter gender identity"
+                    />
+                  )}
+                </div>
+              );
+            }}
           </FormCustom>
         </div>
 
