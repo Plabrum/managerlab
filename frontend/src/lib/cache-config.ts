@@ -15,6 +15,7 @@ const SESSION_LIFETIME_PATTERNS = [
   '/teams',
   '/dashboards',
   '/views/',
+  '/actions/',
   '/users/current_user',
   '/db_health',
 ] as const;
