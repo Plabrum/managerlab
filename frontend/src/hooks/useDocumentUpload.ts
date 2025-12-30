@@ -128,9 +128,9 @@ export function useDocumentUpload(): UseDocumentUploadReturn {
           setStatus('complete');
           toast.success('Document registered successfully');
 
-          // Invalidate document list query to refresh
+          // Invalidate document list query to refresh using API endpoint pattern
           await queryClient.invalidateQueries({
-            queryKey: ['objects', 'documents'],
+            queryKey: ['/o/documents'],
           });
         } else {
           // Just upload without registration

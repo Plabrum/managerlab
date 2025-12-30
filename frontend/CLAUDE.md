@@ -403,6 +403,32 @@ mutate({
 });
 ```
 
+#### Caching Strategy
+
+All queries use **automatic scope-based caching** determined by query key patterns. Cache configuration is centralized in `src/lib/cache-config.ts`.
+
+**Cache Scopes:**
+
+- **Session-lifetime (Infinity)**: Metadata that rarely changes
+  - Object schemas (`/o/campaigns/schema`)
+  - Teams (`/teams`)
+  - Dashboards (`/dashboards`)
+  - Saved views (`/views/campaigns`)
+  - Current user (`/users/current_user`)
+- **Data queries (60s)**: User data that changes frequently
+  - Object lists (`/o/campaigns`)
+  - Object details (`/o/campaigns/123`)
+  - Time series data (`/o/campaigns/data`)
+
+**Rules:**
+
+- ✅ Never override `staleTime` in individual queries
+- ✅ Use API endpoint patterns in query keys (e.g., `['/o/campaigns']`)
+- ✅ Cache invalidation is automatic via the action system
+- ✅ Add new patterns to `SESSION_LIFETIME_PATTERNS` in `cache-config.ts`
+
+See [Cache Strategy Guide](./CACHE_STRATEGY.md) for comprehensive documentation.
+
 ### Client State
 
 Use React hooks for local state:

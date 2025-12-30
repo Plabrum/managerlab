@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { getCacheScope } from './cache-config';
 
 // Singleton QueryClient instance
 // Created once and shared across the app for consistent caching
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute default
+      // Dynamic stale time based on query key pattern
+      // Uses getCacheScope() to determine cache lifetime:
+      staleTime: (query) => getCacheScope(query.queryKey),
       retry: (failureCount, error) => {
         // Only retry on network errors and specific recoverable status codes
         if (error && typeof error === 'object' && 'status' in error) {

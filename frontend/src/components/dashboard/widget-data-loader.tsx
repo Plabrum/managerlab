@@ -13,10 +13,14 @@ interface WidgetDataLoaderProps {
 
 /**
  * Inner component that uses Suspense query
+ *
+ * Uses the actual API endpoint pattern in the query key (/o/{objectType}/data)
+ * to match our centralized cache configuration patterns.
  */
 function WidgetDataFetcher({ query, children }: WidgetDataLoaderProps) {
   const { data } = useSuspenseQuery({
-    queryKey: ['widget-data', query.object_type, query.field, query],
+    // Use API endpoint pattern to match cache-config patterns
+    queryKey: [`/o/${query.object_type}/data`, query.field, query],
     queryFn: () =>
       getTimeSeriesData(query.object_type, {
         field: query.field,
@@ -28,7 +32,6 @@ function WidgetDataFetcher({ query, children }: WidgetDataLoaderProps) {
         granularity: query.granularity,
         fill_missing: false,
       }),
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   return <>{children(data)}</>;

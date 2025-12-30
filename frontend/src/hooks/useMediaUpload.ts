@@ -126,9 +126,8 @@ export function useMediaUpload(): UseMediaUploadReturn {
           setStatus('complete');
           toast.success('Media registered successfully');
 
-          // Invalidate media list query to refresh
           await queryClient.invalidateQueries({
-            queryKey: ['objects', 'media'],
+            queryKey: ['/o/media'],
           });
         } else {
           // Just upload without registration

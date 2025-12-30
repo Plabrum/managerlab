@@ -34,16 +34,8 @@ export function AuthContent() {
 
   // Aurora Serverless v2 warmup on page load
   // Fires a database health check in the background to wake Aurora if paused (scale-to-zero)
-  // This ensures the database is warm by the time the user submits their credentials
-  // Warmup time: ~15 seconds if Aurora is paused, instant if already running
-  //
-  // Cache configuration:
-  // - staleTime: Infinity - never refetch, warmup only needed once per session
-  // - gcTime: Infinity - keep in cache forever to prevent re-warming
-  // - retry: false - don't retry on failure, warmup is best-effort
   useDbHealthDbHealthCheck({
     query: {
-      staleTime: Infinity,
       gcTime: Infinity,
       retry: false,
     },

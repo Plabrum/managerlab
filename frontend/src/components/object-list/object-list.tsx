@@ -437,8 +437,8 @@ export function ObjectList({
         });
       }
 
-      // Also invalidate the objects list
-      queryClient.invalidateQueries({ queryKey: ['objects', objectType] });
+      // Also invalidate the objects list using API endpoint pattern
+      queryClient.invalidateQueries({ queryKey: [`/o/${objectType}`] });
 
       // Handle redirects
       if (response.action_result?.type === 'redirect') {
