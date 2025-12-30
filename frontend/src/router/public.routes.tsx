@@ -14,13 +14,9 @@ export const homeRoute = createRoute({
   path: '/',
   component: lazyRouteComponent(() => import('@/pages/home-page'), 'HomePage'),
   beforeLoad: () => {
-    // Check for session cookie
-    const hasSession =
-      document.cookie.includes('session=') &&
-      !document.cookie.includes('session=null') &&
-      !document.cookie.includes('session=;');
-
-    if (hasSession) {
+    // If session cookie exists, redirect to dashboard
+    // The dashboard route will validate auth and redirect back to /auth if invalid
+    if (document.cookie.includes('session=')) {
       throw redirect({ to: '/dashboard', replace: true });
     }
   },

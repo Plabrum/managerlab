@@ -1,5 +1,6 @@
 import { createTypedForm } from '@/components/forms/base';
 import { CollapsibleFormSection } from '@/components/ui/collapsible-form-section';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -8,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import type { RosterUpdateSchema } from '@/openapi/ariveAPI.schemas';
 
 const { FormModal, FormString, FormDatetime, FormCustom } =
@@ -95,11 +95,7 @@ export function UpdateRosterForm({
               label="City"
               placeholder="New York"
             />
-            <FormString
-              name="address.state"
-              label="State"
-              placeholder="NY"
-            />
+            <FormString name="address.state" label="State" placeholder="NY" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <FormString
@@ -130,8 +126,15 @@ export function UpdateRosterForm({
             {({ value, onChange }) => {
               // Determine if we should show the "other" text field
               // Show it if value is anything other than 'male' or 'female'
-              const showOtherField = value !== 'male' && value !== 'female' && value !== undefined && value !== null && value !== '';
-              const selectValue = showOtherField ? 'other' : (value as string) || '';
+              const showOtherField =
+                value !== 'male' &&
+                value !== 'female' &&
+                value !== undefined &&
+                value !== null &&
+                value !== '';
+              const selectValue = showOtherField
+                ? 'other'
+                : (value as string) || '';
 
               return (
                 <div className="space-y-3">

@@ -5,7 +5,7 @@ repos:
         name: Eslint (local)
         language: system
         # run from frontend so plugins resolve from frontend/node_modules
-        entry: bash -lc 'cd frontend && pnpm run -s lint --'
+        entry: bash -lc 'cd frontend && pnpm run -s lint:fix --'
         # pre-commit will append the file list AFTER the `--`
         files: ^frontend/.*\.(js|jsx|ts|tsx|json|css|scss|html|md)$
         exclude: ^frontend/(node_modules|dist|build|.next|out)/
