@@ -65,8 +65,8 @@ variable "project_name" {
 
 variable "environment" {
   type        = string
-  default     = "dev"
-  description = "Environment name (dev, staging, prod)"
+  default     = "production"
+  description = "Environment name (production only - set via CI/CD)"
 }
 
 variable "aws_region" {
@@ -339,28 +339,11 @@ resource "aws_internet_gateway" "main" {
   })
 }
 
-# Elastic IP for NAT Gateway
-resource "aws_eip" "nat" {
-  domain = "vpc"
+# NAT Gateway removed - ECS tasks now run in public subnets with direct internet access
+# This saves ~$87/month (NAT Gateway + data processing costs)
+# Security is maintained via security groups - tasks are not publicly accessible
 
-  tags = merge(local.common_tags, {
-    Name = "${local.name}-nat-eip"
-  })
-}
-
-# NAT Gateway to provide outbound internet for private subnets (ECS tasks)
-resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name}-nat"
-  })
-
-  depends_on = [aws_internet_gateway.main]
-}
-
-# Public subnets for ALB and bastion host
+# Public subnets for ALB and ECS tasks
 resource "aws_subnet" "public" {
   count = local.az_count
 
@@ -374,7 +357,7 @@ resource "aws_subnet" "public" {
   })
 }
 
-# Private subnets for database and VPC endpoints
+# Private subnets for database only (no internet access)
 resource "aws_subnet" "private" {
   count = local.az_count
 
@@ -410,20 +393,16 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Route table for private subnets
+# Route table for private subnets (used by database only)
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
+
+  # No internet route - private subnets are truly private (database only)
+  # ECS tasks moved to public subnets for direct internet access
 
   tags = merge(local.common_tags, {
     Name = "${local.name}-private-rt"
   })
-}
-
-# Default route from private subnets through NAT Gateway
-resource "aws_route" "private_nat_gateway" {
-  route_table_id         = aws_route_table.private.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.main.id
 }
 
 # Route table associations
@@ -1220,9 +1199,9 @@ resource "aws_ecs_service" "main" {
   enable_execute_command = true
 
   network_configuration {
-    subnets          = aws_subnet.private[*].id
+    subnets          = aws_subnet.public[*].id # Moved to public subnets (saves NAT costs)
     security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = false
+    assign_public_ip = true # Required for internet access in public subnet
   }
 
   load_balancer {
@@ -1418,9 +1397,9 @@ resource "aws_ecs_service" "worker" {
   enable_execute_command = true
 
   network_configuration {
-    subnets          = aws_subnet.private[*].id
+    subnets          = aws_subnet.public[*].id # Moved to public subnets (saves NAT costs)
     security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = false
+    assign_public_ip = true # Required for internet access in public subnet
   }
 
   # No load balancer - workers don't receive HTTP traffic
