@@ -436,7 +436,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
                       }
                     }}
                     initialFocus
-                    captionLayout="dropdown-buttons"
+                    captionLayout="dropdown"
                     fromYear={1920}
                     toYear={new Date().getFullYear()}
                   />

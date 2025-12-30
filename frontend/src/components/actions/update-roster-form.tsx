@@ -1,8 +1,17 @@
 import { createTypedForm } from '@/components/forms/base';
 import { CollapsibleFormSection } from '@/components/ui/collapsible-form-section';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import type { RosterUpdateSchema } from '@/openapi/ariveAPI.schemas';
 
-const { FormModal, FormString, FormDatetime, FormSelect, FormCustom } =
+const { FormModal, FormString, FormDatetime, FormCustom } =
   createTypedForm<RosterUpdateSchema>();
 
 interface UpdateRosterFormProps {
@@ -119,32 +128,48 @@ export function UpdateRosterForm({
 
           <FormCustom name="gender">
             {({ value, onChange }) => {
-              const isOther = value && !['male', 'female'].includes(value as string);
-              const displayValue = isOther ? 'other' : value;
+              const isOther =
+                value && !['male', 'female'].includes(value as string);
+              const selectValue = isOther ? 'other' : (value as string) || '';
 
               return (
                 <div className="space-y-3">
-                  <FormSelect
-                    name="gender"
-                    label="Gender"
-                    placeholder="Select gender (optional)"
-                    options={GENDER_OPTIONS}
-                    value={displayValue as string}
-                    onChange={(newValue) => {
-                      if (newValue === 'other') {
-                        // When selecting "other", keep the field empty to show text input
-                        onChange('');
-                      } else {
-                        onChange(newValue);
-                      }
-                    }}
-                  />
-                  {(displayValue === 'other' || isOther) && (
-                    <FormString
-                      name="gender"
-                      label="Please specify"
-                      placeholder="Enter gender identity"
-                    />
+                  <div>
+                    <Label htmlFor="gender-select">Gender</Label>
+                    <Select
+                      value={selectValue}
+                      onValueChange={(newValue) => {
+                        if (newValue === 'other') {
+                          onChange('');
+                        } else {
+                          onChange(newValue);
+                        }
+                      }}
+                    >
+                      <SelectTrigger id="gender-select" className="mt-1">
+                        <SelectValue placeholder="Select gender (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GENDER_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {(selectValue === 'other' || isOther) && (
+                    <div>
+                      <Label htmlFor="gender-custom">Please specify</Label>
+                      <Input
+                        id="gender-custom"
+                        type="text"
+                        placeholder="Enter gender identity"
+                        value={(value as string) || ''}
+                        onChange={(e) => onChange(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
                   )}
                 </div>
               );
