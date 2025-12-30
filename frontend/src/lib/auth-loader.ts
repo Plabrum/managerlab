@@ -1,4 +1,5 @@
 import { redirect } from '@tanstack/react-router';
+import { deleteCookie } from '@/lib/cookies';
 import { getTeamsListTeamsQueryOptions } from '@/openapi/teams/teams';
 import { getUsersCurrentUserGetCurrentUserQueryOptions } from '@/openapi/users/users';
 import { queryClient } from './tanstack-query-provider';
@@ -7,9 +8,7 @@ import { queryClient } from './tanstack-query-provider';
  * Clear the session cookie when logging out or on auth errors
  */
 export function clearSession() {
-  const isSecure = window.location.protocol === 'https:';
-  const secureFlag = isSecure ? ' Secure;' : '';
-  document.cookie = `session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;${secureFlag} SameSite=Lax`;
+  deleteCookie('session');
 }
 
 /**

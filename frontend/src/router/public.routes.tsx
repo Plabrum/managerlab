@@ -3,6 +3,7 @@ import {
   lazyRouteComponent,
   redirect,
 } from '@tanstack/react-router';
+import { deleteCookie, hasCookie } from '@/lib/cookies';
 import { publicLayoutRoute } from './layout.routes';
 import { rootRoute } from './root.route';
 
@@ -16,7 +17,7 @@ export const homeRoute = createRoute({
   beforeLoad: () => {
     // If session cookie exists, redirect to dashboard
     // The dashboard route will validate auth and redirect back to /auth if invalid
-    if (document.cookie.includes('session=')) {
+    if (hasCookie('session')) {
       throw redirect({ to: '/dashboard', replace: true });
     }
   },
@@ -39,8 +40,7 @@ export const authExpireRoute = createRoute({
   path: '/auth/expire',
   beforeLoad: () => {
     // Clear session cookie on client side
-    document.cookie =
-      'session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
+    deleteCookie('session');
     throw redirect({ to: '/auth', replace: true });
   },
 });
