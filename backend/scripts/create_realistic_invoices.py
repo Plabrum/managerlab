@@ -37,15 +37,21 @@ async def create_realistic_invoices():
     """Create realistic invoice data with varied states and payment status."""
     print("💰 Creating realistic invoice data...")
 
+    # Use postgres superuser connection to bypass RLS
+    # Replace user:password in the connection string with 'postgres:postgres'
+    import re
+
+    postgres_url = re.sub(r"//[^:]+:[^@]+@", "//postgres:postgres@", config.ASYNC_DATABASE_URL)
+
+    print("💡 Using postgres superuser to bypass RLS policies")
+
     # Create async engine and session
-    engine = create_async_engine(config.ASYNC_DATABASE_URL, echo=False)
+    engine = create_async_engine(postgres_url, echo=False)
     async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with async_session_factory() as session:
         try:
-            # Bypass RLS by setting row_security to off (requires superuser or bypassrls role)
-            await session.execute(sa.text("SET session_authorization = DEFAULT"))
-            await session.execute(sa.text("SET LOCAL row_security = off"))
+            # No need to manually bypass RLS - postgres user bypasses it automatically
 
             # Get all campaigns
             result = await session.execute(sa.select(Campaign))

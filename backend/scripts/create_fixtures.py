@@ -33,8 +33,16 @@ async def create_fixtures():
     """Create fake data for development."""
     print("🚀 Creating database fixtures...")
 
+    # Use postgres superuser connection to bypass RLS
+    # Replace user:password in the connection string with 'postgres:postgres'
+    import re
+
+    postgres_url = re.sub(r"//[^:]+:[^@]+@", "//postgres:postgres@", config.ASYNC_DATABASE_URL)
+
+    print("💡 Using postgres superuser to bypass RLS policies")
+
     # Create async engine and session
-    engine = create_async_engine(config.ASYNC_DATABASE_URL, echo=False)
+    engine = create_async_engine(postgres_url, echo=False)
     async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with async_session_factory() as session:
@@ -74,22 +82,13 @@ async def create_fixtures():
                 roles.append(role)
             await session.flush()
 
-            # Create roster members (talent) owned by users
-            print("⭐ Creating roster members...")
-            roster = []
-            for i in range(25):
-                # Assign roster member to a random user
-                user = random.choice(users)
-                roster_member = RosterFactory.build(user_id=user.id)
-                session.add(roster_member)
-                roster.append(roster_member)
-            await session.flush()
-
-            # Create brands
+            # Create brands (assign to teams)
             print("🏢 Creating brands...")
             brands = []
             for i in range(8):
-                brand = BrandFactory.build()
+                # Assign each brand to a random team
+                team = random.choice(teams)
+                brand = BrandFactory.build(team_id=team.id)
                 session.add(brand)
                 brands.append(brand)
             await session.flush()
@@ -99,7 +98,7 @@ async def create_fixtures():
             brand_contacts = []
             for brand in brands:
                 for j in range(3):
-                    contact = BrandContactFactory.build(brand_id=brand.id)
+                    contact = BrandContactFactory.build(brand_id=brand.id, team_id=brand.team_id)
                     session.add(contact)
                     brand_contacts.append(contact)
 
@@ -109,30 +108,51 @@ async def create_fixtures():
             print("🎯 Creating campaigns...")
             campaigns = []
             for brand in brands:
-                # Each brand gets 2-4 campaigns
+                # Each brand gets 2-4 campaigns (using same team as brand)
                 for j in range(3):
-                    campaign = CampaignFactory.build(brand_id=brand.id)
+                    campaign = CampaignFactory.build(brand_id=brand.id, team_id=brand.team_id)
                     session.add(campaign)
                     campaigns.append(campaign)
 
             await session.flush()
 
-            # Create media assets
+            # Create media assets (assign to teams)
             print("🖼️ Creating media assets...")
             media_assets = []
             for i in range(20):
-                media = MediaFactory.build()
+                # Assign each media asset to a random team
+                team = random.choice(teams)
+                media = MediaFactory.build(team_id=team.id)
                 session.add(media)
                 media_assets.append(media)
+            await session.flush()
+
+            # Create roster members (talent) owned by users
+            # MUST be created AFTER media since some roster members have profile_photo_id
+            print("⭐ Creating roster members...")
+            roster = []
+            # Create a mapping of user_id -> team_id from roles
+            user_team_map = {role.user_id: role.team_id for role in roles}
+
+            for i in range(25):
+                # Assign roster member to a random user
+                user = random.choice(users)
+                # Get the team_id from the user's role
+                team_id = user_team_map[user.id]
+                # Profile photo should be None or random from existing media
+                profile_photo_id = random.choice([None, None, None, random.choice(media_assets).id])
+                roster_member = RosterFactory.build(user_id=user.id, team_id=team_id, profile_photo_id=profile_photo_id)
+                session.add(roster_member)
+                roster.append(roster_member)
             await session.flush()
 
             # Create deliverables for campaigns
             print("📱 Creating deliverables...")
             deliverables = []
             for campaign in campaigns:
-                # Each campaign gets 2-5 deliverables
+                # Each campaign gets 2-5 deliverables (using same team as campaign)
                 for j in range(4):
-                    deliverable = DeliverableFactory.build(campaign_id=campaign.id)
+                    deliverable = DeliverableFactory.build(campaign_id=campaign.id, team_id=campaign.team_id)
                     session.add(deliverable)
                     deliverables.append(deliverable)
 
@@ -146,7 +166,12 @@ async def create_fixtures():
                 # Each deliverable gets 1-3 media assets
                 selected_media = random.sample(media_assets, min(3, len(media_assets)))
                 for media in selected_media:
-                    assoc = DeliverableMedia(deliverable_id=deliverable.id, media_id=media.id)
+                    assoc = DeliverableMedia(
+                        deliverable_id=deliverable.id,
+                        media_id=media.id,
+                        team_id=deliverable.team_id,
+                        campaign_id=deliverable.campaign_id,
+                    )
                     session.add(assoc)
 
             await session.flush()
@@ -177,9 +202,9 @@ async def create_fixtures():
             # Create invoices for campaigns
             print("💰 Creating invoices...")
             for campaign in campaigns:
-                # Each campaign gets 1-2 invoices
+                # Each campaign gets 1-2 invoices (using same team as campaign)
                 for k in range(2):
-                    invoice = InvoiceFactory.build(campaign_id=campaign.id)
+                    invoice = InvoiceFactory.build(campaign_id=campaign.id, team_id=campaign.team_id)
                     session.add(invoice)
 
             await session.flush()
