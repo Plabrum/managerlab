@@ -180,6 +180,12 @@ def setup_logging(config: ConfigProtocol, resource: Resource) -> LoggerProvider 
         # Attach OpenTelemetry handler to root logger
         # This bridges stdlib logging to OTLP (dual output with structlog)
         handler = LoggingHandler(logger_provider=logger_provider)
+
+        # Apply the same HealthCheckFilter to prevent noisy health check logs
+        from app.logging_config import HealthCheckFilter
+
+        handler.addFilter(HealthCheckFilter())
+
         logging.getLogger().addHandler(handler)
 
         logger.info("OpenTelemetry logging initialized (exporting to Betterstack)")
