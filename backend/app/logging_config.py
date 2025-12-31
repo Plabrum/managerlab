@@ -138,9 +138,10 @@ def configure_logging(config: ConfigProtocol) -> None:
     # Disable Python's lastResort handler
     logging.lastResort = None  # type: ignore[assignment]
 
-    # Quiet down verbose loggers in development
+    # Quiet down verbose loggers
     if config.IS_DEV:
         logging.getLogger("sqlalchemy.orm").setLevel(logging.WARNING)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
+    logging.getLogger("uvicorn.access").setLevel(logging.DEBUG)
     logging.info(f"Logging configured for {config.ENV} environment (level={config.LOG_LEVEL})")
