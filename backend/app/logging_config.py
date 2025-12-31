@@ -52,6 +52,18 @@ class OTELTraceContextFilter(logging.Filter):
         return True
 
 
+class HealthCheckFilter(logging.Filter):
+    """Filter out noisy health check endpoint logs."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Suppress logs containing health check paths."""
+        message = record.getMessage()
+        # Filter out logs that mention health endpoints
+        if "/health" in message or "/db_health" in message:
+            return False
+        return True
+
+
 _logging_configured = False  # Guard to prevent double configuration
 
 
@@ -104,9 +116,10 @@ def configure_logging(config: ConfigProtocol) -> None:
         console_handler.setFormatter(formatter)
         console_handler.setLevel(config.LOG_LEVEL)
 
-    # Add filters for context injection
+    # Add filters for context injection and noise reduction
     console_handler.addFilter(RequestContextFilter())
     console_handler.addFilter(OTELTraceContextFilter())
+    console_handler.addFilter(HealthCheckFilter())
 
     # Configure root logger
     root_logger = logging.getLogger()

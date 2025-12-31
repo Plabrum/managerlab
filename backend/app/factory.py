@@ -201,6 +201,9 @@ def create_app(
         otel_config = OpenTelemetryConfig(
             tracer_provider=None,  # Uses global from otel.py
             meter_provider=None,  # Uses global from otel.py
+            # Exclude health check endpoints from traces/metrics
+            # These endpoints are high-frequency and don't need observability
+            exclude=["/health", "/db_health"],
         )
         base_plugins.append(OpenTelemetryPlugin(config=otel_config))
 

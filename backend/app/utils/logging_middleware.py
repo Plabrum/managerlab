@@ -10,6 +10,10 @@ from litestar.types import ASGIApp, Receive, Scope, Send
 
 from app.logging_config import request_id_var, user_id_var
 
+# Paths to exclude from request ID/user ID logging context
+# These are typically high-frequency health check endpoints
+EXCLUDED_PATHS = {"/health", "/db_health"}
+
 
 class RequestLoggingMiddleware:
     """Middleware to add request ID and user ID to logging context."""
@@ -23,6 +27,11 @@ class RequestLoggingMiddleware:
 
         # Only process HTTP requests
         if scope_type == ScopeType.HTTP:
+            # Skip logging context setup for health check endpoints
+            path = scope.get("path", "")
+            if path in EXCLUDED_PATHS:
+                await self.app(scope, receive, send)
+                return
             request = Request(scope=scope, receive=receive, send=send)
             request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
 
