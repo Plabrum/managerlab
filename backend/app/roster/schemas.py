@@ -6,7 +6,7 @@ from app.actions.schemas import ActionDTO
 from app.addresses.schemas import AddressCreateSchema, AddressSchema
 from app.base.schemas import BaseSchema
 from app.threads.schemas import ThreadUnreadInfo
-from app.utils.sqids import Sqid
+from app.utils.sqids import Sqid, sqid_decode
 
 
 class RosterSchema(BaseSchema):
@@ -45,6 +45,7 @@ class RosterUpdateSchema(BaseSchema):
     facebook_handle: str | None | UnsetType = UNSET
     tiktok_handle: str | None | UnsetType = UNSET
     youtube_channel: str | None | UnsetType = UNSET
+    profile_photo_id: Sqid | None | UnsetType = UNSET
 
 
 class RosterCreateSchema(BaseSchema):
@@ -60,3 +61,4 @@ class RosterCreateSchema(BaseSchema):
     facebook_handle: str | None = None
     tiktok_handle: str | None = None
     youtube_channel: str | None = None
+    profile_photo_id: Sqid | None = None

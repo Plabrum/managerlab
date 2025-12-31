@@ -18,6 +18,7 @@ from app.roster.enums import RosterActions
 from app.roster.models import Roster
 from app.roster.schemas import RosterCreateSchema, RosterUpdateSchema
 from app.utils.db import update_model
+from app.utils.sqids import sqid_decode
 
 # Create roster action group
 roster_actions = action_group_factory(
@@ -69,6 +70,14 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
         # Handle address update separately (nested object)
         update_dict = structs.asdict(data)
         address_data = update_dict.pop("address", UNSET)
+
+        # Decode profile_photo_id from sqid to numeric ID if provided
+        profile_photo_sqid = update_dict.pop("profile_photo_id", UNSET)
+        if profile_photo_sqid is not UNSET:
+            if profile_photo_sqid is None:
+                update_dict["profile_photo_id"] = None
+            else:
+                update_dict["profile_photo_id"] = sqid_decode(str(profile_photo_sqid))
 
         if address_data is not UNSET:
             if address_data is None:
@@ -153,6 +162,9 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
             await transaction.flush()  # Get address ID
             address_id = address.id
 
+        # Decode profile_photo_id from sqid to numeric ID if provided
+        profile_photo_id = sqid_decode(str(data.profile_photo_id)) if data.profile_photo_id else None
+
         # Create roster member with address reference
         roster = Roster(
             user_id=user_id,
@@ -167,6 +179,7 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
             facebook_handle=data.facebook_handle,
             tiktok_handle=data.tiktok_handle,
             youtube_channel=data.youtube_channel,
+            profile_photo_id=profile_photo_id,
         )
         transaction.add(roster)
         await transaction.flush()

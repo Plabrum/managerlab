@@ -1688,6 +1688,8 @@ export type RosterCreateSchemaTiktokHandle = string | null;
 
 export type RosterCreateSchemaYoutubeChannel = string | null;
 
+export type RosterCreateSchemaProfilePhotoId = unknown | null;
+
 export interface RosterCreateSchema {
   name: string;
   email?: RosterCreateSchemaEmail;
@@ -1699,6 +1701,7 @@ export interface RosterCreateSchema {
   facebook_handle?: RosterCreateSchemaFacebookHandle;
   tiktok_handle?: RosterCreateSchemaTiktokHandle;
   youtube_channel?: RosterCreateSchemaYoutubeChannel;
+  profile_photo_id?: RosterCreateSchemaProfilePhotoId;
 }
 
 export type RosterInDeliverableSchemaEmail = string | null;
@@ -1789,6 +1792,8 @@ export type RosterUpdateSchemaTiktokHandle = string | null;
 
 export type RosterUpdateSchemaYoutubeChannel = string | null;
 
+export type RosterUpdateSchemaProfilePhotoId = unknown | null;
+
 export interface RosterUpdateSchema {
   name?: RosterUpdateSchemaName;
   email?: RosterUpdateSchemaEmail;
@@ -1800,6 +1805,7 @@ export interface RosterUpdateSchema {
   facebook_handle?: RosterUpdateSchemaFacebookHandle;
   tiktok_handle?: RosterUpdateSchemaTiktokHandle;
   youtube_channel?: RosterUpdateSchemaYoutubeChannel;
+  profile_photo_id?: RosterUpdateSchemaProfilePhotoId;
 }
 
 export type SavedViewConfigSchemaColumnFiltersItem = TextFilterDefinition | RangeFilterDefinition | DateFilterDefinition | BooleanFilterDefinition | EnumFilterDefinition | ObjectFilterDefinition;
