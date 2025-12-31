@@ -88,7 +88,6 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
         max_overflow=5,
         pool_timeout=10,
         pool_recycle=3600,
-        pool_pre_ping=False,
         connect_args={
             "connect_timeout": 10,
             "application_name": "manageros-sessions",

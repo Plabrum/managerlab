@@ -40,7 +40,7 @@ async def queue_startup(ctx: AppContext) -> None:
     from app.client.s3_client import provide_s3_client
 
     # Create database session factory
-    engine = create_async_engine(config.ASYNC_DATABASE_URL, pool_pre_ping=True)
+    engine = create_async_engine(config.ASYNC_DATABASE_URL)
 
     # Set system mode for all worker connections to bypass RLS
     # Background tasks typically need to operate across all users
