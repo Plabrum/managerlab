@@ -8,20 +8,20 @@ via batch processors and fail gracefully if Betterstack is unavailable.
 import logging
 import sys
 
-from opentelemetry import metrics, trace
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
-from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry import metrics, trace  # type: ignore[import-untyped]
+from opentelemetry._logs import set_logger_provider  # type: ignore[import-untyped]
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter  # type: ignore[import-untyped]
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter  # type: ignore[import-untyped]
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter  # type: ignore[import-untyped]
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor  # type: ignore[import-untyped]
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor  # type: ignore[import-untyped]
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler  # type: ignore[import-untyped]
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor  # type: ignore[import-untyped]
+from opentelemetry.sdk.metrics import MeterProvider  # type: ignore[import-untyped]
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader  # type: ignore[import-untyped]
+from opentelemetry.sdk.resources import Resource  # type: ignore[import-untyped]
+from opentelemetry.sdk.trace import TracerProvider  # type: ignore[import-untyped]
+from opentelemetry.sdk.trace.export import BatchSpanProcessor  # type: ignore[import-untyped]
 
 from app.utils.configure import ConfigProtocol
 

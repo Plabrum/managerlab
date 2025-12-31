@@ -60,7 +60,6 @@ from app.utils.logging_middleware import (
     create_logging_middleware,
     drop_verbose_http_keys,
 )
-from app.utils.otel import initialize_opentelemetry, shutdown_opentelemetry
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 from app.views.routes import view_router
 
@@ -79,6 +78,14 @@ def handle_options_disconnect(request: Request, exc: InternalServerException) ->
     raise exc
 
 
+def _shutdown_otel_if_enabled(config: ConfigProtocol) -> None:
+    """Lazily import and shutdown OpenTelemetry if enabled."""
+    if config.OTEL_ENABLED:
+        from app.utils.otel import shutdown_opentelemetry
+
+        shutdown_opentelemetry()
+
+
 def create_app(
     config: ConfigProtocol,
     dependencies_overrides: dict[str, Provide] | None = None,
@@ -89,6 +96,8 @@ def create_app(
     # Initialize OpenTelemetry BEFORE creating Litestar app
     # This sets global providers used by OpenTelemetryPlugin
     if not skip_otel_init:
+        from app.utils.otel import initialize_opentelemetry
+
         initialize_opentelemetry(config)
 
     # ========================================================================
@@ -342,7 +351,7 @@ def create_app(
         on_startup=[providers.on_startup],
         on_shutdown=[
             providers.on_shutdown,
-            lambda: shutdown_opentelemetry() if config.OTEL_ENABLED else None,
+            lambda: _shutdown_otel_if_enabled(config),
         ],
         on_app_init=[session_auth.on_app_init],
         middleware=[session_auth.middleware, create_logging_middleware()],
