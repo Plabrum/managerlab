@@ -62,6 +62,19 @@ class ConfigProtocol(Protocol):
     OPENAI_MODEL: str
     LOG_LEVEL: str
 
+    # OpenTelemetry Configuration
+    BETTERSTACK_OTLP_INGESTING_HOST: str
+    BETTERSTACK_OTLP_SOURCE_TOKEN: str
+
+    @property
+    def OTEL_ENABLED(self) -> bool: ...
+
+    @property
+    def OTEL_SERVICE_NAME(self) -> str: ...
+
+    @property
+    def OTEL_SERVICE_VERSION(self) -> str: ...
+
     @property
     def IS_DEV(self) -> bool: ...
 
@@ -133,6 +146,25 @@ class Config:
 
     # Logging Configuration
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
+
+    # OpenTelemetry Configuration
+    BETTERSTACK_OTLP_INGESTING_HOST: str = os.getenv("BETTERSTACK_OTLP_INGESTING_HOST", "")
+    BETTERSTACK_OTLP_SOURCE_TOKEN: str = os.getenv("BETTERSTACK_OTLP_SOURCE_TOKEN", "")
+
+    @property
+    def OTEL_ENABLED(self) -> bool:
+        """Enable OpenTelemetry if Betterstack credentials are configured."""
+        return bool(self.BETTERSTACK_OTLP_INGESTING_HOST and self.BETTERSTACK_OTLP_SOURCE_TOKEN)
+
+    @property
+    def OTEL_SERVICE_NAME(self) -> str:
+        """Service name for OpenTelemetry (includes environment suffix)."""
+        return f"arive-backend-{self.ENV}"
+
+    @property
+    def OTEL_SERVICE_VERSION(self) -> str:
+        """Service version for OpenTelemetry."""
+        return "0.1.0"
 
     @property
     def IS_DEV(self) -> bool:

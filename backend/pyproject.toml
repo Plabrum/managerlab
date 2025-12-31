@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
   "litestar[standard,sqlalchemy,opentelemetry]",
+  "opentelemetry-instrumentation-httpx>=0.60b1",
   "sqlalchemy",
   "psycopg[binary]", # psycopg3 for async operations
   "psycopg2-binary", # psycopg2 for sync operations (alembic)
