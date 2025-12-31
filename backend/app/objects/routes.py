@@ -1,6 +1,6 @@
+import logging
 from collections.abc import Sequence
 
-import structlog
 from litestar import Router, get, post
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,7 +25,7 @@ from app.objects.services import (
 )
 from app.utils.discovery import discover_and_import
 
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 # Auto-discover all object files to trigger registration with ObjectRegistry
 # This happens here (not in __init__.py) to avoid circular imports during module loading

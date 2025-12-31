@@ -1,5 +1,6 @@
-import structlog
-from sqlalchemy import and_, literal, or_, true
+import logging
+
+from sqlalchemy import literal, true
 from sqlalchemy.orm import with_loader_criteria
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -7,7 +8,7 @@ from app.auth.enums import ScopeType
 from app.base.models import BaseDBModel
 from app.utils.configure import config
 
-logger = structlog.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # CORE FILTER BUILDERS

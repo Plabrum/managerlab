@@ -6,9 +6,9 @@ into HTTP exceptions.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
-import structlog
 from advanced_alchemy.exceptions import IntegrityError
 from litestar.exceptions import (
     HTTPException,
@@ -23,7 +23,7 @@ from litestar.exceptions.responses import (
 from litestar.repository.exceptions import ConflictError, NotFoundError, RepositoryError
 from litestar.status_codes import HTTP_409_CONFLICT
 
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from typing import Any
@@ -113,10 +113,12 @@ def exception_to_http_response(
     # This ensures all exceptions are logged in production for debugging
     logger.exception(
         "exception_in_request",
-        method=request.method,
-        path=request.url.path,
-        exception_type=exc.__class__.__name__,
-        status_code=http_exc.status_code if hasattr(http_exc, "status_code") else 500,
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "exception_type": exc.__class__.__name__,
+            "status_code": http_exc.status_code if hasattr(http_exc, "status_code") else 500,
+        },
         exc_info=exc,
     )
 

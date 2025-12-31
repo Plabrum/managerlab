@@ -1,7 +1,8 @@
+"""Application factory (stdlib logging only, no structlog)."""
+
 import logging
 from typing import Any
 
-import structlog
 from advanced_alchemy.exceptions import RepositoryError
 from litestar import Litestar, Request, Response
 from litestar.channels import ChannelsPlugin
@@ -11,7 +12,6 @@ from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.contrib.opentelemetry import OpenTelemetryConfig, OpenTelemetryPlugin
 from litestar.di import Provide
 from litestar.exceptions import InternalServerException
-from litestar.logging.config import LoggingConfig, StructLoggingConfig
 from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
 from litestar.middleware.session.server_side import ServerSideSessionConfig
 from litestar.openapi.config import OpenAPIConfig
@@ -22,7 +22,6 @@ from litestar.plugins.sqlalchemy import (
     SQLAlchemyAsyncConfig,
     SQLAlchemyPlugin,
 )
-from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 from litestar.security.session_auth import SessionAuth
 from litestar.stores.memory import MemoryStore
 from litestar.template.config import TemplateConfig
@@ -43,6 +42,7 @@ from app.deliverables.routes import deliverable_router
 from app.documents.routes.documents import document_router
 from app.emails.client import provide_email_client
 from app.emails.webhook_routes import inbound_email_router
+from app.logging_config import configure_logging
 from app.media.routes import local_media_router, media_router
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
@@ -55,26 +55,17 @@ from app.users.routes import user_router
 from app.utils import providers
 from app.utils.configure import ConfigProtocol
 from app.utils.exceptions import ApplicationError, exception_to_http_response
-from app.utils.logging_middleware import (
-    add_otel_trace_context,
-    create_logging_middleware,
-    drop_verbose_http_keys,
-)
+from app.utils.logging_middleware import create_logging_middleware
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 from app.views.routes import view_router
 
+logger = logging.getLogger(__name__)
+
 
 def handle_options_disconnect(request: Request, exc: InternalServerException) -> Response:
-    """Suppress client disconnect errors for OPTIONS preflight requests.
-
-    CORS preflight OPTIONS requests have no body, so "client disconnected prematurely"
-    errors during body parsing are expected and harmless. The CORS middleware has
-    already handled the OPTIONS response correctly.
-    """
+    """Suppress client disconnect errors for OPTIONS preflight requests."""
     if request.method == "OPTIONS" and "client disconnected prematurely" in str(exc.detail):
-        # Return empty 204 response (CORS middleware already sent the actual response)
         return Response(content=None, status_code=204)
-    # Re-raise for actual errors
     raise exc
 
 
@@ -93,8 +84,12 @@ def create_app(
     stores_overrides: dict[str, Any] | None = None,
     skip_otel_init: bool = False,
 ) -> Litestar:
+    # Configure logging FIRST (before OTEL so we can log OTEL initialization)
+    # This is idempotent - safe to call even if already configured in index.py
+    configure_logging(config)
+
     # Initialize OpenTelemetry BEFORE creating Litestar app
-    # This sets global providers used by OpenTelemetryPlugin
+    # This sets global providers AND adds LoggingHandler to root logger
     if not skip_otel_init:
         from app.utils.otel import initialize_opentelemetry
 
@@ -104,7 +99,6 @@ def create_app(
     # Stores
     # ========================================================================
     stores = {
-        # in testing session_store = MemoryStore()
         "sessions": providers.create_postgres_session_store(),
         "viewers": MemoryStore(),
     } | (stores_overrides or {})
@@ -122,17 +116,12 @@ def create_app(
     ]
 
     if config.IS_DEV:
-        exclude_patterns.extend(
-            [
-                "^/local-upload/",
-                "^/local-download/",
-            ]
-        )
+        exclude_patterns.extend(["^/local-upload/", "^/local-download/"])
 
     session_auth = SessionAuth[int, Any](
         session_backend_config=ServerSideSessionConfig(
             samesite="lax",
-            secure=not config.IS_DEV,  # Secure cookies in production/testing
+            secure=not config.IS_DEV,
             httponly=True,
             max_age=ONE_DAY_IN_SECONDS * 14,
             domain=(config.SESSION_COOKIE_DOMAIN if hasattr(config, "SESSION_COOKIE_DOMAIN") else None),
@@ -142,9 +131,8 @@ def create_app(
     )
 
     # ========================================================================
-    # Dependencies - Defaults that can be overridden
+    # Dependencies
     # ========================================================================
-    # Define provider functions for dependencies with injection needs
     def _provide_s3_client() -> Any:
         return provide_s3_client(config)
 
@@ -176,11 +164,11 @@ def create_app(
                 metadata=BaseDBModel.metadata,
                 engine_config=EngineConfig(
                     poolclass=AsyncAdaptedQueuePool,
-                    pool_size=20,  # Number of persistent connections
-                    max_overflow=10,  # Extra connections during traffic spikes
-                    pool_timeout=30,  # Max wait time for connection (seconds)
-                    pool_recycle=3600,  # Recycle connections every hour (AWS RDS best practice)
-                    pool_pre_ping=True,  # Verify connection health before use
+                    pool_size=20,
+                    max_overflow=10,
+                    pool_timeout=30,
+                    pool_recycle=3600,
+                    pool_pre_ping=True,
                     connect_args={
                         "connect_timeout": 10,
                         "application_name": "manageros-ecs",
@@ -202,87 +190,17 @@ def create_app(
             )
         ),
         ChannelsPlugin(
-            # in tesing backend = MemoryChannelsBackend()
             backend=PsycoPgChannelsBackend(config.ADMIN_DB_URL),
             arbitrary_channels_allowed=True,
         ),
-        StructlogPlugin(
-            config=StructlogConfig(
-                enable_middleware_logging=True,
-                structlog_logging_config=StructLoggingConfig(
-                    processors=[
-                        structlog.contextvars.merge_contextvars,
-                        structlog.processors.add_log_level,
-                        structlog.processors.StackInfoRenderer(),
-                        structlog.processors.format_exc_info,  # Use standard formatter in all environments
-                        structlog.processors.TimeStamper(fmt="iso", utc=True),
-                        add_otel_trace_context,  # Inject trace_id/span_id from OpenTelemetry
-                        drop_verbose_http_keys,  # Filter out verbose HTTP details (cookies, body, headers)
-                        (structlog.dev.ConsoleRenderer() if config.IS_DEV else structlog.processors.JSONRenderer()),
-                    ],
-                    wrapper_class=structlog.make_filtering_bound_logger(getattr(logging, config.LOG_LEVEL)),
-                    logger_factory=structlog.PrintLoggerFactory(),
-                    cache_logger_on_first_use=False,
-                    log_exceptions="always",  # Always log exceptions, even in production
-                    standard_lib_logging_config=LoggingConfig(
-                        log_exceptions="always",
-                        formatters={
-                            "structlog": {
-                                "()": structlog.stdlib.ProcessorFormatter,
-                                "processors": [
-                                    structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-                                    (
-                                        structlog.dev.ConsoleRenderer()
-                                        if config.IS_DEV
-                                        else structlog.processors.JSONRenderer()
-                                    ),
-                                ],
-                                "foreign_pre_chain": [
-                                    structlog.contextvars.merge_contextvars,
-                                    structlog.processors.add_log_level,
-                                    structlog.processors.TimeStamper(fmt="iso", utc=True),
-                                    add_otel_trace_context,  # Inject trace_id/span_id from OpenTelemetry
-                                    structlog.processors.format_exc_info,
-                                ],
-                            },
-                        },
-                        handlers={
-                            "default": {
-                                "level": config.LOG_LEVEL,
-                                "class": "logging.StreamHandler",
-                                "formatter": "structlog",
-                            },
-                        },
-                        loggers={
-                            "uvicorn": {
-                                "handlers": ["default"],
-                                "level": config.LOG_LEVEL,
-                                "propagate": False,
-                            },
-                            "uvicorn.access": {
-                                "handlers": ["default"],
-                                "level": config.LOG_LEVEL,
-                                "propagate": False,
-                            },
-                            "uvicorn.error": {
-                                "handlers": ["default"],
-                                "level": config.LOG_LEVEL,
-                                "propagate": False,
-                            },
-                        },
-                        configure_root_logger=True,
-                    ),
-                ),
-            )
-        ),
+        # NO STRUCTLOG PLUGIN - Using stdlib logging configured above
     ]
 
     # Add OpenTelemetry plugin if enabled
     if config.OTEL_ENABLED:
         otel_config = OpenTelemetryConfig(
-            # Use globally configured providers (set by initialize_opentelemetry)
-            tracer_provider=None,  # Uses global
-            meter_provider=None,  # Uses global
+            tracer_provider=None,  # Uses global from otel.py
+            meter_provider=None,  # Uses global from otel.py
         )
         base_plugins.append(OpenTelemetryPlugin(config=otel_config))
 
@@ -311,7 +229,6 @@ def create_app(
     # ========================================================================
     # Template Engine
     # ========================================================================
-    # Configure Jinja2 template engine for email templates
     template_config = TemplateConfig(
         directory=config.EMAIL_TEMPLATES_DIR,
         engine=JinjaTemplateEngine,
@@ -369,6 +286,7 @@ def create_app(
         type_encoders={Sqid: sqid_enc_hook},
         type_decoders=[(sqid_type_predicate, sqid_dec_hook)],
         debug=config.IS_DEV,
+        logging_config=None,  # Disable Litestar's default logging, we configure our own
     )
 
     return app

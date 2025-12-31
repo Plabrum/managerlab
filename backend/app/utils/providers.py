@@ -1,7 +1,7 @@
+import logging
 from collections.abc import AsyncGenerator
 
 import aiohttp
-import structlog
 from litestar import Litestar, Request
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
@@ -22,7 +22,7 @@ from app.utils.configure import ConfigProtocol, config
 from app.utils.db import set_rls_variables
 from app.utils.db_filters import soft_delete_filter
 
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def provide_viewer_store(request: Request) -> ThreadViewerStore:
@@ -56,10 +56,13 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
 
 
 async def on_startup(app: Litestar) -> None:
-    # Logging is now configured via StructlogPlugin in factory.py
-    logger.info("Application startup initiated", env=config.ENV, debug=app.debug)
+    logger.info(
+        "ManagerLab API starting (env=%s, debug=%s)",
+        config.ENV,
+        app.debug,
+    )
     app.state.http = aiohttp.ClientSession()
-    logger.info("Application startup complete", http_client_initialized=True)
+    logger.info("Application startup complete")
 
 
 async def on_shutdown(app: Litestar) -> None:

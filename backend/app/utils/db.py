@@ -1,8 +1,8 @@
 """Database utility functions for common operations."""
 
+import logging
 from typing import Any
 
-import structlog
 from litestar import Request
 from litestar.exceptions import NotFoundException
 from msgspec import UNSET, structs
@@ -17,7 +17,7 @@ from app.events.schemas import CreatedEventData, UpdatedEventData, make_field_ch
 from app.events.service import emit_event
 from app.utils.configure import config
 
-logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
 
 
 async def _emit_created_event(
@@ -242,9 +242,11 @@ async def set_rls_variables(session: AsyncSession, request: Request) -> None:
         # tables without RLS (sessions, users for lookup) will work normally.
         logger.warning(
             "No scope_type in session - RLS variables NOT set",
-            path=request.url.path,
-            session_keys=list(request.session.keys()),
-            has_user_id=bool(request.session.get("user_id")),
+            extra={
+                "path": request.url.path,
+                "session_keys": list(request.session.keys()),
+                "has_user_id": bool(request.session.get("user_id")),
+            },
         )
         return
 

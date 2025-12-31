@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime, timedelta
 from typing import assert_never
 
@@ -406,10 +407,9 @@ async def query_time_series_data(
     query_relationship: str | None = None,
     query_column: str | None = None,
 ) -> tuple[list[NumericalDataPoint] | list[CategoricalDataPoint], int]:
-    import structlog
     from sqlalchemy import text
 
-    logger = structlog.get_logger()
+    logger = logging.getLogger(__name__)
 
     # Get the column reference and determine if we need to join
     join_relationship = None
@@ -467,8 +467,7 @@ async def query_time_series_data(
     compiled_count = count_query.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
     logger.info(
         "Count query SQL",
-        model=model_class.__name__,
-        sql=str(compiled_count),
+        extra={"model": model_class.__name__, "sql": str(compiled_count)},
     )
 
     total_result = await session.execute(count_query)
@@ -476,12 +475,14 @@ async def query_time_series_data(
 
     logger.info(
         "Time series query - record count",
-        model=model_class.__name__,
-        field=field_name,
-        total_count=total_count,
-        start_date=start_date,
-        end_date=end_date,
-        granularity=granularity,
+        extra={
+            "model": model_class.__name__,
+            "field": field_name,
+            "total_count": total_count,
+            "start_date": start_date,
+            "end_date": end_date,
+            "granularity": granularity,
+        },
     )
 
     # Generate time series using generate_series
@@ -641,9 +642,11 @@ async def query_time_series_data(
         compiled_final = final_query.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
         logger.info(
             "Final aggregation query SQL",
-            model=model_class.__name__,
-            field=field_name,
-            sql=str(compiled_final),
+            extra={
+                "model": model_class.__name__,
+                "field": field_name,
+                "sql": str(compiled_final),
+            },
         )
 
         result = await session.execute(final_query)
@@ -651,10 +654,12 @@ async def query_time_series_data(
 
         logger.info(
             "Time series query - numerical results",
-            model=model_class.__name__,
-            field=field_name,
-            num_rows=len(rows),
-            sample_rows=rows[:3] if rows else [],
+            extra={
+                "model": model_class.__name__,
+                "field": field_name,
+                "num_rows": len(rows),
+                "sample_rows": rows[:3] if rows else [],
+            },
         )
 
         data_points = [

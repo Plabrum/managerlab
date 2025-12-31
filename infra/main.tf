@@ -1058,10 +1058,10 @@ resource "aws_iam_role_policy" "ecs_task_ses" {
 # ECS Cluster and Service
 # ================================
 
-# CloudWatch log group for ECS
+# CloudWatch log group for ECS (API container)
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${local.name}"
-  retention_in_days = 1 # Short retention - logs primarily go to Betterstack
+  retention_in_days = 7 # Keep logs for debugging if OTLP fails
 
   tags = local.common_tags
 }
@@ -1132,9 +1132,14 @@ resource "aws_ecs_task_definition" "main" {
         }
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
-      # Use FireLens to route logs to BetterStack (config from S3)
+      # CloudWatch logs (fallback if OTLP fails, useful for debugging)
       logConfiguration = {
-        logDriver = "awsfirelens"
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "app"
+        }
       }
 
       healthCheck = {
@@ -1143,50 +1148,6 @@ resource "aws_ecs_task_definition" "main" {
         timeout     = 5
         retries     = 3
         startPeriod = 60
-      }
-
-      dependsOn = [
-        {
-          containerName = "log_router"
-          condition     = "START"
-        }
-      ]
-    },
-    {
-      name              = "log_router"
-      image             = "betterstack/aws-ecs-fluent-bit:amd64-latest"
-      essential         = true
-      cpu               = 256
-      memory            = 512
-      memoryReservation = 50
-
-      firelensConfiguration = {
-        type = "fluentbit"
-        options = {
-          "enable-ecs-log-metadata" = "true"
-          "config-file-type"        = "file"
-          "config-file-value"       = "/fluent-bit-logtail.conf"
-        }
-      }
-
-      secrets = [
-        {
-          name      = "BETTER_STACK_SOURCE_TOKEN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_SOURCE_TOKEN::"
-        },
-        {
-          name      = "BETTER_STACK_INGESTING_HOST"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_INGESTING_HOST::"
-        }
-      ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "firelens"
-        }
       }
     }
   ])
@@ -1283,7 +1244,7 @@ resource "aws_appautoscaling_policy" "ecs_memory" {
 # CloudWatch log group for worker
 resource "aws_cloudwatch_log_group" "worker" {
   name              = "/ecs/${local.name}-worker"
-  retention_in_days = 1 # Short retention - logs primarily go to Betterstack
+  retention_in_days = 7 # Keep logs for debugging if OTLP fails
 
   tags = local.common_tags
 }
@@ -1338,52 +1299,13 @@ resource "aws_ecs_task_definition" "worker" {
         },
       ], [for k, v in var.extra_env : { name = k, value = v }])
 
-      # Use FireLens to route logs to BetterStack (config from S3)
-      logConfiguration = {
-        logDriver = "awsfirelens"
-      }
-
-      dependsOn = [
-        {
-          containerName = "log_router"
-          condition     = "START"
-        }
-      ]
-    },
-    {
-      name              = "log_router"
-      image             = "betterstack/aws-ecs-fluent-bit:amd64-latest"
-      essential         = true
-      cpu               = 256
-      memory            = 512
-      memoryReservation = 50
-
-      firelensConfiguration = {
-        type = "fluentbit"
-        options = {
-          "enable-ecs-log-metadata" = "true"
-          "config-file-type"        = "file"
-          "config-file-value"       = "/fluent-bit-logtail.conf"
-        }
-      }
-
-      secrets = [
-        {
-          name      = "BETTER_STACK_SOURCE_TOKEN"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_SOURCE_TOKEN::"
-        },
-        {
-          name      = "BETTER_STACK_INGESTING_HOST"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets_v2.arn}:BETTER_STACK_INGESTING_HOST::"
-        }
-      ]
-
+      # CloudWatch logs (fallback if OTLP fails, useful for debugging)
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.worker.name
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "worker-firelens"
+          "awslogs-stream-prefix" = "worker"
         }
       }
     }
