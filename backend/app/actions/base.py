@@ -18,7 +18,19 @@ from app.base.models import BaseDBModel
 from app.utils.tracing import trace_operation
 
 if TYPE_CHECKING:
+    from opentelemetry.trace import Span
+
     from app.actions.deps import ActionDeps
+
+
+def _enrich_action_span(span: "Span", args: tuple, kwargs: dict) -> None:
+    """Enrich action execution spans with action-specific context."""
+    if args and isinstance(args[0], ActionGroup):
+        action_group = args[0]
+        span.set_attribute("action.group", action_group.group_type.value)
+
+    if object_id := kwargs.get("object_id"):
+        span.set_attribute("action.object_id", object_id)
 
 
 class EmptyActionData(Struct):
@@ -197,7 +209,7 @@ class ActionGroup:
         )
         return result.scalar_one()
 
-    @trace_operation("action_execution")
+    @trace_operation("action_execution", enrich=_enrich_action_span)
     async def trigger(
         self,
         data: Any,  # Discriminated union instance
