@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Building2, ChevronsUpDown, LogOut, User } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -19,7 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useAuthLogoutLogoutUser } from '@/openapi/auth/auth';
+import { useLogout } from '@/hooks/use-logout';
 
 export function NavUser({
   user,
@@ -32,31 +31,11 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
-  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { logout, isLoggingOut } = useLogout();
 
   const authContext = useAuth();
   const currentUser = authContext.user;
   const { teams } = authContext;
-
-  const { mutate: logout } = useAuthLogoutLogoutUser({
-    mutation: {
-      onSuccess: () => {
-        navigate({ to: '/', replace: true });
-      },
-      onError: (error) => {
-        console.error('Logout failed:', error);
-        navigate({ to: '/', replace: true });
-      },
-      onSettled: () => {
-        setIsSigningOut(false);
-      },
-    },
-  });
-
-  const handleLogout = () => {
-    setIsSigningOut(true);
-    logout();
-  };
 
   // Get current team's id for navigation
   const currentTeam = teams.find((t) => t.is_selected);
@@ -133,9 +112,9 @@ export function NavUser({
               <ThemeSwitcher />
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} disabled={isSigningOut}>
+            <DropdownMenuItem onClick={() => logout()} disabled={isLoggingOut}>
               <LogOut />
-              {isSigningOut ? 'Logging out...' : 'Log out'}
+              {isLoggingOut ? 'Logging out...' : 'Log out'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

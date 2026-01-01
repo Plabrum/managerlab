@@ -3,7 +3,9 @@ import {
   lazyRouteComponent,
   redirect,
 } from '@tanstack/react-router';
-import { deleteCookie, hasCookie } from '@/lib/cookies';
+import { deleteCookie } from '@/lib/cookies';
+import { queryClient } from '@/lib/tanstack-query-provider';
+import { getUsersCurrentUserGetCurrentUserQueryOptions } from '@/openapi/users/users';
 import { publicLayoutRoute } from './layout.routes';
 import { rootRoute } from './root.route';
 
@@ -14,12 +16,24 @@ export const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: lazyRouteComponent(() => import('@/pages/home-page'), 'HomePage'),
-  beforeLoad: () => {
-    // If session cookie exists, redirect to dashboard
-    // The dashboard route will validate auth and redirect back to /auth if invalid
-    if (hasCookie('session')) {
+  loader: async () => {
+    // Check if user is authenticated by calling the API
+    // The session cookie (HttpOnly) is sent automatically with the request
+    // This query is cached with session lifetime (Infinity) so it's fast
+    const user = await queryClient
+      .fetchQuery({
+        ...getUsersCurrentUserGetCurrentUserQueryOptions(),
+        retry: false,
+      })
+      .catch(() => null);
+
+    // If user is authenticated, redirect to dashboard
+    if (user) {
       throw redirect({ to: '/dashboard', replace: true });
     }
+
+    // Otherwise, show the landing page
+    return null;
   },
 });
 
