@@ -35,12 +35,23 @@ async def queue_startup(ctx: AppContext) -> None:
     """
     from sqlalchemy import event
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    from sqlalchemy.pool import AsyncAdaptedQueuePool
 
     from app.client.openai_client import provide_openai_client
     from app.client.s3_client import provide_s3_client
 
-    # Create database session factory
-    engine = create_async_engine(config.ASYNC_DATABASE_URL)
+    # Create database session factory with zero persistent connections for Aurora scale-to-zero
+    engine = create_async_engine(
+        config.ASYNC_DATABASE_URL,
+        poolclass=AsyncAdaptedQueuePool,
+        pool_size=0,  # Zero persistent connections
+        max_overflow=10,  # Create up to 10 temporary connections on-demand
+        pool_timeout=30,
+        connect_args={
+            "connect_timeout": 10,
+            "application_name": "manageros-worker",
+        },
+    )
 
     # Set system mode for all worker connections to bypass RLS
     # Background tasks typically need to operate across all users

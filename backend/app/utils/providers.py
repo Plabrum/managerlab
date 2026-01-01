@@ -84,10 +84,9 @@ def create_postgres_session_store() -> PostgreSQLSessionStore:
     engine = create_async_engine(
         config.ASYNC_DATABASE_URL,
         poolclass=AsyncAdaptedQueuePool,
-        pool_size=5,
-        max_overflow=5,
+        pool_size=0,  # Zero persistent connections for Aurora scale-to-zero
+        max_overflow=5,  # Create up to 5 temporary connections on-demand
         pool_timeout=10,
-        pool_recycle=3600,
         connect_args={
             "connect_timeout": 10,
             "application_name": "manageros-sessions",

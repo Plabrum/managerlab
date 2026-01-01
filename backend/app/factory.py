@@ -110,6 +110,7 @@ def create_app(
         "^/health",
         "^/auth/google/",
         "^/auth/magic-link/",
+        "^/auth/logout",
         "^/webhooks/emails",
         "^/teams/invitations/accept",
         "^/schema",
@@ -164,10 +165,9 @@ def create_app(
                 metadata=BaseDBModel.metadata,
                 engine_config=EngineConfig(
                     poolclass=AsyncAdaptedQueuePool,
-                    pool_size=20,
-                    max_overflow=10,
+                    pool_size=0,  # Zero persistent connections for Aurora scale-to-zero
+                    max_overflow=20,  # Create up to 20 temporary connections on-demand
                     pool_timeout=30,
-                    pool_recycle=3600,
                     connect_args={
                         "connect_timeout": 10,
                         "application_name": "manageros-ecs",
