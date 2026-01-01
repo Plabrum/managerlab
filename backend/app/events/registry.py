@@ -136,18 +136,7 @@ def event_consumer(
 
 
 async def trigger_consumers(session: AsyncSession, event: Event, obj: BaseDBModel, **dependencies) -> None:
-    """
-    Trigger all registered consumers for an event.
-
-    Consumers are called synchronously in registration order.
-    Failures in one consumer don't prevent others from running.
-
-    Args:
-        session: Database session
-        event: The event that was emitted
-        obj: The actual object that triggered the event
-        **dependencies: Additional dependencies from DI (e.g., channels)
-    """
+    """Trigger all registered consumers for an event in registration order."""
     import inspect
 
     consumers = _registry.get_consumers(event)

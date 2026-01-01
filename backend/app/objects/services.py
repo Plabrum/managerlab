@@ -27,6 +27,9 @@ from app.objects.schemas import (
     TextFilterDefinition,
 )
 from app.utils.sqids import sqid_decode
+from app.utils.tracing import trace_operation
+
+logger = logging.getLogger(__name__)
 
 
 def apply_filter(query: Select, model_class: type[BaseDBModel], filter_def: FilterDefinition) -> Select:
@@ -121,24 +124,14 @@ def apply_sorts(query: Select, model_class: type[BaseDBModel], sorts: list[SortD
     return query
 
 
+@trace_operation("export_objects_to_csv")
 async def export_to_csv(
     session: AsyncSession,
     model_class: type[BaseDBModel],
     request: ObjectListRequest,
     columns: list[str] | None = None,
 ) -> tuple[str, str]:
-    """
-    Export objects to CSV with filters and sorts applied.
-
-    Args:
-        session: Database session
-        model_class: Model class to query
-        request: ObjectListRequest with filters, sorts, search
-        columns: Optional list of column keys to include (defaults to all visible columns)
-
-    Returns:
-        Tuple of (csv_content, filename)
-    """
+    """Export objects to CSV with filters and sorts applied."""
     import csv
     import io
 
@@ -394,6 +387,7 @@ def _infer_field_type_from_column(column) -> FieldType:
         return FieldType.String
 
 
+@trace_operation("query_time_series")
 async def query_time_series_data(
     session: AsyncSession,
     model_class: type[BaseDBModel],
@@ -407,9 +401,8 @@ async def query_time_series_data(
     query_relationship: str | None = None,
     query_column: str | None = None,
 ) -> tuple[list[NumericalDataPoint] | list[CategoricalDataPoint], int]:
+    """Query time series data with aggregation."""
     from sqlalchemy import text
-
-    logger = logging.getLogger(__name__)
 
     # Get the column reference and determine if we need to join
     join_relationship = None

@@ -15,9 +15,22 @@ from app.actions.schemas import (
     ActionExecutionResponse,
 )
 from app.base.models import BaseDBModel
+from app.utils.tracing import trace_operation
 
 if TYPE_CHECKING:
+    from opentelemetry.trace import Span
+
     from app.actions.deps import ActionDeps
+
+
+def _enrich_action_span(span: "Span", args: tuple, kwargs: dict) -> None:
+    """Enrich action execution spans with action-specific context."""
+    if args and isinstance(args[0], ActionGroup):
+        action_group = args[0]
+        span.set_attribute("action.group", action_group.group_type.value)
+
+    if object_id := kwargs.get("object_id"):
+        span.set_attribute("action.object_id", object_id)
 
 
 class EmptyActionData(Struct):
@@ -196,24 +209,13 @@ class ActionGroup:
         )
         return result.scalar_one()
 
+    @trace_operation("action_execution", enrich=_enrich_action_span)
     async def trigger(
         self,
         data: Any,  # Discriminated union instance
         object_id: int | None = None,
     ) -> ActionExecutionResponse:
-        """Execute an action with proper dependency injection.
-
-        Args:
-            data: Discriminated union instance containing action data
-            object_id: Optional object ID for object actions
-
-        Returns:
-            ActionExecutionResponse with result metadata
-
-        Note:
-            Transaction commits are handled automatically via SQLAlchemy plugin.
-            Dependencies are passed explicitly to avoid thread-safety issues.
-        """
+        """Execute an action with proper dependency injection."""
         from app.actions.deps import ActionDeps
 
         action_class: type[BaseAction] = self.action_registry._struct_to_action[type(data)]
@@ -225,7 +227,6 @@ class ActionGroup:
         # Extract data from discriminated union wrapper
         action_data = getattr(data, "data", data)
 
-        # Execute with appropriate signature based on action type
         if issubclass(action_class, BaseObjectAction):
             # Instance action - requires object
             obj = await action_class.get_object(object_id=object_id, transaction=transaction) if object_id else None

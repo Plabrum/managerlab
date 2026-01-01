@@ -13,6 +13,7 @@ from app.threads.schemas import (
     ServerMessage,
 )
 from app.threads.utils import encode_server_message_str, get_thread_channel
+from app.utils.tracing import trace_operation
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class ThreadViewerStore:
         return viewers
 
 
+@trace_operation("get_or_create_thread")
 async def get_or_create_thread(
     transaction: AsyncSession,
     threadable_type: str,
@@ -200,6 +202,7 @@ async def mark_thread_as_read(
     logger.info(f"Marked thread {thread_id} as read for user {user_id}")
 
 
+@trace_operation("send_thread_notification")
 async def notify_thread(
     channels: ChannelsPlugin,
     thread_id: int,
