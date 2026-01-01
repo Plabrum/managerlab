@@ -281,9 +281,6 @@ class ObjectListSchema(BaseSchema):
     fields: list[ObjectFieldDTO] = []
     link: str | None = None
 
-    def __post_init__(self) -> None:
-        self.link = f"/{self.object_type}/{self.id}"
-
 
 class ObjectListRequest(BaseSchema):
     """Request schema for listing objects."""
