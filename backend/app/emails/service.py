@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.emails.client import BaseEmailClient, EmailMessage as ClientEmailMessage
 from app.emails.models import EmailMessage as DBEmailMessage
 from app.utils.configure import config
+from app.utils.tracing import trace_operation
 
 
 class EmailService:
@@ -50,6 +51,7 @@ class EmailService:
 
         return html_body, text_body
 
+    @trace_operation("send_email")
     async def send_email(
         self,
         to: list[str] | str,

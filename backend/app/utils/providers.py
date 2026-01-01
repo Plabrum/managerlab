@@ -57,7 +57,7 @@ async def provide_transaction(db_session: AsyncSession, request: Request) -> Asy
 
 async def on_startup(app: Litestar) -> None:
     logger.info(
-        "ManagerLab API starting (env=%s, debug=%s)",
+        "Arive API starting (env=%s, debug=%s)",
         config.ENV,
         app.debug,
     )

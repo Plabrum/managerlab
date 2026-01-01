@@ -17,6 +17,7 @@ from app.events.schemas import (
     StateChangedEventData,
     UpdatedEventData,
 )
+from app.utils.tracing import trace_operation
 
 logger = logging.getLogger(__name__)
 type EventDataTypes = (
@@ -30,6 +31,7 @@ type EventDataTypes = (
 )
 
 
+@trace_operation("emit_event")
 async def emit_event(
     session: AsyncSession,
     event_type: EventType,
