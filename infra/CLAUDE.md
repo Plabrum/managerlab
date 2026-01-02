@@ -70,46 +70,39 @@ infra/
 
 ## Deployment Workflow
 
-### Manual Deployment
+### ⚠️ CI/CD Only Deployment (Required)
 
-1. **Initialize Terraform** (first time only):
+**All infrastructure changes MUST go through GitHub Actions CI/CD pipeline.**
+
+1. **Make Terraform changes locally**:
    ```bash
    cd infra
-   terraform init
+   # Edit .tf files as needed
    ```
 
-2. **Plan Changes**:
+2. **Preview changes locally (safe)**:
    ```bash
+   terraform init
    terraform plan
    ```
    Review the planned changes carefully.
 
-3. **Apply Changes**:
+3. **Commit and push to trigger CI/CD**:
    ```bash
-   terraform apply
-   ```
-   Type `yes` to confirm.
-
-4. **Build and Push Docker Image**:
-   ```bash
-   # From project root
-   cd backend
-   docker build -t manageros-api .
-
-   # Get ECR login
-   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
-
-   # Tag and push
-   docker tag manageros-api:latest <ecr-url>:latest
-   docker push <ecr-url>:latest
+   git add infra/
+   git commit -m "infra: description of changes"
+   git push origin main
    ```
 
-5. **Trigger Deployment**:
-   ```bash
-   aws ecs update-service --cluster arive-cluster --service arive-api --force-new-deployment
-   ```
+4. **Monitor GitHub Actions workflow**:
+   - Go to https://github.com/your-org/arive/actions
+   - Watch the infrastructure deployment workflow
+   - Review Terraform plan output in the workflow logs
+   - CI/CD will automatically apply changes
 
-### Automated Deployment (GitHub Actions)
+**NEVER run `terraform apply` or `terraform destroy` locally!**
+
+### CI/CD Pipeline (GitHub Actions)
 
 The CI/CD pipeline automatically deploys when changes are pushed to `main`:
 

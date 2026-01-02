@@ -48,7 +48,12 @@ This document covers overall project architecture and common commands. For platf
 ### Docker & Deployment
 - `make docker-build` - Build backend Docker image
 - `make docker-test` - Run comprehensive Docker health checks
-- `make deploy` - Deploy infrastructure and application to AWS
+
+**⚠️ Infrastructure Deployment:**
+- **NEVER** run `terraform apply` or `terraform destroy` locally
+- All infrastructure changes are deployed via GitHub Actions CI/CD
+- Push changes to `main` branch to trigger deployment
+- See [Infrastructure Guide](infra/CLAUDE.md) for details
 
 ## Architecture Overview
 
@@ -143,8 +148,15 @@ Email templates are built using React Email with Tailwind CSS for better maintai
 - shadcn/ui components configured in `frontend/components.json`
 
 ### Deployment
+
+**⚠️ CRITICAL: All infrastructure changes MUST go through CI/CD**
+- **NEVER** run `terraform apply` or `terraform destroy` locally
+- Push changes to `main` branch to trigger GitHub Actions deployment
+- See [Infrastructure Guide](infra/CLAUDE.md) for complete workflow
+
+**Deployment Pipeline:**
 - CI/CD via GitHub Actions with smart change detection
-- Infrastructure deployed via Terraform to AWS
+- Infrastructure deployed via Terraform to AWS (via GitHub Actions only)
 - Backend API deployed to AWS ECS Fargate behind Application Load Balancer (ALB)
 - Worker service deployed to AWS ECS Fargate for background task processing (SAQ)
 - Frontend deployed to Vercel (not currently automated via Terraform)

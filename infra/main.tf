@@ -610,6 +610,23 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "app" {
   }
 }
 
+# CORS configuration for frontend uploads
+resource "aws_s3_bucket_cors_configuration" "app" {
+  bucket = aws_s3_bucket.app.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST", "DELETE"]
+    allowed_origins = [
+      "https://tryarive.com",
+      "https://www.tryarive.com",
+      "http://localhost:3000" # Development
+    ]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
 # VPC Gateway Endpoint for S3 (free, enables private access)
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id
@@ -702,7 +719,7 @@ resource "aws_vpc_endpoint" "ec2messages" {
 }
 
 
-# Bucket policy to enforce VPC endpoint access (optional, more secure)
+# Bucket policy to allow ECS task access and presigned URL uploads
 resource "aws_s3_bucket_policy" "app" {
   bucket = aws_s3_bucket.app.id
 
@@ -710,7 +727,7 @@ resource "aws_s3_bucket_policy" "app" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowVPCEndpointAccess"
+        Sid    = "AllowECSTaskAccess"
         Effect = "Allow"
         Principal = {
           AWS = aws_iam_role.ecs_task.arn
@@ -725,9 +742,23 @@ resource "aws_s3_bucket_policy" "app" {
           aws_s3_bucket.app.arn,
           "${aws_s3_bucket.app.arn}/*"
         ]
+      },
+      {
+        Sid       = "AllowPresignedURLUploads"
+        Effect    = "Allow"
+        Principal = "*"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject"
+        ]
+        Resource = "${aws_s3_bucket.app.arn}/*"
         Condition = {
-          StringEquals = {
-            "aws:SourceVpce" = aws_vpc_endpoint.s3.id
+          StringLike = {
+            "aws:Referer" = [
+              "https://tryarive.com/*",
+              "https://www.tryarive.com/*",
+              "http://localhost:3000/*"
+            ]
           }
         }
       }
