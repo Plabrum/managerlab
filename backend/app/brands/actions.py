@@ -46,7 +46,7 @@ class DeleteBrand(BaseObjectAction[Brand, EmptyActionData]):
 @brand_actions
 class UpdateBrand(BaseObjectAction[Brand, BrandUpdateSchema]):
     action_key = BrandActions.update
-    label = "Update"
+    label = "Edit"
     is_bulk_allowed = True
     priority = 50
     icon = ActionIcon.edit

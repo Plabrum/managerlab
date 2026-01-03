@@ -37,7 +37,7 @@ class DeleteInvoice(BaseObjectAction[Invoice, EmptyActionData]):
 @invoice_actions
 class UpdateInvoice(BaseObjectAction[Invoice, InvoiceUpdateSchema]):
     action_key = InvoiceActions.update
-    label = "Update"
+    label = "Edit"
     is_bulk_allowed = True
     priority = 50
     icon = ActionIcon.edit

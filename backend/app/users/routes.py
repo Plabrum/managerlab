@@ -4,6 +4,8 @@ from litestar.status_codes import HTTP_400_BAD_REQUEST
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.actions.enums import ActionGroupType
+from app.actions.registry import ActionRegistry
 from app.auth.enums import ScopeType
 from app.auth.guards import requires_session, requires_team
 from app.teams.schemas import SwitchTeamRequest, SwitchTeamResponse
@@ -42,7 +44,7 @@ async def list_users(
 
 
 @get("/current_user")
-async def get_current_user(request: Request, transaction: AsyncSession) -> UserSchema:
+async def get_current_user(request: Request, transaction: AsyncSession, action_registry: ActionRegistry) -> UserSchema:
     """Get current authenticated user information."""
     user_id: int = request.user
 
@@ -50,6 +52,10 @@ async def get_current_user(request: Request, transaction: AsyncSession) -> UserS
     result = await transaction.execute(stmt)
     user = result.scalar_one()
 
+    # Compute actions for this user
+    action_group = action_registry.get_class(ActionGroupType.UserActions)
+    actions = action_group.get_available_actions(obj=user)
+
     return UserSchema(
         id=user.id,
         name=user.name,
@@ -58,13 +64,19 @@ async def get_current_user(request: Request, transaction: AsyncSession) -> UserS
         state=user.state,
         created_at=user.created_at,
         updated_at=user.updated_at,
+        actions=actions,
     )
 
 
 @get("/{user_id:str}")
-async def get_user(user_id: Sqid, transaction: AsyncSession) -> UserSchema:
+async def get_user(user_id: Sqid, transaction: AsyncSession, action_registry: ActionRegistry) -> UserSchema:
     """Get a user by ID - requires authentication."""
     user = await get_or_404(transaction, User, user_id)
+
+    # Compute actions for this user
+    action_group = action_registry.get_class(ActionGroupType.UserActions)
+    actions = action_group.get_available_actions(obj=user)
+
     return UserSchema(
         id=user.id,
         name=user.name,
@@ -73,6 +85,7 @@ async def get_user(user_id: Sqid, transaction: AsyncSession) -> UserSchema:
         state=user.state,
         created_at=user.created_at,
         updated_at=user.updated_at,
+        actions=actions,
     )
 
 

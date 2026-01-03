@@ -39,7 +39,7 @@ class UserObject(BaseObject[User]):
             value=lambda obj: StringFieldValue(value=obj.name),
             sortable=True,
             default_visible=True,
-            editable=False,
+            editable=True,
             include_in_list=True,
         ),
         ObjectColumn(

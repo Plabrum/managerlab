@@ -26,10 +26,11 @@ async def get_roster(
         Roster,
         id,
         load_options=[
+            joinedload(Roster.address),
             joinedload(Roster.thread).options(
                 selectinload(Thread.messages),
                 selectinload(Thread.read_statuses),
-            )
+            ),
         ],
     )
 

@@ -54,7 +54,7 @@ class DeleteCampaign(BaseObjectAction[Campaign, EmptyActionData]):
 @campaign_actions
 class UpdateCampaign(BaseObjectAction[Campaign, CampaignUpdateSchema]):
     action_key = CampaignActions.update
-    label = "Update"
+    label = "Edit"
     is_bulk_allowed = True
     priority = 50
     icon = ActionIcon.edit

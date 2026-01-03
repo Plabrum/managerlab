@@ -1,7 +1,33 @@
-import { Mail, User, CheckCircle2, XCircle } from 'lucide-react';
+import { Mail, User, CheckCircle2, XCircle, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserAndRoleSchema } from '@/openapi/ariveAPI.schemas';
+import { UserAndRoleSchema, RoleLevel } from '@/openapi/ariveAPI.schemas';
+
+function getRoleDisplay(roleLevel: RoleLevel): string {
+  const roleMap: Record<RoleLevel, string> = {
+    owner: 'Owner',
+    admin: 'Admin',
+    member: 'Member',
+    viewer: 'Viewer',
+  };
+  return roleMap[roleLevel] || roleLevel;
+}
+
+function getRoleVariant(
+  roleLevel: RoleLevel
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  switch (roleLevel) {
+    case 'owner':
+      return 'default';
+    case 'admin':
+      return 'secondary';
+    case 'member':
+    case 'viewer':
+      return 'outline';
+    default:
+      return 'outline';
+  }
+}
 
 export function TeamMembersCard({ users }: { users: UserAndRoleSchema[] }) {
   return (
@@ -31,6 +57,13 @@ export function TeamMembersCard({ users }: { users: UserAndRoleSchema[] }) {
                         <h4 className="truncate text-sm font-medium">
                           {user.name}
                         </h4>
+                        <Badge
+                          variant={getRoleVariant(user.role_level)}
+                          className="text-xs"
+                        >
+                          <Shield className="mr-1 h-3 w-3" />
+                          {getRoleDisplay(user.role_level)}
+                        </Badge>
                         <Badge variant="outline" className="text-xs">
                           {user.state}
                         </Badge>

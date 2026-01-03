@@ -45,7 +45,7 @@ class DeleteMedia(BaseObjectAction[Media, EmptyActionData]):
 @media_actions
 class UpdateMedia(BaseObjectAction[Media, MediaUpdateSchema]):
     action_key = MediaActions.update
-    label = "Update"
+    label = "Edit"
     is_bulk_allowed = True
     priority = 50
     icon = ActionIcon.edit

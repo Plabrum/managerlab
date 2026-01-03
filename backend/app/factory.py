@@ -1,5 +1,3 @@
-"""Application factory (stdlib logging only, no structlog)."""
-
 import logging
 from typing import Any
 

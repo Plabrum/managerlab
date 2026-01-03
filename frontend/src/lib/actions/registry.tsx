@@ -13,6 +13,7 @@ import { UpdateCampaignForm } from '@/components/actions/update-campaign-form';
 import { UpdateDashboardForm } from '@/components/actions/update-dashboard-form';
 import { UpdateDeliverableForm } from '@/components/actions/update-deliverable-form';
 import { UpdateRosterForm } from '@/components/actions/update-roster-form';
+import { UpdateUserForm } from '@/components/actions/update-user-form';
 import { UpdateWidgetForm } from '@/components/dashboard/update-widget-form';
 import type {
   ActionsActionGroupExecuteActionBody,
@@ -26,6 +27,7 @@ import type {
   TeamSchema,
   DashboardSchema,
   WidgetSchema,
+  UserSchema,
 } from '@/openapi/ariveAPI.schemas';
 import type { DomainObject } from '@/types/domain-objects';
 
@@ -162,6 +164,9 @@ export type ActionToObjectMap = {
   // Campaign contract actions
   campaign_actions__campaign_add_contract: never;
   campaign_actions__campaign_replace_contract: never;
+
+  // User actions
+  user_actions__user_update: UserSchema;
 };
 
 /**
@@ -554,6 +559,30 @@ export const actionRegistry: ActionRegistry = {
   },
   campaign_actions__campaign_replace_contract: {
     render: () => null,
+  },
+
+  // User actions
+  user_actions__user_update: {
+    render: ({
+      objectData,
+      onSubmit,
+      onClose,
+      isSubmitting,
+      isOpen,
+      actionLabel,
+    }) => {
+      // objectData is typed as UserSchema | undefined
+      return (
+        <UpdateUserForm
+          isOpen={isOpen}
+          onClose={onClose}
+          defaultValues={objectData}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          actionLabel={actionLabel}
+        />
+      );
+    },
   },
 };
 

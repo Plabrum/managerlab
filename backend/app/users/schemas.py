@@ -1,5 +1,8 @@
 from datetime import datetime
 
+from msgspec import UNSET, UnsetType
+
+from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.users.enums import RoleLevel
 from app.utils.sqids import Sqid
@@ -15,6 +18,7 @@ class UserSchema(BaseSchema):
     state: str
     created_at: datetime
     updated_at: datetime
+    actions: list[ActionDTO]
 
 
 class CreateUserSchema(BaseSchema):
@@ -33,3 +37,9 @@ class UserAndRoleSchema(BaseSchema):
     role_level: RoleLevel
     created_at: datetime
     updated_at: datetime
+
+
+class UserUpdateSchema(BaseSchema):
+    """Schema for updating a User."""
+
+    name: str | None | UnsetType = UNSET

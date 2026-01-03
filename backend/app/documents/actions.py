@@ -45,7 +45,7 @@ class DeleteDocument(BaseObjectAction[Document, EmptyActionData]):
 @document_actions
 class UpdateDocument(BaseObjectAction[Document, DocumentUpdateSchema]):
     action_key = DocumentActions.update
-    label = "Update"
+    label = "Edit"
     is_bulk_allowed = True
     priority = 50
     icon = ActionIcon.edit

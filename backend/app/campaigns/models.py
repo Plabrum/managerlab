@@ -16,6 +16,7 @@ from app.campaigns.enums import (
 )
 from app.documents.models import Document
 from app.state_machine.models import StateMachineMixin
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.brands.models.brands import Brand
@@ -79,7 +80,7 @@ class Campaign(
 
     assigned_roster_id: Mapped[int | None] = mapped_column(sa.ForeignKey("roster.id"), nullable=True)
     # Foreign keys - Campaign always has a Brand
-    brand_id: Mapped[int] = mapped_column(sa.ForeignKey("brands.id"), nullable=False)
+    brand_id: Mapped[Sqid] = mapped_column(sa.ForeignKey("brands.id"), nullable=False)
 
     # Relationships
     brand: Mapped["Brand"] = relationship("Brand", back_populates="campaigns")

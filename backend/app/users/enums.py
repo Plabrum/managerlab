@@ -14,3 +14,9 @@ class RoleLevel(StrEnum):
     ADMIN = auto()
     MEMBER = auto()
     VIEWER = auto()
+
+
+class UserActions(StrEnum):
+    """User actions."""
+
+    update = "user.update"
