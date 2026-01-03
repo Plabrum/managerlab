@@ -56,10 +56,10 @@ class BrandContactSchema(BaseSchema):
     email: str | None
     phone: str | None
     notes: str | None
-    brand_id: int
+    brand_id: Sqid
     created_at: datetime
     updated_at: datetime
-    team_id: int | None
+    team_id: Sqid | None
     actions: list[ActionDTO] = []  # TODO: Implement BrandContactActions when needed
 
 
@@ -71,7 +71,7 @@ class BrandContactUpdateSchema(BaseSchema):
     email: str | None | UnsetType = UNSET
     phone: str | None | UnsetType = UNSET
     notes: str | None | UnsetType = UNSET
-    brand_id: int | None | UnsetType = UNSET
+    brand_id: Sqid | None | UnsetType = UNSET
 
 
 class BrandContactCreateSchema(BaseSchema):
@@ -79,7 +79,7 @@ class BrandContactCreateSchema(BaseSchema):
 
     first_name: str
     last_name: str
-    brand_id: int
+    brand_id: Sqid
     email: str | None = None
     phone: str | None = None
     notes: str | None = None

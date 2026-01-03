@@ -134,7 +134,7 @@ class CampaignUpdateSchema(BaseSchema):
 
     name: str | None | UnsetType = UNSET
     description: str | None | UnsetType = UNSET
-    brand_id: int | None | UnsetType = UNSET
+    brand_id: Sqid | None | UnsetType = UNSET  # SQID as string for API
     compensation_structure: CompensationStructure | None | UnsetType = UNSET
 
     # Counterparty
