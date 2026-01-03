@@ -5,7 +5,7 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.actions.state_actions import BaseUpdateStateAction, UpdateStateData
+from app.actions.state_actions import BaseUpdateStateAction
 from app.payments.enums import InvoiceActions, InvoiceStates
 from app.payments.models import Invoice
 from app.payments.schemas import InvoiceCreateSchema, InvoiceUpdateSchema

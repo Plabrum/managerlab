@@ -101,7 +101,6 @@ async def diagnose_rls(db_session: AsyncSession):
 async def main():
     """Run diagnostics."""
     # Import fixtures
-    import pytest
 
     from tests.conftest import db_session, setup_database, test_config, test_engine
 

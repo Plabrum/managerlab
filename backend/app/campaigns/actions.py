@@ -11,7 +11,7 @@ from app.actions.base import EmptyActionData
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionIcon
 from app.actions.schemas import ActionExecutionResponse, RedirectActionResult
-from app.actions.state_actions import BaseUpdateStateAction, UpdateStateData
+from app.actions.state_actions import BaseUpdateStateAction
 from app.campaigns.enums import CampaignActions, CampaignStates
 from app.campaigns.models import Campaign, CampaignContract
 from app.campaigns.schemas import (

@@ -6,22 +6,18 @@ Create Date: 2025-11-18 20:11:49.002135
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-import sqlalchemy as sa
 from alembic_utils.pg_grant_table import PGGrantTable
 from alembic_utils.pg_policy import PGPolicy
-from sqlalchemy import text as sql_text
 
 from alembic import op
-from app.state_machine.models import TextEnum
-from app.utils.sqids import SqidType
 
 # revision identifiers, used by Alembic.
 revision: str = "ede48058260c"
-down_revision: Union[str, Sequence[str], None] = "235c82a83956"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "235c82a83956"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

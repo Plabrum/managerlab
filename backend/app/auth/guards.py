@@ -12,7 +12,7 @@ from app.auth.enums import ScopeType
 from app.utils.configure import config
 
 if TYPE_CHECKING:
-    from litestar import Request
+    pass
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ Create Date: 2025-11-18 20:09:47.789450
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
@@ -16,9 +16,9 @@ from app.utils.sqids import SqidType
 
 # revision identifiers, used by Alembic.
 revision: str = "235c82a83956"
-down_revision: Union[str, Sequence[str], None] = "initial_migration"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "initial_migration"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
