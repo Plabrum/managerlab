@@ -1,5 +1,3 @@
-"""Tests for threads domain: thread and message operations."""
-
 from litestar.testing import AsyncTestClient
 
 from app.utils.sqids import sqid_encode
