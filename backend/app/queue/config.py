@@ -101,10 +101,10 @@ def get_queue_config() -> list[QueueConfig]:
             startup=cast(ReceivesContext, queue_startup),  # Inject dependencies when worker starts
             # Worker configuration
             concurrency=10,  # Number of concurrent tasks
-            # Connection pool settings for Postgres
+            # Connection pool settings for Postgres - zero persistent for Aurora scale-to-zero
             broker_options={
-                "min_size": 2,
-                "max_size": 10,
+                "min_size": 0,  # Zero persistent connections - create on-demand, close when idle
+                "max_size": 5,  # Reduced from 10 since concurrency handles parallelism
             },
         ),
     ]
