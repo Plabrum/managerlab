@@ -10,8 +10,14 @@ import {
 } from '@/components/ui/select';
 import type { RosterUpdateSchema } from '@/openapi/ariveAPI.schemas';
 
-const { FormSheet, FormString, FormDatetime, FormImageUpload, FormCustom } =
-  createTypedForm<RosterUpdateSchema>();
+const {
+  FormSheet,
+  FormString,
+  FormDatetime,
+  FormImageUpload,
+  FormCustom,
+  FormAddress,
+} = createTypedForm<RosterUpdateSchema>();
 
 interface UpdateRosterFormProps {
   isOpen: boolean;
@@ -107,27 +113,7 @@ export function UpdateRosterForm({
       />
 
       {/* Address Section */}
-      <div className="space-y-4 rounded-lg border p-4">
-        <h4 className="text-sm font-medium">Address</h4>
-        <FormString
-          name="address.address1"
-          label="Street Address"
-          placeholder="123 Main St"
-        />
-        <FormString
-          name="address.address2"
-          label="Apt, Suite, etc."
-          placeholder="Apt 4B"
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormString name="address.city" label="City" placeholder="New York" />
-          <FormString name="address.state" label="State" placeholder="NY" />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <FormString name="address.zip" label="ZIP Code" placeholder="10001" />
-          <FormString name="address.country" label="Country" placeholder="US" />
-        </div>
-      </div>
+      <FormAddress name="address" />
 
       {/* Birthday & Gender Section */}
       <div className="space-y-4 rounded-lg border p-4">

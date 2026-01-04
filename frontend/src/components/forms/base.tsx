@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, UploadIcon, X } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
 import {
   useForm,
   FormProvider,
@@ -14,6 +14,14 @@ import {
   Controller,
 } from 'react-hook-form';
 import { Calendar } from '@/components/ui/calendar';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   Dialog,
   DialogContent,
@@ -30,7 +38,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -38,7 +45,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -56,8 +62,9 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useMediaUpload } from '@/hooks/useMediaUpload';
 import { cn } from '@/lib/utils'; // optional: your className helper
+import { ImageUploadField } from './image-upload-dropzone';
+import { COUNTRY_OPTIONS, US_STATE_OPTIONS } from './utils';
 import { Button } from '../ui/button';
 
 type BaseFieldProps<
@@ -95,162 +102,6 @@ function FieldError({ name }: { name: string }) {
   );
 }
 
-/**
- * Reusable image upload field component
- * Handles file selection, preview, upload to S3, and registration
- */
-function ImageUploadField({
-  value,
-  onChange,
-  maxSizeMB = 10,
-}: {
-  value?: string | null;
-  onChange: (mediaId: string | null) => void;
-  maxSizeMB?: number;
-}) {
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
-  const { uploadFile, status, progress, reset } = useMediaUpload();
-
-  const handleDrop = React.useCallback(
-    (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-      if (!file) return;
-
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
-
-      // Validate file size
-      const fileSizeMB = file.size / 1024 / 1024;
-      if (fileSizeMB > maxSizeMB) {
-        alert(`File size must be less than ${maxSizeMB}MB`);
-        return;
-      }
-
-      setSelectedFile(file);
-      reset();
-
-      // Create preview URL
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-
-      // Upload file
-      uploadFile(file, {
-        autoRegister: true,
-        onSuccess: (result) => {
-          onChange(result.mediaId);
-        },
-      });
-    },
-    [maxSizeMB, reset, uploadFile, onChange]
-  );
-
-  const handleRemove = React.useCallback(() => {
-    // Clean up preview URL
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    onChange(null);
-    reset();
-  }, [previewUrl, onChange, reset]);
-
-  // Clean up preview URL on unmount
-  React.useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
-
-  const isUploading = status === 'uploading' || status === 'registering';
-
-  return (
-    <div className="mt-1">
-      {!selectedFile && !value ? (
-        <Dropzone
-          onDrop={handleDrop}
-          accept={{
-            'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
-          }}
-          maxFiles={1}
-          disabled={isUploading}
-        >
-          <DropzoneEmptyState>
-            <div className="flex flex-col items-center justify-center py-3">
-              <div className="bg-muted text-muted-foreground flex size-7 items-center justify-center rounded-md">
-                <UploadIcon size={14} />
-              </div>
-              <p className="my-1 text-sm font-medium">Upload Image</p>
-              <p className="text-muted-foreground text-xs">
-                Drag and drop or click to upload (max {maxSizeMB}MB)
-              </p>
-            </div>
-          </DropzoneEmptyState>
-        </Dropzone>
-      ) : (
-        <div className="border-border rounded-lg border p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">
-                {selectedFile?.name || 'Current image'}
-              </p>
-              {selectedFile && (
-                <p className="text-muted-foreground text-xs">
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              )}
-            </div>
-
-            {!isUploading && (
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                onClick={handleRemove}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-
-          {previewUrl && (
-            <div className="mt-3">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-h-32 w-full rounded-md object-contain"
-              />
-            </div>
-          )}
-
-          {status === 'uploading' && (
-            <div className="mt-3">
-              <Progress value={progress} className="h-2" />
-              <p className="text-muted-foreground mt-1 text-xs">
-                Uploading... {progress}%
-              </p>
-            </div>
-          )}
-
-          {status === 'registering' && (
-            <p className="text-muted-foreground mt-2 text-xs">Processing...</p>
-          )}
-
-          {status === 'complete' && (
-            <p className="mt-2 text-xs text-green-600">Upload complete!</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function createTypedForm<TFieldValues extends FieldValues>() {
   type Name<N extends Path<TFieldValues>> = N;
 
@@ -279,10 +130,42 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
       reValidateMode,
       resolver,
     });
+
+    // Clean up empty address objects before submission
+    const handleSubmit = React.useCallback(
+      (data: TFieldValues) => {
+        const cleanData = { ...data } as Record<string, unknown>;
+
+        // Check if address field exists and clean it up if all subfields are empty
+        if ('address' in cleanData && cleanData.address !== null) {
+          const address = cleanData.address as Record<string, unknown>;
+          const isEmpty = (val: unknown) =>
+            val === null ||
+            val === undefined ||
+            (typeof val === 'string' && val.trim() === '');
+
+          const allFieldsEmpty =
+            isEmpty(address.address1) &&
+            isEmpty(address.address2) &&
+            isEmpty(address.city) &&
+            isEmpty(address.state) &&
+            isEmpty(address.zip) &&
+            isEmpty(address.country);
+
+          if (allFieldsEmpty) {
+            cleanData.address = null;
+          }
+        }
+
+        onSubmit(cleanData as TFieldValues);
+      },
+      [onSubmit]
+    );
+
     return (
       <FormProvider {...methods}>
         <form
-          onSubmit={methods.handleSubmit(onSubmit)}
+          onSubmit={methods.handleSubmit(handleSubmit)}
           className={cn('space-y-4', className)}
         >
           {children}
@@ -390,6 +273,70 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     );
   }
 
+  // ---------- Number input ----------
+  function FormNumber<N extends Name<Path<TFieldValues>>>(
+    props: BaseFieldProps<TFieldValues, N> & {
+      min?: number;
+      max?: number;
+      step?: number;
+      /** If true, uses type="tel" for better mobile experience (no spinners) */
+      useTelInput?: boolean;
+    }
+  ) {
+    const {
+      name,
+      label,
+      placeholder,
+      required,
+      className,
+      rules,
+      description,
+      id,
+      min,
+      max,
+      step,
+      useTelInput = false,
+    } = props;
+    const { register } = useFormContext<TFieldValues>();
+    const htmlId = id ?? String(name);
+
+    return (
+      <div className={className}>
+        {label && (
+          <Label htmlFor={htmlId}>
+            {label} {required ? '*' : null}
+          </Label>
+        )}
+        <Input
+          id={htmlId}
+          type={useTelInput ? 'tel' : 'number'}
+          min={min}
+          max={max}
+          step={step}
+          {...register(name, {
+            required: RequiredMessage(required),
+            min:
+              min !== undefined
+                ? { value: min, message: `Minimum value is ${min}` }
+                : undefined,
+            max:
+              max !== undefined
+                ? { value: max, message: `Maximum value is ${max}` }
+                : undefined,
+            ...(useTelInput ? {} : { valueAsNumber: true }),
+            ...rules,
+          } as RegisterOptions<TFieldValues, N>)}
+          className="mt-1"
+          placeholder={placeholder}
+        />
+        {description ? (
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
+        ) : null}
+        <FieldError name={String(name)} />
+      </div>
+    );
+  }
+
   // ---------- Multiline text ----------
   function FormText<N extends Name<Path<TFieldValues>>>(
     props: BaseFieldProps<TFieldValues, N> & { rows?: number; resize?: boolean }
@@ -481,6 +428,118 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
                 ))}
               </SelectContent>
             </Select>
+          )}
+        />
+        {description ? (
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
+        ) : null}
+        <FieldError name={String(name)} />
+      </div>
+    );
+  }
+
+  // ---------- Combobox input (searchable select) ----------
+  function FormCombobox<N extends Name<Path<TFieldValues>>>(
+    props: BaseFieldProps<TFieldValues, N> & {
+      options: Array<{ value: string; label: string }>;
+      placeholder?: string;
+      searchPlaceholder?: string;
+      emptyText?: string;
+    }
+  ) {
+    const {
+      name,
+      label,
+      placeholder = 'Select option...',
+      searchPlaceholder = 'Search...',
+      emptyText = 'No results found.',
+      required,
+      className,
+      description,
+      id,
+      options,
+    } = props;
+    const { control } = useFormContext<TFieldValues>();
+    const htmlId = id ?? String(name);
+    const [open, setOpen] = React.useState(false);
+
+    return (
+      <div className={className}>
+        {label && (
+          <Label htmlFor={htmlId}>
+            {label} {required ? '*' : null}
+          </Label>
+        )}
+        <Controller
+          name={name}
+          control={control}
+          rules={{ required: RequiredMessage(required) }}
+          render={({ field }) => (
+            <div className="relative mt-1">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id={htmlId}
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between font-normal"
+                  >
+                    {field.value
+                      ? options.find((option) => option.value === field.value)
+                          ?.label
+                      : placeholder}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder={searchPlaceholder} />
+                    <CommandList>
+                      <CommandEmpty>{emptyText}</CommandEmpty>
+                      <CommandGroup>
+                        {options.map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            value={option.label}
+                            onSelect={() => {
+                              field.onChange(
+                                field.value === option.value ? '' : option.value
+                              );
+                              setOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                field.value === option.value
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                            />
+                            {option.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {field.value && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-8 top-1/2 h-6 w-6 -translate-y-1/2 p-0 hover:bg-transparent"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    field.onChange('');
+                  }}
+                >
+                  <X className="h-4 w-4 opacity-50 hover:opacity-100" />
+                </Button>
+              )}
+            </div>
           )}
         />
         {description ? (
@@ -856,16 +915,119 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     );
   }
 
+  // ---------- Address input ----------
+  function FormAddress<N extends Name<Path<TFieldValues>>>(props: {
+    name: N;
+    label?: string;
+    description?: string;
+    className?: string;
+  }) {
+    const { name, label = 'Address', description, className } = props;
+
+    // Type assertion to handle path concatenation
+    const field = (subfield: string) =>
+      `${String(name)}.${subfield}` as Path<TFieldValues>;
+
+    return (
+      <div className={className}>
+        <div className="space-y-4 rounded-lg border p-4">
+          <div>
+            <h4 className="text-sm font-medium">{label}</h4>
+            {description && (
+              <p className="text-muted-foreground mt-1 text-xs">
+                {description}
+              </p>
+            )}
+          </div>
+
+          <FormString
+            name={field('address1')}
+            label="Street Address"
+            placeholder="123 Main St"
+            rules={{
+              maxLength: {
+                value: 255,
+                message: 'Address cannot exceed 255 characters',
+              },
+            }}
+          />
+
+          <FormString
+            name={field('address2')}
+            label="Apt, Suite, etc."
+            placeholder="Apt 4B"
+            rules={{
+              maxLength: {
+                value: 255,
+                message: 'Address line 2 cannot exceed 255 characters',
+              },
+            }}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormString
+              name={field('city')}
+              label="City"
+              placeholder="New York"
+              rules={{
+                maxLength: {
+                  value: 100,
+                  message: 'City cannot exceed 100 characters',
+                },
+              }}
+            />
+            <FormCombobox
+              name={field('state')}
+              label="State/Province"
+              placeholder="Select state"
+              searchPlaceholder="Search states..."
+              options={US_STATE_OPTIONS}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormString
+              name={field('zip')}
+              label="ZIP/Postal Code"
+              placeholder="10001"
+              rules={{
+                maxLength: {
+                  value: 20,
+                  message: 'ZIP/Postal code cannot exceed 20 characters',
+                },
+                pattern: {
+                  value: /^[0-9-\s]*$/,
+                  message:
+                    'ZIP/Postal code should only contain numbers, hyphens, and spaces',
+                },
+              }}
+            />
+            <FormCombobox
+              name={field('country')}
+              label="Country"
+              placeholder="Select country"
+              searchPlaceholder="Search countries..."
+              options={COUNTRY_OPTIONS}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return {
     Form,
     FormString,
     FormEmail,
+    FormNumber,
     FormText,
     FormSelect,
+    FormCombobox,
     FormDatetime,
     FormImageUpload,
     FormCustom,
     FormModal,
     FormSheet,
+    FormAddress,
   };
 }
