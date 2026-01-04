@@ -2,7 +2,15 @@ import { Link } from '@tanstack/react-router';
 import { ActionConfirmationDialog } from '@/components/actions/action-confirmation-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  CardRow,
+  CardRowContent,
+  CardRowDescription,
+  CardRowLeft,
+  CardRowRight,
+  CardRowTitle,
+} from '@/components/ui/card-row';
+import { CardRowList, CardRowListHeader } from '@/components/ui/card-row-list';
 import { useActionExecutor } from '@/hooks/use-action-executor';
 import { useActionFormRenderer } from '@/hooks/use-action-form-renderer';
 import { useListObjectsSuspense } from '@/openapi/objects/objects';
@@ -169,92 +177,91 @@ export function ObjectChildList({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {displayTitle}
-          {data.objects.length > 1 && ` (${data.objects.length})`}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="max-h-96 overflow-y-auto">
-        <div className="space-y-2">
-          {data.objects.map((obj) => (
-            <Link
-              key={obj.id}
-              to={obj.link || `/${obj.object_type}/${obj.id}`}
-              onClick={() => onCardClick?.(obj.id)}
-              className="hover:bg-accent group flex items-center gap-3 rounded-lg border p-3 transition-colors"
-            >
-              {/* Main content - single row layout */}
-              <div className="flex min-w-0 flex-1 items-center gap-4">
-                {/* Title and subtitle */}
-                <div className="min-w-0 flex-1">
-                  <h4 className="truncate text-sm font-semibold leading-tight">
-                    {obj.title}
-                  </h4>
-                  {obj.subtitle && (
-                    <p className="text-muted-foreground truncate text-xs">
-                      {obj.subtitle}
-                    </p>
-                  )}
-                </div>
+    <div className="space-y-4">
+      <CardRowListHeader title={displayTitle} />
 
+      <div className="max-h-96 overflow-y-auto">
+        <CardRowList>
+          {data.objects.map((obj) => (
+            <CardRow key={obj.id}>
+              <CardRowLeft>
+                <CardRowContent>
+                  <Link
+                    to={obj.link || `/${obj.object_type}/${obj.id}`}
+                    onClick={() => onCardClick?.(obj.id)}
+                    className="block"
+                  >
+                    <CardRowTitle className="hover:text-primary transition-colors">
+                      {obj.title}
+                    </CardRowTitle>
+                    {obj.subtitle && (
+                      <CardRowDescription className="line-clamp-1">
+                        {obj.subtitle}
+                      </CardRowDescription>
+                    )}
+                  </Link>
+                </CardRowContent>
+              </CardRowLeft>
+
+              <CardRowRight>
                 {/* Inline fields - show as compact badges/labels */}
                 {displayFields.length > 0 &&
                   obj.fields &&
-                  obj.fields.length > 0 && (
-                    <div className="flex items-center gap-3 text-xs">
-                      {obj.fields
-                        .filter((field) => displayFields.includes(field.key))
-                        .map((field) => {
-                          if (!field.value) return null;
+                  obj.fields.length > 0 &&
+                  obj.fields
+                    .filter((field) => displayFields.includes(field.key))
+                    .map((field) => {
+                      if (!field.value) return null;
 
-                          // Format the value based on type
-                          let displayValue: string;
-                          if ('label' in field.value && field.value.label) {
-                            displayValue = field.value.label;
-                          } else if ('value' in field.value) {
-                            const val = field.value.value;
-                            if (
-                              typeof val === 'string' ||
-                              typeof val === 'number'
-                            ) {
-                              displayValue = String(val);
-                            } else if (val instanceof Date) {
-                              displayValue = val.toLocaleDateString();
-                            } else {
-                              displayValue = JSON.stringify(val);
-                            }
-                          } else {
-                            return null;
-                          }
+                      // Format the value based on type
+                      let displayValue: string;
+                      if ('label' in field.value && field.value.label) {
+                        displayValue = field.value.label;
+                      } else if ('value' in field.value) {
+                        const val = field.value.value;
+                        if (
+                          typeof val === 'string' ||
+                          typeof val === 'number'
+                        ) {
+                          displayValue = String(val);
+                        } else if (val instanceof Date) {
+                          displayValue = val.toLocaleDateString();
+                        } else {
+                          displayValue = JSON.stringify(val);
+                        }
+                      } else {
+                        return null;
+                      }
 
-                          return (
-                            <div
-                              key={field.key}
-                              className="text-muted-foreground flex items-center gap-1.5 whitespace-nowrap"
-                            >
-                              <span className="font-medium">
-                                {field.label || field.key}:
-                              </span>
-                              <span>{displayValue}</span>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  )}
+                      return (
+                        <div
+                          key={field.key}
+                          className="hidden items-center gap-2 sm:flex"
+                        >
+                          <span className="text-muted-foreground text-xs">
+                            {field.label || field.key}:
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-normal"
+                          >
+                            {displayValue}
+                          </Badge>
+                        </div>
+                      );
+                    })}
 
                 {/* State badge */}
                 {obj.state && (
-                  <Badge variant="secondary" className="shrink-0">
+                  <Badge variant="secondary" className="shrink-0 text-xs">
                     {obj.state}
                   </Badge>
                 )}
-              </div>
-            </Link>
+              </CardRowRight>
+            </CardRow>
           ))}
-        </div>
-      </CardContent>
-    </Card>
+        </CardRowList>
+      </div>
+    </div>
   );
 }

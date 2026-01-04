@@ -141,6 +141,6 @@ class CampaignObject(BaseObject[Campaign]):
             default_visible=True,
             editable=False,
             nullable=True,
-            include_in_list=False,  # Not shown in original to_list_dto
+            include_in_list=True,
         ),
     ]

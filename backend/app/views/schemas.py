@@ -6,6 +6,7 @@ from app.base.schemas import BaseSchema
 from app.objects.enums import ObjectTypes
 from app.objects.schemas import FilterDefinition, SortDefinition
 from app.utils.sqids import Sqid
+from app.views.enums import DisplayMode
 
 # =============================================================================
 # Config Schema (TanStack Table State + Display Mode)
@@ -19,7 +20,7 @@ class SavedViewConfigSchema(BaseSchema):
     """
 
     # Required fields first
-    display_mode: str  # 'table' | 'gallery' | 'card'
+    display_mode: DisplayMode
 
     # Optional fields with defaults
     schema_version: int = 1

@@ -248,18 +248,32 @@ export function DataTable({
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = React.useState({});
 
-  // Use controlled column visibility if provided, otherwise use internal state
+  // Internal state for uncontrolled column visibility
   const [internalColumnVisibility, setInternalColumnVisibility] =
     React.useState<VisibilityState>(() => {
       const visibility: VisibilityState = {};
       columnDefs.forEach((col) => {
-        visibility[col.key] = col.default_visible ?? true;
+        visibility[col.key] = col.default_visible ?? false;
       });
       return visibility;
     });
 
-  const columnVisibility =
-    controlledColumnVisibility ?? internalColumnVisibility;
+  // Merge controlled visibility with defaults for all columns
+  // TanStack Table needs ALL columns in the visibility state object
+  const columnVisibility = React.useMemo(() => {
+    // Start with defaults from column definitions
+    const defaults: VisibilityState = {};
+    columnDefs.forEach((col) => {
+      defaults[col.key] = col.default_visible ?? false;
+    });
+
+    // Use controlled state if provided, otherwise use internal state
+    const source = controlledColumnVisibility ?? internalColumnVisibility;
+
+    // Merge: defaults first, then override with source
+    return { ...defaults, ...source };
+  }, [columnDefs, controlledColumnVisibility, internalColumnVisibility]);
+
   const setColumnVisibility =
     onColumnVisibilityChange ?? setInternalColumnVisibility;
 

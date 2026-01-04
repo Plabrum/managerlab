@@ -22,7 +22,11 @@ from app.deliverables.schemas import (
 from app.media.models import Media
 from app.utils.db import create_model, update_model
 
-deliverable_actions = action_group_factory(ActionGroupType.DeliverableActions, model_type=Deliverable)
+deliverable_actions = action_group_factory(
+    ActionGroupType.DeliverableActions,
+    model_type=Deliverable,
+    load_options=[selectinload(Deliverable.media)],
+)
 
 
 @deliverable_actions
@@ -109,7 +113,6 @@ class AddMediaToDeliverable(BaseObjectAction[Deliverable, AddMediaToDeliverableS
     priority = 0
     icon = ActionIcon.add
     model = Deliverable
-    load_options = [selectinload(Deliverable.media)]
 
     @classmethod
     async def execute(

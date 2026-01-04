@@ -21,6 +21,7 @@ import type {
   CampaignSchema,
   BrandSchema,
   DeliverableResponseSchema,
+  DeliverableUpdateSchema,
   MediaResponseSchema,
   RosterSchema,
   InvoiceSchema,
@@ -199,12 +200,20 @@ export const actionRegistry: ActionRegistry = {
       isOpen,
       actionLabel,
     }) => {
-      // objectData is typed as DeliverableResponseSchema | undefined
+      // Transform response schema to update schema format
+      // campaign_id in response can be null, but update schema expects number | undefined
+      const defaultValues = objectData
+        ? ({
+            ...objectData,
+            campaign_id: objectData.campaign_id ?? undefined,
+          } as Partial<DeliverableUpdateSchema>)
+        : undefined;
+
       return (
         <UpdateDeliverableForm
           isOpen={isOpen}
           onClose={onClose}
-          defaultValues={objectData}
+          defaultValues={defaultValues}
           onSubmit={onSubmit}
           isSubmitting={isSubmitting}
           actionLabel={actionLabel}
