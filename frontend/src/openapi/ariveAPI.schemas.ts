@@ -211,25 +211,20 @@ export interface BrandContactSchema {
   actions?: ActionDTO[];
 }
 
-export type BrandContactUpdateSchemaFirstName = string | null;
-
-export type BrandContactUpdateSchemaLastName = string | null;
-
 export type BrandContactUpdateSchemaEmail = string | null;
 
 export type BrandContactUpdateSchemaPhone = string | null;
 
 export type BrandContactUpdateSchemaNotes = string | null;
 
-export type BrandContactUpdateSchemaBrandId = string | null;
-
 export interface BrandContactUpdateSchema {
-  first_name?: BrandContactUpdateSchemaFirstName;
-  last_name?: BrandContactUpdateSchemaLastName;
+  first_name: string;
+  last_name: string;
   email?: BrandContactUpdateSchemaEmail;
   phone?: BrandContactUpdateSchemaPhone;
   notes?: BrandContactUpdateSchemaNotes;
-  brand_id?: BrandContactUpdateSchemaBrandId;
+  /** SQID-encoded identifier */
+  brand_id: string;
 }
 
 export type BrandCreateSchemaDescription = string | null;
@@ -281,8 +276,6 @@ export interface BrandSchema {
   thread?: BrandSchemaThread;
 }
 
-export type BrandUpdateSchemaName = string | null;
-
 export type BrandUpdateSchemaDescription = string | null;
 
 export type BrandUpdateSchemaWebsite = string | null;
@@ -294,7 +287,7 @@ export type BrandUpdateSchemaPhone = string | null;
 export type BrandUpdateSchemaNotes = string | null;
 
 export interface BrandUpdateSchema {
-  name?: BrandUpdateSchemaName;
+  name: string;
   description?: BrandUpdateSchemaDescription;
   website?: BrandUpdateSchemaWebsite;
   email?: BrandUpdateSchemaEmail;
@@ -453,7 +446,7 @@ export type CampaignSchemaDescription = string | null;
 
 export type CampaignSchemaCompensationStructure = CompensationStructure | null;
 
-export type CampaignSchemaAssignedRosterId = number | null;
+export type CampaignSchemaAssignedRosterId = string | null;
 
 export type CampaignSchemaTeamId = number | null;
 
@@ -535,19 +528,15 @@ export interface CampaignScopeSchema {
   access_level: CampaignGuestAccessLevel;
 }
 
-export type CampaignUpdateSchemaName = string | null;
-
 export type CampaignUpdateSchemaDescription = string | null;
-
-export type CampaignUpdateSchemaBrandId = string | null;
-
-export type CampaignUpdateSchemaCompensationStructure = CompensationStructure | null;
 
 export type CampaignUpdateSchemaCounterpartyType = CounterpartyType | null;
 
 export type CampaignUpdateSchemaCounterpartyName = string | null;
 
 export type CampaignUpdateSchemaCounterpartyEmail = string | null;
+
+export type CampaignUpdateSchemaCompensationStructure = CompensationStructure | null;
 
 export type CampaignUpdateSchemaCompensationTotalUsd = number | null;
 
@@ -578,13 +567,12 @@ export type CampaignUpdateSchemaApprovalRounds = number | null;
 export type CampaignUpdateSchemaApprovalSlaHours = number | null;
 
 export interface CampaignUpdateSchema {
-  name?: CampaignUpdateSchemaName;
+  name: string;
   description?: CampaignUpdateSchemaDescription;
-  brand_id?: CampaignUpdateSchemaBrandId;
-  compensation_structure?: CampaignUpdateSchemaCompensationStructure;
   counterparty_type?: CampaignUpdateSchemaCounterpartyType;
   counterparty_name?: CampaignUpdateSchemaCounterpartyName;
   counterparty_email?: CampaignUpdateSchemaCounterpartyEmail;
+  compensation_structure?: CampaignUpdateSchemaCompensationStructure;
   compensation_total_usd?: CampaignUpdateSchemaCompensationTotalUsd;
   payment_terms_days?: CampaignUpdateSchemaPaymentTermsDays;
   flight_start_date?: CampaignUpdateSchemaFlightStartDate;
@@ -599,6 +587,8 @@ export interface CampaignUpdateSchema {
   ownership_mode?: CampaignUpdateSchemaOwnershipMode;
   approval_rounds?: CampaignUpdateSchemaApprovalRounds;
   approval_sla_hours?: CampaignUpdateSchemaApprovalSlaHours;
+  /** SQID-encoded identifier */
+  brand_id: string;
 }
 
 export type CategoricalDataPointBreakdowns = {[key: string]: number};
@@ -1007,17 +997,7 @@ export const DeliverableType = {
   email_newsletter: 'email_newsletter',
 } as const;
 
-export type DeliverableUpdateSchemaTitle = string | null;
-
-export type DeliverableUpdateSchemaContent = string | null;
-
-export type DeliverableUpdateSchemaPlatforms = SocialMediaPlatforms | null;
-
 export type DeliverableUpdateSchemaDeliverableType = DeliverableType | null;
-
-export type DeliverableUpdateSchemaCount = number | null;
-
-export type DeliverableUpdateSchemaPostingDate = string | null;
 
 export type DeliverableUpdateSchemaPostingStartDate = string | null;
 
@@ -1029,33 +1009,45 @@ export type DeliverableUpdateSchemaHashtags = string[] | null;
 
 export type DeliverableUpdateSchemaDisclosures = string[] | null;
 
-export type DeliverableUpdateSchemaApprovalRequired = boolean | null;
-
 export type DeliverableUpdateSchemaApprovalRounds = number | null;
+
+export type DeliverableUpdateSchemaContent = string | null;
 
 export type DeliverableUpdateSchemaNotesOneOf = {[key: string]: unknown};
 
 export type DeliverableUpdateSchemaNotes = DeliverableUpdateSchemaNotesOneOf | null;
 
-export type DeliverableUpdateSchemaCampaignId = number | null;
-
 export interface DeliverableUpdateSchema {
-  title?: DeliverableUpdateSchemaTitle;
-  content?: DeliverableUpdateSchemaContent;
-  platforms?: DeliverableUpdateSchemaPlatforms;
+  title: string;
+  platforms: SocialMediaPlatforms;
+  posting_date: string;
   deliverable_type?: DeliverableUpdateSchemaDeliverableType;
-  count?: DeliverableUpdateSchemaCount;
-  posting_date?: DeliverableUpdateSchemaPostingDate;
+  count?: number;
   posting_start_date?: DeliverableUpdateSchemaPostingStartDate;
   posting_end_date?: DeliverableUpdateSchemaPostingEndDate;
   handles?: DeliverableUpdateSchemaHandles;
   hashtags?: DeliverableUpdateSchemaHashtags;
   disclosures?: DeliverableUpdateSchemaDisclosures;
-  approval_required?: DeliverableUpdateSchemaApprovalRequired;
+  approval_required?: boolean;
   approval_rounds?: DeliverableUpdateSchemaApprovalRounds;
+  content?: DeliverableUpdateSchemaContent;
+  campaign_id: number;
   notes?: DeliverableUpdateSchemaNotes;
-  campaign_id?: DeliverableUpdateSchemaCampaignId;
 }
+
+/**
+ * Display mode for object list views.
+ */
+export type DisplayMode = typeof DisplayMode[keyof typeof DisplayMode];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DisplayMode = {
+  table: 'table',
+  gallery: 'gallery',
+  card: 'card',
+  list: 'list',
+} as const;
 
 export type DocumentResponseSchemaThumbnailUrl = string | null;
 
@@ -1095,10 +1087,8 @@ export interface DocumentSchema {
   campaign_id?: DocumentSchemaCampaignId;
 }
 
-export type DocumentUpdateSchemaFileName = string | null;
-
 export interface DocumentUpdateSchema {
-  file_name?: DocumentUpdateSchemaFileName;
+  file_name: string;
 }
 
 export interface DownloadDocumentAction {
@@ -1328,20 +1318,6 @@ export interface InvoiceSchema {
   thread?: InvoiceSchemaThread;
 }
 
-export type InvoiceUpdateSchemaInvoiceNumber = number | null;
-
-export type InvoiceUpdateSchemaCustomerName = string | null;
-
-export type InvoiceUpdateSchemaCustomerEmail = string | null;
-
-export type InvoiceUpdateSchemaPostingDate = string | null;
-
-export type InvoiceUpdateSchemaDueDate = string | null;
-
-export type InvoiceUpdateSchemaAmountDue = number | null;
-
-export type InvoiceUpdateSchemaAmountPaid = number | null;
-
 export type InvoiceUpdateSchemaDescription = string | null;
 
 export type InvoiceUpdateSchemaNotes = string | null;
@@ -1349,13 +1325,13 @@ export type InvoiceUpdateSchemaNotes = string | null;
 export type InvoiceUpdateSchemaCampaignId = number | null;
 
 export interface InvoiceUpdateSchema {
-  invoice_number?: InvoiceUpdateSchemaInvoiceNumber;
-  customer_name?: InvoiceUpdateSchemaCustomerName;
-  customer_email?: InvoiceUpdateSchemaCustomerEmail;
-  posting_date?: InvoiceUpdateSchemaPostingDate;
-  due_date?: InvoiceUpdateSchemaDueDate;
-  amount_due?: InvoiceUpdateSchemaAmountDue;
-  amount_paid?: InvoiceUpdateSchemaAmountPaid;
+  invoice_number: number;
+  customer_name: string;
+  customer_email: string;
+  posting_date: string;
+  due_date: string;
+  amount_due: number;
+  amount_paid: number;
   description?: InvoiceUpdateSchemaDescription;
   notes?: InvoiceUpdateSchemaNotes;
   campaign_id?: InvoiceUpdateSchemaCampaignId;
@@ -1421,10 +1397,8 @@ export interface MediaSchema {
   campaign_id?: MediaSchemaCampaignId;
 }
 
-export type MediaUpdateSchemaFileName = string | null;
-
 export interface MediaUpdateSchema {
-  file_name?: MediaUpdateSchemaFileName;
+  file_name: string;
 }
 
 export type MessageCreateSchemaContent = {[key: string]: unknown};
@@ -1688,7 +1662,7 @@ export type RosterCreateSchemaTiktokHandle = string | null;
 
 export type RosterCreateSchemaYoutubeChannel = string | null;
 
-export type RosterCreateSchemaProfilePhotoId = unknown | null;
+export type RosterCreateSchemaProfilePhotoId = string | null;
 
 export interface RosterCreateSchema {
   name: string;
@@ -1744,7 +1718,7 @@ export type RosterSchemaTiktokHandle = string | null;
 
 export type RosterSchemaYoutubeChannel = string | null;
 
-export type RosterSchemaProfilePhotoId = number | null;
+export type RosterSchemaProfilePhotoId = string | null;
 
 export type RosterSchemaTeamId = number | null;
 
@@ -1772,8 +1746,6 @@ export interface RosterSchema {
   thread?: RosterSchemaThread;
 }
 
-export type RosterUpdateSchemaName = string | null;
-
 export type RosterUpdateSchemaEmail = string | null;
 
 export type RosterUpdateSchemaPhone = string | null;
@@ -1792,10 +1764,10 @@ export type RosterUpdateSchemaTiktokHandle = string | null;
 
 export type RosterUpdateSchemaYoutubeChannel = string | null;
 
-export type RosterUpdateSchemaProfilePhotoId = unknown | null;
+export type RosterUpdateSchemaProfilePhotoId = string | null;
 
 export interface RosterUpdateSchema {
-  name?: RosterUpdateSchemaName;
+  name: string;
   email?: RosterUpdateSchemaEmail;
   phone?: RosterUpdateSchemaPhone;
   birthdate?: RosterUpdateSchemaBirthdate;
@@ -1815,7 +1787,7 @@ export type SavedViewConfigSchemaColumnVisibility = {[key: string]: boolean};
 export type SavedViewConfigSchemaSearchTerm = string | null;
 
 export interface SavedViewConfigSchema {
-  display_mode: string;
+  display_mode: DisplayMode;
   schema_version?: number;
   column_filters?: SavedViewConfigSchemaColumnFiltersItem[];
   column_visibility?: SavedViewConfigSchemaColumnVisibility;
@@ -2145,10 +2117,8 @@ export interface UserSchema {
   actions: ActionDTO[];
 }
 
-export type UserUpdateSchemaName = string | null;
-
 export interface UserUpdateSchema {
-  name?: UserUpdateSchemaName;
+  name: string;
 }
 
 export type WidgetQuerySchemaTimeRange = TimeRange | null;

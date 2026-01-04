@@ -1,6 +1,15 @@
-"""SavedView action enums."""
+"""SavedView enums."""
 
 from enum import StrEnum, auto
+
+
+class DisplayMode(StrEnum):
+    """Display mode for object list views."""
+
+    TABLE = "table"
+    GALLERY = "gallery"
+    CARD = "card"
+    LIST = "list"
 
 
 class SavedViewActions(StrEnum):

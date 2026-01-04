@@ -37,6 +37,7 @@ import {
 import { useViewsObjectTypeListSavedViewsSuspense } from '@/openapi/views/views';
 import { CardView } from './card-view';
 import { GalleryView } from './gallery-view';
+import { ListView } from './list-view';
 import { ObjectListToolbar } from './object-list-toolbar';
 import { SavedViewTabs } from './saved-view-tabs';
 import type {
@@ -649,8 +650,18 @@ export function ObjectList({
           onRowClick={onRowClick}
         />
       )}
+      {config.display_mode === 'list' && (
+        <ListView
+          data={data.objects}
+          columns={schema.columns}
+          enableRowSelection={enableRowSelection}
+          selectedRows={selectedRowsSet}
+          onRowSelectionChange={handleViewSelection}
+          onRowClick={onRowClick}
+        />
+      )}
 
-      {/* Bulk Actions Bar (for gallery/card views only - table has its own) */}
+      {/* Bulk Actions Bar (for non-table views only - table has its own) */}
       {config.display_mode !== 'table' &&
         selectedRowsData.length > 0 &&
         commonBulkActions.length > 0 && (

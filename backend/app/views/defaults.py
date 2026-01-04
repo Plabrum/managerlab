@@ -6,54 +6,61 @@ Each object type has an opinionated default configuration tailored to its common
 
 from app.objects.enums import ObjectTypes, SortDirection
 from app.objects.schemas import SortDefinition
+from app.views.enums import DisplayMode
 from app.views.schemas import SavedViewConfigSchema
 
 # Opinionated defaults per object type
 DEFAULT_VIEW_CONFIGS: dict[ObjectTypes, SavedViewConfigSchema] = {
     ObjectTypes.Roster: SavedViewConfigSchema(
-        display_mode="card",
+        display_mode=DisplayMode.CARD,
         column_filters=[],
         column_visibility={"email": True, "role": True, "status": True},
         sorting=[SortDefinition(column="name", direction=SortDirection.sort_asc)],  # Alphabetical by name
         page_size=50,  # Show more roster members per page
     ),
     ObjectTypes.Campaigns: SavedViewConfigSchema(
-        display_mode="table",
+        display_mode=DisplayMode.TABLE,
         column_filters=[],
-        column_visibility={},
+        column_visibility={
+            "name": True,
+            "description": True,
+            "brand_id": True,
+            "state": True,
+            "compensation_structure": True,
+        },
         sorting=[SortDefinition(column="created_at", direction=SortDirection.sort_desc)],  # Newest first
-        page_size=20,  # Fewer items in gallery mode
+        page_size=20,
     ),
     ObjectTypes.Brands: SavedViewConfigSchema(
-        display_mode="table",
+        display_mode=DisplayMode.TABLE,
         column_filters=[],
         column_visibility={"name": True, "website": True},
         sorting=[SortDefinition(column="name", direction=SortDirection.sort_asc)],  # Alphabetical
         page_size=30,
     ),
     ObjectTypes.Deliverables: SavedViewConfigSchema(
-        display_mode="card",
+        display_mode=DisplayMode.CARD,
         column_filters=[],
         column_visibility={"title": True, "status": True, "due_date": True},
         sorting=[SortDefinition(column="due_date", direction=SortDirection.sort_asc)],  # Soonest due date first
         page_size=40,
     ),
     ObjectTypes.Media: SavedViewConfigSchema(
-        display_mode="gallery",
+        display_mode=DisplayMode.GALLERY,
         column_filters=[],
         column_visibility={},
         sorting=[SortDefinition(column="created_at", direction=SortDirection.sort_desc)],
         page_size=24,  # Grid layout friendly
     ),
     ObjectTypes.Documents: SavedViewConfigSchema(
-        display_mode="gallery",
+        display_mode=DisplayMode.GALLERY,
         column_filters=[],
         column_visibility={"name": True, "created_at": True, "size": True},
         sorting=[SortDefinition(column="created_at", direction=SortDirection.sort_desc)],
         page_size=40,
     ),
     ObjectTypes.Invoices: SavedViewConfigSchema(
-        display_mode="table",
+        display_mode=DisplayMode.TABLE,
         column_filters=[],
         column_visibility={
             "number": True,
@@ -86,7 +93,7 @@ def get_default_view_config(object_type: ObjectTypes) -> SavedViewConfigSchema:
         object_type,
         # Generic fallback for object types without custom defaults
         SavedViewConfigSchema(
-            display_mode="table",
+            display_mode=DisplayMode.TABLE,
             column_filters=[],
             column_visibility={},
             sorting=[],

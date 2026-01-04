@@ -34,7 +34,7 @@ export function useSidebar() {
 
 // Desktop provider: Handles collapsible state with cookie persistence
 function DesktopSidebarProvider({
-  defaultOpen = true,
+  defaultOpen: _defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
