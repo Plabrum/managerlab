@@ -3,6 +3,7 @@ import { UploadIcon, X } from 'lucide-react';
 import { Dropzone, DropzoneEmptyState } from '@/components/ui/dropzone';
 import { Progress } from '@/components/ui/progress';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
+import { useMediaIdGetMedia } from '@/openapi/media/media';
 import { Button } from '../ui/button';
 /**
  * Reusable image upload field component
@@ -20,6 +21,13 @@ export function ImageUploadField({
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const { uploadFile, status, progress, reset } = useMediaUpload();
+
+  // Fetch existing media when value exists and no file is selected
+  const { data: existingMedia } = useMediaIdGetMedia(value ?? '', {
+    query: {
+      enabled: !!value && !selectedFile,
+    },
+  });
 
   const handleDrop = React.useCallback(
     (acceptedFiles: File[]) => {
@@ -107,13 +115,19 @@ export function ImageUploadField({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">
-                {selectedFile?.name || 'Current image'}
+                {selectedFile?.name ||
+                  existingMedia?.file_name ||
+                  'Current image'}
               </p>
-              {selectedFile && (
+              {selectedFile ? (
                 <p className="text-muted-foreground text-xs">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
-              )}
+              ) : existingMedia ? (
+                <p className="text-muted-foreground text-xs">
+                  {(existingMedia.file_size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              ) : null}
             </div>
 
             {!isUploading && (
@@ -128,10 +142,10 @@ export function ImageUploadField({
             )}
           </div>
 
-          {previewUrl && (
+          {(previewUrl || existingMedia?.view_url) && (
             <div className="mt-3">
               <img
-                src={previewUrl}
+                src={previewUrl || existingMedia?.view_url}
                 alt="Preview"
                 className="max-h-32 w-full rounded-md object-contain"
               />
