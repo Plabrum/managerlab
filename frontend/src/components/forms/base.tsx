@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Upload, X, Image as ImageIcon } from 'lucide-react';
 import {
   useForm,
   FormProvider,
@@ -54,6 +54,7 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMediaUpload } from '@/hooks/useMediaUpload';
 import { cn } from '@/lib/utils'; // optional: your className helper
 import { Button } from '../ui/button';
 
@@ -89,6 +90,136 @@ function FieldError({ name }: { name: string }) {
     <p className="text-destructive mt-1 text-sm">
       {String(err.message ?? 'Invalid value')}
     </p>
+  );
+}
+
+/**
+ * Reusable image upload field component
+ * Handles file selection, preview, upload to S3, and registration
+ */
+function ImageUploadField({
+  value,
+  onChange,
+  accept = 'image/*',
+  maxSizeMB = 10,
+}: {
+  value?: string | null;
+  onChange: (mediaId: string | null) => void;
+  accept?: string;
+  maxSizeMB?: number;
+}) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = React.useState<string | null>(null);
+  const { uploadFile, status, progress } = useMediaUpload();
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size
+    const fileSizeMB = file.size / 1024 / 1024;
+    if (fileSizeMB > maxSizeMB) {
+      alert(`File size must be less than ${maxSizeMB}MB`);
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload file
+    await uploadFile(file, {
+      autoRegister: true,
+      onSuccess: (result) => {
+        onChange(result.mediaId);
+      },
+    });
+  };
+
+  const handleRemove = () => {
+    setPreview(null);
+    onChange(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="mt-1 space-y-4 rounded-lg border p-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium">
+          {preview || value ? 'Image' : 'Upload Image'}
+        </h4>
+        {(preview || value) && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleRemove}
+            disabled={status === 'uploading' || status === 'registering'}
+          >
+            <X className="h-4 w-4" />
+            Remove
+          </Button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-4">
+        {/* Preview */}
+        <div className="bg-muted flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border">
+          {preview ? (
+            <img
+              src={preview}
+              alt="Preview"
+              className="h-full w-full object-cover"
+            />
+          ) : value ? (
+            <div className="flex flex-col items-center justify-center gap-1 text-center">
+              <ImageIcon className="text-muted-foreground h-6 w-6" />
+              <span className="text-muted-foreground text-xs">Current</span>
+            </div>
+          ) : (
+            <ImageIcon className="text-muted-foreground h-8 w-8" />
+          )}
+        </div>
+
+        {/* Upload Button */}
+        <div className="flex-1">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={status === 'uploading' || status === 'registering'}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {preview || value ? 'Change Image' : 'Choose File'}
+          </Button>
+          <p className="text-muted-foreground mt-2 text-xs">
+            {status === 'uploading' && `Uploading... ${progress}%`}
+            {status === 'registering' && 'Processing...'}
+            {status === 'complete' && preview && 'Upload complete'}
+            {status === 'idle' && `Max ${maxSizeMB}MB`}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -476,6 +607,55 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     );
   }
 
+  // ---------- Image upload ----------
+  function FormImageUpload<N extends Name<Path<TFieldValues>>>(
+    props: BaseFieldProps<TFieldValues, N> & {
+      accept?: string;
+      maxSizeMB?: number;
+    }
+  ) {
+    const {
+      name,
+      label,
+      required,
+      className,
+      rules,
+      description,
+      id,
+      accept = 'image/*',
+      maxSizeMB = 10,
+    } = props;
+    const { control } = useFormContext<TFieldValues>();
+    const htmlId = id ?? String(name);
+
+    return (
+      <div className={className}>
+        {label && (
+          <Label htmlFor={htmlId}>
+            {label} {required ? '*' : null}
+          </Label>
+        )}
+        <Controller
+          name={name}
+          control={control}
+          rules={{ required: RequiredMessage(required), ...rules }}
+          render={({ field: { value, onChange } }) => (
+            <ImageUploadField
+              value={value as string | null | undefined}
+              onChange={onChange}
+              accept={accept}
+              maxSizeMB={maxSizeMB}
+            />
+          )}
+        />
+        {description ? (
+          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
+        ) : null}
+        <FieldError name={String(name)} />
+      </div>
+    );
+  }
+
   function FormModal(props: {
     isOpen: boolean;
     onClose: () => void;
@@ -658,6 +838,7 @@ export function createTypedForm<TFieldValues extends FieldValues>() {
     FormText,
     FormSelect,
     FormDatetime,
+    FormImageUpload,
     FormCustom,
     FormModal,
     FormSheet,
