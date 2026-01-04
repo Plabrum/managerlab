@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.objects.enums import ObjectTypes
+from app.users.enums import RoleLevel
 from app.utils.sqids import sqid_encode
 from app.views.models import SavedView
 
@@ -201,7 +202,7 @@ class TestViews:
         from tests.factories.users import UserFactory
 
         other_user = await UserFactory.create_async(session=db_session)
-        role = Role(user_id=other_user.id, team_id=team.id, role_level="member")
+        role = Role(user_id=other_user.id, team_id=team.id, role_level=RoleLevel.MEMBER)
         db_session.add(role)
         await db_session.flush()
 
@@ -282,7 +283,7 @@ class TestViews:
         from tests.factories.users import UserFactory
 
         other_user = await UserFactory.create_async(session=db_session)
-        role = Role(user_id=other_user.id, team_id=team.id, role_level="member")
+        role = Role(user_id=other_user.id, team_id=team.id, role_level=RoleLevel.MEMBER)
         db_session.add(role)
         await db_session.flush()
 

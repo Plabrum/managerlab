@@ -18,6 +18,7 @@ from app.deliverables.enums import (
 )
 from app.state_machine.models import StateMachineMixin
 from app.utils.sqids import Sqid
+from app.utils.textenum import TextEnum
 
 if TYPE_CHECKING:
     from app.campaigns.models import Campaign
@@ -40,8 +41,8 @@ class Deliverable(
     content: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
     # Platform and type
-    platforms: Mapped[SocialMediaPlatforms] = mapped_column(sa.Enum(SocialMediaPlatforms), nullable=False)
-    deliverable_type: Mapped[DeliverableType | None] = mapped_column(sa.Enum(DeliverableType), nullable=True)
+    platforms: Mapped[SocialMediaPlatforms] = mapped_column(TextEnum(SocialMediaPlatforms), nullable=False)
+    deliverable_type: Mapped[DeliverableType | None] = mapped_column(TextEnum(DeliverableType), nullable=True)
     count: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
 
     # Posting dates - keep datetime for backward compatibility, add date range

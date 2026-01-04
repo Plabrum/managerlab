@@ -22,6 +22,7 @@ class DeliverableFactory(BaseFactory):
     title = Use(BaseFactory.__faker__.sentence, nb_words=6)
     content = Use(BaseFactory.__faker__.text, max_nb_chars=2000)
     platforms = Use(BaseFactory.__faker__.random_element, elements=list(SocialMediaPlatforms))
+    deliverable_type = None  # Optional field - set to None by default
     posting_date = Use(
         BaseFactory.__faker__.date_time_between,
         start_date="+0d",

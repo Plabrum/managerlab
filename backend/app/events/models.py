@@ -12,6 +12,7 @@ from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 from app.events.enums import EventType
 from app.utils.sqids import Sqid
+from app.utils.textenum import TextEnum
 
 if TYPE_CHECKING:
     from app.users.models import User
@@ -38,7 +39,7 @@ class Event(RLSMixin(), BaseDBModel):
     object_id: Mapped[int] = mapped_column(nullable=False)
 
     # Event type
-    event_type: Mapped[EventType] = mapped_column(nullable=False)
+    event_type: Mapped[EventType] = mapped_column(TextEnum(EventType), nullable=False)
 
     # Structured event data (changes, metadata, etc.)
     # Format examples:
