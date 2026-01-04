@@ -35,10 +35,22 @@ class TestRoster:
     ):
         """Test POST /roster/{id} updates roster member."""
 
-        # Update the roster member
+        # Update the roster member (send complete object - updates are declarative)
         response = await authenticated_client.post(
             f"/roster/{sqid_encode(roster.id)}",
-            json={"name": "Updated Name"},
+            json={
+                "name": "Updated Name",
+                "email": roster.email,
+                "phone": roster.phone,
+                "birthdate": None,
+                "gender": None,
+                "address": None,
+                "instagram_handle": roster.instagram_handle,
+                "facebook_handle": roster.facebook_handle,
+                "tiktok_handle": roster.tiktok_handle,
+                "youtube_channel": roster.youtube_channel,
+                "profile_photo_id": None,
+            },
         )
         assert response.status_code in [200, 201]
 
@@ -68,12 +80,24 @@ class TestRoster:
     ):
         """Test executing roster update action."""
 
-        # Execute update action using SQID-encoded ID
+        # Execute update action using SQID-encoded ID (send complete object)
         response = await execute_action(
             authenticated_client,
             "roster_actions",
             "roster_actions__roster_update",
-            data={"name": "After Update", "email": "newemail@example.com"},
+            data={
+                "name": "After Update",
+                "email": "newemail@example.com",
+                "phone": roster.phone,
+                "birthdate": None,
+                "gender": None,
+                "address": None,
+                "instagram_handle": roster.instagram_handle,
+                "facebook_handle": roster.facebook_handle,
+                "tiktok_handle": roster.tiktok_handle,
+                "youtube_channel": roster.youtube_channel,
+                "profile_photo_id": None,
+            },
             obj_id=sqid_encode(roster.id),
         )
 
@@ -132,13 +156,21 @@ class TestRoster:
     ):
         """Test updating roster with social media handles."""
 
-        # Update with social handles
+        # Update with social handles (send complete object)
         response = await authenticated_client.post(
             f"/roster/{sqid_encode(roster.id)}",
             json={
+                "name": roster.name,
+                "email": roster.email,
+                "phone": roster.phone,
+                "birthdate": None,
+                "gender": None,
+                "address": None,
                 "instagram_handle": "@influencer",
+                "facebook_handle": roster.facebook_handle,
                 "tiktok_handle": "@tiktoker",
                 "youtube_channel": "UCxyz123",
+                "profile_photo_id": None,
             },
         )
         assert response.status_code in [200, 201]

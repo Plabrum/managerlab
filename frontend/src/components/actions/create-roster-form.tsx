@@ -67,14 +67,37 @@ export function CreateRosterForm({
 
       <FormString name="phone" label="Phone" placeholder="+1 (555) 000-0000" />
 
-      <FormString
-        name="instagram_handle"
-        label="Instagram Handle"
-        placeholder="@username"
-      />
-
       {/* Additional Options - Collapsible */}
       <CollapsibleFormSection title="Additional options" defaultOpen={false}>
+        {/* Social Media Section */}
+        <div className="space-y-4 rounded-lg border p-4">
+          <h4 className="text-sm font-medium">Social Media</h4>
+
+          <FormString
+            name="instagram_handle"
+            label="Instagram Handle"
+            placeholder="@username"
+          />
+
+          <FormString
+            name="facebook_handle"
+            label="Facebook Handle"
+            placeholder="@username"
+          />
+
+          <FormString
+            name="tiktok_handle"
+            label="TikTok Handle"
+            placeholder="@username"
+          />
+
+          <FormString
+            name="youtube_channel"
+            label="YouTube Channel"
+            placeholder="Channel name or URL"
+          />
+        </div>
+
         {/* Profile Photo Section */}
         <FormImageUpload
           name="profile_photo_id"
@@ -187,29 +210,6 @@ export function CreateRosterForm({
               );
             }}
           </FormCustom>
-        </div>
-
-        {/* Social Media Section */}
-        <div className="space-y-4 rounded-lg border p-4">
-          <h4 className="text-sm font-medium">Social Media</h4>
-
-          <FormString
-            name="facebook_handle"
-            label="Facebook Handle"
-            placeholder="@username"
-          />
-
-          <FormString
-            name="tiktok_handle"
-            label="TikTok Handle"
-            placeholder="@username"
-          />
-
-          <FormString
-            name="youtube_channel"
-            label="YouTube Channel"
-            placeholder="Channel name or URL"
-          />
         </div>
       </CollapsibleFormSection>
     </FormModal>
