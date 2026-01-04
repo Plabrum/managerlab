@@ -1,7 +1,5 @@
 from datetime import date, datetime
 
-from msgspec import UNSET, UnsetType
-
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.campaigns.enums import CompensationStructure, CounterpartyType, OwnershipMode
@@ -129,44 +127,10 @@ class CampaignSchema(BaseSchema):
     approval_sla_hours: int | None = None
 
 
-class CampaignUpdateSchema(BaseSchema):
-    """Schema for updating a Campaign."""
+class CampaignUpdateSchema(CampaignFieldsBase, kw_only=True):
+    """Declarative update schema for Campaign - inherits from CampaignFieldsBase."""
 
-    name: str | None | UnsetType = UNSET
-    description: str | None | UnsetType = UNSET
-    brand_id: Sqid | None | UnsetType = UNSET  # SQID as string for API
-    compensation_structure: CompensationStructure | None | UnsetType = UNSET
-
-    # Counterparty
-    counterparty_type: CounterpartyType | None | UnsetType = UNSET
-    counterparty_name: str | None | UnsetType = UNSET
-    counterparty_email: str | None | UnsetType = UNSET
-
-    # Compensation
-    compensation_total_usd: float | None | UnsetType = UNSET
-    payment_terms_days: int | None | UnsetType = UNSET
-
-    # Flight dates
-    flight_start_date: date | None | UnsetType = UNSET
-    flight_end_date: date | None | UnsetType = UNSET
-
-    # FTC & Usage
-    ftc_string: str | None | UnsetType = UNSET
-    usage_duration: str | None | UnsetType = UNSET
-    usage_territory: str | None | UnsetType = UNSET
-    usage_paid_media_option: bool | None | UnsetType = UNSET
-
-    # Exclusivity
-    exclusivity_category: str | None | UnsetType = UNSET
-    exclusivity_days_before: int | None | UnsetType = UNSET
-    exclusivity_days_after: int | None | UnsetType = UNSET
-
-    # Ownership
-    ownership_mode: OwnershipMode | None | UnsetType = UNSET
-
-    # Approval
-    approval_rounds: int | None | UnsetType = UNSET
-    approval_sla_hours: int | None | UnsetType = UNSET
+    brand_id: Sqid
 
 
 class CampaignCreateSchema(CampaignFieldsBase, kw_only=True):

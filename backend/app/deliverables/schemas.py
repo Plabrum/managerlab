@@ -1,8 +1,6 @@
 from datetime import date, datetime
 from typing import Any
 
-from msgspec import UNSET, UnsetType
-
 from app.actions.enums import ActionGroupType
 from app.actions.registry import ActionRegistry
 from app.actions.schemas import ActionDTO
@@ -205,29 +203,11 @@ def deliverable_to_response(
     )
 
 
-class DeliverableUpdateSchema(BaseSchema):
-    """Schema for updating a Deliverable."""
+class DeliverableUpdateSchema(DeliverableFieldsBase, kw_only=True):
+    """Declarative update schema for Deliverable - inherits from DeliverableFieldsBase."""
 
-    title: str | None | UnsetType = UNSET
-    content: str | None | UnsetType = UNSET
-    platforms: SocialMediaPlatforms | None | UnsetType = UNSET
-    deliverable_type: DeliverableType | None | UnsetType = UNSET
-    count: int | None | UnsetType = UNSET
-    posting_date: datetime | None | UnsetType = UNSET
-    posting_start_date: date | None | UnsetType = UNSET
-    posting_end_date: date | None | UnsetType = UNSET
-
-    # Caption requirements
-    handles: list[str] | None | UnsetType = UNSET
-    hashtags: list[str] | None | UnsetType = UNSET
-    disclosures: list[str] | None | UnsetType = UNSET
-
-    # Approval
-    approval_required: bool | None | UnsetType = UNSET
-    approval_rounds: int | None | UnsetType = UNSET
-
-    notes: dict[str, Any] | None | UnsetType = UNSET
-    campaign_id: int | None | UnsetType = UNSET
+    campaign_id: int
+    notes: dict[str, Any] | None = None
 
 
 class DeliverableCreateSchema(DeliverableFieldsBase, kw_only=True):

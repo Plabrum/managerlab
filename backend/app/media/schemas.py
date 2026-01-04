@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from msgspec import UNSET, UnsetType
-
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.client.s3_client import BaseS3Client
@@ -80,7 +78,7 @@ def media_to_response_schema(
 
 
 class MediaUpdateSchema(BaseSchema):
-    file_name: str | None | UnsetType = UNSET
+    file_name: str
 
 
 class MediaWithUrlsSchema(BaseSchema):

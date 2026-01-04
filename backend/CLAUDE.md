@@ -90,18 +90,24 @@ class Post(CampaignScopedBase):
 Use msgspec Structs (NOT Pydantic) for request/response schemas:
 
 ```python
-from msgspec import Struct
-from typing import Optional
+from app.base.schemas import BaseSchema
 
-class PostCreateSchema(Struct):
+class PostCreateSchema(BaseSchema):
     title: str
-    content: Optional[str] = None
-    campaign_id: UUID
+    content: str | None = None
+    campaign_id: int
 
-class PostResponseSchema(Struct):
-    id: UUID
+class PostUpdateSchema(BaseSchema):
+    """Declarative update schema - all fields required."""
+
     title: str
-    content: Optional[str]
+    content: str | None
+    campaign_id: int
+
+class PostResponseSchema(BaseSchema):
+    id: int
+    title: str
+    content: str | None
     created_at: datetime
 ```
 
@@ -109,6 +115,12 @@ class PostResponseSchema(Struct):
 - 10-50x faster than Pydantic
 - Better TypeScript codegen compatibility
 - Simpler mental model
+
+**Update Schemas:**
+- Updates are DECLARATIVE - all fields must be provided
+- NO partial updates - do NOT use `UNSET` or `UnsetType`
+- Fields that can be null should be typed as `T | None`
+- Update schemas should match create schemas in structure
 
 ### 3. Universal Action System
 
