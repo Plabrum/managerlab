@@ -5,7 +5,7 @@ import { useUsersUserIdGetUserSuspense } from '@/openapi/users/users';
 
 export function UserDetailPage() {
   const { id } = useParams({ from: '/_authenticated/users/$id' });
-  const { data } = useUsersUserIdGetUserSuspense(Number(id));
+  const { data } = useUsersUserIdGetUserSuspense(id);
 
   return (
     <PageTopBar title={data.name} state={data.state}>
