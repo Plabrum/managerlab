@@ -10,6 +10,7 @@ from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.contrib.opentelemetry import OpenTelemetryConfig, OpenTelemetryPlugin
 from litestar.di import Provide
 from litestar.exceptions import InternalServerException
+from litestar.middleware.logging import LoggingMiddlewareConfig
 from litestar.middleware.session.base import ONE_DAY_IN_SECONDS
 from litestar.middleware.session.server_side import ServerSideSessionConfig
 from litestar.openapi.config import OpenAPIConfig
@@ -40,7 +41,6 @@ from app.deliverables.routes import deliverable_router
 from app.documents.routes.documents import document_router
 from app.emails.client import provide_email_client
 from app.emails.webhook_routes import inbound_email_router
-from app.logging_config import configure_logging
 from app.media.routes import local_media_router, media_router
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
@@ -54,7 +54,7 @@ from app.users.routes import user_router
 from app.utils import providers
 from app.utils.configure import ConfigProtocol
 from app.utils.exceptions import ApplicationError, exception_to_http_response
-from app.utils.logging_middleware import create_logging_middleware
+from app.utils.logging import create_logging_config
 from app.utils.sqids import Sqid, sqid_dec_hook, sqid_enc_hook, sqid_type_predicate
 from app.views.routes import view_router
 
@@ -83,16 +83,16 @@ def create_app(
     stores_overrides: dict[str, Any] | None = None,
     skip_otel_init: bool = False,
 ) -> Litestar:
-    # Configure logging FIRST (before OTEL so we can log OTEL initialization)
-    # This is idempotent - safe to call even if already configured in index.py
-    configure_logging(config)
-
-    # Initialize OpenTelemetry BEFORE creating Litestar app
-    # This sets global providers AND adds LoggingHandler to root logger
+    # Initialize OpenTelemetry BEFORE creating Litestar app (if enabled)
     if not skip_otel_init:
         from app.utils.otel import initialize_opentelemetry
 
         initialize_opentelemetry(config)
+
+    # ========================================================================
+    # Logging Configuration
+    # ========================================================================
+    logging_config = create_logging_config(config)
 
     # ========================================================================
     # Stores
@@ -274,7 +274,14 @@ def create_app(
             lambda: _shutdown_otel_if_enabled(config),
         ],
         on_app_init=[session_auth.on_app_init],
-        middleware=[session_auth.middleware, create_logging_middleware()],
+        middleware=[
+            session_auth.middleware,
+            LoggingMiddlewareConfig(
+                exclude=["/health", "/db_health"],  # Skip health check endpoints
+                request_log_fields=["method", "path", "query"],
+                response_log_fields=["status_code"],
+            ).middleware,
+        ],
         cors_config=cors_config,
         exception_handlers={
             ApplicationError: exception_to_http_response,
@@ -289,7 +296,7 @@ def create_app(
         type_encoders={Sqid: sqid_enc_hook},
         type_decoders=[(sqid_type_predicate, sqid_dec_hook)],
         debug=config.IS_DEV,
-        logging_config=None,  # Disable Litestar's default logging, we configure our own
+        logging_config=logging_config,  # Use Litestar's standard logging with Rich in dev
     )
 
     return app
