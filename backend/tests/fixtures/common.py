@@ -37,13 +37,14 @@ async def user(db_session: AsyncSession, team):
     Returns:
         User instance
     """
+    from app.users.enums import RoleLevel
     from app.users.models import Role
     from tests.factories.users import UserFactory
 
     user = await UserFactory.create_async(session=db_session)
 
     # Link user to team with member role
-    role = Role(user_id=user.id, team_id=team.id, role_level="member")
+    role = Role(user_id=user.id, team_id=team.id, role_level=RoleLevel.MEMBER)
     db_session.add(role)
 
     await db_session.flush()

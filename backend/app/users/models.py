@@ -8,6 +8,7 @@ from app.base.models import BaseDBModel
 from app.state_machine.models import StateMachineMixin
 from app.users.enums import RoleLevel, UserStates
 from app.utils.sqids import Sqid
+from app.utils.textenum import TextEnum
 
 if TYPE_CHECKING:
     from app.auth.google.models import GoogleOAuthAccount
@@ -84,7 +85,7 @@ class Role(BaseDBModel):
         index=True,
     )
     role_level: Mapped[RoleLevel] = mapped_column(
-        sa.Enum(RoleLevel, native_enum=False, length=50),
+        TextEnum(RoleLevel),
         nullable=False,
     )
 

@@ -1,12 +1,12 @@
 """Address models."""
 
-import sqlalchemy as sa
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.addresses.enums import AddressType
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.utils.textenum import TextEnum
 
 
 class Address(RLSMixin(), BaseDBModel):
@@ -20,14 +20,10 @@ class Address(RLSMixin(), BaseDBModel):
     city: Mapped[str] = mapped_column(Text, nullable=False)
     state: Mapped[str | None] = mapped_column(Text, nullable=True)  # State/Province/Region
     zip: Mapped[str | None] = mapped_column(Text, nullable=True)  # ZIP/Postal code
-    country: Mapped[str] = mapped_column(
-        Text, nullable=False, default="US"
-    )  # ISO country code (2-letter)
+    country: Mapped[str] = mapped_column(Text, nullable=False, default="US")  # ISO country code (2-letter)
 
     # Optional metadata
-    address_type: Mapped[AddressType | None] = mapped_column(
-        sa.Enum(AddressType), nullable=True
-    )  # home, work, other
+    address_type: Mapped[AddressType | None] = mapped_column(TextEnum(AddressType), nullable=True)  # home, work, other
 
     def __repr__(self) -> str:
         """String representation of address."""

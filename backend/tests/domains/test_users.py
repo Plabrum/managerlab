@@ -3,6 +3,7 @@
 from litestar.testing import AsyncTestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.users.enums import RoleLevel
 from app.users.models import Role
 from app.utils.sqids import sqid_encode
 from tests.factories.users import TeamFactory
@@ -77,7 +78,7 @@ class TestUsers:
         role2 = Role(
             user_id=user.id,
             team_id=team2.id,
-            role_level="member",
+            role_level=RoleLevel.MEMBER,
         )
         db_session.add(role2)
         await db_session.flush()

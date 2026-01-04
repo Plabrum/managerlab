@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from app.base.models import BaseDBModel
-from app.utils.db import TextEnum
+from app.utils.textenum import TextEnum
 
 # TODO PAL: Add Log Table
 # class StateTransitionLog[E: Enum, M: BaseDBModel](BaseDBModel):

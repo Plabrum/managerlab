@@ -17,6 +17,7 @@ from app.campaigns.enums import (
 from app.documents.models import Document
 from app.state_machine.models import StateMachineMixin
 from app.utils.sqids import Sqid
+from app.utils.textenum import TextEnum
 
 if TYPE_CHECKING:
     from app.brands.models.brands import Brand
@@ -43,13 +44,13 @@ class Campaign(
     description: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
     # Counterparty information
-    counterparty_type: Mapped[CounterpartyType | None] = mapped_column(sa.Enum(CounterpartyType), nullable=True)
+    counterparty_type: Mapped[CounterpartyType | None] = mapped_column(TextEnum(CounterpartyType), nullable=True)
     counterparty_name: Mapped[str | None] = mapped_column(sa.String(255), nullable=True)
     counterparty_email: Mapped[str | None] = mapped_column(sa.String(255), nullable=True)
 
     # Compensation
     compensation_structure: Mapped[CompensationStructure | None] = mapped_column(
-        sa.Enum(CompensationStructure), nullable=True
+        TextEnum(CompensationStructure), nullable=True
     )
     compensation_total_usd: Mapped[float | None] = mapped_column(sa.Float, nullable=True)
     payment_terms_days: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=30)
@@ -71,7 +72,7 @@ class Campaign(
 
     # Ownership
     ownership_mode: Mapped[OwnershipMode | None] = mapped_column(
-        sa.Enum(OwnershipMode), nullable=True, default=OwnershipMode.BRAND_OWNED
+        TextEnum(OwnershipMode), nullable=True, default=OwnershipMode.BRAND_OWNED
     )
 
     # Global approval settings
@@ -156,7 +157,7 @@ class CampaignGuest(BaseDBModel):
         index=True,
     )
     access_level: Mapped[CampaignGuestAccessLevel] = mapped_column(
-        sa.Enum(CampaignGuestAccessLevel, native_enum=False, length=50),
+        TextEnum(CampaignGuestAccessLevel),
         nullable=False,
         default=CampaignGuestAccessLevel.VIEWER,
     )
