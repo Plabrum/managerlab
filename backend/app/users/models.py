@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.base.models import BaseDBModel
 from app.state_machine.models import StateMachineMixin
 from app.users.enums import RoleLevel, UserStates
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.auth.google.models import GoogleOAuthAccount
@@ -72,12 +73,12 @@ class Role(BaseDBModel):
 
     __tablename__ = "roles"
 
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    team_id: Mapped[int] = mapped_column(
+    team_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("teams.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,

@@ -86,7 +86,7 @@ class CampaignSchema(BaseSchema):
     name: str
     description: str | None
     compensation_structure: CompensationStructure | None
-    assigned_roster_id: int | None
+    assigned_roster_id: Sqid | None
     brand_id: Sqid
     state: str
     created_at: datetime

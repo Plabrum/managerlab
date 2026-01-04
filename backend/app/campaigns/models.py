@@ -78,7 +78,7 @@ class Campaign(
     approval_rounds: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=1)
     approval_sla_hours: Mapped[int | None] = mapped_column(sa.Integer, nullable=True, default=48)
 
-    assigned_roster_id: Mapped[int | None] = mapped_column(sa.ForeignKey("roster.id"), nullable=True)
+    assigned_roster_id: Mapped[Sqid | None] = mapped_column(sa.ForeignKey("roster.id"), nullable=True)
     # Foreign keys - Campaign always has a Brand
     brand_id: Mapped[Sqid] = mapped_column(sa.ForeignKey("brands.id"), nullable=False)
 
@@ -145,12 +145,12 @@ class CampaignGuest(BaseDBModel):
 
     __tablename__ = "campaign_guests"
 
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    campaign_id: Mapped[int] = mapped_column(
+    campaign_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("campaigns.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -160,7 +160,7 @@ class CampaignGuest(BaseDBModel):
         nullable=False,
         default=CampaignGuestAccessLevel.VIEWER,
     )
-    invited_by_user_id: Mapped[int | None] = mapped_column(
+    invited_by_user_id: Mapped[Sqid | None] = mapped_column(
         sa.ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
@@ -189,7 +189,7 @@ class PaymentBlock(RLSMixin(), BaseDBModel):
     __tablename__ = "payment_blocks"
 
     # Foreign key to campaign
-    campaign_id: Mapped[int] = mapped_column(
+    campaign_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("campaigns.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -231,12 +231,12 @@ class CampaignContract(RLSMixin(), BaseDBModel):
 
     __tablename__ = "campaign_contracts"
 
-    campaign_id: Mapped[int] = mapped_column(
+    campaign_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("campaigns.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    document_id: Mapped[int] = mapped_column(
+    document_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("documents.id", ondelete="RESTRICT"),
         nullable=False,
         unique=True,  # Each document can only be a contract for one campaign

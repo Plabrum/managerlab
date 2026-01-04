@@ -9,6 +9,7 @@ from app.base.scope_mixins import RLSMixin
 from app.base.threadable_mixin import ThreadableMixin
 from app.roster.enums import RosterStates
 from app.state_machine.models import StateMachineMixin
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.addresses.models import Address
@@ -30,7 +31,7 @@ class Roster(
 
     __tablename__ = "roster"
 
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -57,14 +58,14 @@ class Roster(
     youtube_channel: Mapped[str | None] = mapped_column(sa.Text, nullable=True, index=True)
 
     # Profile photo
-    profile_photo_id: Mapped[int | None] = mapped_column(
+    profile_photo_id: Mapped[Sqid | None] = mapped_column(
         sa.ForeignKey("media.id", ondelete="SET NULL", use_alter=True, name="fk_roster_profile_photo"),
         nullable=True,
         index=True,
     )
 
     # Address relationship
-    address_id: Mapped[int | None] = mapped_column(
+    address_id: Mapped[Sqid | None] = mapped_column(
         sa.ForeignKey("addresses.id", ondelete="SET NULL"),
         nullable=True,
         index=True,

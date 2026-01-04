@@ -7,6 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.teams.models import Team
@@ -25,7 +26,7 @@ class MagicLinkToken(BaseDBModel):
     token_hash: Mapped[str] = mapped_column(sa.Text, index=True, unique=True, nullable=False)
     """SHA-256 hash of the token (64 hex characters)"""
 
-    user_id: Mapped[int] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[Sqid] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     """User this magic link is for"""
 
     expires_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
@@ -87,13 +88,13 @@ class TeamInvitationToken(BaseDBModel):
     token_hash: Mapped[str] = mapped_column(sa.Text, index=True, unique=True, nullable=False)
     """SHA-256 hash of the token (64 hex characters)"""
 
-    team_id: Mapped[int] = mapped_column(sa.ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
+    team_id: Mapped[Sqid] = mapped_column(sa.ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
     """Team the user is being invited to"""
 
     invited_email: Mapped[str] = mapped_column(sa.Text, index=True, nullable=False)
     """Email address of the invited user"""
 
-    invited_by_user_id: Mapped[int] = mapped_column(
+    invited_by_user_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     """User who sent the invitation"""

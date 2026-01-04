@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.users.models import User
@@ -62,12 +63,12 @@ class Message(
     __tablename__ = "messages"
 
     # Foreign keys
-    thread_id: Mapped[int] = mapped_column(
+    thread_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("threads.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    user_id: Mapped[int | None] = mapped_column(
+    user_id: Mapped[Sqid | None] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True,
         index=True,
@@ -94,12 +95,12 @@ class ThreadReadStatus(BaseDBModel):
     __tablename__ = "thread_read_statuses"
 
     # Foreign keys
-    thread_id: Mapped[int] = mapped_column(
+    thread_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("threads.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -136,12 +137,12 @@ class ThreadViewerEvent(BaseDBModel):
     __tablename__ = "thread_viewer_events"
 
     # Foreign keys
-    thread_id: Mapped[int] = mapped_column(
+    thread_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("threads.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,

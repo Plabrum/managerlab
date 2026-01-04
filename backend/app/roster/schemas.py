@@ -21,7 +21,7 @@ class RosterSchema(BaseSchema):
     facebook_handle: str | None
     tiktok_handle: str | None
     youtube_channel: str | None
-    profile_photo_id: int | None
+    profile_photo_id: Sqid | None
     state: str
     created_at: datetime
     updated_at: datetime

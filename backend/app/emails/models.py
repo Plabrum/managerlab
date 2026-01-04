@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.utils.sqids import Sqid
 
 
 class EmailMessage(
@@ -67,7 +68,7 @@ class InboundEmail(BaseDBModel):
     processed_at: Mapped[datetime | None]
 
     # Team linking (determined from sender's primary_team)
-    team_id: Mapped[int] = mapped_column(
+    team_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("teams.id", ondelete="CASCADE"),
         nullable=False,
         index=True,

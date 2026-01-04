@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.users.models import User
+from app.utils.sqids import Sqid
 
 
 class GoogleOAuthAccount(BaseDBModel):
@@ -13,7 +14,7 @@ class GoogleOAuthAccount(BaseDBModel):
 
     __tablename__ = "google_oauth_accounts"
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    user_id: Mapped[Sqid] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     google_id: Mapped[str] = mapped_column(sa.String(255), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(sa.String(255), nullable=False, index=True)
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)

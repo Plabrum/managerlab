@@ -17,6 +17,7 @@ from app.deliverables.enums import (
     SocialMediaPlatforms,
 )
 from app.state_machine.models import StateMachineMixin
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.campaigns.models import Campaign
@@ -93,11 +94,11 @@ class DeliverableMedia(ThreadableMixin, RLSMixin(scope_with_campaign_id=True), B
 
     __tablename__ = "deliverable_media"
 
-    deliverable_id: Mapped[int] = mapped_column(
+    deliverable_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("deliverables.id", ondelete="CASCADE"),
         nullable=False,
     )
-    media_id: Mapped[int] = mapped_column(
+    media_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("media.id", ondelete="CASCADE"),
         nullable=False,
     )

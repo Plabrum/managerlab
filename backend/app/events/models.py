@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
 from app.events.enums import EventType
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.users.models import User
@@ -29,7 +30,7 @@ class Event(RLSMixin(), BaseDBModel):
     __tablename__ = "events"
 
     # Actor - who triggered the event
-    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    actor_id: Mapped[Sqid] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     actor: Mapped[User] = relationship("User", foreign_keys=[actor_id], lazy="joined")
 
     # Object - what was acted upon (polymorphic)

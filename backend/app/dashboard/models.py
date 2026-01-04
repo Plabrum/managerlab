@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.base.models import BaseDBModel
 from app.base.scope_mixins import RLSMixin
+from app.utils.sqids import Sqid
 
 if TYPE_CHECKING:
     from app.teams.models import Team
@@ -20,7 +21,7 @@ class Widget(RLSMixin(), BaseDBModel):
 
     __tablename__ = "widgets"
 
-    dashboard_id: Mapped[int] = mapped_column(
+    dashboard_id: Mapped[Sqid] = mapped_column(
         sa.ForeignKey("dashboards.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -59,7 +60,7 @@ class Dashboard(RLSMixin(), BaseDBModel):
     )
 
     # Personal dashboard owner (NULL = team-wide dashboard)
-    user_id: Mapped[int | None] = mapped_column(
+    user_id: Mapped[Sqid | None] = mapped_column(
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True,
         index=True,
