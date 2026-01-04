@@ -5,7 +5,7 @@ from typing import Any
 
 from litestar import Request
 from litestar.exceptions import NotFoundException
-from msgspec import UNSET, structs
+from msgspec import structs
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -99,34 +99,79 @@ async def update_model[T: BaseDBModel](
 ) -> T:
     """Update a model instance from a DTO/struct, with optional event tracking.
 
+    Updates are declarative: all fields in update_vals are applied to the model.
+    Nested objects (e.g., address) are handled recursively - existing nested
+    objects are updated, None clears the relationship.
+
     Args:
         session: Database session
         model_instance: The model instance to update
-        update_vals: DTO/struct with update data
+        update_vals: DTO/struct with complete update data (all fields required)
         user_id: User who is updating the object
         team_id: Team ID for RLS and event tracking (None for user-owned resources)
         should_track: Whether to emit an UPDATED event (default: True)
         track_fields: Optional list of field names to track for changes.
-                     If None, tracks all fields in update_vals that are not UNSET.
+                     If None, tracks all non-nested fields from update_vals.
 
     Returns:
         The updated model instance
     """
-    # Convert update_vals to dict and filter out UNSET values (fields not provided)
+    # Convert update_vals to dict
+    # Note: Recursively convert nested Structs to dicts for proper handling
     update_dict = structs.asdict(update_vals)
-    fields_to_update = {k: v for k, v in update_dict.items() if v is not UNSET}
+    fields_to_update = {}
+    for k, v in update_dict.items():
+        # Recursively convert nested Structs to dicts
+        if hasattr(v, "__struct_fields__"):  # It's a msgspec Struct
+            fields_to_update[k] = structs.asdict(v)
+        else:
+            fields_to_update[k] = v
 
     # Capture old values before update (if tracking is enabled)
     old_values = None
     if should_track and team_id is not None:
-        fields_to_track = track_fields if track_fields else list(fields_to_update.keys())
+        if track_fields:
+            # Use explicitly provided track_fields
+            fields_to_track = track_fields
+        else:
+            # Auto-determine fields to track: exclude nested objects (fields with {field}_id)
+            fields_to_track = [
+                field
+                for field in fields_to_update.keys()
+                if not hasattr(model_instance, f"{field}_id")  # Skip nested objects
+            ]
         old_values = {
             field: getattr(model_instance, field, None) for field in fields_to_track if hasattr(model_instance, field)
         }
 
-    # Update the model (only fields that were provided, not UNSET)
+    # Update the model (handle nested objects recursively)
     for field, value in fields_to_update.items():
-        if hasattr(model_instance, field):
+        if not hasattr(model_instance, field):
+            continue
+
+        # Check if this is a nested object relationship (has {field}_id foreign key)
+        nested_id_field = f"{field}_id"
+        if hasattr(model_instance, nested_id_field):
+            # This is a nested object field (e.g., address)
+            # Don't include it in tracked fields or try to set it directly
+            if value is None:
+                # Clear the relationship
+                setattr(model_instance, nested_id_field, None)
+            elif isinstance(value, dict):
+                # Update existing nested object
+                existing_nested = getattr(model_instance, field, None)
+                if existing_nested:
+                    for nested_field, nested_value in value.items():
+                        if hasattr(existing_nested, nested_field):
+                            setattr(existing_nested, nested_field, nested_value)
+                else:
+                    # Cannot auto-create nested object - let action handle it
+                    logger.warning(f"Cannot auto-create nested object for field '{field}' - handle in action")
+            else:
+                # Value is not a dict or None - this shouldn't happen with proper schemas
+                logger.warning(f"Unexpected value type for nested field '{field}': {type(value)}")
+        else:
+            # Regular field - set directly
             setattr(model_instance, field, value)
 
     await session.flush()

@@ -34,7 +34,31 @@ class TestCampaigns:
 
         response = await authenticated_client.post(
             f"/campaigns/{sqid_encode(campaign.id)}",
-            json={"name": "Updated Campaign"},
+            json={
+                "name": "Updated Campaign",
+                "description": campaign.description,
+                "brand_id": sqid_encode(campaign.brand_id),
+                "counterparty_type": campaign.counterparty_type.value if campaign.counterparty_type else None,
+                "counterparty_name": campaign.counterparty_name,
+                "counterparty_email": campaign.counterparty_email,
+                "compensation_structure": campaign.compensation_structure.value
+                if campaign.compensation_structure
+                else None,
+                "compensation_total_usd": campaign.compensation_total_usd,
+                "payment_terms_days": campaign.payment_terms_days,
+                "flight_start_date": str(campaign.flight_start_date) if campaign.flight_start_date else None,
+                "flight_end_date": str(campaign.flight_end_date) if campaign.flight_end_date else None,
+                "ftc_string": campaign.ftc_string,
+                "usage_duration": campaign.usage_duration,
+                "usage_territory": campaign.usage_territory,
+                "usage_paid_media_option": campaign.usage_paid_media_option,
+                "exclusivity_category": campaign.exclusivity_category,
+                "exclusivity_days_before": campaign.exclusivity_days_before,
+                "exclusivity_days_after": campaign.exclusivity_days_after,
+                "ownership_mode": campaign.ownership_mode.value if campaign.ownership_mode else None,
+                "approval_rounds": campaign.approval_rounds,
+                "approval_sla_hours": campaign.approval_sla_hours,
+            },
         )
         assert response.status_code in [200, 201]
         assert response.json() is not None
@@ -49,8 +73,27 @@ class TestCampaigns:
         response = await authenticated_client.post(
             f"/campaigns/{sqid_encode(campaign.id)}",
             json={
+                "name": campaign.name,
+                "description": campaign.description,
+                "brand_id": sqid_encode(campaign.brand_id),
+                "counterparty_type": campaign.counterparty_type.value if campaign.counterparty_type else None,
+                "counterparty_name": campaign.counterparty_name,
+                "counterparty_email": campaign.counterparty_email,
                 "compensation_structure": CompensationStructure.FLAT_FEE.value,
                 "compensation_total_usd": 5000.0,
+                "payment_terms_days": campaign.payment_terms_days,
+                "flight_start_date": str(campaign.flight_start_date) if campaign.flight_start_date else None,
+                "flight_end_date": str(campaign.flight_end_date) if campaign.flight_end_date else None,
+                "ftc_string": campaign.ftc_string,
+                "usage_duration": campaign.usage_duration,
+                "usage_territory": campaign.usage_territory,
+                "usage_paid_media_option": campaign.usage_paid_media_option,
+                "exclusivity_category": campaign.exclusivity_category,
+                "exclusivity_days_before": campaign.exclusivity_days_before,
+                "exclusivity_days_after": campaign.exclusivity_days_after,
+                "ownership_mode": campaign.ownership_mode.value if campaign.ownership_mode else None,
+                "approval_rounds": campaign.approval_rounds,
+                "approval_sla_hours": campaign.approval_sla_hours,
             },
         )
         assert response.status_code in [200, 201]
@@ -76,7 +119,34 @@ class TestCampaigns:
 
         response = await authenticated_client.post(
             f"/actions/campaign_actions/{sqid_encode(campaign.id)}",
-            json={"action": "campaign_actions__campaign_update", "data": {"name": "Updated via Action"}},
+            json={
+                "action": "campaign_actions__campaign_update",
+                "data": {
+                    "name": "Updated via Action",
+                    "description": campaign.description,
+                    "brand_id": sqid_encode(campaign.brand_id),
+                    "counterparty_type": campaign.counterparty_type.value if campaign.counterparty_type else None,
+                    "counterparty_name": campaign.counterparty_name,
+                    "counterparty_email": campaign.counterparty_email,
+                    "compensation_structure": campaign.compensation_structure.value
+                    if campaign.compensation_structure
+                    else None,
+                    "compensation_total_usd": campaign.compensation_total_usd,
+                    "payment_terms_days": campaign.payment_terms_days,
+                    "flight_start_date": str(campaign.flight_start_date) if campaign.flight_start_date else None,
+                    "flight_end_date": str(campaign.flight_end_date) if campaign.flight_end_date else None,
+                    "ftc_string": campaign.ftc_string,
+                    "usage_duration": campaign.usage_duration,
+                    "usage_territory": campaign.usage_territory,
+                    "usage_paid_media_option": campaign.usage_paid_media_option,
+                    "exclusivity_category": campaign.exclusivity_category,
+                    "exclusivity_days_before": campaign.exclusivity_days_before,
+                    "exclusivity_days_after": campaign.exclusivity_days_after,
+                    "ownership_mode": campaign.ownership_mode.value if campaign.ownership_mode else None,
+                    "approval_rounds": campaign.approval_rounds,
+                    "approval_sla_hours": campaign.approval_sla_hours,
+                },
+            },
         )
         assert response.status_code in [200, 201, 204]
         assert response.json() is not None

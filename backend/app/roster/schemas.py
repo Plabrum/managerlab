@@ -1,7 +1,5 @@
 from datetime import date, datetime
 
-from msgspec import UNSET, UnsetType
-
 from app.actions.schemas import ActionDTO
 from app.addresses.schemas import AddressCreateSchema, AddressSchema
 from app.base.schemas import BaseSchema
@@ -33,18 +31,23 @@ class RosterSchema(BaseSchema):
 
 
 class RosterUpdateSchema(BaseSchema):
-    """Schema for updating a roster member."""
+    """Schema for updating a roster member.
 
-    name: str | None | UnsetType = UNSET
-    email: str | None | UnsetType = UNSET
-    phone: str | None | UnsetType = UNSET
-    birthdate: date | None | UnsetType = UNSET
-    gender: str | None | UnsetType = UNSET
-    address: AddressCreateSchema | None | UnsetType = UNSET
-    instagram_handle: str | None | UnsetType = UNSET
-    facebook_handle: str | None | UnsetType = UNSET
-    tiktok_handle: str | None | UnsetType = UNSET
-    youtube_channel: str | None | UnsetType = UNSET
+    Updates are declarative: the posted data represents the complete desired state.
+    All fields are required. Use None to clear a field.
+    """
+
+    name: str
+    email: str | None
+    phone: str | None
+    birthdate: date | None
+    gender: str | None
+    address: AddressCreateSchema | None
+    instagram_handle: str | None
+    facebook_handle: str | None
+    tiktok_handle: str | None
+    youtube_channel: str | None
+    profile_photo_id: Sqid | None
 
 
 class RosterCreateSchema(BaseSchema):
@@ -60,3 +63,4 @@ class RosterCreateSchema(BaseSchema):
     facebook_handle: str | None = None
     tiktok_handle: str | None = None
     youtube_channel: str | None = None
+    profile_photo_id: Sqid | None = None

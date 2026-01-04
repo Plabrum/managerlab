@@ -11,8 +11,15 @@ import {
 } from '@/components/ui/select';
 import type { RosterCreateSchema } from '@/openapi/ariveAPI.schemas';
 
-const { FormModal, FormString, FormEmail, FormDatetime, FormCustom } =
-  createTypedForm<RosterCreateSchema>();
+const {
+  FormModal,
+  FormString,
+  FormEmail,
+  FormDatetime,
+  FormImageUpload,
+  FormCustom,
+  FormAddress,
+} = createTypedForm<RosterCreateSchema>();
 
 interface CreateRosterFormProps {
   isOpen: boolean;
@@ -61,48 +68,46 @@ export function CreateRosterForm({
 
       <FormString name="phone" label="Phone" placeholder="+1 (555) 000-0000" />
 
-      <FormString
-        name="instagram_handle"
-        label="Instagram Handle"
-        placeholder="@username"
-      />
-
       {/* Additional Options - Collapsible */}
       <CollapsibleFormSection title="Additional options" defaultOpen={false}>
-        {/* Address Section */}
+        {/* Social Media Section */}
         <div className="space-y-4 rounded-lg border p-4">
-          <h4 className="text-sm font-medium">Address</h4>
+          <h4 className="text-sm font-medium">Social Media</h4>
+
           <FormString
-            name="address.address1"
-            label="Street Address"
-            placeholder="123 Main St"
+            name="instagram_handle"
+            label="Instagram Handle"
+            placeholder="@username"
           />
+
           <FormString
-            name="address.address2"
-            label="Apt, Suite, etc."
-            placeholder="Apt 4B"
+            name="facebook_handle"
+            label="Facebook Handle"
+            placeholder="@username"
           />
-          <div className="grid grid-cols-2 gap-4">
-            <FormString
-              name="address.city"
-              label="City"
-              placeholder="New York"
-            />
-            <FormString name="address.state" label="State" placeholder="NY" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <FormString
-              name="address.zip"
-              label="ZIP Code"
-              placeholder="10001"
-            />
-            <FormString
-              name="address.country"
-              label="Country"
-              placeholder="US"
-            />
-          </div>
+
+          <FormString
+            name="tiktok_handle"
+            label="TikTok Handle"
+            placeholder="@username"
+          />
+
+          <FormString
+            name="youtube_channel"
+            label="YouTube Channel"
+            placeholder="Channel name or URL"
+          />
         </div>
+
+        {/* Profile Photo Section */}
+        <FormImageUpload
+          name="profile_photo_id"
+          label="Profile Photo"
+          description="JPG, PNG, or GIF (max 10MB)"
+        />
+
+        {/* Address Section */}
+        <FormAddress name="address" />
 
         {/* Birthday & Gender Section */}
         <div className="space-y-4 rounded-lg border p-4">
@@ -174,29 +179,6 @@ export function CreateRosterForm({
               );
             }}
           </FormCustom>
-        </div>
-
-        {/* Social Media Section */}
-        <div className="space-y-4 rounded-lg border p-4">
-          <h4 className="text-sm font-medium">Social Media</h4>
-
-          <FormString
-            name="facebook_handle"
-            label="Facebook Handle"
-            placeholder="@username"
-          />
-
-          <FormString
-            name="tiktok_handle"
-            label="TikTok Handle"
-            placeholder="@username"
-          />
-
-          <FormString
-            name="youtube_channel"
-            label="YouTube Channel"
-            placeholder="Channel name or URL"
-          />
         </div>
       </CollapsibleFormSection>
     </FormModal>

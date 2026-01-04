@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from msgspec import UNSET, UnsetType
-
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.threads.schemas import ThreadUnreadInfo
@@ -26,14 +24,14 @@ class BrandSchema(BaseSchema):
 
 
 class BrandUpdateSchema(BaseSchema):
-    """Schema for updating a Brand."""
+    """Declarative update schema for Brand - all fields required."""
 
-    name: str | None | UnsetType = UNSET
-    description: str | None | UnsetType = UNSET
-    website: str | None | UnsetType = UNSET
-    email: str | None | UnsetType = UNSET
-    phone: str | None | UnsetType = UNSET
-    notes: str | None | UnsetType = UNSET
+    name: str
+    description: str | None
+    website: str | None
+    email: str | None
+    phone: str | None
+    notes: str | None
 
 
 class BrandCreateSchema(BaseSchema):
@@ -64,14 +62,14 @@ class BrandContactSchema(BaseSchema):
 
 
 class BrandContactUpdateSchema(BaseSchema):
-    """Schema for updating a BrandContact."""
+    """Declarative update schema for BrandContact - all fields required."""
 
-    first_name: str | None | UnsetType = UNSET
-    last_name: str | None | UnsetType = UNSET
-    email: str | None | UnsetType = UNSET
-    phone: str | None | UnsetType = UNSET
-    notes: str | None | UnsetType = UNSET
-    brand_id: Sqid | None | UnsetType = UNSET
+    first_name: str
+    last_name: str
+    email: str | None
+    phone: str | None
+    notes: str | None
+    brand_id: Sqid
 
 
 class BrandContactCreateSchema(BaseSchema):

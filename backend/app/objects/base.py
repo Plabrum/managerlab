@@ -116,8 +116,9 @@ class BaseObject[O: BaseDBModel](ABC):
             action_group = ActionRegistry().get_class(cls.action_group)
             actions = action_group.get_available_actions(obj=obj)
 
+        object_id = sqid_encode(obj.id)
         return ObjectListSchema(
-            id=sqid_encode(obj.id),
+            id=object_id,
             object_type=cls.object_type,
             title=cls.title_field(obj),
             subtitle=cls.subtitle_field(obj),
@@ -126,6 +127,7 @@ class BaseObject[O: BaseDBModel](ABC):
             updated_at=obj.updated_at,
             actions=actions,
             fields=fields,
+            link=f"/{cls.object_type}/{object_id}",
         )
 
     @classmethod

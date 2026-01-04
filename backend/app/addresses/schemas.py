@@ -2,8 +2,6 @@
 
 from datetime import datetime
 
-from msgspec import UNSET, UnsetType
-
 from app.addresses.enums import AddressType
 from app.base.schemas import BaseSchema
 from app.utils.sqids import Sqid
@@ -22,15 +20,15 @@ class AddressCreateSchema(BaseSchema):
 
 
 class AddressUpdateSchema(BaseSchema):
-    """Schema for updating an address."""
+    """Declarative update schema for Address - all fields required."""
 
-    address1: str | None | UnsetType = UNSET
-    address2: str | None | UnsetType = UNSET
-    city: str | None | UnsetType = UNSET
-    state: str | None | UnsetType = UNSET
-    zip: str | None | UnsetType = UNSET
-    country: str | None | UnsetType = UNSET
-    address_type: AddressType | None | UnsetType = UNSET
+    address1: str
+    address2: str | None
+    city: str
+    state: str | None
+    zip: str | None
+    country: str
+    address_type: AddressType | None
 
 
 class AddressSchema(BaseSchema):

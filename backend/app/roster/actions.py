@@ -1,7 +1,7 @@
 from datetime import UTC
 
-from msgspec import UNSET, structs
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.actions import (
     ActionGroupType,
@@ -23,6 +23,7 @@ from app.utils.db import update_model
 roster_actions = action_group_factory(
     ActionGroupType.RosterActions,
     model_type=Roster,
+    load_options=[joinedload(Roster.address)],
 )
 
 
@@ -66,52 +67,26 @@ class UpdateRoster(BaseObjectAction[Roster, RosterUpdateSchema]):
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:
-        # Handle address update separately (nested object)
-        update_dict = structs.asdict(data)
-        address_data = update_dict.pop("address", UNSET)
-
-        if address_data is not UNSET:
-            if address_data is None:
-                # Clear address reference
-                obj.address_id = None
-            else:
-                # Create or update address
-                if obj.address_id and obj.address:
-                    # Update existing address
-                    await update_model(
-                        session=transaction,
-                        model_instance=obj.address,
-                        update_vals=address_data,
-                        user_id=deps.user,
-                        team_id=obj.team_id,
-                    )
-                else:
-                    # Create new address
-                    address = Address(
-                        team_id=deps.team_id,
-                        **address_data,  # Use dict unpacking for cleaner code
-                    )
-                    transaction.add(address)
-                    await transaction.flush()
-                    obj.address_id = address.id
-
-        # Update remaining roster fields using standard update_model utility
-        # This ensures proper event tracking and follows codebase conventions
-        remaining_fields = {k: v for k, v in update_dict.items() if v is not UNSET}
-        if remaining_fields:
-            # Reconstruct RosterUpdateSchema with only the fields that were set
-            # This allows update_model to properly track changes and emit events
-            partial_update = RosterUpdateSchema(**remaining_fields)
-            await update_model(
-                session=transaction,
-                model_instance=obj,
-                update_vals=partial_update,
-                user_id=deps.user,
+        # Handle creation of new address (update_model can't auto-create)
+        if data.address and not obj.address:
+            obj.address = Address(
                 team_id=obj.team_id,
+                address1=data.address.address1,
+                address2=data.address.address2,
+                city=data.address.city,
+                state=data.address.state,
+                zip=data.address.zip,
+                country=data.address.country,
+                address_type=data.address.address_type,
             )
-        else:
-            # If only address was updated, still need to flush the address_id change
-            await transaction.flush()
+
+        await update_model(
+            session=transaction,
+            model_instance=obj,
+            update_vals=data,
+            user_id=deps.user,
+            team_id=obj.team_id,
+        )
 
         return ActionExecutionResponse(
             message="Updated roster member",
@@ -133,41 +108,33 @@ class CreateRoster(BaseTopLevelAction[RosterCreateSchema]):
         transaction: AsyncSession,
         deps: ActionDeps,
     ) -> ActionExecutionResponse:
-        # Get user_id from session
-        user_id = deps.request.session.get("user_id")
-        if not user_id:
-            return ActionExecutionResponse(
-                message="User not authenticated",
-            )
-
-        # Create address first if provided
-        address_id = None
-        if data.address:
-            # Convert address schema to dict for cleaner instantiation
-            address_dict = structs.asdict(data.address)
-            address = Address(
-                team_id=deps.team_id,
-                **address_dict,  # Use dict unpacking
-            )
-            transaction.add(address)
-            await transaction.flush()  # Get address ID
-            address_id = address.id
-
-        # Create roster member with address reference
         roster = Roster(
-            user_id=user_id,
+            user_id=deps.user,
             team_id=deps.team_id,
             name=data.name,
             email=data.email,
             phone=data.phone,
             birthdate=data.birthdate,
             gender=data.gender,
-            address_id=address_id,
             instagram_handle=data.instagram_handle,
             facebook_handle=data.facebook_handle,
             tiktok_handle=data.tiktok_handle,
             youtube_channel=data.youtube_channel,
+            profile_photo_id=data.profile_photo_id,
         )
+
+        if data.address:
+            roster.address = Address(
+                team_id=deps.team_id,
+                address1=data.address.address1,
+                address2=data.address.address2,
+                city=data.address.city,
+                state=data.address.state,
+                zip=data.address.zip,
+                country=data.address.country,
+                address_type=data.address.address_type,
+            )
+
         transaction.add(roster)
         await transaction.flush()
         return ActionExecutionResponse(

@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from msgspec import UNSET, UnsetType
-
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.users.enums import RoleLevel
@@ -42,4 +40,4 @@ class UserAndRoleSchema(BaseSchema):
 class UserUpdateSchema(BaseSchema):
     """Schema for updating a User."""
 
-    name: str | None | UnsetType = UNSET
+    name: str

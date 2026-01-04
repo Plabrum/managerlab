@@ -37,6 +37,19 @@ class TestDeliverables:
             json={
                 "title": "Updated Title",
                 "content": "Updated content",
+                "platforms": deliverable.platforms.value,
+                "posting_date": deliverable.posting_date.isoformat(),
+                "deliverable_type": deliverable.deliverable_type.value if deliverable.deliverable_type else None,
+                "count": deliverable.count,
+                "posting_start_date": str(deliverable.posting_start_date) if deliverable.posting_start_date else None,
+                "posting_end_date": str(deliverable.posting_end_date) if deliverable.posting_end_date else None,
+                "handles": deliverable.handles,
+                "hashtags": deliverable.hashtags,
+                "disclosures": deliverable.disclosures,
+                "approval_required": deliverable.approval_required,
+                "approval_rounds": deliverable.approval_rounds,
+                "campaign_id": deliverable.campaign_id,
+                "notes": deliverable.notes,
             },
         )
         assert response.status_code in [200, 201]
@@ -52,9 +65,21 @@ class TestDeliverables:
         response = await authenticated_client.post(
             f"/deliverables/{sqid_encode(deliverable.id)}",
             json={
+                "title": deliverable.title,
+                "content": deliverable.content,
+                "platforms": deliverable.platforms.value,
+                "posting_date": deliverable.posting_date.isoformat(),
+                "deliverable_type": deliverable.deliverable_type.value if deliverable.deliverable_type else None,
+                "count": deliverable.count,
+                "posting_start_date": str(deliverable.posting_start_date) if deliverable.posting_start_date else None,
+                "posting_end_date": str(deliverable.posting_end_date) if deliverable.posting_end_date else None,
                 "handles": ["@brand", "@partner"],
                 "hashtags": ["#ad", "#sponsored"],
                 "disclosures": ["Paid partnership"],
+                "approval_required": deliverable.approval_required,
+                "approval_rounds": deliverable.approval_rounds,
+                "campaign_id": deliverable.campaign_id,
+                "notes": deliverable.notes,
             },
         )
         assert response.status_code in [200, 201]
@@ -83,11 +108,30 @@ class TestDeliverables:
     ):
         """Test executing deliverable update action."""
 
+        # Refresh the deliverable to ensure all fields are loaded
+        await db_session.refresh(deliverable)
+
         result = await execute_action(
             authenticated_client,
             "deliverable_actions",
             "deliverable_actions__deliverable_update",
-            {"title": "Updated via Action"},
+            {
+                "title": "Updated via Action",
+                "content": deliverable.content,
+                "platforms": deliverable.platforms.value,
+                "posting_date": deliverable.posting_date.isoformat(),
+                "deliverable_type": deliverable.deliverable_type.value if deliverable.deliverable_type else None,
+                "count": int(deliverable.count),
+                "posting_start_date": str(deliverable.posting_start_date) if deliverable.posting_start_date else None,
+                "posting_end_date": str(deliverable.posting_end_date) if deliverable.posting_end_date else None,
+                "handles": list(deliverable.handles) if deliverable.handles else [],
+                "hashtags": list(deliverable.hashtags) if deliverable.hashtags else [],
+                "disclosures": list(deliverable.disclosures) if deliverable.disclosures else [],
+                "approval_required": bool(deliverable.approval_required),
+                "approval_rounds": int(deliverable.approval_rounds) if deliverable.approval_rounds else None,
+                "campaign_id": int(deliverable.campaign_id),
+                "notes": {"test": "value"},  # Use simple dict to avoid any serialization issues
+            },
             sqid_encode(deliverable.id),
         )
 

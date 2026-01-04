@@ -30,7 +30,14 @@ class TestBrands:
         """Test POST /brands/{id} updates brand."""
         response = await authenticated_client.post(
             f"/brands/{sqid_encode(brand.id)}",
-            json={"name": "Updated Name"},
+            json={
+                "name": "Updated Name",
+                "description": brand.description,
+                "website": brand.website,
+                "email": brand.email,
+                "phone": brand.phone,
+                "notes": brand.notes,
+            },
         )
         assert response.status_code in [200, 201]
         assert response.json() is not None
@@ -88,7 +95,14 @@ class TestBrands:
             f"/actions/{ActionGroupType.BrandActions}/{sqid_encode(brand.id)}",
             json={
                 "action": "brand_actions__brand_update",
-                "data": {"name": "After Update"},
+                "data": {
+                    "name": "After Update",
+                    "description": brand.description,
+                    "website": brand.website,
+                    "email": brand.email,
+                    "phone": brand.phone,
+                    "notes": brand.notes,
+                },
             },
         )
         assert response.status_code in [
@@ -161,7 +175,14 @@ class TestBrandContacts:
 
         response = await authenticated_client.post(
             f"/brands/contacts/{sqid_encode(contact.id)}",
-            json={"first_name": "Updated"},
+            json={
+                "first_name": "Updated",
+                "last_name": contact.last_name,
+                "email": contact.email,
+                "phone": contact.phone,
+                "notes": contact.notes,
+                "brand_id": sqid_encode(contact.brand_id),
+            },
         )
         assert response.status_code in [200, 201]
         assert response.json() is not None

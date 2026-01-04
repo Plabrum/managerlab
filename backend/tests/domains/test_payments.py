@@ -35,8 +35,16 @@ class TestInvoices:
         response = await authenticated_client.post(
             f"/invoices/{sqid_encode(invoice.id)}",
             json={
+                "invoice_number": invoice.invoice_number,
                 "customer_name": "Updated Customer",
+                "customer_email": invoice.customer_email,
+                "posting_date": str(invoice.posting_date),
+                "due_date": str(invoice.due_date),
                 "amount_due": "1500.00",
+                "amount_paid": str(invoice.amount_paid),
+                "description": invoice.description,
+                "notes": invoice.notes,
+                "campaign_id": invoice.campaign_id,
             },
         )
         assert response.status_code in [200, 201]
@@ -51,7 +59,18 @@ class TestInvoices:
 
         response = await authenticated_client.post(
             f"/invoices/{sqid_encode(invoice.id)}",
-            json={"amount_paid": "500.00"},
+            json={
+                "invoice_number": invoice.invoice_number,
+                "customer_name": invoice.customer_name,
+                "customer_email": invoice.customer_email,
+                "posting_date": str(invoice.posting_date),
+                "due_date": str(invoice.due_date),
+                "amount_due": str(invoice.amount_due),
+                "amount_paid": "500.00",
+                "description": invoice.description,
+                "notes": invoice.notes,
+                "campaign_id": invoice.campaign_id,
+            },
         )
         assert response.status_code in [200, 201]
         assert response.json() is not None
@@ -83,7 +102,18 @@ class TestInvoices:
             authenticated_client,
             "invoice_actions",
             "invoice_actions__invoice_update",
-            {"customer_name": "Updated via Action"},
+            {
+                "invoice_number": invoice.invoice_number,
+                "customer_name": "Updated via Action",
+                "customer_email": invoice.customer_email,
+                "posting_date": str(invoice.posting_date),
+                "due_date": str(invoice.due_date),
+                "amount_due": str(invoice.amount_due),
+                "amount_paid": str(invoice.amount_paid),
+                "description": invoice.description,
+                "notes": invoice.notes,
+                "campaign_id": invoice.campaign_id,
+            },
             sqid_encode(invoice.id),
         )
 

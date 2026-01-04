@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from msgspec import UNSET, UnsetType
-
 from app.actions.schemas import ActionDTO
 from app.base.schemas import BaseSchema
 from app.client.s3_client import BaseS3Client
@@ -77,7 +75,9 @@ def document_to_response_schema(
 
 
 class DocumentUpdateSchema(BaseSchema):
-    file_name: str | None | UnsetType = UNSET
+    """Declarative update schema for Document - all fields required."""
+
+    file_name: str
 
 
 class PresignedUploadRequestSchema(BaseSchema):
