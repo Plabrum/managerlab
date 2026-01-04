@@ -15,12 +15,13 @@ class TextEnum[E: Enum](types.TypeDecorator[E]):
     """Store enum as TEXT, converting between enum and string.
 
     This avoids PostgreSQL ENUM type complexity when adding/removing values.
-    Values are stored as the enum's .name attribute.
+    For StrEnum types, values are stored as the enum's .value attribute (e.g., "active").
+    For regular Enum types, values are stored as the enum's .name attribute (e.g., "ACTIVE").
 
     Example:
-        class Status(str, Enum):
-            DRAFT = "draft"
-            PUBLISHED = "published"
+        class Status(StrEnum):
+            DRAFT = auto()  # Stored as "draft"
+            PUBLISHED = auto()  # Stored as "published"
 
         class Post(Base):
             status: Mapped[Status] = mapped_column(
@@ -37,11 +38,15 @@ class TextEnum[E: Enum](types.TypeDecorator[E]):
         super().__init__(*args, **kwargs)
         self.enum_class = enum_class
 
-    def process_bind_param(self, value: E | None, dialect: Any) -> str | None:
-        """Convert enum to string for database."""
+    def process_bind_param(self, value: E | str | None, dialect: Any) -> str | None:
+        """Convert enum to string for database (stores enum name)."""
         if value is None:
             return None
-        return value.name
+        # Check for Enum BEFORE str, since StrEnum is both
+        if isinstance(value, Enum):
+            return value.name
+        # SQLAlchemy relationship filters may pass strings directly
+        return value
 
     def process_result_value(self, value: str | None, dialect: Any) -> E | None:
         """Convert string from database to enum."""

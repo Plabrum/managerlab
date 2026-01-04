@@ -54,7 +54,7 @@ class User(
         "Team",
         secondary="roles",
         primaryjoin="User.id == Role.user_id",
-        secondaryjoin="and_(Role.team_id == Team.id, Role.role_level == 'OWNER')",
+        secondaryjoin=f"and_(Role.team_id == Team.id, Role.role_level == '{RoleLevel.OWNER.name}')",
         viewonly=True,
         uselist=False,
     )
