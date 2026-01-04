@@ -59,23 +59,8 @@ class BaseAction[O: BaseDBModel, D: Struct](ABC):
     should_redirect_to_parent: ClassVar[bool] = False  # Whether to redirect to parent after execution
     is_hidden: ClassVar[bool] = False  # Hidden actions are not shown in dropdown but can still be executed
 
-    # Model and load options for default get_object implementation
+    # Model is set by action group during registration
     model: ClassVar[type[BaseDBModel] | None] = None
-    load_options: ClassVar[list[ExecutableOption]] = []
-
-    @classmethod
-    async def get_object(
-        cls,
-        object_id: int,
-        transaction: AsyncSession,
-    ) -> O | None:
-        if cls.model is None:
-            return None
-
-        result = await transaction.execute(
-            select(cls.model).where(cls.model.id == object_id).options(*cls.load_options)
-        )
-        return result.scalar_one()  # type: ignore[return-value]
 
     @classmethod
     def is_available(
@@ -229,7 +214,7 @@ class ActionGroup:
 
         if issubclass(action_class, BaseObjectAction):
             # Instance action - requires object
-            obj = await action_class.get_object(object_id=object_id, transaction=transaction) if object_id else None
+            obj = await self.get_object(object_id=object_id) if object_id else None
             if obj is None:
                 raise NotFoundException(detail=f"Object action {action_class.__name__} requires object_id")
             actions_execution_response = await action_class.execute(obj, action_data, transaction, deps)

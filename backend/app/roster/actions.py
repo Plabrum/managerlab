@@ -1,6 +1,7 @@
 from datetime import UTC
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.actions import (
     ActionGroupType,
@@ -22,6 +23,7 @@ from app.utils.db import update_model
 roster_actions = action_group_factory(
     ActionGroupType.RosterActions,
     model_type=Roster,
+    load_options=[joinedload(Roster.address)],
 )
 
 
