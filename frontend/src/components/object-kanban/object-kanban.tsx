@@ -237,8 +237,8 @@ export function ObjectKanban({
         onDataChange={handleDataChange}
       >
         {(column) => (
-          <div className="bg-muted/50 flex min-w-[220px] flex-col rounded-lg border">
-            <KanbanHeader className="border-b p-2">
+          <div className="bg-muted/50 flex h-full min-h-0 min-w-[220px] flex-col rounded-lg border">
+            <KanbanHeader className="shrink-0 border-b p-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <div className="bg-primary h-1.5 w-1.5 rounded-full" />
@@ -249,7 +249,10 @@ export function ObjectKanban({
                 </span>
               </div>
             </KanbanHeader>
-            <KanbanCards id={column.id} className="flex-1 space-y-1.5 p-2">
+            <KanbanCards
+              id={column.id}
+              className="min-h-0 flex-1 space-y-1.5 p-2"
+            >
               {(item) => (
                 <KanbanCard key={item.id} {...item}>
                   <ObjectKanbanCard object={(item as KanbanItem).object} />

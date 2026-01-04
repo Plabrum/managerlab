@@ -160,10 +160,10 @@ export const KanbanCards = <T extends KanbanItemProps = KanbanItemProps>({
   const items = filteredData.map((item) => item.id);
 
   return (
-    <ScrollArea className="overflow-hidden">
+    <ScrollArea className="h-full">
       <SortableContext items={items}>
         <div
-          className={cn('flex flex-grow flex-col gap-2 p-2', className)}
+          className={cn('flex flex-col gap-2 p-2', className)}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           {...(props as any)}
         >
@@ -333,12 +333,14 @@ export const KanbanProvider = <
       >
         <div
           className={cn(
-            'grid size-full auto-cols-fr grid-flow-col gap-4',
+            'grid h-full w-full auto-cols-fr grid-flow-col gap-4',
             className
           )}
         >
           {columns.map((column) => (
-            <div key={column.id}>{children(column)}</div>
+            <div key={column.id} className="h-full min-h-0">
+              {children(column)}
+            </div>
           ))}
         </div>
         {typeof window !== 'undefined' &&
