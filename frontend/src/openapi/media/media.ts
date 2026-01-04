@@ -177,7 +177,7 @@ export const useMediaRegisterRegisterMedia = <TError = MediaRegisterRegisterMedi
  * @summary GetMedia
  */
 export const mediaIdGetMedia = (
-    id: unknown,
+    id: string,
  signal?: AbortSignal
 ) => {
       
@@ -191,14 +191,14 @@ export const mediaIdGetMedia = (
 
 
 
-export const getMediaIdGetMediaQueryKey = (id?: unknown,) => {
+export const getMediaIdGetMediaQueryKey = (id?: string,) => {
     return [
     `/media/${id}`
     ] as const;
     }
 
     
-export const getMediaIdGetMediaQueryOptions = <TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+export const getMediaIdGetMediaQueryOptions = <TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -221,7 +221,7 @@ export type MediaIdGetMediaQueryError = MediaIdGetMedia400
 
 
 export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>> & Pick<
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof mediaIdGetMedia>>,
           TError,
@@ -231,7 +231,7 @@ export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetM
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>> & Pick<
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof mediaIdGetMedia>>,
           TError,
@@ -241,7 +241,7 @@ export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetM
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -249,7 +249,7 @@ export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetM
  */
 
 export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -264,7 +264,7 @@ export function useMediaIdGetMedia<TData = Awaited<ReturnType<typeof mediaIdGetM
 
 
 
-export const getMediaIdGetMediaSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+export const getMediaIdGetMediaSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -287,15 +287,15 @@ export type MediaIdGetMediaSuspenseQueryError = MediaIdGetMedia400
 
 
 export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -303,7 +303,7 @@ export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof med
  */
 
 export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof mediaIdGetMedia>>, TError = MediaIdGetMedia400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mediaIdGetMedia>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -322,7 +322,7 @@ export function useMediaIdGetMediaSuspense<TData = Awaited<ReturnType<typeof med
  * @summary DeleteMedia
  */
 export const mediaIdDeleteMedia = (
-    id: unknown,
+    id: string,
  ) => {
       
       
@@ -335,8 +335,8 @@ export const mediaIdDeleteMedia = (
 
 
 export const getMediaIdDeleteMediaMutationOptions = <TError = MediaIdDeleteMedia400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['mediaIdDeleteMedia'];
 const {mutation: mutationOptions} = options ?
@@ -348,7 +348,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, {id: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
           return  mediaIdDeleteMedia(id,)
@@ -367,11 +367,11 @@ const {mutation: mutationOptions} = options ?
  * @summary DeleteMedia
  */
 export const useMediaIdDeleteMedia = <TError = MediaIdDeleteMedia400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mediaIdDeleteMedia>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof mediaIdDeleteMedia>>,
         TError,
-        {id: unknown},
+        {id: string},
         TContext
       > => {
 

@@ -28,7 +28,7 @@ export interface ActionDTO {
 
 export type ActionExecutionResponseActionResult = RedirectActionResult | DownloadFileActionResult | null;
 
-export type ActionExecutionResponseCreatedId = unknown | null;
+export type ActionExecutionResponseCreatedId = string | null;
 
 export interface ActionExecutionResponse {
   message?: string;
@@ -71,7 +71,8 @@ export interface AddContractToCampaignAction {
 }
 
 export interface AddContractToCampaignSchema {
-  document_id: unknown;
+  /** SQID-encoded identifier */
+  document_id: string;
 }
 
 export interface AddDeliverableToCampaignAction {
@@ -91,7 +92,7 @@ export interface AddMediaToDeliverableAction {
 }
 
 export interface AddMediaToDeliverableSchema {
-  media_ids: unknown[];
+  media_ids: string[];
 }
 
 export type AddressCreateSchemaAddress2 = string | null;
@@ -123,7 +124,8 @@ export type AddressSchemaAddressType = AddressType | null;
 export type AddressSchemaTeamId = number | null;
 
 export interface AddressSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   address1: string;
   address2?: AddressSchemaAddress2;
   city: string;
@@ -166,7 +168,7 @@ export const AggregationType = {
 } as const;
 
 export interface BatchUnreadRequest {
-  object_ids: unknown[];
+  object_ids: string[];
 }
 
 export interface BatchUnreadResponse {
@@ -191,16 +193,18 @@ export type BrandContactSchemaPhone = string | null;
 
 export type BrandContactSchemaNotes = string | null;
 
-export type BrandContactSchemaTeamId = number | null;
+export type BrandContactSchemaTeamId = string | null;
 
 export interface BrandContactSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   first_name: string;
   last_name: string;
   email?: BrandContactSchemaEmail;
   phone?: BrandContactSchemaPhone;
   notes?: BrandContactSchemaNotes;
-  brand_id: number;
+  /** SQID-encoded identifier */
+  brand_id: string;
   created_at: string;
   updated_at: string;
   team_id?: BrandContactSchemaTeamId;
@@ -217,7 +221,7 @@ export type BrandContactUpdateSchemaPhone = string | null;
 
 export type BrandContactUpdateSchemaNotes = string | null;
 
-export type BrandContactUpdateSchemaBrandId = number | null;
+export type BrandContactUpdateSchemaBrandId = string | null;
 
 export interface BrandContactUpdateSchema {
   first_name?: BrandContactUpdateSchemaFirstName;
@@ -262,7 +266,8 @@ export type BrandSchemaTeamId = number | null;
 export type BrandSchemaThread = ThreadUnreadInfo | null;
 
 export interface BrandSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   description?: BrandSchemaDescription;
   website?: BrandSchemaWebsite;
@@ -335,7 +340,7 @@ export type CampaignCreateSchemaApprovalRounds = number | null;
 
 export type CampaignCreateSchemaApprovalSlaHours = number | null;
 
-export type CampaignCreateSchemaContractDocumentId = unknown | null;
+export type CampaignCreateSchemaContractDocumentId = string | null;
 
 export interface CampaignCreateSchema {
   name: string;
@@ -358,7 +363,8 @@ export interface CampaignCreateSchema {
   ownership_mode?: CampaignCreateSchemaOwnershipMode;
   approval_rounds?: CampaignCreateSchemaApprovalRounds;
   approval_sla_hours?: CampaignCreateSchemaApprovalSlaHours;
-  brand_id: unknown;
+  /** SQID-encoded identifier */
+  brand_id: string;
   contract_document_id?: CampaignCreateSchemaContractDocumentId;
 }
 
@@ -488,12 +494,14 @@ export type CampaignSchemaApprovalRounds = number | null;
 export type CampaignSchemaApprovalSlaHours = number | null;
 
 export interface CampaignSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   description?: CampaignSchemaDescription;
   compensation_structure?: CampaignSchemaCompensationStructure;
   assigned_roster_id?: CampaignSchemaAssignedRosterId;
-  brand_id: unknown;
+  /** SQID-encoded identifier */
+  brand_id: string;
   state: string;
   created_at: string;
   updated_at: string;
@@ -531,7 +539,7 @@ export type CampaignUpdateSchemaName = string | null;
 
 export type CampaignUpdateSchemaDescription = string | null;
 
-export type CampaignUpdateSchemaBrandId = number | null;
+export type CampaignUpdateSchemaBrandId = string | null;
 
 export type CampaignUpdateSchemaCompensationStructure = CompensationStructure | null;
 
@@ -720,7 +728,8 @@ export interface CreateWidgetAction {
 export type CreateWidgetSchemaDescription = string | null;
 
 export interface CreateWidgetSchema {
-  dashboard_id: unknown;
+  /** SQID-encoded identifier */
+  dashboard_id: string;
   type: string;
   title: string;
   query: WidgetQuerySchema;
@@ -736,7 +745,8 @@ export type DashboardSchemaConfig = {[key: string]: unknown};
 export type DashboardSchemaUserId = number | null;
 
 export interface DashboardSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   config: DashboardSchemaConfig;
   user_id?: DashboardSchemaUserId;
@@ -907,10 +917,11 @@ export interface DeliverableExtractionSchema {
 
 export type DeliverableMediaAssociationSchemaApprovedAt = string | null;
 
-export type DeliverableMediaAssociationSchemaThreadId = unknown | null;
+export type DeliverableMediaAssociationSchemaThreadId = string | null;
 
 export interface DeliverableMediaAssociationSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   approved_at?: DeliverableMediaAssociationSchemaApprovedAt;
   is_featured: boolean;
   media: MediaResponseSchema;
@@ -945,7 +956,8 @@ export type DeliverableResponseSchemaAssignedRoster = RosterInDeliverableSchema 
 export type DeliverableResponseSchemaThread = ThreadUnreadInfo | null;
 
 export interface DeliverableResponseSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   title: string;
   content?: DeliverableResponseSchemaContent;
   platforms: SocialMediaPlatforms;
@@ -1050,7 +1062,8 @@ export type DocumentResponseSchemaThumbnailUrl = string | null;
 export type DocumentResponseSchemaThread = ThreadUnreadInfo | null;
 
 export interface DocumentResponseSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   file_name: string;
   file_type: string;
   file_size: number;
@@ -1069,7 +1082,8 @@ export type DocumentSchemaTeamId = number | null;
 export type DocumentSchemaCampaignId = number | null;
 
 export interface DocumentSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   file_name: string;
   file_type: string;
   file_size: number;
@@ -1294,7 +1308,8 @@ export type InvoiceSchemaTeamId = number | null;
 export type InvoiceSchemaThread = ThreadUnreadInfo | null;
 
 export interface InvoiceSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   invoice_number: number;
   customer_name: string;
   customer_email: string;
@@ -1373,7 +1388,8 @@ export type MediaResponseSchemaThumbnailUrl = string | null;
 export type MediaResponseSchemaThread = ThreadUnreadInfo | null;
 
 export interface MediaResponseSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   file_name: string;
   file_type: string;
   file_size: number;
@@ -1392,7 +1408,8 @@ export type MediaSchemaTeamId = number | null;
 export type MediaSchemaCampaignId = number | null;
 
 export interface MediaSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   file_name: string;
   file_type: string;
   file_size: number;
@@ -1425,9 +1442,12 @@ export interface MessageListResponse {
 export type MessageSchemaContent = {[key: string]: unknown};
 
 export interface MessageSchema {
-  id: unknown;
-  thread_id: unknown;
-  user_id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
+  /** SQID-encoded identifier */
+  thread_id: string;
+  /** SQID-encoded identifier */
+  user_id: string;
   content: MessageSchemaContent;
   created_at: string;
   updated_at: string;
@@ -1435,7 +1455,8 @@ export interface MessageSchema {
 }
 
 export interface MessageSenderSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   email: string;
   name: string;
 }
@@ -1631,7 +1652,8 @@ export interface ReplaceContractAction {
 }
 
 export interface ReplaceContractSchema {
-  document_id: unknown;
+  /** SQID-encoded identifier */
+  document_id: string;
 }
 
 /**
@@ -1690,7 +1712,8 @@ export type RosterInDeliverableSchemaTiktokHandle = string | null;
 export type RosterInDeliverableSchemaYoutubeChannel = string | null;
 
 export interface RosterInDeliverableSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   email?: RosterInDeliverableSchemaEmail;
   instagram_handle?: RosterInDeliverableSchemaInstagramHandle;
@@ -1725,7 +1748,8 @@ export type RosterSchemaTeamId = number | null;
 export type RosterSchemaThread = ThreadUnreadInfo | null;
 
 export interface RosterSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   email?: RosterSchemaEmail;
   phone?: RosterSchemaPhone;
@@ -1794,7 +1818,7 @@ export interface SavedViewConfigSchema {
   page_size?: number;
 }
 
-export type SavedViewSchemaId = unknown | null;
+export type SavedViewSchemaId = string | null;
 
 export type SavedViewSchemaUserId = number | null;
 
@@ -1870,7 +1894,8 @@ export interface SwitchScopeRequest {
 }
 
 export interface SwitchTeamRequest {
-  team_id: unknown;
+  /** SQID-encoded identifier */
+  team_id: string;
 }
 
 export interface SwitchTeamResponse {
@@ -1879,7 +1904,8 @@ export interface SwitchTeamResponse {
 }
 
 export interface TeamListItemSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   team_name: string;
   scope_type: ScopeType;
   is_selected?: boolean;
@@ -1889,7 +1915,8 @@ export interface TeamListItemSchema {
 export type TeamSchemaDescription = string | null;
 
 export interface TeamSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   description?: TeamSchemaDescription;
   created_at: string;
@@ -1929,7 +1956,8 @@ export interface TextFilterDefinition {
 }
 
 export interface ThreadUnreadInfo {
-  thread_id: unknown;
+  /** SQID-encoded identifier */
+  thread_id: string;
   unread_count: number;
 }
 
@@ -2088,7 +2116,8 @@ export interface UpdateUserAction {
 }
 
 export interface UserAndRoleSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   email: string;
   email_verified: boolean;
@@ -2099,7 +2128,8 @@ export interface UserAndRoleSchema {
 }
 
 export interface UserSchema {
-  id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
   name: string;
   email: string;
   email_verified: boolean;
@@ -2140,8 +2170,10 @@ export interface WidgetQuerySchema {
 export type WidgetSchemaDescription = string | null;
 
 export interface WidgetSchema {
-  id: unknown;
-  dashboard_id: unknown;
+  /** SQID-encoded identifier */
+  id: string;
+  /** SQID-encoded identifier */
+  dashboard_id: string;
   type: string;
   title: string;
   description?: WidgetSchemaDescription;
