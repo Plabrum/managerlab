@@ -259,7 +259,7 @@ export function CampaignFields({ campaign }: CampaignFieldsProps) {
             <dt className="text-muted-foreground text-sm font-medium">
               Brand ID
             </dt>
-            <dd className="text-sm">{campaign.brand_id}</dd>
+            <dd className="text-sm">{formatValue(campaign.brand_id)}</dd>
           </div>
 
           <div className="space-y-1">

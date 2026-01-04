@@ -259,7 +259,7 @@ export const useActionsActionGroupExecuteAction = <TError = ActionsActionGroupEx
  */
 export const actionsActionGroupObjectIdListObjectActions = (
     actionGroup: ActionGroupType,
-    objectId: unknown,
+    objectId: string,
  signal?: AbortSignal
 ) => {
       
@@ -274,7 +274,7 @@ export const actionsActionGroupObjectIdListObjectActions = (
 
 
 export const getActionsActionGroupObjectIdListObjectActionsQueryKey = (actionGroup?: ActionGroupType,
-    objectId?: unknown,) => {
+    objectId?: string,) => {
     return [
     `/actions/${actionGroup}/${objectId}`
     ] as const;
@@ -282,7 +282,7 @@ export const getActionsActionGroupObjectIdListObjectActionsQueryKey = (actionGro
 
     
 export const getActionsActionGroupObjectIdListObjectActionsQueryOptions = <TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -306,7 +306,7 @@ export type ActionsActionGroupObjectIdListObjectActionsQueryError = ActionsActio
 
 export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>> & Pick<
+    objectId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>,
           TError,
@@ -317,7 +317,7 @@ export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<R
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>> & Pick<
+    objectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>,
           TError,
@@ -328,7 +328,7 @@ export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<R
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -337,7 +337,7 @@ export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<R
 
 export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -353,7 +353,7 @@ export function useActionsActionGroupObjectIdListObjectActions<TData = Awaited<R
 
 
 export const getActionsActionGroupObjectIdListObjectActionsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -377,17 +377,17 @@ export type ActionsActionGroupObjectIdListObjectActionsSuspenseQueryError = Acti
 
 export function useActionsActionGroupObjectIdListObjectActionsSuspense<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useActionsActionGroupObjectIdListObjectActionsSuspense<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useActionsActionGroupObjectIdListObjectActionsSuspense<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -396,7 +396,7 @@ export function useActionsActionGroupObjectIdListObjectActionsSuspense<TData = A
 
 export function useActionsActionGroupObjectIdListObjectActionsSuspense<TData = Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError = ActionsActionGroupObjectIdListObjectActions400>(
  actionGroup: ActionGroupType,
-    objectId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
+    objectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdListObjectActions>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -416,7 +416,7 @@ export function useActionsActionGroupObjectIdListObjectActionsSuspense<TData = A
  */
 export const actionsActionGroupObjectIdExecuteObjectAction = (
     actionGroup: ActionGroupType,
-    objectId: unknown,
+    objectId: string,
     actionsActionGroupObjectIdExecuteObjectActionBody: ActionsActionGroupObjectIdExecuteObjectActionBody,
  signal?: AbortSignal
 ) => {
@@ -433,8 +433,8 @@ export const actionsActionGroupObjectIdExecuteObjectAction = (
 
 
 export const getActionsActionGroupObjectIdExecuteObjectActionMutationOptions = <TError = ActionsActionGroupObjectIdExecuteObjectAction400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, TError,{actionGroup: ActionGroupType;objectId: unknown;data: ActionsActionGroupObjectIdExecuteObjectActionBody}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, TError,{actionGroup: ActionGroupType;objectId: unknown;data: ActionsActionGroupObjectIdExecuteObjectActionBody}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, TError,{actionGroup: ActionGroupType;objectId: string;data: ActionsActionGroupObjectIdExecuteObjectActionBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, TError,{actionGroup: ActionGroupType;objectId: string;data: ActionsActionGroupObjectIdExecuteObjectActionBody}, TContext> => {
 
 const mutationKey = ['actionsActionGroupObjectIdExecuteObjectAction'];
 const {mutation: mutationOptions} = options ?
@@ -446,7 +446,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, {actionGroup: ActionGroupType;objectId: unknown;data: ActionsActionGroupObjectIdExecuteObjectActionBody}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, {actionGroup: ActionGroupType;objectId: string;data: ActionsActionGroupObjectIdExecuteObjectActionBody}> = (props) => {
           const {actionGroup,objectId,data} = props ?? {};
 
           return  actionsActionGroupObjectIdExecuteObjectAction(actionGroup,objectId,data,)
@@ -465,11 +465,11 @@ const {mutation: mutationOptions} = options ?
  * @summary ExecuteObjectAction
  */
 export const useActionsActionGroupObjectIdExecuteObjectAction = <TError = ActionsActionGroupObjectIdExecuteObjectAction400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, TError,{actionGroup: ActionGroupType;objectId: unknown;data: ActionsActionGroupObjectIdExecuteObjectActionBody}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>, TError,{actionGroup: ActionGroupType;objectId: string;data: ActionsActionGroupObjectIdExecuteObjectActionBody}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof actionsActionGroupObjectIdExecuteObjectAction>>,
         TError,
-        {actionGroup: ActionGroupType;objectId: unknown;data: ActionsActionGroupObjectIdExecuteObjectActionBody},
+        {actionGroup: ActionGroupType;objectId: string;data: ActionsActionGroupObjectIdExecuteObjectActionBody},
         TContext
       > => {
 

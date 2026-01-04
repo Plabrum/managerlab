@@ -1,9 +1,5 @@
-"""Tests for threads domain: thread and message operations."""
-
 from litestar.testing import AsyncTestClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.threads.models import Message, Thread
 from app.utils.sqids import sqid_encode
 
 

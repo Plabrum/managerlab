@@ -5,10 +5,10 @@ implementing a unit of work pattern similar to Litestar's request handling.
 """
 
 import logging
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from functools import wraps
-from typing import Any, AsyncGenerator
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def task_transaction(
     db_sessionmaker: async_sessionmaker,
-) -> AsyncGenerator[AsyncSession, None]:
+) -> AsyncGenerator[AsyncSession]:
     """
     Provide a database transaction for background tasks.
 

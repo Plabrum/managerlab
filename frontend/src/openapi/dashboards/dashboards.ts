@@ -254,7 +254,7 @@ export const useDashboardsCreateDashboard = <TError = DashboardsCreateDashboard4
  * @summary GetDashboard
  */
 export const dashboardsIdGetDashboard = (
-    id: unknown,
+    id: string,
  signal?: AbortSignal
 ) => {
       
@@ -268,14 +268,14 @@ export const dashboardsIdGetDashboard = (
 
 
 
-export const getDashboardsIdGetDashboardQueryKey = (id?: unknown,) => {
+export const getDashboardsIdGetDashboardQueryKey = (id?: string,) => {
     return [
     `/dashboards/${id}`
     ] as const;
     }
 
     
-export const getDashboardsIdGetDashboardQueryOptions = <TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+export const getDashboardsIdGetDashboardQueryOptions = <TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -298,7 +298,7 @@ export type DashboardsIdGetDashboardQueryError = DashboardsIdGetDashboard400
 
 
 export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>> & Pick<
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof dashboardsIdGetDashboard>>,
           TError,
@@ -308,7 +308,7 @@ export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof da
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>> & Pick<
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof dashboardsIdGetDashboard>>,
           TError,
@@ -318,7 +318,7 @@ export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof da
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -326,7 +326,7 @@ export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof da
  */
 
 export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -341,7 +341,7 @@ export function useDashboardsIdGetDashboard<TData = Awaited<ReturnType<typeof da
 
 
 
-export const getDashboardsIdGetDashboardSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+export const getDashboardsIdGetDashboardSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -364,15 +364,15 @@ export type DashboardsIdGetDashboardSuspenseQueryError = DashboardsIdGetDashboar
 
 
 export function useDashboardsIdGetDashboardSuspense<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDashboardsIdGetDashboardSuspense<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDashboardsIdGetDashboardSuspense<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -380,7 +380,7 @@ export function useDashboardsIdGetDashboardSuspense<TData = Awaited<ReturnType<t
  */
 
 export function useDashboardsIdGetDashboardSuspense<TData = Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError = DashboardsIdGetDashboard400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof dashboardsIdGetDashboard>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -399,7 +399,7 @@ export function useDashboardsIdGetDashboardSuspense<TData = Awaited<ReturnType<t
  * @summary UpdateDashboard
  */
 export const dashboardsIdUpdateDashboard = (
-    id: unknown,
+    id: string,
     updateDashboardSchema: UpdateDashboardSchema,
  ) => {
       
@@ -415,8 +415,8 @@ export const dashboardsIdUpdateDashboard = (
 
 
 export const getDashboardsIdUpdateDashboardMutationOptions = <TError = DashboardsIdUpdateDashboard400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, TError,{id: unknown;data: UpdateDashboardSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, TError,{id: unknown;data: UpdateDashboardSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, TError,{id: string;data: UpdateDashboardSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, TError,{id: string;data: UpdateDashboardSchema}, TContext> => {
 
 const mutationKey = ['dashboardsIdUpdateDashboard'];
 const {mutation: mutationOptions} = options ?
@@ -428,7 +428,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, {id: unknown;data: UpdateDashboardSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, {id: string;data: UpdateDashboardSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  dashboardsIdUpdateDashboard(id,data,)
@@ -447,11 +447,11 @@ const {mutation: mutationOptions} = options ?
  * @summary UpdateDashboard
  */
 export const useDashboardsIdUpdateDashboard = <TError = DashboardsIdUpdateDashboard400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, TError,{id: unknown;data: UpdateDashboardSchema}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>, TError,{id: string;data: UpdateDashboardSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof dashboardsIdUpdateDashboard>>,
         TError,
-        {id: unknown;data: UpdateDashboardSchema},
+        {id: string;data: UpdateDashboardSchema},
         TContext
       > => {
 

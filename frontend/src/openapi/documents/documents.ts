@@ -177,7 +177,7 @@ export const useDocumentsRegisterRegisterDocument = <TError = DocumentsRegisterR
  * @summary GetDocument
  */
 export const documentsIdGetDocument = (
-    id: unknown,
+    id: string,
  signal?: AbortSignal
 ) => {
       
@@ -191,14 +191,14 @@ export const documentsIdGetDocument = (
 
 
 
-export const getDocumentsIdGetDocumentQueryKey = (id?: unknown,) => {
+export const getDocumentsIdGetDocumentQueryKey = (id?: string,) => {
     return [
     `/documents/${id}`
     ] as const;
     }
 
     
-export const getDocumentsIdGetDocumentQueryOptions = <TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+export const getDocumentsIdGetDocumentQueryOptions = <TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -221,7 +221,7 @@ export type DocumentsIdGetDocumentQueryError = DocumentsIdGetDocument400
 
 
 export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>> & Pick<
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof documentsIdGetDocument>>,
           TError,
@@ -231,7 +231,7 @@ export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof docu
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>> & Pick<
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof documentsIdGetDocument>>,
           TError,
@@ -241,7 +241,7 @@ export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof docu
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -249,7 +249,7 @@ export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof docu
  */
 
 export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -264,7 +264,7 @@ export function useDocumentsIdGetDocument<TData = Awaited<ReturnType<typeof docu
 
 
 
-export const getDocumentsIdGetDocumentSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+export const getDocumentsIdGetDocumentSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -287,15 +287,15 @@ export type DocumentsIdGetDocumentSuspenseQueryError = DocumentsIdGetDocument400
 
 
 export function useDocumentsIdGetDocumentSuspense<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDocumentsIdGetDocumentSuspense<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDocumentsIdGetDocumentSuspense<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -303,7 +303,7 @@ export function useDocumentsIdGetDocumentSuspense<TData = Awaited<ReturnType<typ
  */
 
 export function useDocumentsIdGetDocumentSuspense<TData = Awaited<ReturnType<typeof documentsIdGetDocument>>, TError = DocumentsIdGetDocument400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof documentsIdGetDocument>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -322,7 +322,7 @@ export function useDocumentsIdGetDocumentSuspense<TData = Awaited<ReturnType<typ
  * @summary DeleteDocument
  */
 export const documentsIdDeleteDocument = (
-    id: unknown,
+    id: string,
  ) => {
       
       
@@ -335,8 +335,8 @@ export const documentsIdDeleteDocument = (
 
 
 export const getDocumentsIdDeleteDocumentMutationOptions = <TError = DocumentsIdDeleteDocument400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, TError,{id: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, TError,{id: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['documentsIdDeleteDocument'];
 const {mutation: mutationOptions} = options ?
@@ -348,7 +348,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, {id: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
           return  documentsIdDeleteDocument(id,)
@@ -367,11 +367,11 @@ const {mutation: mutationOptions} = options ?
  * @summary DeleteDocument
  */
 export const useDocumentsIdDeleteDocument = <TError = DocumentsIdDeleteDocument400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, TError,{id: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsIdDeleteDocument>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof documentsIdDeleteDocument>>,
         TError,
-        {id: unknown},
+        {id: string},
         TContext
       > => {
 

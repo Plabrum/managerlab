@@ -1,7 +1,6 @@
 """Typed dependencies for actions."""
 
 from dataclasses import dataclass
-from typing import Any
 
 from litestar import Request
 from litestar.channels import ChannelsPlugin

@@ -86,7 +86,7 @@ export function UpdateCampaignForm({
           <ObjectSearchCombobox
             objectType="brands"
             value={value ? String(value) : null}
-            onValueChange={(id) => onChange(id ? Number(id) : null)}
+            onValueChange={(id) => onChange(id)}
             label="Brand"
           />
         )}

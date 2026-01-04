@@ -190,7 +190,7 @@ export function useUsersListUsersSuspense<TData = Awaited<ReturnType<typeof user
  * @summary GetUser
  */
 export const usersUserIdGetUser = (
-    userId: unknown,
+    userId: string,
  signal?: AbortSignal
 ) => {
       
@@ -204,14 +204,14 @@ export const usersUserIdGetUser = (
 
 
 
-export const getUsersUserIdGetUserQueryKey = (userId?: unknown,) => {
+export const getUsersUserIdGetUserQueryKey = (userId?: string,) => {
     return [
     `/users/${userId}`
     ] as const;
     }
 
     
-export const getUsersUserIdGetUserQueryOptions = <TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(userId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+export const getUsersUserIdGetUserQueryOptions = <TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -234,7 +234,7 @@ export type UsersUserIdGetUserQueryError = UsersUserIdGetUser400
 
 
 export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>> & Pick<
+ userId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof usersUserIdGetUser>>,
           TError,
@@ -244,7 +244,7 @@ export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUse
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>> & Pick<
+ userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof usersUserIdGetUser>>,
           TError,
@@ -254,7 +254,7 @@ export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUse
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+ userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -262,7 +262,7 @@ export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUse
  */
 
 export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+ userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -277,7 +277,7 @@ export function useUsersUserIdGetUser<TData = Awaited<ReturnType<typeof usersUse
 
 
 
-export const getUsersUserIdGetUserSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(userId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+export const getUsersUserIdGetUserSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(userId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -300,15 +300,15 @@ export type UsersUserIdGetUserSuspenseQueryError = UsersUserIdGetUser400
 
 
 export function useUsersUserIdGetUserSuspense<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+ userId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersUserIdGetUserSuspense<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+ userId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersUserIdGetUserSuspense<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+ userId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -316,7 +316,7 @@ export function useUsersUserIdGetUserSuspense<TData = Awaited<ReturnType<typeof 
  */
 
 export function useUsersUserIdGetUserSuspense<TData = Awaited<ReturnType<typeof usersUserIdGetUser>>, TError = UsersUserIdGetUser400>(
- userId: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
+ userId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof usersUserIdGetUser>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

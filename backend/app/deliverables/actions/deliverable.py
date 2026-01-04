@@ -11,7 +11,7 @@ from app.actions.base import (
 from app.actions.deps import ActionDeps
 from app.actions.enums import ActionGroupType, ActionIcon
 from app.actions.schemas import ActionExecutionResponse
-from app.actions.state_actions import BaseUpdateStateAction, UpdateStateData
+from app.actions.state_actions import BaseUpdateStateAction
 from app.deliverables.enums import DeliverableActions, DeliverableStates
 from app.deliverables.models import Deliverable, DeliverableMedia
 from app.deliverables.schemas import (

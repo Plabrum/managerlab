@@ -259,7 +259,7 @@ export const useViewsObjectTypeCreateSavedView = <TError = ViewsObjectTypeCreate
  */
 export const viewsObjectTypeIdGetSavedView = (
     objectType: ObjectTypes,
-    id: unknown,
+    id: string,
  signal?: AbortSignal
 ) => {
       
@@ -274,7 +274,7 @@ export const viewsObjectTypeIdGetSavedView = (
 
 
 export const getViewsObjectTypeIdGetSavedViewQueryKey = (objectType?: ObjectTypes,
-    id?: unknown,) => {
+    id?: string,) => {
     return [
     `/views/${objectType}/${id}`
     ] as const;
@@ -282,7 +282,7 @@ export const getViewsObjectTypeIdGetSavedViewQueryKey = (objectType?: ObjectType
 
     
 export const getViewsObjectTypeIdGetSavedViewQueryOptions = <TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -306,7 +306,7 @@ export type ViewsObjectTypeIdGetSavedViewQueryError = ViewsObjectTypeIdGetSavedV
 
 export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>> & Pick<
+    id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>,
           TError,
@@ -317,7 +317,7 @@ export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<type
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>> & Pick<
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>,
           TError,
@@ -328,7 +328,7 @@ export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<type
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -337,7 +337,7 @@ export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<type
 
 export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -353,7 +353,7 @@ export function useViewsObjectTypeIdGetSavedView<TData = Awaited<ReturnType<type
 
 
 export const getViewsObjectTypeIdGetSavedViewSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -377,17 +377,17 @@ export type ViewsObjectTypeIdGetSavedViewSuspenseQueryError = ViewsObjectTypeIdG
 
 export function useViewsObjectTypeIdGetSavedViewSuspense<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewsObjectTypeIdGetSavedViewSuspense<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewsObjectTypeIdGetSavedViewSuspense<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -396,7 +396,7 @@ export function useViewsObjectTypeIdGetSavedViewSuspense<TData = Awaited<ReturnT
 
 export function useViewsObjectTypeIdGetSavedViewSuspense<TData = Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError = ViewsObjectTypeIdGetSavedView400>(
  objectType: ObjectTypes,
-    id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
+    id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof viewsObjectTypeIdGetSavedView>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -416,7 +416,7 @@ export function useViewsObjectTypeIdGetSavedViewSuspense<TData = Awaited<ReturnT
  */
 export const viewsObjectTypeIdUpdateSavedView = (
     objectType: ObjectTypes,
-    id: unknown,
+    id: string,
     updateSavedViewSchema: UpdateSavedViewSchema,
  signal?: AbortSignal
 ) => {
@@ -433,8 +433,8 @@ export const viewsObjectTypeIdUpdateSavedView = (
 
 
 export const getViewsObjectTypeIdUpdateSavedViewMutationOptions = <TError = ViewsObjectTypeIdUpdateSavedView400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, TError,{objectType: ObjectTypes;id: unknown;data: UpdateSavedViewSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, TError,{objectType: ObjectTypes;id: unknown;data: UpdateSavedViewSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, TError,{objectType: ObjectTypes;id: string;data: UpdateSavedViewSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, TError,{objectType: ObjectTypes;id: string;data: UpdateSavedViewSchema}, TContext> => {
 
 const mutationKey = ['viewsObjectTypeIdUpdateSavedView'];
 const {mutation: mutationOptions} = options ?
@@ -446,7 +446,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, {objectType: ObjectTypes;id: unknown;data: UpdateSavedViewSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, {objectType: ObjectTypes;id: string;data: UpdateSavedViewSchema}> = (props) => {
           const {objectType,id,data} = props ?? {};
 
           return  viewsObjectTypeIdUpdateSavedView(objectType,id,data,)
@@ -465,11 +465,11 @@ const {mutation: mutationOptions} = options ?
  * @summary UpdateSavedView
  */
 export const useViewsObjectTypeIdUpdateSavedView = <TError = ViewsObjectTypeIdUpdateSavedView400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, TError,{objectType: ObjectTypes;id: unknown;data: UpdateSavedViewSchema}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>, TError,{objectType: ObjectTypes;id: string;data: UpdateSavedViewSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof viewsObjectTypeIdUpdateSavedView>>,
         TError,
-        {objectType: ObjectTypes;id: unknown;data: UpdateSavedViewSchema},
+        {objectType: ObjectTypes;id: string;data: UpdateSavedViewSchema},
         TContext
       > => {
 
@@ -482,7 +482,7 @@ export const useViewsObjectTypeIdUpdateSavedView = <TError = ViewsObjectTypeIdUp
  */
 export const viewsObjectTypeIdDeleteSavedView = (
     objectType: ObjectTypes,
-    id: unknown,
+    id: string,
  ) => {
       
       
@@ -495,8 +495,8 @@ export const viewsObjectTypeIdDeleteSavedView = (
 
 
 export const getViewsObjectTypeIdDeleteSavedViewMutationOptions = <TError = ViewsObjectTypeIdDeleteSavedView400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, TError,{objectType: ObjectTypes;id: unknown}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, TError,{objectType: ObjectTypes;id: unknown}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, TError,{objectType: ObjectTypes;id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, TError,{objectType: ObjectTypes;id: string}, TContext> => {
 
 const mutationKey = ['viewsObjectTypeIdDeleteSavedView'];
 const {mutation: mutationOptions} = options ?
@@ -508,7 +508,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, {objectType: ObjectTypes;id: unknown}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, {objectType: ObjectTypes;id: string}> = (props) => {
           const {objectType,id} = props ?? {};
 
           return  viewsObjectTypeIdDeleteSavedView(objectType,id,)
@@ -527,11 +527,11 @@ const {mutation: mutationOptions} = options ?
  * @summary DeleteSavedView
  */
 export const useViewsObjectTypeIdDeleteSavedView = <TError = ViewsObjectTypeIdDeleteSavedView400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, TError,{objectType: ObjectTypes;id: unknown}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>, TError,{objectType: ObjectTypes;id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof viewsObjectTypeIdDeleteSavedView>>,
         TError,
-        {objectType: ObjectTypes;id: unknown},
+        {objectType: ObjectTypes;id: string},
         TContext
       > => {
 

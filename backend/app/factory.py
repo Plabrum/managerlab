@@ -44,6 +44,7 @@ from app.logging_config import configure_logging
 from app.media.routes import local_media_router, media_router
 from app.objects.routes import object_router
 from app.payments.routes import invoice_router
+from app.plugins import SqidSchemaPlugin
 from app.queue.config import queue_config
 from app.roster.routes import roster_router
 from app.teams.routes import team_router
@@ -190,6 +191,7 @@ def create_app(
             backend=PsycoPgChannelsBackend(config.ADMIN_DB_URL),
             arbitrary_channels_allowed=True,
         ),
+        SqidSchemaPlugin(),
         # NO STRUCTLOG PLUGIN - Using stdlib logging configured above
     ]
 
@@ -209,6 +211,7 @@ def create_app(
     # ========================================================================
     # OpenAPI
     # ========================================================================
+
     openapi_config = OpenAPIConfig(
         title="Arive API",
         description="Arive API with OpenAPI documentation",

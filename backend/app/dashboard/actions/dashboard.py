@@ -9,7 +9,7 @@ from app.actions.schemas import ActionExecutionResponse
 from app.dashboard.enums import DashboardActions
 from app.dashboard.models import Dashboard
 from app.dashboard.schemas import CreateDashboardSchema, UpdateDashboardSchema
-from app.utils.db import create_model, update_model
+from app.utils.db import update_model
 
 dashboard_actions = action_group_factory(
     ActionGroupType.DashboardActions,

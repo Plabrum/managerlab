@@ -1,7 +1,6 @@
 """Authentication guards for route protection."""
 
 import logging
-from typing import TYPE_CHECKING
 
 from litestar.connection import ASGIConnection
 from litestar.exceptions import NotAuthorizedException
@@ -10,9 +9,6 @@ from litestar.handlers.base import BaseRouteHandler
 from app.auth.crypto import verify_payload_signature
 from app.auth.enums import ScopeType
 from app.utils.configure import config
-
-if TYPE_CHECKING:
-    from litestar import Request
 
 logger = logging.getLogger(__name__)
 

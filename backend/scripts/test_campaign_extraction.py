@@ -94,7 +94,7 @@ async def test_extraction(s3_key: str) -> None:
 
         print(json.dumps(result_dict, indent=2, default=str))
         print("\n" + "=" * 80)
-        print(f"✓ Extraction completed successfully!")
+        print("✓ Extraction completed successfully!")
         print(f"  Campaign: {result.name}")
         print(f"  Counterparty: {result.counterparty_name}")
         print(f"  Confidence: {result.confidence_score}")

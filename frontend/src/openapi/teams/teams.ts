@@ -256,7 +256,7 @@ export const useTeamsCreateTeam = <TError = TeamsCreateTeam400,
  * @summary GetTeam
  */
 export const teamsIdGetTeam = (
-    id: unknown,
+    id: string,
  signal?: AbortSignal
 ) => {
       
@@ -270,14 +270,14 @@ export const teamsIdGetTeam = (
 
 
 
-export const getTeamsIdGetTeamQueryKey = (id?: unknown,) => {
+export const getTeamsIdGetTeamQueryKey = (id?: string,) => {
     return [
     `/teams/${id}`
     ] as const;
     }
 
     
-export const getTeamsIdGetTeamQueryOptions = <TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+export const getTeamsIdGetTeamQueryOptions = <TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -300,7 +300,7 @@ export type TeamsIdGetTeamQueryError = TeamsIdGetTeam400
 
 
 export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>> & Pick<
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof teamsIdGetTeam>>,
           TError,
@@ -310,7 +310,7 @@ export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTe
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>> & Pick<
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof teamsIdGetTeam>>,
           TError,
@@ -320,7 +320,7 @@ export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTe
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -328,7 +328,7 @@ export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTe
  */
 
 export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -343,7 +343,7 @@ export function useTeamsIdGetTeam<TData = Awaited<ReturnType<typeof teamsIdGetTe
 
 
 
-export const getTeamsIdGetTeamSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+export const getTeamsIdGetTeamSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -366,15 +366,15 @@ export type TeamsIdGetTeamSuspenseQueryError = TeamsIdGetTeam400
 
 
 export function useTeamsIdGetTeamSuspense<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTeamsIdGetTeamSuspense<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTeamsIdGetTeamSuspense<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -382,7 +382,7 @@ export function useTeamsIdGetTeamSuspense<TData = Awaited<ReturnType<typeof team
  */
 
 export function useTeamsIdGetTeamSuspense<TData = Awaited<ReturnType<typeof teamsIdGetTeam>>, TError = TeamsIdGetTeam400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof teamsIdGetTeam>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

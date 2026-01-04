@@ -100,7 +100,7 @@ async def test_responses_api() -> None:
                         logger.info(f"  Text: {json_text}")
 
                         result = msgspec.json.decode(json_text.encode(), type=SimpleSchema)
-                        logger.info(f"\n✓ Parsed result:")
+                        logger.info("\n✓ Parsed result:")
                         logger.info(f"  Summary: {result.summary}")
                         logger.info(f"  Number: {result.number}")
 
@@ -145,7 +145,7 @@ async def test_responses_api() -> None:
                         logger.info(f"  Text: {json_text}")
 
                         result = msgspec.json.decode(json_text.encode(), type=SimpleSchema)
-                        logger.info(f"\n✓ Parsed result:")
+                        logger.info("\n✓ Parsed result:")
                         logger.info(f"  Summary: {result.summary}")
                         logger.info(f"  Number: {result.number}")
 

@@ -46,7 +46,7 @@ import { customInstance } from '.././custom-instance';
  * @summary GetCampaign
  */
 export const campaignsIdGetCampaign = (
-    id: unknown,
+    id: string,
  signal?: AbortSignal
 ) => {
       
@@ -60,14 +60,14 @@ export const campaignsIdGetCampaign = (
 
 
 
-export const getCampaignsIdGetCampaignQueryKey = (id?: unknown,) => {
+export const getCampaignsIdGetCampaignQueryKey = (id?: string,) => {
     return [
     `/campaigns/${id}`
     ] as const;
     }
 
     
-export const getCampaignsIdGetCampaignQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+export const getCampaignsIdGetCampaignQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -90,7 +90,7 @@ export type CampaignsIdGetCampaignQueryError = CampaignsIdGetCampaign400
 
 
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof campaignsIdGetCampaign>>,
           TError,
@@ -100,7 +100,7 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof campaignsIdGetCampaign>>,
           TError,
@@ -110,7 +110,7 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -118,7 +118,7 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
  */
 
 export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -133,7 +133,7 @@ export function useCampaignsIdGetCampaign<TData = Awaited<ReturnType<typeof camp
 
 
 
-export const getCampaignsIdGetCampaignSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+export const getCampaignsIdGetCampaignSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -156,15 +156,15 @@ export type CampaignsIdGetCampaignSuspenseQueryError = CampaignsIdGetCampaign400
 
 
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -172,7 +172,7 @@ export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typ
  */
 
 export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError = CampaignsIdGetCampaign400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof campaignsIdGetCampaign>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -191,7 +191,7 @@ export function useCampaignsIdGetCampaignSuspense<TData = Awaited<ReturnType<typ
  * @summary UpdateCampaign
  */
 export const campaignsIdUpdateCampaign = (
-    id: unknown,
+    id: string,
     campaignUpdateSchema: CampaignUpdateSchema,
  signal?: AbortSignal
 ) => {
@@ -208,8 +208,8 @@ export const campaignsIdUpdateCampaign = (
 
 
 export const getCampaignsIdUpdateCampaignMutationOptions = <TError = CampaignsIdUpdateCampaign400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: unknown;data: CampaignUpdateSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: unknown;data: CampaignUpdateSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: CampaignUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: CampaignUpdateSchema}, TContext> => {
 
 const mutationKey = ['campaignsIdUpdateCampaign'];
 const {mutation: mutationOptions} = options ?
@@ -221,7 +221,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, {id: unknown;data: CampaignUpdateSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, {id: string;data: CampaignUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  campaignsIdUpdateCampaign(id,data,)
@@ -240,11 +240,11 @@ const {mutation: mutationOptions} = options ?
  * @summary UpdateCampaign
  */
 export const useCampaignsIdUpdateCampaign = <TError = CampaignsIdUpdateCampaign400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: unknown;data: CampaignUpdateSchema}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>, TError,{id: string;data: CampaignUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof campaignsIdUpdateCampaign>>,
         TError,
-        {id: unknown;data: CampaignUpdateSchema},
+        {id: string;data: CampaignUpdateSchema},
         TContext
       > => {
 

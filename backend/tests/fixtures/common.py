@@ -1,7 +1,6 @@
 """Common object fixtures for convenient testing."""
 
 import pytest
-from litestar.testing import AsyncTestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.factories.brands import BrandFactory

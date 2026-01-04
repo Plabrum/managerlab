@@ -125,7 +125,9 @@ export function CreateCampaignForm({
           <ObjectSearchCombobox
             objectType="brands"
             value={(value as string) || null}
-            onValueChange={(id) => onChange(id)}
+            onValueChange={(id) => {
+              if (id) onChange(id);
+            }}
             label="Brand"
             required
           />

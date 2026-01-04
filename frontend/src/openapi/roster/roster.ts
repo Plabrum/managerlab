@@ -43,7 +43,7 @@ import { customInstance } from '.././custom-instance';
  * @summary GetRoster
  */
 export const rosterIdGetRoster = (
-    id: unknown,
+    id: string,
  signal?: AbortSignal
 ) => {
       
@@ -57,14 +57,14 @@ export const rosterIdGetRoster = (
 
 
 
-export const getRosterIdGetRosterQueryKey = (id?: unknown,) => {
+export const getRosterIdGetRosterQueryKey = (id?: string,) => {
     return [
     `/roster/${id}`
     ] as const;
     }
 
     
-export const getRosterIdGetRosterQueryOptions = <TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+export const getRosterIdGetRosterQueryOptions = <TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -87,7 +87,7 @@ export type RosterIdGetRosterQueryError = RosterIdGetRoster400
 
 
 export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>> & Pick<
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof rosterIdGetRoster>>,
           TError,
@@ -97,7 +97,7 @@ export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdG
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>> & Pick<
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof rosterIdGetRoster>>,
           TError,
@@ -107,7 +107,7 @@ export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -115,7 +115,7 @@ export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdG
  */
 
 export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -130,7 +130,7 @@ export function useRosterIdGetRoster<TData = Awaited<ReturnType<typeof rosterIdG
 
 
 
-export const getRosterIdGetRosterSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+export const getRosterIdGetRosterSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -153,15 +153,15 @@ export type RosterIdGetRosterSuspenseQueryError = RosterIdGetRoster400
 
 
 export function useRosterIdGetRosterSuspense<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useRosterIdGetRosterSuspense<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useRosterIdGetRosterSuspense<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -169,7 +169,7 @@ export function useRosterIdGetRosterSuspense<TData = Awaited<ReturnType<typeof r
  */
 
 export function useRosterIdGetRosterSuspense<TData = Awaited<ReturnType<typeof rosterIdGetRoster>>, TError = RosterIdGetRoster400>(
- id: unknown, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof rosterIdGetRoster>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -188,7 +188,7 @@ export function useRosterIdGetRosterSuspense<TData = Awaited<ReturnType<typeof r
  * @summary UpdateRoster
  */
 export const rosterIdUpdateRoster = (
-    id: unknown,
+    id: string,
     rosterUpdateSchema: RosterUpdateSchema,
  signal?: AbortSignal
 ) => {
@@ -205,8 +205,8 @@ export const rosterIdUpdateRoster = (
 
 
 export const getRosterIdUpdateRosterMutationOptions = <TError = RosterIdUpdateRoster400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, TError,{id: unknown;data: RosterUpdateSchema}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, TError,{id: unknown;data: RosterUpdateSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, TError,{id: string;data: RosterUpdateSchema}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, TError,{id: string;data: RosterUpdateSchema}, TContext> => {
 
 const mutationKey = ['rosterIdUpdateRoster'];
 const {mutation: mutationOptions} = options ?
@@ -218,7 +218,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, {id: unknown;data: RosterUpdateSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, {id: string;data: RosterUpdateSchema}> = (props) => {
           const {id,data} = props ?? {};
 
           return  rosterIdUpdateRoster(id,data,)
@@ -237,11 +237,11 @@ const {mutation: mutationOptions} = options ?
  * @summary UpdateRoster
  */
 export const useRosterIdUpdateRoster = <TError = RosterIdUpdateRoster400,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, TError,{id: unknown;data: RosterUpdateSchema}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rosterIdUpdateRoster>>, TError,{id: string;data: RosterUpdateSchema}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof rosterIdUpdateRoster>>,
         TError,
-        {id: unknown;data: RosterUpdateSchema},
+        {id: string;data: RosterUpdateSchema},
         TContext
       > => {
 

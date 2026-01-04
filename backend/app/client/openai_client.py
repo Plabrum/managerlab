@@ -2,8 +2,9 @@
 
 import io
 import logging
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Annotated, AsyncIterator
+from typing import Annotated
 
 import msgspec
 from litestar.params import Dependency
