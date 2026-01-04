@@ -25,10 +25,12 @@ export function ColumnVisibilityDialog({
   open,
   onOpenChange,
 }: ColumnVisibilityDialogProps) {
-  // Count visible columns
-  const visibleCount = columns.filter(
-    (col) => columnVisibility[col.key] ?? true
-  ).length;
+  // Helper to get visibility for a column (uses default_visible if not explicitly set)
+  const getColumnVisibility = (col: ColumnDefinitionSchema): boolean =>
+    columnVisibility[col.key] ?? col.default_visible ?? false;
+
+  // Count visible columns using the same logic
+  const visibleCount = columns.filter((col) => getColumnVisibility(col)).length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -45,7 +47,7 @@ export function ColumnVisibilityDialog({
             <div key={col.key} className="flex items-center space-x-3">
               <Checkbox
                 id={`col-${col.key}`}
-                checked={columnVisibility[col.key] ?? true}
+                checked={getColumnVisibility(col)}
                 onCheckedChange={(checked) => {
                   onColumnVisibilityChange({
                     ...columnVisibility,
